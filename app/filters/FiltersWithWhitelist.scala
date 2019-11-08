@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package generators
+package filters
 
-import org.scalacheck.Arbitrary
-import pages._
+import javax.inject.Inject
+import play.api.http.DefaultHttpFilters
+import uk.gov.hmrc.play.bootstrap.filters.FrontendFilters
 
-trait PageGenerators {
-}
+class FiltersWithWhitelist @Inject()(
+                                      frontendFilters: FrontendFilters,
+                                      whitelistFilter: WhitelistFilter,
+                                      sessionIdFilter: SessionIdFilter
+                                    ) extends DefaultHttpFilters(frontendFilters.filters :+ whitelistFilter :+ sessionIdFilter: _*)
