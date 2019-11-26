@@ -17,12 +17,18 @@
 package config
 
 import com.google.inject.AbstractModule
+import com.google.inject.multibindings.Multibinder
 import controllers.actions._
+import navigators.Navigator
 import repositories.{DefaultSessionRepository, SessionRepository}
 
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
+
+    val navigators = Multibinder.newSetBinder(binder(), classOf[Navigator])
+    // TODO: Add new navigators here:-
+    //navigators.addBinding().to(classOf[NewNavigator])
 
     bind(classOf[DataRetrievalAction]).to(classOf[DataRetrievalActionImpl]).asEagerSingleton()
     bind(classOf[DataRequiredAction]).to(classOf[DataRequiredActionImpl]).asEagerSingleton()
