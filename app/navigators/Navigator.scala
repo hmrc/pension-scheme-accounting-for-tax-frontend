@@ -16,28 +16,23 @@
 
 package navigators
 
-import javax.inject.{Inject, Singleton}
-
-import play.api.mvc.Call
-import controllers.routes
-import pages._
+import identifiers.Identifier
 import models._
+import play.api.mvc.Call
+import uk.gov.hmrc.http.HeaderCarrier
 
-@Singleton
-class Navigator @Inject()() {
+import scala.concurrent.ExecutionContext
 
-  private val normalRoutes: Page => UserAnswers => Call = {
-    case _ => _ => routes.IndexController.onPageLoad()
-  }
+trait Navigator {
+  protected def routeMap(id: Identifier, userAnswers: UserAnswers): Option[Call]
 
-  private val checkRouteMap: Page => UserAnswers => Call = {
-    case _ => _ => routes.CheckYourAnswersController.onPageLoad()
-  }
+  protected def editRouteMap(id: Identifier, userAnswers: UserAnswers): Option[Call]
 
-  def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers): Call = mode match {
-    case NormalMode =>
-      normalRoutes(page)(userAnswers)
-    case CheckMode =>
-      checkRouteMap(page)(userAnswers)
+  def nextPageOptional(id: Identifier, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] =  {
+      mode match {
+        case NormalMode => routeMap(id, userAnswers)
+        case CheckMode => editRouteMap(id, userAnswers)
+      }
   }
 }

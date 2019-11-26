@@ -16,12 +16,19 @@
 
 package navigators
 
+import identifiers.Identifier
+import models.{Mode, UserAnswers}
 import play.api.mvc.Call
-import pages._
-import models.{Mode, NormalMode, UserAnswers}
+import uk.gov.hmrc.http.HeaderCarrier
 
-class FakeNavigator(desiredRoute: Call, mode: Mode = NormalMode) extends Navigator {
+import scala.concurrent.ExecutionContext
 
-  override def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers): Call =
-    desiredRoute
+class FakeNavigator(desiredRoute: Call) extends Navigator {
+  protected def routeMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = Option(desiredRoute)
+
+  protected def editRouteMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = Option(desiredRoute)
+
+  override def nextPageOptional(id: Identifier, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] =
+    Option(desiredRoute)
 }
