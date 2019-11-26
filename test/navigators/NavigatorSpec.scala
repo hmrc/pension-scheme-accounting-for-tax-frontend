@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package navigation
+package navigators
 
 import base.SpecBase
 import controllers.routes

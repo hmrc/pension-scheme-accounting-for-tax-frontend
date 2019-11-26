@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package navigation
+package navigators
 
 import play.api.mvc.Call
 import pages._

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package navigation
+package navigators
 
 import javax.inject.{Inject, Singleton}
 
