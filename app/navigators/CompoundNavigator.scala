@@ -17,8 +17,8 @@
 package navigators
 
 import com.google.inject.Inject
-import identifiers.Identifier
 import models.{Mode, UserAnswers}
+import pages.Page
 import play.api.mvc.Call
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -26,12 +26,12 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 trait CompoundNavigator {
-  def nextPageOptional(id: Identifier, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
+  def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
                                (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call]
 }
 
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
-  override def nextPageOptional(id: Identifier, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
+  override def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
                                (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] = {
     navigators.asScala.foldRight(Option.empty[Call]) {
       case (_, some: Some[Call]) => some

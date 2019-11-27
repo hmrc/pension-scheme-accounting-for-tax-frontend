@@ -16,19 +16,19 @@
 
 package navigators
 
-import identifiers.Identifier
 import models._
+import pages.Page
 import play.api.mvc.Call
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
 
 trait Navigator {
-  protected def routeMap(id: Identifier, userAnswers: UserAnswers): Option[Call]
+  protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call]
 
-  protected def editRouteMap(id: Identifier, userAnswers: UserAnswers): Option[Call]
+  protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call]
 
-  def nextPageOptional(id: Identifier, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+  def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] =  {
       mode match {
         case NormalMode => routeMap(id, userAnswers)

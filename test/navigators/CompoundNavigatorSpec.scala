@@ -17,8 +17,8 @@
 package navigators
 
 import base.SpecBase
-import identifiers.Identifier
 import models.{NormalMode, UserAnswers}
+import pages.Page
 import play.api.mvc.Call
 
 import scala.collection.JavaConverters._
@@ -28,12 +28,12 @@ class CompoundNavigatorSpec extends SpecBase {
 
   private def navigator(call: Option[Call]): Navigator =
     new Navigator {
-      override protected def routeMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = call
+      override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
 
-      override protected def editRouteMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = call
+      override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
     }
 
-  object TestIdentifier extends Identifier
+  object TestIdentifier extends Page
 
   "CompoundNavigator" must {
     "delegate to the bound Navigators" in {

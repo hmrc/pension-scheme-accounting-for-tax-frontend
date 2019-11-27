@@ -17,8 +17,8 @@
 package navigators
 
 import base.SpecBase
-import identifiers.Identifier
 import models._
+import pages.Page
 import play.api.mvc.Call
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,12 +28,12 @@ class NavigatorSpec extends SpecBase {
   private val call1 = Option(Call("GET","dest1"))
   private val call2 = Option(Call("GET","dest2"))
 
-  private case object DummyIdentifier extends Identifier
+  private case object DummyIdentifier extends Page
 
   private val dummyNavigator = new Navigator {
-    override protected def routeMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = call1
+    override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call1
 
-    override protected def editRouteMap(id: Identifier, userAnswers: UserAnswers): Option[Call] = call2
+    override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call2
   }
 
   "Navigator" when {
