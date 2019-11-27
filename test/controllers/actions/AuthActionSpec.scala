@@ -19,23 +19,74 @@ package controllers.actions
 import base.SpecBase
 import com.google.inject.Inject
 import controllers.routes
-import play.api.mvc.{BodyParsers, Results}
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatestplus.mockito.MockitoSugar
+import play.api.libs.json.Json
+import play.api.mvc.BodyParsers
+import play.api.mvc.Results._
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.auth.core.retrieve.{Retrieval, _}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthActionSpec extends SpecBase {
+class AuthActionSpec extends SpecBase with MockitoSugar {
 
   class Harness(authAction: IdentifierAction) {
-    def onPageLoad() = authAction { _ => Results.Ok }
+    def onPageLoad() = authAction {
+      implicit request =>
+        Ok(Json.obj("psaId" -> request.psaId, "identifier" -> request.identifier))
+    }
   }
 
   "Auth Action" when {
+
+    "the user has logged in and enrolled in PODS" must {
+
+      "have the psaId" in {
+
+        val authConnector = mock[AuthConnector]
+        val authAction = new AuthenticatedIdentifierAction(authConnector, frontendAppConfig, app.injector.instanceOf[BodyParsers.Default])
+        val controller = new Harness(authAction)
+
+        val enrolments = Enrolments(Set(
+          Enrolment("HMRC-PODS-ORG", Seq(
+            EnrolmentIdentifier("PSAID", "A0000000")
+          ), "Activated", None)
+        ))
+
+        when(authConnector.authorise[Option[String] ~ Enrolments](any(), any())(any(), any()))
+          .thenReturn(Future.successful(new ~(Some("internalId"), enrolments)))
+
+        val result = controller.onPageLoad()(fakeRequest)
+        status(result) mustBe OK
+        (contentAsJson(result) \ "psaId").asOpt[String].value mustEqual "A0000000"
+        (contentAsJson(result) \ "identifier").as[String] mustEqual "internalId"
+      }
+    }
+
+    "the user has logged in but not enrolled in PODS" must {
+
+      "redirect to unauthorised page" in {
+
+        val authConnector = mock[AuthConnector]
+        val authAction = new AuthenticatedIdentifierAction(authConnector, frontendAppConfig, app.injector.instanceOf[BodyParsers.Default])
+        val controller = new Harness(authAction)
+
+        val enrolments = Enrolments(Set())
+
+        when(authConnector.authorise[Option[String] ~ Enrolments](any(), any())(any(), any()))
+          .thenReturn(Future.successful(new ~(Some("internalId"), enrolments)))
+
+        val result = controller.onPageLoad()(fakeRequest)
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+      }
+    }
 
     "the user hasn't logged in" must {
 
