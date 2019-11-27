@@ -33,8 +33,6 @@ class CompoundNavigatorSpec extends SpecBase {
       override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
     }
 
-  object TestIdentifier extends Page
-
   "CompoundNavigator" must {
     "delegate to the bound Navigators" in {
       val navigators = Set(
@@ -43,6 +41,7 @@ class CompoundNavigatorSpec extends SpecBase {
         navigator(None)
       )
       val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
+      object TestIdentifier extends Page
       val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(userAnswersId), None)
       result mustEqual Option(Call("GET", "www.example.com/1"))
     }
