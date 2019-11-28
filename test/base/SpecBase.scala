@@ -28,22 +28,25 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience {
 
-  val userAnswersId = "id"
+  protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  def emptyUserAnswers = UserAnswers(userAnswersId, Json.obj())
+  protected val userAnswersId = "id"
 
-  def injector: Injector = app.injector
+  protected def emptyUserAnswers = UserAnswers(Json.obj())
 
-  def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
+  protected def injector: Injector = app.injector
 
-  def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
+  protected def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
 
-  def fakeRequest = FakeRequest("", "")
+  protected def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
 
-  implicit def messages: Messages = messagesApi.preferred(fakeRequest)
+  protected def fakeRequest = FakeRequest("", "")
+
+  protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()

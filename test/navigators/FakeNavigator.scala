@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package navigation
+package navigators
 
+import models.UserAnswers
+import pages.Page
 import play.api.mvc.Call
-import pages._
-import models.{Mode, NormalMode, UserAnswers}
 
-class FakeNavigator(desiredRoute: Call, mode: Mode = NormalMode) extends Navigator {
+class FakeNavigator(desiredRoute: Call) extends Navigator {
+  protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = Option(desiredRoute)
 
-  override def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers): Call =
-    desiredRoute
+  protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = Option(desiredRoute)
 }

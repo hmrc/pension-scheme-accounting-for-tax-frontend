@@ -18,9 +18,7 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
-import play.api.Application
 import play.api.http.Status
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
@@ -31,16 +29,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-  implicit lazy val app: Application = new GuiceApplicationBuilder()
-    .configure(conf = "microservice.services.pension-scheme-accounting-for-tax.port" -> server.port)
-    .build()
-  private lazy val connector: UserAnswersCacheConnector = app.injector.instanceOf[UserAnswersCacheConnector]
+  override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
-  private val cacheUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft/testId"
+  private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
+
+  private val cacheUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft"
 
   ".fetch" must {
 
-    "return `None` when the server returns NOT FOUND from the collection" in {
+    "return `None` when there is no data in the collection" in {
       server.stubFor(
         get(urlEqualTo(cacheUrl))
           .willReturn(
