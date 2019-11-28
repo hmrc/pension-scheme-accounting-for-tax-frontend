@@ -17,36 +17,33 @@
 package controllers.actions
 
 import base.SpecBase
-import models.UserAnswers
+import connectors.cache.UserAnswersCacheConnector
 import models.requests.{IdentifierRequest, OptionalDataRequest}
+import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import repositories.SessionRepository
+import play.api.libs.json.Json
 import uk.gov.hmrc.domain.PsaId
+import org.mockito.Matchers.{eq => eqTo, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutures {
 
-  private val defaultPsaId: PsaId = PsaId("A0000000")
-
-  class Harness(sessionRepository: SessionRepository) extends DataRetrievalActionImpl(sessionRepository) {
+  class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalActionImpl(dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 
   "Data Retrieval Action" when {
-
     "there is no data in the cache" must {
-
       "set userAnswers to 'None' in the request" in {
+        val dataCacheConnector = mock[UserAnswersCacheConnector]
+        when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future(None)
+        val action = new Harness(dataCacheConnector)
 
-        val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")) thenReturn Future(None)
-        val action = new Harness(sessionRepository)
-
-        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", defaultPsaId))
+        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isEmpty mustBe true
@@ -55,14 +52,12 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
     }
 
     "there is data in the cache" must {
-
       "build a userAnswers object and add it to the request" in {
+        val dataCacheConnector = mock[UserAnswersCacheConnector]
+        when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future.successful(Some(Json.obj()))
+        val action = new Harness(dataCacheConnector)
 
-        val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")) thenReturn Future(Some(new UserAnswers("id")))
-        val action = new Harness(sessionRepository)
-
-        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", defaultPsaId))
+        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true
