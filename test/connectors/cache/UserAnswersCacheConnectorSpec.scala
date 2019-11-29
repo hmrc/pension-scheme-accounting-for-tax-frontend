@@ -29,17 +29,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
+
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
-
-  private val cacheUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft"
+  private val aftReturnUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft"
 
   ".fetch" must {
 
     "return `None` when there is no data in the collection" in {
       server.stubFor(
-        get(urlEqualTo(cacheUrl))
+        get(urlEqualTo(aftReturnUrl))
           .willReturn(
             notFound
           )
@@ -53,22 +53,21 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
 
     "return data if data is present in the collection" in {
       server.stubFor(
-        get(urlEqualTo(cacheUrl))
+        get(urlEqualTo(aftReturnUrl))
           .willReturn(
-            ok(Json.obj("testId" -> "data").toString())
+            ok(Json.obj(fields = "testId" -> "data").toString())
           )
       )
 
       connector.fetch(cacheId = "testId") map {
         result =>
-          result.value mustEqual Json.obj("testId" -> "data")
+          result.value mustEqual Json.obj(fields = "testId" -> "data")
       }
     }
 
     "return a failed future on upstream error" in {
-
       server.stubFor(
-        get(urlEqualTo(cacheUrl))
+        get(urlEqualTo(aftReturnUrl))
           .willReturn(
             serverError
           )
@@ -83,18 +82,13 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   }
 
   ".save" must {
-
+    val json = Json.obj(
+      fields = "fake-identifier" -> "foobar"
+    )
     "save the data in the collection" in {
-
-      val json = Json.obj(
-        fields = "fake-identifier" -> "foobar"
-      )
-
-      val value = Json.stringify(json)
-
       server.stubFor(
-        post(urlEqualTo(cacheUrl))
-          .withRequestBody(equalTo(value))
+        post(urlEqualTo(aftReturnUrl))
+          .withRequestBody(equalTo(Json.stringify(json)))
           .willReturn(
             ok
           )
@@ -104,17 +98,28 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
         _ mustEqual json
       }
     }
+
+    "return a failed future on upstream error" in {
+
+      server.stubFor(
+        post(urlEqualTo(aftReturnUrl))
+          .withRequestBody(equalTo(Json.stringify(json)))
+          .willReturn(
+            serverError()
+          )
+      )
+      recoverToExceptionIf[HttpException] {
+        connector.save(cacheId = "testId", json)
+      } map {
+        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+      }
+    }
   }
 
   ".removeAll" must {
-    "remove all the data from the collection" in {
-      val json = Json.obj(
-        fields = "test-Id" -> "fake value",
-        "other-key" -> "fake value"
-      )
-      val value = Json.stringify(json)
 
-      server.stubFor(delete(urlEqualTo(cacheUrl)).
+    "return OK after removing all the data from the collection" in {
+      server.stubFor(delete(urlEqualTo(aftReturnUrl)).
         willReturn(ok)
       )
       connector.removeAll(cacheId = "testId").map {

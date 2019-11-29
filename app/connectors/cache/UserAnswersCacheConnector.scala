@@ -83,10 +83,7 @@ trait UserAnswersCacheConnector {
 
   protected def url: String
 
-  def fetch(cacheId: String)(implicit
-                             ec: ExecutionContext,
-                             hc: HeaderCarrier
-  ): Future[Option[JsValue]]
+  def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 

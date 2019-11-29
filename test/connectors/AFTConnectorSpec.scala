@@ -21,7 +21,7 @@ import models.UserAnswers
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
+import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -67,6 +67,38 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
         connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+
+    "return NOT FOUND when the backend has returned NotFoundException" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      recoverToExceptionIf[NotFoundException] {
+        connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))
+      } map {
+        _.responseCode mustEqual Status.NOT_FOUND
+      }
+    }
+
+    "return Upstream5xxResponse when the backend has returned Internal Server Error" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        post(urlEqualTo(aftSubmitUrl))
+          .withRequestBody(equalTo(Json.stringify(data)))
+          .willReturn(
+            serverError()
+          )
+      )
+
+      recoverToExceptionIf[Upstream5xxResponse](connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))) map {
+        _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
   }
