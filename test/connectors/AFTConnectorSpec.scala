@@ -26,14 +26,14 @@ import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
+class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
-
+  private val pstr = "test-pstr"
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/submitAftReturn"
 
   ".submitAFTReturn" must {
@@ -48,7 +48,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data)) map {
+      connector.submitAFTReturn(pstr, UserAnswers(data)) map {
         _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
@@ -64,7 +64,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))
+        connector.submitAFTReturn(pstr, UserAnswers(data))
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -81,7 +81,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[NotFoundException] {
-        connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))
+        connector.submitAFTReturn(pstr, UserAnswers(data))
       } map {
         _.responseCode mustEqual Status.NOT_FOUND
       }
@@ -97,7 +97,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse](connector.submitAFTReturn(pstr = "testPstr", UserAnswers(data))) map {
+      recoverToExceptionIf[Upstream5xxResponse](connector.submitAFTReturn(pstr, UserAnswers(data))) map {
         _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
