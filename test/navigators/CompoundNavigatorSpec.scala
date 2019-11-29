@@ -19,6 +19,7 @@ package navigators
 import base.SpecBase
 import models.{NormalMode, UserAnswers}
 import pages.Page
+import play.api.libs.json.Json
 import play.api.mvc.Call
 
 import scala.collection.JavaConverters._
@@ -42,7 +43,7 @@ class CompoundNavigatorSpec extends SpecBase {
       )
       val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
       object TestIdentifier extends Page
-      val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(userAnswersId), None)
+      val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(Json.obj()), None)
       result mustEqual Option(Call("GET", "www.example.com/1"))
     }
   }

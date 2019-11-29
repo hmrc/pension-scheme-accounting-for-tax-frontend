@@ -19,6 +19,7 @@ package navigators
 import base.SpecBase
 import models._
 import pages.Page
+import play.api.libs.json.Json
 import play.api.mvc.Call
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,13 +40,13 @@ class NavigatorSpec extends SpecBase {
   "Navigator" when {
     "in Normal mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(DummyIdentifier, NormalMode, UserAnswers(userAnswersId)) mustBe call1
+        dummyNavigator.nextPageOptional(DummyIdentifier, NormalMode, UserAnswers(Json.obj())) mustBe call1
       }
     }
 
     "in Check mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(DummyIdentifier, CheckMode, UserAnswers(userAnswersId)) mustBe call2
+        dummyNavigator.nextPageOptional(DummyIdentifier, CheckMode, UserAnswers(Json.obj())) mustBe call2
       }
     }
   }

@@ -18,9 +18,9 @@ package config
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
+import connectors.cache.{UserAnswersCacheConnector, UserAnswersCacheConnectorImpl}
 import controllers.actions._
 import navigators.{CompoundNavigator, CompoundNavigatorImpl, Navigator}
-import repositories.{DefaultSessionRepository, SessionRepository}
 
 class Module extends AbstractModule {
 
@@ -38,6 +38,6 @@ class Module extends AbstractModule {
     // For session based storage instead of cred based, change to SessionIdentifierAction
     bind(classOf[IdentifierAction]).to(classOf[AuthenticatedIdentifierAction]).asEagerSingleton()
 
-    bind(classOf[SessionRepository]).to(classOf[DefaultSessionRepository]).asEagerSingleton()
+    bind(classOf[UserAnswersCacheConnector]).to(classOf[UserAnswersCacheConnectorImpl]).asEagerSingleton()
   }
 }

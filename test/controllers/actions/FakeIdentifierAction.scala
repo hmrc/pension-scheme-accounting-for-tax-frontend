@@ -19,13 +19,16 @@ package controllers.actions
 import javax.inject.Inject
 import models.requests.IdentifierRequest
 import play.api.mvc._
+import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends IdentifierAction {
 
+  private val defaultPsaId: String = "A0000000"
+
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] =
-    block(IdentifierRequest(request, "id"))
+    block(IdentifierRequest(request, "id", PsaId(defaultPsaId)))
 
   override def parser: BodyParser[AnyContent] =
     bodyParsers.default
