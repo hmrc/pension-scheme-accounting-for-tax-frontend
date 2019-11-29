@@ -38,7 +38,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val authUrl: String = configuration.get[Service]("auth").baseUrl
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
-  lazy val submitAftReturn: String = s"$aftUrl${configuration.get[String](path = "urls.submitAftReturn")}"
+  lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
   lazy val loginUrl: String = configuration.get[String]("urls.login")
   lazy val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
 

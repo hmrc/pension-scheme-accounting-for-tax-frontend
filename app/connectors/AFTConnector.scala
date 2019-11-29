@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.UserAnswers
 import play.api.libs.json.JsObject
@@ -25,16 +25,10 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@ImplementedBy(classOf[AFTConnectorImpl])
-trait AFTConnector {
+class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
 
-  def submitAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit]
-}
-
-class AFTConnectorImpl @Inject()(http: HttpClient, config: FrontendAppConfig) extends AFTConnector {
-
-  override def submitAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
-    val url = config.submitAftReturn
+  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+    val url = config.aftFileReturn
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
   }
