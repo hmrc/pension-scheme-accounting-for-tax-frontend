@@ -32,7 +32,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class whatYouWillNeedController @Inject()(
+class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,

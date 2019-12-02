@@ -14,7 +14,7 @@ GET        /unauthorised                                                    cont
 
 GET        /accessibility-statement                                         controllers.AccessibilityController.onPageLoad
 
-GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.chargeF.whatYouWillNeedController.onPageLoad(srn: String)
+GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET        /:srn/new-return/de-registration-charge/charge-details                  controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
 POST       /:srn/new-return/de-registration-charge/charge-details                  controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
