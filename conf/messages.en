@@ -10,9 +10,9 @@ site.edit.hidden = Change {0}
 site.no = No
 site.yes = Yes
 site.continue = Continue
-site.service_name = pension-scheme-accounting-for-tax-frontend
+site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
-site.title.suffix = - pension-scheme-accounting-for-tax-frontend - GOV.UK
+site.title.suffix = - managing-pension schemes - GOV.UK
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
