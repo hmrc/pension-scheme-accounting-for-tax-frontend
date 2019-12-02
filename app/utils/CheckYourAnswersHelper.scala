@@ -29,11 +29,26 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def test: Option[Row] = userAnswers.get(TestPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"test.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.format(dateFormatter))),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.TestController.onPageLoad(CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"test.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def chargeDetails: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(
         key     = Key(msg"chargeDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(Literal(answer.format(dateFormatter))),
+        value   = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
         actions = List(
           Action(
             content            = msg"site.edit",

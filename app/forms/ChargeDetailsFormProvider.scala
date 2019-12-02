@@ -16,8 +16,6 @@
 
 package forms
 
-import java.time.LocalDate
-
 import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
@@ -28,11 +26,15 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
 
   def apply(): Form[ChargeDetails] =
     Form(mapping(
-      "value" -> localDate(
+      "deregistrationDate" -> localDate(
         invalidKey = "chargeDetails.error.invalid",
         allRequiredKey = "chargeDetails.error.required.all",
         twoRequiredKey = "chargeDetails.error.required.two",
         requiredKey = "chargeDetails.error.required"
+      ),
+      "amountTaxDue" -> bigDecimal(
+        "chargeDetails.error.required",
+        "chargeDetails.error.invalid"
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

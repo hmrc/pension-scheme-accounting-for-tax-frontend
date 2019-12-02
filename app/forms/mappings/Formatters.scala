@@ -20,6 +20,7 @@ import play.api.data.FormError
 import play.api.data.format.Formatter
 import models.Enumerable
 
+import scala.util.{Failure, Success, Try}
 import scala.util.control.Exception.nonFatalCatch
 
 trait Formatters {
@@ -74,6 +75,29 @@ trait Formatters {
         }
 
       override def unbind(key: String, value: Int) =
+        baseFormatter.unbind(key, value.toString)
+    }
+
+  private[mappings] def bigDecimalFormatter(requiredKey: String,
+                                            invalidKey: String, args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
+    new Formatter[BigDecimal] {
+
+      val decimalRegexp = """^-?(\d*\.\d*)$"""
+
+      private val baseFormatter = stringFormatter(requiredKey)
+
+      override def bind(key: String, data: Map[String, String]) =
+        baseFormatter
+          .bind(key, data)
+          .right.map(_.replace(",", ""))
+          .right.flatMap { s =>
+            Try(BigDecimal(s)) match {
+              case Success(x) => Right(x)
+              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+            }
+        }
+
+      override def unbind(key: String, value: BigDecimal) =
         baseFormatter.unbind(key, value.toString)
     }
 

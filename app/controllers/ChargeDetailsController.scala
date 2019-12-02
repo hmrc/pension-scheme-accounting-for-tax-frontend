@@ -23,7 +23,7 @@ import javax.inject.Inject
 import models.{Mode, UserAnswers}
 import models.chargeF.ChargeDetails
 import navigators.{CompoundNavigator, Navigator}
-import pages.ChargeDetailsPage
+import pages.{ChargeDetailsPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -53,44 +53,50 @@ class ChargeDetailsController @Inject()(
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
 
       val preparedForm = ua.get(ChargeDetailsPage) match {
-        case Some(value) => form.fill(ChargeDetails(value))
+        case Some(value) => form.fill(value)
         case None        => form
       }
 
-      println("\n\n\n "+preparedForm)
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
 
-      val viewModel = DateInput.localDate(preparedForm("value"))
+      val viewModel = DateInput.localDate(preparedForm("deregistrationDate"))
 
       val json = Json.obj(
         "form" -> preparedForm,
-        "date" -> viewModel
+        "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
+        "date" -> viewModel,
+        "schemeName" -> schemeName
       )
 
-      renderer.render("chargeDetails.njk", json).map(Ok(_))
+      renderer.render(template = "chargeDetails.njk", json).map(Ok(_))
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
 
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
 
       form.bindFromRequest().fold(
         formWithErrors =>  {
 
-          val viewModel = DateInput.localDate(formWithErrors("value"))
+          val viewModel = DateInput.localDate(formWithErrors("deregistrationDate"))
 
           val json = Json.obj(
             "form" -> formWithErrors,
-            "date" -> viewModel
+            "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
+            "date" -> viewModel,
+            "schemeName" -> schemeName
           )
 
           renderer.render("chargeDetails.njk", json).map(BadRequest(_))
         },
-        value =>
+        value => {
           for {
-            updatedAnswers <- Future.fromTry(ua.set(ChargeDetailsPage, value.deRegistrationDate))
-            _              <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+            updatedAnswers <- Future.fromTry(ua.set(ChargeDetailsPage, value))
+            _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers))
+        }
       )
   }
 }

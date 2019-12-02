@@ -16,14 +16,12 @@
 
 package pages
 
-import java.time.LocalDate
-
-import models.chargeF.ChargeDetails
 import play.api.libs.json.JsPath
+import queries.Gettable
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
+case object SchemeNameQuery extends QuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "chargeDetails"
+  override def toString: String = "schemeName"
 }

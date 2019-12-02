@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeF
 
-import java.time.LocalDate
+import pages.Page
 
-import models.chargeF.ChargeDetails
-import play.api.libs.json.JsPath
-
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "chargeDetails"
-}
+case object WhatYouWillNeedPage extends Page

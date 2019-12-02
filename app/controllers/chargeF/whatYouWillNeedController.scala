@@ -17,15 +17,20 @@
 package controllers.chargeF
 
 import connectors.SchemeDetailsConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.{NormalMode, UserAnswers}
+import navigators.CompoundNavigator
+import pages.SchemeNameQuery
+import pages.chargeF.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class whatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
@@ -34,15 +39,21 @@ class whatYouWillNeedController @Inject()(
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer,
-                                           schemeDetailsConnector: SchemeDetailsConnector
+                                           schemeDetailsConnector: SchemeDetailsConnector,
+                                           userAnswersCacheConnector: UserAnswersCacheConnector,
+                                           navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
+      val ua = request.userAnswers.getOrElse(UserAnswers())
       schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
-
-        renderer.render(template = "chargeF/whatYouWillNeed.njk",
-          Json.obj("schemeName" -> schemeName)).map(Ok(_))
+        Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
+          userAnswersCacheConnector.save(request.internalId, answers.data)
+          val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua)
+          renderer.render(template = "chargeF/whatYouWillNeed.njk",
+            Json.obj("schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        }
       }
   }
 }

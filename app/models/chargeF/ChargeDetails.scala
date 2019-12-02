@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json}
 
-case class ChargeDetails(deRegistrationDate: LocalDate)
+case class ChargeDetails(deRegistrationDate: LocalDate, amountTaxDue: BigDecimal)
 object ChargeDetails {
   implicit val formats: Format[ChargeDetails] = Json.format[ChargeDetails]
 }

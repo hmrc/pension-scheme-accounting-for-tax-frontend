@@ -5,6 +5,7 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block pageTitle %}
   {{ title(messages("chargeDetails.title"), form.errors) }}
@@ -15,6 +16,7 @@
   {{ govukBackLink({
     text: messages("site.back")
   }) }}
+
 
   <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
@@ -27,24 +29,38 @@
           }) }}
         {% endif %}
 
-        <form action="{{ routes.controllers.ChargeDetailsController.onSubmit(mode).url }}" method="post">
+        <h1 class="govuk-heading-xl">{{messages('chargeDetails.heading')}}</h1>
+
+        <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
           {{ govukDateInput({
+            id: "deregistrationDate",
             fieldset: {
               legend: {
-                text: messages('chargeDetails.title'),
-                isPageHeading: true,
-                classes: "govuk-fieldset__legend--xl"
+                text: messages('chargeDetails.date.label'),
+                isPageHeading: false,
+                classes: "govuk-fieldset__legend--s"
               }
-            },
-            hint: {
-              text: messages('chargeDetails.hint')
             },
             errorMessage: date.error,
             items: date.items
           }) }}
+
+          {{ govukInput({
+                                label: {
+                                  text: messages('chargeDetails.amount.label'),
+                                  isPageHeading: false,
+                                  classes: "govuk-form-label--s"
+                                },
+                                id: "amountTaxDue",
+                                name: "amountTaxDue",
+                                type: "text",
+                                value: form.amountTaxDue.value,
+                                classes: "govuk-input--width-10",
+                                errorMessage: form.amountTaxDue.error
+                              }) }}
 
           {{ govukButton({
             text: messages("site.continue")
@@ -55,5 +71,7 @@
       </div>
     </div>
   </div>
+
+   <a href="#" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 
 {% endblock %}

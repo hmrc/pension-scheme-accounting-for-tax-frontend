@@ -40,13 +40,11 @@
           <li>{{ messages("whatYouWillNeed.li2") }}</li>
         </ul>
 
-        {{ govukButton({
-          text: "Continue"
-        }) }}
+        <a href="#" class="govuk-button">{{ messages("site.continue") }}</a>
       </div>
     </div>
   </div>
 
-  <a href="#" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+  <a href = nextPage class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 
 {% endblock %}
