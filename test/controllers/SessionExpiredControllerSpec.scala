@@ -17,15 +17,23 @@
 package controllers
 
 import base.SpecBase
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import views.html.SessionExpiredView
+import play.twirl.api.Html
+
+import scala.concurrent.Future
 
 class SessionExpiredControllerSpec extends SpecBase {
 
-  "SessionExpired Controller" must {
+  "Session Expired Controller" must {
 
-    "return OK and the correct view for a GET" in {
+    "must return OK and the correct view for a GET" in {
+
+      when(mockRenderer.render(any(), any())(any()))
+        .thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = None).build()
 
@@ -33,12 +41,13 @@ class SessionExpiredControllerSpec extends SpecBase {
 
       val result = route(application, request).value
 
-      val view = application.injector.instanceOf[SessionExpiredView]
-
       status(result) mustEqual OK
 
-      contentAsString(result) mustEqual
-        view()(fakeRequest, messages).toString
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+      templateCaptor.getValue mustEqual "session-expired.njk"
 
       application.stop()
     }

@@ -21,6 +21,7 @@ import controllers.actions._
 import models.UserAnswers
 import org.scalatest.TryValues
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
@@ -29,8 +30,9 @@ import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
-trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience {
+trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar {
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -45,6 +47,8 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
   protected def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
 
   protected def fakeRequest = FakeRequest("", "")
+
+  val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
