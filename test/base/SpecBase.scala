@@ -19,7 +19,8 @@ package base
 import config.FrontendAppConfig
 import controllers.actions._
 import models.UserAnswers
-import org.scalatest.TryValues
+import org.mockito.Mockito
+import org.scalatest.{BeforeAndAfterEach, TryValues}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -32,7 +33,11 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
-trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar {
+trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar with BeforeAndAfterEach {
+
+  override def beforeEach {
+    Mockito.reset(mockRenderer)
+  }
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -57,6 +62,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers))
+        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+        bind[NunjucksRenderer].toInstance(mockRenderer)
       )
 }
