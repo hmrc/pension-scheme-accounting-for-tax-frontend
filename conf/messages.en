@@ -129,3 +129,13 @@ compliant.nine.p2.1=The service was built using parts that were tested by the
 compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
+
+whatYouWillNeed.title = De-registration charge
+whatYouWillNeed.heading = De-registration charge
+whatYouWillNeed.p1 = To record a de-registration charge you will need:
+whatYouWillNeed.li1 = the date that the scheme was de-registered
+whatYouWillNeed.li2 = the amount of tax due at 40%
+return.to.link = Return to {0}
+
+
+

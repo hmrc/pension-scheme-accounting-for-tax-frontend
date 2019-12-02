@@ -1,0 +1,52 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/header/macro.njk" import govukHeader %}
+ {% from "govuk/components/button/macro.njk" import govukButton %}
+ {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+
+
+{{ govukHeader({
+  homepageUrl: "#",
+  serviceName: "Managing pension schemes",
+  serviceUrl: "#"
+}) }}
+
+{% block pageTitle %}
+  {{ title(messages("whatYouWillNeed.title")) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+{{ govukBackLink({
+          text: "Back",
+          href: "#"
+        }) }}
+
+  <div class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("whatYouWillNeed.heading") }}
+        </h1>
+
+        <p class="govuk-body">
+        {{ messages("whatYouWillNeed.p1") }}
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>{{ messages("whatYouWillNeed.li1") }}</li>
+          <li>{{ messages("whatYouWillNeed.li2") }}</li>
+        </ul>
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+      </div>
+    </div>
+  </div>
+
+  <a href="#" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+
+{% endblock %}
