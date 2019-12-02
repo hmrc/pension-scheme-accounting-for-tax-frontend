@@ -16,6 +16,7 @@
 
 package controllers
 
+import connectors.SchemeDetailsConnector
 import controllers.actions._
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,18 +28,21 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import scala.concurrent.ExecutionContext
 
 class whatYouWillNeedController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+                                           override val messagesApi: MessagesApi,
+                                           identify: IdentifierAction,
+                                           getData: DataRetrievalAction,
+                                           requireData: DataRequiredAction,
+                                           val controllerComponents: MessagesControllerComponents,
+                                           renderer: Renderer,
+                                           schemeDetailsConnector: SchemeDetailsConnector
+                                         )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
+      schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
 
-      renderer.render("whatYouWillNeed.njk",
-        Json.obj("schemeName" -> "Blaa")).map(Ok(_))
+        renderer.render("whatYouWillNeed.njk",
+          Json.obj("schemeName" -> schemeName)).map(Ok(_))
+      }
   }
 }

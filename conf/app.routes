@@ -1,17 +1,17 @@
 # microservice specific routes
 
-GET        /                                            controllers.IndexController.onPageLoad
+GET        /                                                                controllers.IndexController.onPageLoad
 
-GET        /assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
+GET        /assets/*file                                                    controllers.Assets.versioned(path="/public", file: Asset)
 
-GET        /language/:lang                              controllers.LanguageSwitchController.switchToLanguage(lang: String)
+GET        /language/:lang                                                  controllers.LanguageSwitchController.switchToLanguage(lang: String)
 
-GET        /this-service-has-been-reset                 controllers.SessionExpiredController.onPageLoad
+GET        /this-service-has-been-reset                                     controllers.SessionExpiredController.onPageLoad
 
-GET        /check-your-answers                          controllers.CheckYourAnswersController.onPageLoad
+GET        /check-your-answers                                              controllers.CheckYourAnswersController.onPageLoad
 
-GET        /unauthorised                                controllers.UnauthorisedController.onPageLoad
+GET        /unauthorised                                                    controllers.UnauthorisedController.onPageLoad
 
-GET        /accessibility-statement                     controllers.AccessibilityController.onPageLoad
+GET        /accessibility-statement                                         controllers.AccessibilityController.onPageLoad
 
-GET        /whatYouWillNeed                       controllers.whatYouWillNeedController.onPageLoad()
+GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.whatYouWillNeedController.onPageLoad(srn: String)
