@@ -14,4 +14,4 @@ GET        /unauthorised                                                    cont
 
 GET        /accessibility-statement                                         controllers.AccessibilityController.onPageLoad
 
-GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.whatYouWillNeedController.onPageLoad(srn: String)
+GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.chargeF.whatYouWillNeedController.onPageLoad(srn: String)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import connectors.SchemeDetailsConnector
 import controllers.actions._
@@ -41,7 +41,7 @@ class whatYouWillNeedController @Inject()(
     implicit request =>
       schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
 
-        renderer.render("whatYouWillNeed.njk",
+        renderer.render(template = "chargeF/whatYouWillNeed.njk",
           Json.obj("schemeName" -> schemeName)).map(Ok(_))
       }
   }
