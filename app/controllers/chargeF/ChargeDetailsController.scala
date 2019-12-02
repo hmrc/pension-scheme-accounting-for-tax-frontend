@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.{Mode, UserAnswers}
-import models.chargeF.ChargeDetails
-import navigators.{CompoundNavigator, Navigator}
+import navigators.CompoundNavigator
 import pages.{ChargeDetailsPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -42,6 +42,7 @@ class ChargeDetailsController @Inject()(
                                          requireData: DataRequiredAction,
                                          formProvider: ChargeDetailsFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
+                                         config:FrontendAppConfig,
                                          renderer: Renderer
 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
@@ -64,11 +65,12 @@ class ChargeDetailsController @Inject()(
       val json = Json.obj(
         "form" -> preparedForm,
         "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
+        "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
         "date" -> viewModel,
         "schemeName" -> schemeName
       )
 
-      renderer.render(template = "chargeDetails.njk", json).map(Ok(_))
+      renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
@@ -85,11 +87,12 @@ class ChargeDetailsController @Inject()(
           val json = Json.obj(
             "form" -> formWithErrors,
             "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
+            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
             "date" -> viewModel,
             "schemeName" -> schemeName
           )
 
-          renderer.render("chargeDetails.njk", json).map(BadRequest(_))
+          renderer.render("chargeF/chargeDetails.njk", json).map(BadRequest(_))
         },
         value => {
           for {

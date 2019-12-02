@@ -6,11 +6,11 @@ echo "Applying migration ChargeDetails"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /chargeDetails                  controllers.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode)" >> ../conf/app.routes
-echo "POST       /chargeDetails                  controllers.ChargeDetailsController.onSubmit(mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /chargeDetails                  controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "POST       /chargeDetails                  controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /changeChargeDetails                        controllers.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode)" >> ../conf/app.routes
-echo "POST       /changeChargeDetails                        controllers.ChargeDetailsController.onSubmit(mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /changeChargeDetails                        controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "POST       /changeChargeDetails                        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

@@ -16,7 +16,7 @@ GET        /accessibility-statement                                         cont
 
 GET        /:srn/new-return/de-registration-charge/what-you-will-need       controllers.chargeF.whatYouWillNeedController.onPageLoad(srn: String)
 
-GET        /:srn/new-return/de-registration-charge/charge-details                  controllers.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST       /:srn/new-return/de-registration-charge/charge-details                  controllers.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET        /:srn/new-return/de-registration-charge/change/charge-details                        controllers.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST       /:srn/new-return/de-registration-charge/change/charge-details                        controllers.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET        /:srn/new-return/de-registration-charge/charge-details                  controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/de-registration-charge/charge-details                  controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/de-registration-charge/change/charge-details                        controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/de-registration-charge/change/charge-details                        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
