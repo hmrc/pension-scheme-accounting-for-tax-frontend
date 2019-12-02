@@ -25,7 +25,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
                            maxLength: Int,
                            lengthError: FormError): Unit = {
 
-    s"not bind strings longer than $maxLength characters" in {
+    s"must not bind strings longer than $maxLength characters" in {
 
       forAll(stringsLongerThan(maxLength) -> "longString") {
         string =>

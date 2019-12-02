@@ -21,25 +21,28 @@ import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalatest.{MustMatchers, OptionValues, TryValues, WordSpec}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, TryValues}
 import pages.QuestionPage
 import play.api.libs.json._
 
-trait PageBehaviours extends WordSpec with MustMatchers with ScalaCheckPropertyChecks with Generators with OptionValues with TryValues {
+trait PageBehaviours extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with Generators with OptionValues with TryValues {
 
   class BeRetrievable[A] {
     def apply[P <: QuestionPage[A]](genP: Gen[P])(implicit ev1: Arbitrary[A], ev2: Format[A]): Unit = {
 
-      "return None" when {
+      import models.RichJsObject
 
-        "being retrieved from UserAnswers" when {
+      "must return None" - {
 
-          "the question has not been answered" in {
+        "when being retrieved from UserAnswers" - {
 
-            val gen = for {
+          "and the question has not been answered" in {
+
+            val gen: Gen[(P, UserAnswers)] = for {
               page        <- genP
               userAnswers <- arbitrary[UserAnswers]
-            } yield (page, userAnswers.remove(page).success.value)
+              json        =  userAnswers.data.removeObject(page.path).asOpt.getOrElse(userAnswers.data)
+            } yield (page, userAnswers.copy(data = json))
 
             forAll(gen) {
               case (page, userAnswers) =>
@@ -50,17 +53,18 @@ trait PageBehaviours extends WordSpec with MustMatchers with ScalaCheckPropertyC
         }
       }
 
-      "return the saved value" when {
+      "must return the saved value" - {
 
-        "being retrieved from UserAnswers" when {
+        "when being retrieved from UserAnswers" - {
 
-          "the question has been answered" in {
+          "and the question has been answered" in {
 
             val gen = for {
               page        <- genP
               savedValue  <- arbitrary[A]
               userAnswers <- arbitrary[UserAnswers]
-            } yield (page, savedValue, userAnswers.set(page, savedValue).success.value)
+              json        =  userAnswers.data.setObject(page.path, Json.toJson(savedValue)).asOpt.value
+            } yield (page, savedValue, userAnswers.copy(data = json))
 
             forAll(gen) {
               case (page, savedValue, userAnswers) =>
@@ -76,7 +80,7 @@ trait PageBehaviours extends WordSpec with MustMatchers with ScalaCheckPropertyC
   class BeSettable[A] {
     def apply[P <: QuestionPage[A]](genP: Gen[P])(implicit ev1: Arbitrary[A], ev2: Format[A]): Unit = {
 
-      "be able to be set on UserAnswers" in {
+      "must be able to be set on UserAnswers" in {
 
         val gen = for {
           page        <- genP
@@ -97,7 +101,7 @@ trait PageBehaviours extends WordSpec with MustMatchers with ScalaCheckPropertyC
   class BeRemovable[A] {
     def apply[P <: QuestionPage[A]](genP: Gen[P])(implicit ev1: Arbitrary[A], ev2: Format[A]): Unit = {
 
-      "be able to be removed from UserAnswers" in {
+      "must be able to be removed from UserAnswers" in {
 
         val gen = for {
           page        <- genP
