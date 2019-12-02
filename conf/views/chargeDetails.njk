@@ -13,12 +13,6 @@
 
 {% block mainContent %}
 
-  {{ govukBackLink({
-    text: messages("site.back")
-  }) }}
-
-
-  <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
@@ -49,18 +43,18 @@
           }) }}
 
           {{ govukInput({
-                                label: {
-                                  text: messages('chargeDetails.amount.label'),
-                                  isPageHeading: false,
-                                  classes: "govuk-form-label--s"
-                                },
-                                id: "amountTaxDue",
-                                name: "amountTaxDue",
-                                type: "text",
-                                value: form.amountTaxDue.value,
-                                classes: "govuk-input--width-10",
-                                errorMessage: form.amountTaxDue.error
-                              }) }}
+            id: "amountTaxDue",
+            label: {
+              text: messages('chargeDetails.amount.label'),
+              isPageHeading: false,
+              classes: "govuk-form-label--s"
+            },
+            name: "amountTaxDue",
+            type: "text",
+            value: form.amountTaxDue.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.amountTaxDue.error
+          }) }}
 
           {{ govukButton({
             text: messages("site.continue")
@@ -70,7 +64,6 @@
 
       </div>
     </div>
-  </div>
 
    <a href="#" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 

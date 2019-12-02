@@ -50,7 +50,8 @@ class whatYouWillNeedController @Inject()(
       schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
         Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
           userAnswersCacheConnector.save(request.internalId, answers.data)
-          val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua)
+          val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+          println( "\n>>>>" + nextPage)
           renderer.render(template = "chargeF/whatYouWillNeed.njk",
             Json.obj("schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
         }

@@ -95,7 +95,7 @@ class ChargeDetailsController @Inject()(
           for {
             updatedAnswers <- Future.fromTry(ua.set(ChargeDetailsPage, value))
             _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers))
+          } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
         }
       )
   }

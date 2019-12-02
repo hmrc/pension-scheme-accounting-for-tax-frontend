@@ -25,11 +25,11 @@ import play.api.mvc.Call
 
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  override protected def routeMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = {
-    case WhatYouWillNeedPage       => controllers.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
+  override protected def routeMap(page: Page, ua: UserAnswers, srn: String): Option[Call] =  page match {
+    case WhatYouWillNeedPage       => Option(controllers.routes.ChargeDetailsController.onPageLoad(NormalMode, srn))
   }
 
-  override protected def editRouteMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = {
-    case WhatYouWillNeedPage => controllers.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
+  override protected def editRouteMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = page match {
+    case WhatYouWillNeedPage => Option(controllers.routes.ChargeDetailsController.onPageLoad(NormalMode, srn))
   }
 }
