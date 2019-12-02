@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package generators
+package models.chargeF
 
-import models._
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import pages._
-import play.api.libs.json.{JsValue, Json}
+import java.time.LocalDate
 
-trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
+import play.api.libs.json.{Format, Json}
 
-  implicit lazy val arbitraryChargeDetailsUserAnswersEntry: Arbitrary[(ChargeDetailsPage.type, JsValue)] =
-    Arbitrary {
-      for {
-        page  <- arbitrary[ChargeDetailsPage.type]
-        value <- arbitrary[Int].map(Json.toJson(_))
-      } yield (page, value)
-    }
+case class ChargeDetails(deRegistrationDate: LocalDate)
+object ChargeDetails {
+  implicit val formats: Format[ChargeDetails] = Json.format[ChargeDetails]
 }

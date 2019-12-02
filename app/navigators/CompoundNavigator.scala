@@ -19,6 +19,7 @@ package navigators
 import com.google.inject.Inject
 import models.{Mode, UserAnswers}
 import pages.Page
+import play.api.Logger
 import play.api.mvc.Call
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -28,9 +29,21 @@ import scala.concurrent.ExecutionContext
 trait CompoundNavigator {
   def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
                                (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call]
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+              (implicit ec: ExecutionContext, hc: HeaderCarrier): Call
 }
 
+
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
+  private def defaultPage(id: Page, mode: Mode): Call = {
+    Logger.warn(s"No navigation defined for id $id in mode $mode")
+    controllers.routes.IndexController.onPageLoad()
+  }
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+              (implicit ec: ExecutionContext, hc: HeaderCarrier): Call = {
+    nextPageOptional(id, mode, userAnswers, srn)
+      .getOrElse(defaultPage(id, mode))
+  }
   override def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String])
                                (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] = {
     navigators.asScala.foldRight(Option.empty[Call]) {
