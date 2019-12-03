@@ -37,9 +37,9 @@ class DataRetrievalActionImpl @Inject()(
 
     userAnswersCacheConnector.fetch(request.identifier).map {
       case None =>
-        OptionalDataRequest(request.request, request.identifier, None)
+        OptionalDataRequest(request.request, request.identifier, request.psaId, None)
       case Some(data) =>
-        OptionalDataRequest(request.request, request.identifier, Some(UserAnswers(data.as[JsObject])))
+        OptionalDataRequest(request.request, request.identifier, request.psaId, Some(UserAnswers(data.as[JsObject])))
     }
   }
 }

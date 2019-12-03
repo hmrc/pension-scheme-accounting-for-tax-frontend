@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package models.requests
+package pages
 
-import play.api.mvc.{Request, WrappedRequest}
-import models.UserAnswers
-import uk.gov.hmrc.domain.PsaId
+import play.api.libs.json.JsPath
+import queries.Gettable
 
-case class OptionalDataRequest[A] (request: Request[A], internalId: String, psaId: PsaId, userAnswers: Option[UserAnswers]) extends WrappedRequest[A](request)
+case object SchemeNameQuery extends QuestionPage[String] {
 
-case class DataRequest[A] (request: Request[A], internalId: String, psaId: PsaId, userAnswers: UserAnswers) extends WrappedRequest[A](request)
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "schemeName"
+}

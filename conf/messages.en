@@ -10,9 +10,9 @@ site.edit.hidden = Change {0}
 site.no = No
 site.yes = Yes
 site.continue = Continue
-site.service_name = pension-scheme-accounting-for-tax-frontend
+site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
-site.title.suffix = - pension-scheme-accounting-for-tax-frontend - GOV.UK
+site.title.suffix = - managing-pension schemes - GOV.UK
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -129,3 +129,33 @@ compliant.nine.p2.1=The service was built using parts that were tested by the
 compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
+
+whatYouWillNeed.title = De-registration charge
+whatYouWillNeed.heading = De-registration charge
+whatYouWillNeed.p1 = To record a de-registration charge you will need:
+whatYouWillNeed.li1 = the date that the scheme was de-registered
+whatYouWillNeed.li2 = the amount of tax due at 40%
+return.to.link = Return to {0}
+
+
+
+
+chargeDetails.title = De-registration charge details
+chargeDetails.heading = De-registration charge details
+chargeDetails.hint = For example, 12 11 2007
+chargeDetails.checkYourAnswersLabel = ChargeDetails
+chargeDetails.error.required.all = Enter the chargeDetails
+chargeDetails.error.required.two = Enter a real date for the date the scheme was de-registered
+chargeDetails.error.required = Enter the amount of tax due at 40%
+chargeDetails.error.invalid = Enter a real ChargeDetails
+chargeDetails.amount.label = Amount of tax due at 40%
+chargeDetails.date.label = Date scheme was de-registered
+
+test.title = Test
+test.heading = Test
+test.hint = For example, 12 11 2007
+test.checkYourAnswersLabel = Test
+test.error.required.all = Enter the test
+test.error.required.two = The test must include {0} and {1}
+test.error.required = The test must include {0}
+test.error.invalid = Enter a real Test

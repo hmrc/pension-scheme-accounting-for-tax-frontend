@@ -26,6 +26,8 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 @Singleton
 class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig: ServicesConfig) {
 
+  private def loadConfig(key: String) = configuration.getString(key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
+
   private val contactHost = configuration.get[String]("contact-frontend.host")
   private val contactFormServiceIdentifier = "play26frontend"
 
@@ -49,7 +51,10 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   )
 
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
+  lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
+  lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
+  lazy val managePensionsSchemeSummaryUrl:String = loadConfig("urls.schemesSummary")
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package models.requests
+package models.chargeF
 
-import play.api.mvc.{Request, WrappedRequest}
-import models.UserAnswers
-import uk.gov.hmrc.domain.PsaId
+import java.time.LocalDate
 
-case class OptionalDataRequest[A] (request: Request[A], internalId: String, psaId: PsaId, userAnswers: Option[UserAnswers]) extends WrappedRequest[A](request)
+import play.api.libs.json.{Format, Json}
 
-case class DataRequest[A] (request: Request[A], internalId: String, psaId: PsaId, userAnswers: UserAnswers) extends WrappedRequest[A](request)
+case class ChargeDetails(deRegistrationDate: LocalDate, amountTaxDue: BigDecimal)
+object ChargeDetails {
+  implicit val formats: Format[ChargeDetails] = Json.format[ChargeDetails]
+}

@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import connectors.cache.{UserAnswersCacheConnector, UserAnswersCacheConnectorImpl}
 import controllers.actions._
-import navigators.{CompoundNavigator, CompoundNavigatorImpl, Navigator}
+import navigators.{ChargeFNavigator, CompoundNavigator, CompoundNavigatorImpl, Navigator}
 
 class Module extends AbstractModule {
 
@@ -28,7 +28,7 @@ class Module extends AbstractModule {
 
     val navigators = Multibinder.newSetBinder(binder(), classOf[Navigator])
     // TODO: Add new navigators here:-
-    //navigators.addBinding().to(classOf[NewNavigator])
+    navigators.addBinding().to(classOf[ChargeFNavigator])
 
     bind(classOf[CompoundNavigator]).to(classOf[CompoundNavigatorImpl])
 

@@ -24,15 +24,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 
 trait Navigator {
-  protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call]
+  protected def routeMap(page: Page, userAnswers: UserAnswers, srn: String): Option[Call]
 
-  protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call]
+  protected def editRouteMap(page: Page, userAnswers: UserAnswers, srn: String): Option[Call]
 
-  def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: Option[String] = None)
+  def nextPageOptional(page: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] =  {
       mode match {
-        case NormalMode => routeMap(id, userAnswers)
-        case CheckMode => editRouteMap(id, userAnswers)
+        case NormalMode => routeMap(page, userAnswers, srn)
+        case CheckMode => editRouteMap(page, userAnswers, srn)
       }
   }
 }

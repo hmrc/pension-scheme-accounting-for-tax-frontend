@@ -18,7 +18,7 @@ package utils
 
 import java.time.format.DateTimeFormatter
 
-import controllers.routes
+import controllers.chargeF.routes
 import models.{CheckMode, UserAnswers}
 import pages._
 import play.api.i18n.Messages
@@ -28,6 +28,21 @@ import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
+
+  def chargeDetails: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.ChargeDetailsController.onPageLoad(CheckMode, "").url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
 
   private def yesOrNo(answer: Boolean): Content =
     if (answer) {
