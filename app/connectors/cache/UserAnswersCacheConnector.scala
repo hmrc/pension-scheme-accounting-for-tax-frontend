@@ -18,11 +18,11 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.http.Status.{NOT_FOUND, OK}
+import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
-import play.api.mvc.Results.Ok
+import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 
@@ -64,7 +64,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
-          case OK =>
+          case CREATED =>
             Future.successful(value)
           case _ =>
             Future.failed(new HttpException(response.body, response.status))

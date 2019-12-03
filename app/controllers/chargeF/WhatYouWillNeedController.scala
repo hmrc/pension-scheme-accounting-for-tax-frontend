@@ -47,6 +47,7 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val ua = request.userAnswers.getOrElse(UserAnswers())
+
       schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
         Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
           userAnswersCacheConnector.save(request.internalId, answers.data)//.flatMap { _ =>

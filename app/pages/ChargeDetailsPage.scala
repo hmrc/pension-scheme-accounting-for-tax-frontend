@@ -16,8 +16,6 @@
 
 package pages
 
-import java.time.LocalDate
-
 import models.chargeF.ChargeDetails
 import play.api.libs.json.JsPath
 
