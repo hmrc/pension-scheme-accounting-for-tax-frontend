@@ -25,6 +25,7 @@ import javax.inject.Inject
 import models.{ChargeType, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{ChargeTypePage, SchemeNameQuery}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -53,16 +54,17 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
-      schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
+      schemeDetailsConnector.getSchemeName(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeName =>
         Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
           userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
+
             val preparedForm = ua.get(ChargeTypePage) match {
               case None => form
               case Some(value) => form.fill(value)
             }
 
             val json = Json.obj(
-              "form" -> preparedForm,
+              fields = "form" -> preparedForm,
               "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
               "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
               "radios" -> ChargeType.radios(preparedForm),
@@ -82,7 +84,7 @@ class ChargeTypeController @Inject()(
         formWithErrors => {
          val schemeName = ua.get[String](SchemeNameQuery).getOrElse("")
           val json = Json.obj(
-            "form" -> formWithErrors,
+            fields = "form" -> formWithErrors,
             "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
             "radios" -> ChargeType.radios(formWithErrors),

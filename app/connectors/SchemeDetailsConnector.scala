@@ -32,13 +32,12 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
                                       ec: ExecutionContext): Future[String] = {
 
     val url = config.schemeDetailsUrl
-    val schemeHc = hc.withExtraHeaders("schemeIdType" -> schemeIdType, "idNumber" -> idNumber, "PSAId" -> psaId)
+    val schemeHc = hc.withExtraHeaders(headers = "schemeIdType" -> schemeIdType, "idNumber" -> idNumber, "PSAId" -> psaId)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       val json = Json.parse(response.body)
       (json \ "schemeName").validate[String] match {
-        case JsSuccess(value, _) =>
-          value
-        case JsError(errors) => throw new JsResultException(errors)
+        case JsSuccess(value, _) => value
+        case JsError(errors) => throw JsResultException(errors)
       }
     }
   }
