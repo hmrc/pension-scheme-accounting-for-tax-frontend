@@ -27,17 +27,32 @@ import uk.gov.hmrc.viewmodels._
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
 
-class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
+class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
-  def chargeDetails: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+  def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(
-        key     = Key(msg"chargeDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
+        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = routes.ChargeDetailsController.onPageLoad(CheckMode, "").url,
+            content = msg"site.edit",
+            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def amount: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.amountTaxDue.toString())),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
           )
         )

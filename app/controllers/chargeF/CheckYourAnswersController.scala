@@ -36,12 +36,15 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
 
-//      val helper = new CheckYourAnswersHelper(request.userAnswers)
+      val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-      val answers: Seq[SummaryList.Row] = Seq()
+      val answers: Seq[SummaryList.Row] = Seq(
+        helper.date.get,
+        helper.amount.get
+      )
 
       renderer.render("chargeF/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
   }
