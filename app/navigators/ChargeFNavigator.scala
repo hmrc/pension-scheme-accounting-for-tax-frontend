@@ -19,15 +19,15 @@ package navigators
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{CheckMode, NormalMode, UserAnswers}
-import pages.{ChargeDetailsPage, Page}
+import pages.{ChargeDetailsPage, ChargeTypePage, Page}
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.mvc.Call
 
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = {
-    println(s"\n\n\nChargeFNavigator\n\n\n")
     page match {
+      case ChargeTypePage => Option(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn))
       case WhatYouWillNeedPage => Option(controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn))
       case ChargeDetailsPage   => Option(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn))
     }

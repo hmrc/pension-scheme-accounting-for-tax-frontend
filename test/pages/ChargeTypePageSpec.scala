@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package generators
+package pages
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import models.ChargeType
+import pages.behaviours.PageBehaviours
 
-trait ModelGenerators {
+class ChargeTypeSpec extends PageBehaviours {
 
-  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
-    Arbitrary {
-      Gen.oneOf(ChargeType.values.toSeq)
-    }
+  "ChargeTypePage" - {
+
+    beRetrievable[ChargeType](ChargeTypePage)
+
+    beSettable[ChargeType](ChargeTypePage)
+
+    beRemovable[ChargeType](ChargeTypePage)
+  }
 }
