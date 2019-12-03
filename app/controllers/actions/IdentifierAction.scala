@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.routes
 import models.requests.IdentifierRequest
+import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
@@ -47,11 +48,13 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(id) ~ enrolments =>
         block(IdentifierRequest(request, id.toString, PsaId(getPsaId(enrolments))))
       case _ =>
+        Logger.warn("No enrolment or internal id found")
         Future.successful(Redirect(routes.UnauthorisedController.onPageLoad()))
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
-      case _ =>
+      case e =>
+        Logger.warn("No enrolment or internal id found: " +  e)
         Redirect(routes.UnauthorisedController.onPageLoad())
     }
   }
