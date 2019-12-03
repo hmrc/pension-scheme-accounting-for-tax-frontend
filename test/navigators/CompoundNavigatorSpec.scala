@@ -27,24 +27,24 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class CompoundNavigatorSpec extends SpecBase {
 
-  private def navigator(call: Option[Call]): Navigator =
-    new Navigator {
-      override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
-
-      override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
-    }
-
-  "CompoundNavigator" must {
-    "delegate to the bound Navigators" in {
-      val navigators = Set(
-        navigator(None),
-        navigator(Some(Call("GET", "www.example.com/1"))),
-        navigator(None)
-      )
-      val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
-      object TestIdentifier extends Page
-      val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(Json.obj()), None)
-      result mustEqual Option(Call("GET", "www.example.com/1"))
-    }
-  }
+//  private def navigator(call: Option[Call]): CompoundNavigator =
+//    new CompoundNavigator {
+//      override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
+//
+//      override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
+//    }
+//
+//  "CompoundNavigator" must {
+//    "delegate to the bound Navigators" in {
+//      val navigators = Set(
+//        navigator(None),
+//        navigator(Some(Call("GET", "www.example.com/1"))),
+//        navigator(None)
+//      )
+//      val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
+//      object TestIdentifier extends Page
+//      val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(Json.obj()), None)
+//      result mustEqual Option(Call("GET", "www.example.com/1"))
+//    }
+//  }
 }
