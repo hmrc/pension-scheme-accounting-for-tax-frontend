@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -36,13 +36,13 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
 
-      val helper = new CheckYourAnswersHelper(request.userAnswers)
+//      val helper = new CheckYourAnswersHelper(request.userAnswers)
 
       val answers: Seq[SummaryList.Row] = Seq()
 
-      renderer.render("check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
+      renderer.render("chargeF/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
   }
 }

@@ -21,9 +21,11 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.chargeF.ChargeDetails
 import models.{Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{ChargeDetailsPage, SchemeNameQuery}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,34 +35,44 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ChargeDetailsController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         userAnswersCacheConnector: UserAnswersCacheConnector,
-                                         navigator: CompoundNavigator,
-                                         identify: IdentifierAction,
-                                         getData: DataRetrievalAction,
-                                         requireData: DataRequiredAction,
-                                         formProvider: ChargeDetailsFormProvider,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         config:FrontendAppConfig,
-                                         renderer: Renderer
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
+                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        navigator: CompoundNavigator,
+                                        identify: IdentifierAction,
+                                        getData: DataRetrievalAction,
+                                        requireData: DataRequiredAction,
+                                        formProvider: ChargeDetailsFormProvider,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        config: FrontendAppConfig,
+                                        renderer: Renderer
+                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      
+
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
 
-      val preparedForm = ua.get(ChargeDetailsPage) match {
+      val preparedForm: Form[ChargeDetails] = ua.get(ChargeDetailsPage) match {
         case Some(value) => form.fill(value)
-        case None        => form
+        case None => form
       }
 
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
+      val schemeName: String = ua.get(SchemeNameQuery).getOrElse("")
 
-      val viewModel = DateInput.localDate(preparedForm("deregistrationDate"))
+      val viewModel: DateInput.ViewModel = DateInput.localDate(preparedForm("deregistrationDate"))
+
+//      val vm: Option[ChargeDetailsViewModel] = ua.get(SchemeNameQuery).map {
+//        sm =>
+//          ChargeDetailsViewModel(
+//            form = preparedForm,
+//            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+//            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+//            date = viewModel,
+//            schemeName = sm
+//          )
+//      }
 
       val json = Json.obj(
         "form" -> preparedForm,
@@ -71,6 +83,7 @@ class ChargeDetailsController @Inject()(
       )
 
       renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+//      renderer.render(template = "chargeF/chargeDetails.njk", vm.get).map(Ok(_))
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
@@ -80,7 +93,7 @@ class ChargeDetailsController @Inject()(
       val schemeName = ua.get(SchemeNameQuery).getOrElse("")
 
       form.bindFromRequest().fold(
-        formWithErrors =>  {
+        formWithErrors => {
 
           val viewModel = DateInput.localDate(formWithErrors("deregistrationDate"))
 
