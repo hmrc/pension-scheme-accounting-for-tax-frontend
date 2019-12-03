@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
-import models.{Mode, UserAnswers}
+import models.{GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{ChargeDetailsPage, SchemeNameQuery}
 import play.api.data.Form
@@ -47,7 +47,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form = formProvider()
+  val form: Form[ChargeDetails] = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
@@ -59,60 +59,54 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         case None => form
       }
 
-      val schemeName: String = ua.get(SchemeNameQuery).getOrElse("")
+      ua.get(SchemeNameQuery) match {
+        case Some(schemeName) =>
+          val viewModel = GenericViewModel(
+            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+            schemeName = schemeName)
 
-      val viewModel: DateInput.ViewModel = DateInput.localDate(preparedForm("deregistrationDate"))
-
-//      val vm: Option[ChargeDetailsViewModel] = ua.get(SchemeNameQuery).map {
-//        sm =>
-//          ChargeDetailsViewModel(
-//            form = preparedForm,
-//            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
-//            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-//            date = viewModel,
-//            schemeName = sm
-//          )
-//      }
-
-      val json = Json.obj(
-        "form" -> preparedForm,
-        "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
-        "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-        "date" -> viewModel,
-        "schemeName" -> schemeName
-      )
-
-      renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
-//      renderer.render(template = "chargeF/chargeDetails.njk", vm.get).map(Ok(_))
+          val json = Json.obj(
+            "form" -> preparedForm,
+            "viewModel" -> viewModel,
+            "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
+          )
+          renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+        case _ =>
+          renderer.render(template = "session-expired.njk").map(Ok(_))
+      }
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
 
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
 
-      form.bindFromRequest().fold(
-        formWithErrors => {
+      ua.get(SchemeNameQuery) match {
+        case Some(schemeName) =>
+          form.bindFromRequest().fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName)
 
-          val viewModel = DateInput.localDate(formWithErrors("deregistrationDate"))
-
-          val json = Json.obj(
-            "form" -> formWithErrors,
-            "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "date" -> viewModel,
-            "schemeName" -> schemeName
+              val json = Json.obj(
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
+              )
+              renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(ua.set(ChargeDetailsPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
+            }
           )
-
-          renderer.render("chargeF/chargeDetails.njk", json).map(BadRequest(_))
-        },
-        value => {
-          for {
-            updatedAnswers <- Future.fromTry(ua.set(ChargeDetailsPage, value))
-            _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
-        }
-      )
+        case _ =>
+          renderer.render(template = "session-expired.njk").map(Ok(_))
+      }
   }
 }

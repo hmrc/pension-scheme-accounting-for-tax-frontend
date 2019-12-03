@@ -27,14 +27,14 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
   def apply(): Form[ChargeDetails] =
     Form(mapping(
       "deregistrationDate" -> localDate(
-        invalidKey = "chargeDetails.error.invalid",
-        allRequiredKey = "chargeDetails.error.required.all",
-        twoRequiredKey = "chargeDetails.error.required.two",
-        requiredKey = "chargeDetails.error.required"
+        invalidKey = "deregistrationDate.error.invalid",
+        allRequiredKey = "deregistrationDate.error.required.all",
+        twoRequiredKey = "deregistrationDate.error.required.two",
+        requiredKey = "deregistrationDate.error.required"
       ),
       "amountTaxDue" -> bigDecimal(
-        "chargeDetails.error.required",
-        "chargeDetails.error.invalid"
+        "amountTaxDue.error.required",
+        "amountTaxDue.error.invalid"
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

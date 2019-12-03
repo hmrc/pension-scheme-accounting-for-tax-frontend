@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package models.chargeF
+package models
 
-import java.time.LocalDate
+import play.api.libs.json.{Json, OWrites}
 
-import play.api.libs.json.{Format, Json, Reads, Writes}
+case class GenericViewModel(submitUrl: String,
+                            returnUrl: String,
+                            schemeName: String)
 
-case class ChargeDetails(deRegistrationDate: LocalDate, amountTaxDue: BigDecimal)
-
-object ChargeDetails {
-  implicit lazy val reads: Reads[ChargeDetails] =
-    Json.reads[ChargeDetails]
-  implicit lazy val writes: Writes[ChargeDetails] =
-    Json.writes[ChargeDetails]
-  implicit lazy val formats: Format[ChargeDetails] =
-    Json.format[ChargeDetails]
+object GenericViewModel {
+  implicit lazy val writes: OWrites[GenericViewModel] =
+    Json.writes[GenericViewModel]
 }
