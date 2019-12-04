@@ -19,7 +19,7 @@ package behaviours
 import base.SpecBase
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import pages.QuestionPage
@@ -40,6 +40,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
     reset(mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     reset(mockUserAnswersCacheConnector)
+    reset(mockCompoundNavigator)
   }
 
   private def httpGETRequest(path:String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
@@ -119,6 +120,9 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
                             requestValuesValid:Map[String, Seq[String]],
                             requestValuesInvalid:Map[String, Seq[String]])(implicit writes:Writes[A]):Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page),any(),any(),any())(any(),any())).thenReturn(dummyCall)
+
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val expectedJson = Json.obj(page.toString -> Json.toJson(data) )
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -133,6 +137,8 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(),any())
 
       jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
 
       application.stop()
     }

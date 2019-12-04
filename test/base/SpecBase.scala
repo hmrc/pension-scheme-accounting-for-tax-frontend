@@ -20,6 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.UserAnswers
+import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -32,6 +33,7 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
+import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.twirl.api.Html
 import uk.gov.hmrc.domain.PsaId
@@ -56,6 +58,8 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected val schemeName = "Big Scheme"
 
+  protected val dummyCall = Call("GET","bla")
+
   protected def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
 
   protected def injector: Injector = app.injector
@@ -70,6 +74,8 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
 
+  protected val mockCompoundNavigator = mock[CompoundNavigator]
+
   val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
@@ -81,6 +87,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, PsaId(psaId))),
         bind[NunjucksRenderer].toInstance(mockRenderer),
-        bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector)
+        bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+        bind[CompoundNavigator].toInstance(mockCompoundNavigator)
       )
 }
