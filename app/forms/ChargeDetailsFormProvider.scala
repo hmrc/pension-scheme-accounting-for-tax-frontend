@@ -21,6 +21,7 @@ import javax.inject.Inject
 import models.chargeF.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+import play.api.i18n.Messages
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
