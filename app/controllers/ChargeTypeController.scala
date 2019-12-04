@@ -48,7 +48,7 @@ class ChargeTypeController @Inject()(
                                       schemeDetailsConnector: SchemeDetailsConnector
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form = formProvider()
+  private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
