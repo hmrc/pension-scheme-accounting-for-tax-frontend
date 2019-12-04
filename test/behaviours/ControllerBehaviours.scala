@@ -16,25 +16,31 @@
 
 package behaviours
 
-import java.time.LocalDate
-
 import base.SpecBase
 import matchers.JsonMatchers
-import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify}
-import pages.ChargeDetailsPage
+import org.mockito.Mockito.{reset, times, verify, when}
+import pages.QuestionPage
 import play.api.data.Form
 import play.api.http.HeaderNames
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json, Writes}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
+import scala.concurrent.Future
+
 trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatchers {
+
+  override def beforeEach: Unit = {
+    reset(mockRenderer)
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    reset(mockUserAnswersCacheConnector)
+  }
 
   private def httpGETRequest(path:String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
 
@@ -46,7 +52,12 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
-  def controllerWithGET[A](path: => String, form:Form[A], pageToBeRendered:String, data:A): Unit = {
+  def controllerWithGET[A](path: => String,
+                           form:Form[A],
+                           pageToBeRendered:String,
+                           data:A,
+                           page:QuestionPage[A],
+                           jsonForPage: JsObject)(implicit writes:Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -58,27 +69,15 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val viewModel = GenericViewModel(
-        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName)
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "date" -> DateInput.localDate(form("deregistrationDate"))
-      )
-
       templateCaptor.getValue mustEqual pageToBeRendered
-      jsonCaptor.getValue must containJson(expectedJson)
+
+      jsonCaptor.getValue must containJson(jsonForPage)
 
       application.stop()
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val chargeDetails = ChargeDetails(LocalDate.of(2010, 12, 2), BigDecimal(22.3))
-
-      val ua = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeDetails).get
+      val ua = userAnswersWithSchemeName.set(page, data).get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -106,6 +105,47 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
       templateCaptor.getValue mustEqual pageToBeRendered
 
       jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+  }
+
+  def controllerWithPOST[A](path: => String,
+                            form:Form[A],
+                            pageToBeRendered:String,
+                            data:A,
+                            page:QuestionPage[A],
+                            requestValuesValid:Map[String, Seq[String]],
+                            requestValuesInvalid:Map[String, Seq[String]])(implicit writes:Writes[A]):Unit = {
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
+      val expectedJson = Json.obj(page.toString -> Json.toJson(data) )
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val json = Json.obj()
+
+      when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(json))
+
+      val result = route(application, httpPOSTRequest(path, requestValuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(),any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
+
+
+      val result = route(application, httpPOSTRequest(path, requestValuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(),any())
 
       application.stop()
     }
