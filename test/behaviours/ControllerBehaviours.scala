@@ -19,13 +19,13 @@ package behaviours
 import base.SpecBase
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.QuestionPage
 import play.api.data.Form
 import play.api.http.HeaderNames
-import play.api.libs.json.{JsObject, JsValue, Json, Writes}
+import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
@@ -53,26 +53,26 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
-  def controllerWithGET[A](path: => String,
-                           form:Form[A],
-                           pageToBeRendered:String,
-                           data:A,
+  def controllerWithGET[A](httpPath: => String,
                            page:QuestionPage[A],
-                           jsonForPage: JsObject)(implicit writes:Writes[A]): Unit = {
+                           data:A,
+                           form:Form[A],
+                           templateToBeRendered:String,
+                           jsonToPassToTemplate: JsObject)(implicit writes:Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(path)).value
+      val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual pageToBeRendered
+      templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonForPage)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
 
       application.stop()
     }
@@ -84,7 +84,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(path)).value
+      val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual OK
 
@@ -103,7 +103,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         "date" -> DateInput.localDate(filledForm("deregistrationDate"))
       )
 
-      templateCaptor.getValue mustEqual pageToBeRendered
+      templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(expectedJson)
 
@@ -112,11 +112,11 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
   }
 
-  def controllerWithPOST[A](path: => String,
-                            form:Form[A],
-                            pageToBeRendered:String,
-                            data:A,
+  def controllerWithPOST[A](httpPath: => String,
                             page:QuestionPage[A],
+                            data:A,
+                            form:Form[A],
+                            templateToBeRendered:String,
                             requestValuesValid:Map[String, Seq[String]],
                             requestValuesInvalid:Map[String, Seq[String]])(implicit writes:Writes[A]):Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -130,7 +130,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(json))
 
-      val result = route(application, httpPOSTRequest(path, requestValuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -147,7 +147,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
 
 
-      val result = route(application, httpPOSTRequest(path, requestValuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPath, requestValuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -155,6 +155,5 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       application.stop()
     }
-
   }
 }

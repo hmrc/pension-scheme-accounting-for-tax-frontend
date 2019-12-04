@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
 
 import base.SpecBase
 import behaviours.ControllerBehaviours
@@ -25,20 +25,12 @@ import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import pages.ChargeDetailsPage
-import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  private val pageToBeRendered = "chargeF/chargeDetails.njk"
-  private val formProvider = new ChargeDetailsFormProvider()
-
-  private def form = formProvider()
-
-  private def onwardRoute = Call("GET", "/foo")
-
-  private val validAnswer = LocalDate.now(ZoneOffset.UTC)
-
+  private val templateToBeRendered = "chargeF/chargeDetails.njk"
+  private def form = new ChargeDetailsFormProvider()()
   private def chargeDetailsRoute = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -55,14 +47,12 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private def viewModel = GenericViewModel(
-    submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-    returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-    schemeName = schemeName)
-
-  private def jsonForPage = Json.obj(
+  private def jsonToPassToTemplate:JsObject = Json.obj(
     "form" -> form,
-    "viewModel" -> viewModel,
+    "viewModel" -> GenericViewModel(
+      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName),
     "date" -> DateInput.localDate(form("deregistrationDate"))
   )
 
@@ -70,19 +60,20 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
 
   "ChargeDetails Controller" must {
     behave like controllerWithGET(
-      path = chargeDetailsRoute,
-      form = form,
-      pageToBeRendered = pageToBeRendered,
-      data = chargeDetails,
+      httpPath = chargeDetailsRoute,
       page = ChargeDetailsPage,
-      jsonForPage = jsonForPage)
+      data = chargeDetails,
+      form = form,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate
+    )
 
     behave like controllerWithPOST(
-      path = chargeDetailsRoute,
-      form = form,
-      pageToBeRendered = pageToBeRendered,
-      data = chargeDetails,
+      httpPath = chargeDetailsRoute,
       page = ChargeDetailsPage,
+      data = chargeDetails,
+      form = form,
+      templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
       requestValuesInvalid = valuesInvalid
     )

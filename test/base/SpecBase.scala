@@ -58,7 +58,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected val schemeName = "Big Scheme"
 
-  protected val dummyCall = Call("GET","bla")
+  protected val dummyCall = Call("GET","/foo")
 
   protected def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
 
