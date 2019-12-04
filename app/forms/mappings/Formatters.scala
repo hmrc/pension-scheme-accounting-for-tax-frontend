@@ -94,11 +94,10 @@ trait Formatters {
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
-          if (decimalKey.isDefined | s.matches(numeric) | !s.matches(decimalRegexp))
+          if (decimalKey.isDefined && s.matches(numeric) && !s.matches(decimalRegexp))
             Left(Seq(FormError(key, decimalKey.get, args)))
           else
-            Try(BigDecimal(s).setScale(2)) match {
-              case Success(x) if x.setScale(2) != x => Left(Seq(FormError(key, decimalKey.get, args)))
+            Try(BigDecimal(s)) match {
               case Success(x) => Right(x)
               case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
             }
