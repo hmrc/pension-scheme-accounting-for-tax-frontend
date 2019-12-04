@@ -19,7 +19,9 @@ package base
 import config.FrontendAppConfig
 import controllers.actions._
 import models.UserAnswers
+import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.{BeforeAndAfterEach, TryValues}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
@@ -30,8 +32,12 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
+import play.twirl.api.Html
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
+
+import scala.concurrent.Future
 
 trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar with BeforeAndAfterEach {
 
@@ -43,7 +49,11 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected val userAnswersId = "id"
 
-  protected def emptyUserAnswers = UserAnswers(Json.obj())
+  protected val psaId = "A0000000"
+
+  protected val schemeName = "Big Scheme"
+
+  protected def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
 
   protected def injector: Injector = app.injector
 
@@ -53,16 +63,18 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected def fakeRequest = FakeRequest("", "")
 
+  protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
+
   val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
+  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None, psaId: String = psaId): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, PsaId(psaId))),
         bind[NunjucksRenderer].toInstance(mockRenderer)
       )
 }

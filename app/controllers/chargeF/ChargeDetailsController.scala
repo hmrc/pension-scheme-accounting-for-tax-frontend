@@ -51,14 +51,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
 
       val preparedForm: Form[ChargeDetails] = ua.get(ChargeDetailsPage) match {
         case Some(value) => form.fill(value)
         case None => form
       }
-
       ua.get(SchemeNameQuery) match {
         case Some(schemeName) =>
           val viewModel = GenericViewModel(
@@ -71,6 +69,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             "viewModel" -> viewModel,
             "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
           )
+
           renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
         case _ =>
           renderer.render(template = "session-expired.njk").map(Ok(_))

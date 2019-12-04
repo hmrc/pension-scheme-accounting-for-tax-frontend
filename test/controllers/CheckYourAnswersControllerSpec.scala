@@ -37,7 +37,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 //      when(mockRenderer.render(any(), any())(any()))
 //        .thenReturn(Future.successful(Html("")))
 //
-//      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
 //
 //      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
 //

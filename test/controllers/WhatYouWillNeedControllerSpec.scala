@@ -36,7 +36,7 @@ class WhatYouWillNeedControllerSpec extends SpecBase with MockitoSugar {
 //      when(mockRenderer.render(any(), any())(any()))
 //        .thenReturn(Future.successful(Html("")))
 //
-//      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
 //      val request = FakeRequest(GET, routes.whatYouWillNeedController.onPageLoad().url)
 //      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 //
