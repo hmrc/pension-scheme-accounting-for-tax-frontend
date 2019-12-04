@@ -18,6 +18,7 @@ package behaviours
 
 import base.SpecBase
 import matchers.JsonMatchers
+import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -58,7 +59,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
                            data:A,
                            form:Form[A],
                            templateToBeRendered:String,
-                           jsonToPassToTemplate: JsObject)(implicit writes:Writes[A]): Unit = {
+                           jsonToPassToTemplate: Form[A]=>JsObject)(implicit writes:Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -72,7 +73,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
 
       application.stop()
     }
@@ -95,17 +96,9 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
         schemeName = schemeName)
 
-      val filledForm = form.fill(data)
-
-      val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "viewModel" -> viewModel,
-        "date" -> DateInput.localDate(filledForm("deregistrationDate"))
-      )
-
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(expectedJson)
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(data)))
 
       application.stop()
     }

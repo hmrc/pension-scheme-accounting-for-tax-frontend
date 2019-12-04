@@ -25,6 +25,7 @@ import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import pages.ChargeDetailsPage
+import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
@@ -47,7 +48,7 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private def jsonToPassToTemplate:JsObject = Json.obj(
+  private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
