@@ -19,6 +19,7 @@ package controllers
 import java.time.{LocalDate, ZoneOffset}
 
 import base.SpecBase
+import behaviours.ControllerBehaviours
 import forms.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
@@ -39,7 +40,7 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.Future
 
-class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with JsonMatchers {
+class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val pageToBeRendered = "chargeF/chargeDetails.njk"
   private val formProvider = new ChargeDetailsFormProvider()
 
@@ -49,7 +50,7 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
 
   private val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
-  private lazy val chargeDetailsRoute = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
+  private def chargeDetailsRoute = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
 
   private def httpGETRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, chargeDetailsRoute)
 
@@ -69,68 +70,8 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
 
 
   "ChargeDetails Controller" must {
-    "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val viewModel = GenericViewModel(
-        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName)
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel,
-        "date" -> DateInput.localDate(form("deregistrationDate"))
-      )
-
-      templateCaptor.getValue mustEqual pageToBeRendered
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "return OK and the correct view for a GET when the question has previously been answered" in {
-      val chargeDetails = ChargeDetails(LocalDate.of(2010, 12, 2), BigDecimal(22.3))
-
-      val ua = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeDetails).get
-
-      val application = applicationBuilder(userAnswers = Some(ua)).build()
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpGETRequest).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val viewModel = GenericViewModel(
-        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName)
-
-      val filledForm = form.fill(chargeDetails)
-
-      val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "viewModel" -> viewModel,
-        "date" -> DateInput.localDate(filledForm("deregistrationDate"))
-      )
-
-      templateCaptor.getValue mustEqual pageToBeRendered
-
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
+    behave like controllerWithGET(path = chargeDetailsRoute, form, pageToBeRendered, ChargeDetails(LocalDate.of(2010, 12, 2), BigDecimal(22.3)))
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()

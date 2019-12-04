@@ -46,38 +46,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
-  /*
-  //    "return OK and the correct view for a GET" in {
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, httpGETRequest).value
-//
-//      status(result) mustEqual OK
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val viewModel = GenericViewModel(
-//        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-//        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-//        schemeName = schemeName)
-//
-//      val expectedJson = Json.obj(
-//        "form" -> form,
-//        "viewModel" -> viewModel,
-//        "date" -> DateInput.localDate(form("deregistrationDate"))
-//      )
-//
-//      templateCaptor.getValue mustEqual pageToBeRendered
-//      jsonCaptor.getValue must containJson(expectedJson)
-//
-//      application.stop()
-//    }
-//
-   */
-
-  def controllerWithGET[A](path:String, form:Form[A], pageToBeRendered:String, data:A) = {
+  def controllerWithGET[A](path: => String, form:Form[A], pageToBeRendered:String, data:A): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
