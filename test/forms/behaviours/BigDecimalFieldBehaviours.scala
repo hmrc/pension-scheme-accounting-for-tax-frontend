@@ -18,6 +18,8 @@ package forms.behaviours
 
 import play.api.data.{Form, FormError}
 
+import scala.math.BigDecimal.RoundingMode
+
 trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
   def bigDecimalField(form: Form[_],
@@ -30,6 +32,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(nonNumerics -> "nonNumeric") {
         nonNumeric =>
           val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
+          println(s"\n\n\nbigDecimalField:${result.errors}\n\n\n")
           result.errors shouldEqual Seq(nonNumericError)
       }
     }
@@ -42,65 +45,49 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
           result.errors shouldEqual Seq(decimalsError)
       }
     }
-
-    "must not bind integers larger than Int.MaxValue" in {
-
-      forAll(intsLargerThanMaxValue -> "massiveInt") {
-        num: BigInt =>
-          val result = form.bind(Map(fieldName -> num.toString)).apply(fieldName)
-          result.errors shouldEqual Seq(nonNumericError)
-      }
-    }
-
-    "must not bind integers smaller than Int.MinValue" in {
-
-      forAll(intsSmallerThanMinValue -> "massivelySmallInt") {
-        num: BigInt =>
-          val result = form.bind(Map(fieldName -> num.toString)).apply(fieldName)
-          result.errors shouldEqual Seq(nonNumericError)
-      }
-    }
   }
 
-  def intFieldWithMinimum(form: Form[_],
-                          fieldName: String,
-                          minimum: Int,
-                          expectedError: FormError): Unit = {
+  def bigDecimalFieldWithMinimum(form: Form[_],
+                                 fieldName: String,
+                                 minimum: BigDecimal,
+                                 expectedError: FormError): Unit = {
 
-    s"must not bind integers below $minimum" in {
+    s"must not bind decimals below $minimum" in {
 
-      forAll(intsBelowValue(minimum) -> "intBelowMin") {
-        number: Int =>
-          val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
+      forAll(decimalBelowValue(minimum) -> "decimalBelowMin") {
+        number: BigDecimal =>
+          val result = form.bind(Map(fieldName -> number.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+          println(s"\n\n\nbigDecimalFieldWithMinimum:${result.errors}\n\n\n")
           result.errors shouldEqual Seq(expectedError)
       }
     }
   }
 
-  def intFieldWithMaximum(form: Form[_],
-                          fieldName: String,
-                          maximum: Int,
-                          expectedError: FormError): Unit = {
+  def bigDecimalFieldWithMaximum(form: Form[_],
+                                 fieldName: String,
+                                 maximum: BigDecimal,
+                                 expectedError: FormError): Unit = {
 
-    s"must not bind integers above $maximum" in {
+    s"must not bind decimals above $maximum" in {
 
-      forAll(intsAboveValue(maximum) -> "intAboveMax") {
-        number: Int =>
-          val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
+      forAll(decimalAboveValue(maximum) -> "decimalAboveMax") {
+        number: BigDecimal =>
+          val result = form.bind(Map(fieldName -> number.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+          println(s"\n\n\nbigDecimalFieldWithMaximum:${result.errors}\n\n\n")
           result.errors shouldEqual Seq(expectedError)
       }
     }
   }
 
-  def intFieldWithRange(form: Form[_],
-                        fieldName: String,
-                        minimum: Int,
-                        maximum: Int,
-                        expectedError: FormError): Unit = {
+  def bigDecimalFieldWithRange(form: Form[_],
+                               fieldName: String,
+                               minimum: BigDecimal,
+                               maximum: BigDecimal,
+                               expectedError: FormError): Unit = {
 
-    s"must not bind integers outside the range $minimum to $maximum" in {
+    s"must not bind decimals outside the range $minimum to $maximum" in {
 
-      forAll(intsOutsideRange(minimum, maximum) -> "intOutsideRange") {
+      forAll(decimalsOutsideRange(minimum, maximum) -> "decimalOutsideRange") {
         number =>
           val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
           result.errors shouldEqual Seq(expectedError)

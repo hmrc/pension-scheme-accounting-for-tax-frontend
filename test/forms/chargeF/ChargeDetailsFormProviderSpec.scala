@@ -22,39 +22,59 @@ import forms.ChargeDetailsFormProvider
 import forms.behaviours._
 import play.api.data.FormError
 
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
   val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
   val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val deRegDateKey = "deregistrationDate"
+  val amountTaxDueKey = "amountTaxDue"
 
   "deregistrationDate" - {
 
     behave like dateFieldWithMin(
       form = form,
-      key = "deregistrationDate",
+      key = deRegDateKey,
       min = LocalDate.of(2020, 4, 1),
-      formError = FormError("deregistrationDate.error.date", dynamicErrorMsg)
+      formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
+
     behave like dateFieldWithMax(
       form = form,
-      key = "deregistrationDate",
+      key = deRegDateKey,
       max = LocalDate.of(2020, 6, 30),
-      formError = FormError("deregistrationDate.error.date", dynamicErrorMsg)
+      formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 
     behave like mandatoryDateField(
       form = form,
-      key = "deregistrationDate",
-      requiredAllKey = "chargeDetails.error.required.all")
+      key = deRegDateKey,
+      requiredAllKey = s"$deRegDateKey.error.required.all")
   }
 
   "amountTaxDue" - {
 
     behave like bigDecimalField(
-      form,
-      "amountTaxDue",
-      FormError("amountTaxDue", Seq("amountTaxDue.error.invalid")),
-      FormError("amountTaxDue", Seq("amountTaxDue.error.required"))
+      form = form,
+      fieldName = amountTaxDueKey,
+      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
+      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+    )
+
+    behave like bigDecimalFieldWithMinimum(
+      form = form,
+      fieldName = amountTaxDueKey,
+      minimum = BigDecimal("0.01"),
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.minimum")
+    )
+
+    behave like bigDecimalFieldWithMaximum(
+      form = form,
+      fieldName = amountTaxDueKey,
+      maximum = BigDecimal("9999999999.99"),
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
     )
   }
 }

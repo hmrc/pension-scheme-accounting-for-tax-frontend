@@ -84,8 +84,7 @@ trait Formatters {
                                             args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
-      val decimalRegexp = """^-?(\d*\.\d{2})$"""
-      val numeric = """^-?(\d*)$"""
+      val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
@@ -94,7 +93,7 @@ trait Formatters {
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
-          if (decimalKey.isDefined && s.matches(numeric) && !s.matches(decimalRegexp))
+          if (decimalKey.isDefined && s.contains(".") && !s.matches(decimalRegexp))
             Left(Seq(FormError(key, decimalKey.get, args)))
           else
             Try(BigDecimal(s)) match {
