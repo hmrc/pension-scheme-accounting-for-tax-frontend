@@ -16,17 +16,17 @@
 
 package controllers
 
-import base.SpecBase
+import controllers.base.ControllerSpecBase
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito._
 import org.mockito.Matchers.any
+import org.mockito.Mockito._
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class AccessibilityControllerSpec extends SpecBase {
+class AccessibilityControllerSpec extends ControllerSpecBase {
 
   "Accessibility Controller" must {
 

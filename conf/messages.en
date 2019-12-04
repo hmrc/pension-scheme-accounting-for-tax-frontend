@@ -143,10 +143,12 @@ chargeDetails.heading = De-registration charge details
 chargeDetails.hint = For example, 12 11 2007
 chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
 chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
-chargeDetails.error.required.all = Enter the chargeDetails
-chargeDetails.error.required.two = Enter a real date for the date the scheme was de-registered
-chargeDetails.error.required = Enter the amount of tax due at 40%
-chargeDetails.error.invalid = Enter a real ChargeDetails
+deregistrationDate.error.required.all = Enter the date the scheme was de-registered
+deregistrationDate.error.required.two = Enter a real date for the date the scheme was de-registered
+deregistrationDate.error.required = Enter a real date for the date the scheme was de-registered
+deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
+amountTaxDue.error.required = Enter the amount of tax due at 40%
+amountTaxDue.error.invalid = Amount of tax due at 40% must be a number
 chargeDetails.amount.label = Amount of tax due at 40%
 chargeDetails.date.label = Date scheme was de-registered
 

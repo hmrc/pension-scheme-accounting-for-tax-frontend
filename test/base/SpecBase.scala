@@ -17,33 +17,16 @@
 package base
 
 import config.FrontendAppConfig
-import controllers.actions._
-import models.UserAnswers
-import org.mockito.Mockito
-import org.scalatest.{BeforeAndAfterEach, TryValues}
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.inject.{Injector, bind}
-import play.api.libs.json.Json
+import play.api.inject.Injector
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
-trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar with BeforeAndAfterEach {
-
-  override def beforeEach {
-    Mockito.reset(mockRenderer)
-  }
+trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  protected val userAnswersId = "id"
-
-  protected def emptyUserAnswers = UserAnswers(Json.obj())
 
   protected def injector: Injector = app.injector
 
@@ -53,18 +36,5 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected def fakeRequest = FakeRequest("", "")
 
-  val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
-
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
-
-  protected def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
-    bind[DataRequiredAction].to[DataRequiredActionImpl],
-    bind[IdentifierAction].to[FakeIdentifierAction],
-    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
-    bind[NunjucksRenderer].toInstance(mockRenderer)
-  )
-
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(modules(userAnswers): _*)
 }

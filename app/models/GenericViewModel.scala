@@ -15,10 +15,13 @@
  */
 
 package models
+
 import play.api.libs.json.{Json, OWrites}
+
 case class GenericViewModel(submitUrl: String,
                             returnUrl: String,
                             schemeName: String)
+
 object GenericViewModel {
   implicit lazy val writes: OWrites[GenericViewModel] =
     Json.writes[GenericViewModel]
