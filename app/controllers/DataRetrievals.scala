@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package forms
+package controllers
 
-import forms.mappings.Mappings
-import javax.inject.Inject
-import models.ChargeType
-import play.api.data.Form
+import models.requests.DataRequest
+import pages.SchemeNameQuery
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{AnyContent, Result}
 
-class ChargeTypeFormProvider @Inject() extends Mappings {
+import scala.concurrent.Future
 
-  def apply(): Form[ChargeType] =
-    Form(
-      "value" -> enumerable[ChargeType]("chargeType.error.required")
-    )
+object DataRetrievals {
+
+  def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(SchemeNameQuery) match {
+      case Some(schemeName) => block(schemeName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
 }
