@@ -48,6 +48,7 @@ class AuthenticatedIdentifierAction @Inject()(
       case Some(id) ~ enrolments =>
         block(IdentifierRequest(request, id.toString, PsaId(getPsaId(enrolments))))
       case _ =>
+        Logger.warn("No enrolment or internal id found")
         Future.successful(Redirect(routes.UnauthorisedController.onPageLoad()))
     } recover {
       case _: NoActiveSession =>
