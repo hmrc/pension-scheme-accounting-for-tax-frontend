@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package generators
+package forms
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import javax.inject.Inject
 
-trait ModelGenerators {
+import forms.mappings.Mappings
+import play.api.data.Form
+import models.ChargeType
 
-  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
-    Arbitrary {
-      Gen.oneOf(ChargeType.values.toSeq)
-    }
+class ChargeTypeFormProvider @Inject() extends Mappings {
+
+  def apply(): Form[ChargeType] =
+    Form(
+      "value" -> enumerable[ChargeType]("chargeType.error.required")
+    )
 }
