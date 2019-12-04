@@ -17,6 +17,7 @@
 package base
 
 import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.UserAnswers
 import org.mockito.Matchers.any
@@ -65,6 +66,8 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
 
+  protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
+
   val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
@@ -75,6 +78,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, PsaId(psaId))),
-        bind[NunjucksRenderer].toInstance(mockRenderer)
+        bind[NunjucksRenderer].toInstance(mockRenderer),
+        bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector)
       )
 }

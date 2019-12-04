@@ -78,14 +78,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
-
       ua.get(SchemeNameQuery) match {
         case Some(schemeName) =>
-
-          println( "\n>>>REQ:" + request.body)
-
           form.bindFromRequest().fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
@@ -98,7 +93,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 "viewModel" -> viewModel,
                 "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
               )
-              renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+              renderer.render(template = "chargeF/chargeDetails.njk", json).map(BadRequest(_))
             },
             value => {
               for {
