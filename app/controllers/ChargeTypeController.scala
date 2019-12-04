@@ -52,8 +52,9 @@ class ChargeTypeController @Inject()(
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
+
       val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
-      schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
+      schemeDetailsConnector.getSchemeName(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeName =>
         Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
           userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
             val preparedForm = ua.get(ChargeTypePage) match {
@@ -62,7 +63,7 @@ class ChargeTypeController @Inject()(
             }
 
             val json = Json.obj(
-              "form" -> preparedForm,
+              fields = "form" -> preparedForm,
               "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
               "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
               "radios" -> ChargeType.radios(preparedForm),
@@ -82,7 +83,7 @@ class ChargeTypeController @Inject()(
         formWithErrors => {
          val schemeName = ua.get[String](SchemeNameQuery).getOrElse("")
           val json = Json.obj(
-            "form" -> formWithErrors,
+            fields = "form" -> formWithErrors,
             "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
             "radios" -> ChargeType.radios(formWithErrors),

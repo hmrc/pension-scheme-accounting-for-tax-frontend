@@ -16,23 +16,19 @@
 
 package navigators
 
-import models._
-import pages.Page
+import com.google.inject.Inject
+import connectors.cache.UserAnswersCacheConnector
+import models.UserAnswers
+import pages.{ChargeTypePage, Page}
 import play.api.mvc.Call
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+class ChargeNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-trait Navigator {
-  protected def routeMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call]
+  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+    case ChargeTypePage => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
+  }
 
-  protected def editRouteMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call]
-
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier): PartialFunction[Page, Call] =  {
-      mode match {
-        case NormalMode => routeMap(userAnswers, srn)
-        case CheckMode => editRouteMap(userAnswers, srn)
-      }
+  override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+    case ChargeTypePage => controllers.routes.SessionExpiredController.onPageLoad()
   }
 }
