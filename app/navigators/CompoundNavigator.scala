@@ -27,8 +27,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 trait CompoundNavigator {
-  def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
-                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call]
   def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
               (implicit ec: ExecutionContext, hc: HeaderCarrier): Call
 }
@@ -39,16 +37,17 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) exte
     Logger.warn(s"No navigation defined for id $id in mode $mode")
     controllers.routes.IndexController.onPageLoad()
   }
+
   def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
               (implicit ec: ExecutionContext, hc: HeaderCarrier): Call = {
     nextPageOptional(id, mode, userAnswers, srn)
       .getOrElse(defaultPage(id, mode))
   }
-  override def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
-                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] = {
-    navigators.asScala.foldRight(Option.empty[Call]) {
-      case (_, some: Some[Call]) => some
-      case (navigator, None)     => navigator.nextPageOptional(id, mode, userAnswers, srn)
-    }
+
+  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] = {
+    navigators.asScala.find(_.nextPageOptional(mode, userAnswers, srn).isDefinedAt(id)).map(
+      _.nextPageOptional(mode, userAnswers, srn)(ec, hc)(id)
+    )
   }
 }

@@ -22,10 +22,9 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.{ChargeType, Mode, UserAnswers}
+import models.{ChargeType, GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{ChargeTypePage, SchemeNameQuery}
-import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -53,51 +52,55 @@ class ChargeTypeController @Inject()(
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
+
+      val ua = request.userAnswers.getOrElse(UserAnswers())
+
       schemeDetailsConnector.getSchemeName(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeName =>
+
         Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
+
           userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
 
-            val preparedForm = ua.get(ChargeTypePage) match {
-              case None => form
-              case Some(value) => form.fill(value)
-            }
+            val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
 
             val json = Json.obj(
               fields = "form" -> preparedForm,
-              "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
-              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
               "radios" -> ChargeType.radios(preparedForm),
-              "schemeName" -> schemeName
+              "viewModel" -> viewModel(schemeName, mode, srn)
             )
-
             renderer.render(template = "chargeType.njk", json).map(Ok(_))
           }
         }
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      val ua = request.userAnswers.getOrElse(UserAnswers(Json.obj()))
-      form.bindFromRequest().fold(
-        formWithErrors => {
-         val schemeName = ua.get[String](SchemeNameQuery).getOrElse("")
-          val json = Json.obj(
-            fields = "form" -> formWithErrors,
-            "submitUrl" -> routes.ChargeTypeController.onSubmit(mode, srn).url,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "radios" -> ChargeType.radios(formWithErrors),
-            "schemeName" -> schemeName
-          )
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
-          renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
-        },
-        value =>
-          for {
-            updatedAnswers <- Future.fromTry(ua.set(ChargeTypePage, value))
-            _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          } yield Redirect(navigator.nextPage(ChargeTypePage, mode, updatedAnswers, srn))
-      )
+        form.bindFromRequest().fold(
+          formWithErrors => {
+            val json = Json.obj(
+              fields = "form" -> formWithErrors,
+              "radios" -> ChargeType.radios(formWithErrors),
+              "viewModel" -> viewModel(schemeName, mode, srn)
+            )
+            renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
+          },
+          value =>
+            for {
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
+              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+            } yield Redirect(navigator.nextPage(ChargeTypePage, mode, updatedAnswers, srn))
+        )
+      }
+  }
+
+  private def viewModel(schemeName: String, mode: Mode, srn: String): GenericViewModel = {
+    GenericViewModel(
+      submitUrl = routes.ChargeTypeController.onSubmit(mode, srn).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    )
   }
 }

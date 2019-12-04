@@ -138,9 +138,6 @@ whatYouWillNeed.li1 = the date that the scheme was de-registered
 whatYouWillNeed.li2 = the amount of tax due at 40%
 return.to.link = Return to {0}
 
-
-
-
 chargeDetails.title = De-registration charge details
 chargeDetails.heading = De-registration charge details
 chargeDetails.hint = For example, 12 11 2007
@@ -155,12 +152,11 @@ chargeDetails.date.label = Date scheme was de-registered
 
 chargeType.title = Which type of charge are you adding to the AFT return?
 chargeType.heading = Which type of charge are you adding to the AFT return?
-chargeType.chargeType.annualAllowance = Annual allowance charge
-chargeType.chargeType.authSurplus = Authorised surplus payments charge
-chargeType.chargeType.deRegistration = De-registration charge
-chargeType.chargeType.lifeTimeAllowance = Lifetime allowance charge
-chargeType.chargeType.overseasTransfer = Overseas transfer charge
-chargeType.chargeType.shortService = Short service refund lump sum charge
-chargeType.chargeType.lumpSumDeath = Special lump sum death benefits charge
-chargeType.checkYourAnswersLabel = De-registration charge
-chargeType.error.required = Select chargeType
+chargeType.radio.annualAllowance = Annual allowance charge
+chargeType.radio.authSurplus = Authorised surplus payments charge
+chargeType.radio.deRegistration = De-registration charge
+chargeType.radio.lifeTimeAllowance = Lifetime allowance charge
+chargeType.radio.overseasTransfer = Overseas transfer charge
+chargeType.radio.shortService = Short service refund lump sum charge
+chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
+chargeType.error.required = Select the type of charge you are adding to the AFT return

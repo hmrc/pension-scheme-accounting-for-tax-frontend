@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package forms
-
-import forms.mappings.Mappings
-import javax.inject.Inject
-import models.ChargeType
-import play.api.data.Form
-
-class ChargeTypeFormProvider @Inject() extends Mappings {
-
-  def apply(): Form[ChargeType] =
-    Form(
-      "value" -> enumerable[ChargeType](requiredKey = "chargeType.error.required")
-    )
+package models
+import play.api.libs.json.{Json, OWrites}
+case class GenericViewModel(submitUrl: String,
+                            returnUrl: String,
+                            schemeName: String)
+object GenericViewModel {
+  implicit lazy val writes: OWrites[GenericViewModel] =
+    Json.writes[GenericViewModel]
 }

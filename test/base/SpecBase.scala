@@ -26,7 +26,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
@@ -57,12 +57,14 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
+  protected def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
+    bind[DataRequiredAction].to[DataRequiredActionImpl],
+    bind[IdentifierAction].to[FakeIdentifierAction],
+    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+    bind[NunjucksRenderer].toInstance(mockRenderer)
+  )
+
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
-      .overrides(
-        bind[DataRequiredAction].to[DataRequiredActionImpl],
-        bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
-        bind[NunjucksRenderer].toInstance(mockRenderer)
-      )
+      .overrides(modules(userAnswers): _*)
 }
