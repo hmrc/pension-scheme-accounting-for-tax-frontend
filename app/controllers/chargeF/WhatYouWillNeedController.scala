@@ -47,15 +47,9 @@ class WhatYouWillNeedController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val ua = request.userAnswers.getOrElse(UserAnswers())
-
-      schemeDetailsConnector.getSchemeName(request.psaId.id, "srn", srn).flatMap { schemeName =>
-        Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
-          userAnswersCacheConnector.save(request.internalId, answers.data)//.flatMap { _ =>
-            val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
-            renderer.render(template = "chargeF/whatYouWillNeed.njk",
-              Json.obj("schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
-//          }
-        }
-      }
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
+      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+      renderer.render(template = "chargeF/whatYouWillNeed.njk",
+        Json.obj("schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
   }
 }

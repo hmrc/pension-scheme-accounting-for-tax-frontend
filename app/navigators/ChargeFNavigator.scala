@@ -19,22 +19,19 @@ package navigators
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{CheckMode, NormalMode, UserAnswers}
-import pages.{ChargeDetailsPage, Page}
 import pages.chargeF.WhatYouWillNeedPage
+import pages.{ChargeDetailsPage, Page}
 import play.api.mvc.Call
 
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  override protected def routeMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = {
-    println(s"\n\n\nChargeFNavigator\n\n\n")
-    page match {
-      case WhatYouWillNeedPage => Option(controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn))
-      case ChargeDetailsPage   => Option(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn))
-    }
+  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
+    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
   }
 
-  override protected def editRouteMap(page: Page, ua: UserAnswers, srn: String): Option[Call] = page match {
-    case WhatYouWillNeedPage => Option(controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn))
-    case ChargeDetailsPage   => Option(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn))
+  override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn)
+    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
   }
 }

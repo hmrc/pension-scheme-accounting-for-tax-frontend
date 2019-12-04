@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package generators
+package controllers
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import models.requests.DataRequest
+import pages.SchemeNameQuery
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{AnyContent, Result}
 
-trait ModelGenerators {
+import scala.concurrent.Future
 
-  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
-    Arbitrary {
-      Gen.oneOf(ChargeType.values.toSeq)
+object DataRetrievals {
+
+  def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(SchemeNameQuery) match {
+      case Some(schemeName) => block(schemeName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
+  }
 }
