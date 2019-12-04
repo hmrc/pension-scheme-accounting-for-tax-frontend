@@ -28,7 +28,7 @@ import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.Future
 
-class RetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
+class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
 
   private val result: String => Future[Result] = {
     _ => Future.successful(Ok("success result"))

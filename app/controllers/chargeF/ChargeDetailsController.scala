@@ -22,7 +22,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.ChargeDetailsFormProvider
 import javax.inject.Inject
-import models.Mode
+import models.{GenericViewModel, Mode}
 import models.chargeF.ChargeDetails
 import navigators.CompoundNavigator
 import pages.ChargeDetailsPage
@@ -48,7 +48,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form = formProvider()
+  val form: Form[ChargeDetails] = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -59,14 +59,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None => form
         }
 
-        val viewModel: DateInput.ViewModel = DateInput.localDate(preparedForm("deregistrationDate"))
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
-          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-          "date" -> viewModel,
-          "schemeName" -> schemeName
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
         )
 
         renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
@@ -79,17 +80,16 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         form.bindFromRequest().fold(
           formWithErrors => {
-
-            val viewModel = DateInput.localDate(formWithErrors("deregistrationDate"))
+            val viewModel = GenericViewModel(
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName)
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "submitUrl" -> routes.ChargeDetailsController.onSubmit(mode, srn).url,
-              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-              "date" -> viewModel,
-              "schemeName" -> schemeName
+              "viewModel" -> viewModel,
+              "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
             )
-
             renderer.render(template = "chargeF/chargeDetails.njk", json).map(BadRequest(_))
           },
           value => {

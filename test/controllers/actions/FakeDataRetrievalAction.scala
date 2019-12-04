@@ -18,19 +18,29 @@ package controllers.actions
 
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
+import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers]) extends DataRetrievalAction {
+class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers], psaId: PsaId) extends DataRetrievalAction {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    Future.failed(new RuntimeException("unimplemented"))
-//    dataToReturn match {
-//      case None =>
-//        Future(OptionalDataRequest(request.request, request.identifier, None))
-//      case Some(userAnswers) =>
-//        Future(OptionalDataRequest(request.request, request.identifier, Some(userAnswers)))
-//    }
+    dataToReturn match {
+      case None =>
+        Future(OptionalDataRequest(
+          request = request.request,
+          internalId = request.identifier,
+          psaId = psaId,
+          userAnswers = None)
+        )
+      case Some(userAnswers) =>
+        Future(OptionalDataRequest(
+          request = request.request,
+          internalId = request.identifier,
+          psaId = psaId,
+          userAnswers = Some(userAnswers))
+        )
+    }
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
