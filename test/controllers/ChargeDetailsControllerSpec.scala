@@ -30,9 +30,10 @@ import org.mockito.Mockito.{times, verify, _}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.ChargeDetailsPage
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
-import play.api.test.FakeRequest
+import play.api.http.HeaderNames
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, AnyContentAsJson, Call}
+import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
@@ -55,8 +56,10 @@ class ChargeDetailsControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
 
-  private def request: FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(GET, chargeDetailsRoute)
+  private def httpGETRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, chargeDetailsRoute)
+  private def httpPOSTRequest(json:JsValue): FakeRequest[AnyContentAsEmpty.type] = FakeRequest
+    .apply(method = POST, uri = chargeDetailsRoute, headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+      body = AnyContentAsJson(json))(POST, chargeDetailsRoute)
 
   private def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, chargeDetailsRoute)
@@ -78,7 +81,7 @@ class ChargeDetailsControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest).value
 
       status(result) mustEqual OK
 
@@ -110,7 +113,7 @@ class ChargeDetailsControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(application, httpGETRequest).value
 
       status(result) mustEqual OK
 
@@ -136,12 +139,14 @@ class ChargeDetailsControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       application.stop()
     }
 
-    "return a Bad Request and errors when invalid data is submitted" in {
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+      val chargeDetails = ChargeDetails(LocalDate.of(2010, 12, 2), BigDecimal(22.3))
+
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(application, httpPOSTRequest(json)).value
 
       status(result) mustEqual OK
 

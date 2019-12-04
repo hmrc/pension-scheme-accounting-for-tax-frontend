@@ -83,6 +83,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
       ua.get(SchemeNameQuery) match {
         case Some(schemeName) =>
+
+          println( "\n>>>REQ:" + request.body)
+
           form.bindFromRequest().fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
