@@ -29,6 +29,7 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.inject.{Injector, bind}
 import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
@@ -43,7 +44,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected val userAnswersId = "id"
 
-  protected def emptyUserAnswers = UserAnswers(Json.obj())
+  protected def emptyUserAnswers: UserAnswers = UserAnswers(Json.obj())
 
   protected def injector: Injector = app.injector
 
@@ -51,7 +52,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
 
-  protected def fakeRequest = FakeRequest("", "")
+  protected def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
 
   val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 

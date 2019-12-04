@@ -16,6 +16,9 @@
 
 package controllers.chargeF
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -26,7 +29,7 @@ import models.{GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{ChargeDetailsPage, SchemeNameQuery}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi, MessagesProvider}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -47,7 +50,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form: Form[ChargeDetails] = formProvider()
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
+  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
+
+  def form()(implicit messages: Messages): Form[ChargeDetails] =
+    formProvider(dateErrorMsg = messages("deregistrationDate.error.date", min, max))
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
