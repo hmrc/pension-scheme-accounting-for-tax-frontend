@@ -25,29 +25,34 @@ import play.api.mvc.Call
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class NavigatorSpec extends SpecBase {
-
-  private val call1 = Option(Call("GET","dest1"))
-  private val call2 = Option(Call("GET","dest2"))
+  private val srn = "test-srn"
 
   private case object DummyIdentifier extends Page
 
-//  private val dummyNavigator = new Navigator {
-//    override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call1
-//
-//    override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call2
-//  }
-//
-//  "Navigator" when {
-//    "in Normal mode" must {
-//      "go to correct route" in {
-//        dummyNavigator.nextPageOptional(DummyIdentifier, NormalMode, UserAnswers(Json.obj())) mustBe call1
-//      }
-//    }
-//
-//    "in Check mode" must {
-//      "go to correct route" in {
-//        dummyNavigator.nextPageOptional(DummyIdentifier, CheckMode, UserAnswers(Json.obj())) mustBe call2
-//      }
-//    }
-//  }
+  private val call1: PartialFunction[Page, Call] = {
+    case DummyIdentifier => Call("GET", "/page1")
+  }
+  private val call2: PartialFunction[Page, Call] = {
+    case DummyIdentifier => Call("GET", "/page2")
+  }
+
+  private val dummyNavigator: Navigator = new Navigator {
+    override protected def routeMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call] = call1
+
+    override protected def editRouteMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call] = call2
+  }
+
+  "Navigator" when {
+    "in Normal mode" must {
+      "go to correct route" in {
+        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()), srn) mustBe call1
+      }
+    }
+
+    "in Check mode" must {
+      "go to correct route" in {
+        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()), srn) mustBe call2
+      }
+    }
+  }
 }
