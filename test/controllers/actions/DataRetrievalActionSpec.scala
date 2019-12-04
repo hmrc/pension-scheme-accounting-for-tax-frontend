@@ -18,6 +18,7 @@ package controllers.actions
 
 import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
+import controllers.base.ControllerSpecBase
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -30,7 +31,7 @@ import org.mockito.Matchers.{eq => eqTo, _}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutures {
+class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures {
 
   class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalActionImpl(dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)

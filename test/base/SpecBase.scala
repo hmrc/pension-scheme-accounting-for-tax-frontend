@@ -17,50 +17,16 @@
 package base
 
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
-import controllers.actions._
-import models.UserAnswers
-import navigators.CompoundNavigator
-import org.mockito.Matchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.when
-import org.scalatest.{BeforeAndAfterEach, TryValues}
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.{Injector, bind}
-import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.inject.Injector
 import play.api.test.FakeRequest
-import play.twirl.api.Html
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
-import scala.concurrent.Future
-
-trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with ScalaFutures with IntegrationPatience with MockitoSugar with BeforeAndAfterEach {
-
-  override def beforeEach {
-    Mockito.reset(mockRenderer)
-  }
+trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
 
   protected implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  protected val userAnswersId = "id"
-
-  protected val psaId = "A0000000"
-
-  protected val srn = "aa"
-
-  protected val schemeName = "Big Scheme"
-
-  protected val dummyCall = Call("GET","/foo")
-
-  protected def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
 
   protected def injector: Injector = app.injector
 
@@ -70,24 +36,5 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite with TryValues with Sca
 
   protected def fakeRequest = FakeRequest("", "")
 
-  protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
-
-  protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
-
-  protected val mockCompoundNavigator = mock[CompoundNavigator]
-
-  val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
-
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
-
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None, psaId: String = psaId): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(
-        bind[DataRequiredAction].to[DataRequiredActionImpl],
-        bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, PsaId(psaId))),
-        bind[NunjucksRenderer].toInstance(mockRenderer),
-        bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
-        bind[CompoundNavigator].toInstance(mockCompoundNavigator)
-      )
 }

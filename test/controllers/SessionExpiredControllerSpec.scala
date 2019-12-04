@@ -16,7 +16,7 @@
 
 package controllers
 
-import base.SpecBase
+import controllers.base.ControllerSpecBase
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -26,7 +26,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class SessionExpiredControllerSpec extends SpecBase {
+class SessionExpiredControllerSpec extends ControllerSpecBase {
 
   "Session Expired Controller" must {
 

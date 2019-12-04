@@ -18,8 +18,9 @@ package controllers
 
 import java.time.LocalDate
 
-import base.SpecBase
 import behaviours.ControllerBehaviours
+import controllers.base.ControllerSpecBase
+import data.SampleData
 import forms.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
@@ -29,10 +30,10 @@ import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private def form = new ChargeDetailsFormProvider()()
-  private def chargeDetailsRoute = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
+  private def chargeDetailsRoute: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
@@ -51,9 +52,9 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-      schemeName = schemeName),
+      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
+      schemeName = SampleData.schemeName),
     "date" -> DateInput.localDate(form("deregistrationDate"))
   )
 

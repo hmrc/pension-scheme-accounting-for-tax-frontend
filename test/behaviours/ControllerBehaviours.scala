@@ -16,10 +16,9 @@
 
 package behaviours
 
-import base.SpecBase
+import controllers.base.ControllerSpecBase
+import data.SampleData
 import matchers.JsonMatchers
-import models.chargeF.ChargeDetails
-import models.{GenericViewModel, NormalMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -31,11 +30,11 @@ import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatchers {
+trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
 
   override def beforeEach: Unit = {
     reset(mockRenderer)
@@ -54,6 +53,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
+  //scalastyle:off method.length
   def controllerWithGET[A](httpPath: => String,
                            page:QuestionPage[A],
                            data:A,
@@ -61,7 +61,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
                            templateToBeRendered:String,
                            jsonToPassToTemplate: Form[A]=>JsObject)(implicit writes:Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -79,7 +79,7 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswersWithSchemeName.set(page, data).get
+      val ua = SampleData.userAnswersWithSchemeName.set(page, data).get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -91,11 +91,6 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val viewModel = GenericViewModel(
-        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
-        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName)
-
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(data)))
@@ -103,6 +98,16 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
       application.stop()
     }
 
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
   }
 
   def controllerWithPOST[A](httpPath: => String,
@@ -112,16 +117,16 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
                             templateToBeRendered:String,
                             requestValuesValid:Map[String, Seq[String]],
                             requestValuesInvalid:Map[String, Seq[String]])(implicit writes:Writes[A]):Unit = {
+
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page),any(),any(),any())(any(),any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page),any(),any(),any())(any(),any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val expectedJson = Json.obj(page.toString -> Json.toJson(data) )
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val json = Json.obj()
 
-      when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(json))
+      when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(Json.obj()))
 
       val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
 
@@ -131,14 +136,13 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(dummyCall.url)
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
 
       application.stop()
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
 
       val result = route(application, httpPOSTRequest(httpPath, requestValuesInvalid)).value
 
@@ -148,5 +152,16 @@ trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatche
 
       application.stop()
     }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
+  //scalastyle:on method.length
 }

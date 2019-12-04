@@ -16,12 +16,11 @@
 
 package controllers.actions
 
-import base.SpecBase
 import com.google.inject.Inject
+import controllers.base.ControllerSpecBase
 import controllers.routes
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.BodyParsers
 import play.api.mvc.Results._
@@ -34,7 +33,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthActionSpec extends SpecBase with MockitoSugar {
+class AuthActionSpec extends ControllerSpecBase {
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad() = authAction {
