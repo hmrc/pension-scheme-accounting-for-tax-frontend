@@ -14,67 +14,76 @@
  * limitations under the License.
  */
 
-package controllers
+package behaviours
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
 
 import base.SpecBase
-import forms.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, _}
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{times, verify}
 import pages.ChargeDetailsPage
+import play.api.data.Form
 import play.api.http.HeaderNames
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-import scala.concurrent.Future
+trait ControllerBehaviours extends SpecBase with NunjucksSupport with JsonMatchers {
 
-class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with JsonMatchers {
-  private val pageToBeRendered = "chargeF/chargeDetails.njk"
-  private val formProvider = new ChargeDetailsFormProvider()
+  private def httpGETRequest(path:String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
 
-  private def form = formProvider()
-
-  private def onwardRoute = Call("GET", "/foo")
-
-  private val validAnswer = LocalDate.now(ZoneOffset.UTC)
-
-  private lazy val chargeDetailsRoute = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
-
-  private def httpGETRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, chargeDetailsRoute)
-
-  private def httpPOSTRequest(values:Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
+  private def httpPOSTRequest(path: String, values:Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest
       .apply(
         method = POST,
-        uri = chargeDetailsRoute,
+        uri = path,
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
-  override def beforeEach: Unit = {
-    reset(mockRenderer)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    reset(mockUserAnswersCacheConnector)
-  }
+  /*
+  //    "return OK and the correct view for a GET" in {
+//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
+//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//
+//      val result = route(application, httpGETRequest).value
+//
+//      status(result) mustEqual OK
+//
+//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+//
+//      val viewModel = GenericViewModel(
+//        submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
+//        returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
+//        schemeName = schemeName)
+//
+//      val expectedJson = Json.obj(
+//        "form" -> form,
+//        "viewModel" -> viewModel,
+//        "date" -> DateInput.localDate(form("deregistrationDate"))
+//      )
+//
+//      templateCaptor.getValue mustEqual pageToBeRendered
+//      jsonCaptor.getValue must containJson(expectedJson)
+//
+//      application.stop()
+//    }
+//
+   */
 
-
-  "ChargeDetails Controller" must {
+  def controllerWithGET[A](path:String, form:Form[A], pageToBeRendered:String, data:A) = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest).value
+      val result = route(application, httpGETRequest(path)).value
 
       status(result) mustEqual OK
 
@@ -106,7 +115,7 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest).value
+      val result = route(application, httpGETRequest(path)).value
 
       status(result) mustEqual OK
 
@@ -117,7 +126,7 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
         returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
         schemeName = schemeName)
 
-      val filledForm = form.fill(chargeDetails)
+      val filledForm = form.fill(data)
 
       val expectedJson = Json.obj(
         "form" -> filledForm,
@@ -132,49 +141,5 @@ class ChargeDetailsControllerSpec extends SpecBase with NunjucksSupport with Jso
       application.stop()
     }
 
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-      val chargeDetails = ChargeDetails(LocalDate.of(2003, 4, 3), BigDecimal(33.44))
-      val expectedJson = Json.obj(ChargeDetailsPage.toString -> Json.toJson(chargeDetails) )
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val json = Json.obj()
-
-      when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(json))
-
-      val values: Map[String, Seq[String]] = Map(
-        "deregistrationDate.day" -> Seq("3"),
-        "deregistrationDate.month" -> Seq("4"),
-        "deregistrationDate.year" -> Seq("2003"),
-        "amountTaxDue" -> Seq("33.44")
-      )
-
-      val result = route(application, httpPOSTRequest(values)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(),any())
-
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-      val values: Map[String, Seq[String]] = Map(
-        "deregistrationDate.day" -> Seq("32"),
-        "deregistrationDate.month" -> Seq("13"),
-        "deregistrationDate.year" -> Seq("2003"),
-        "amountTaxDue" -> Seq("33.44")
-      )
-
-      val result = route(application, httpPOSTRequest(values)).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(),any())
-
-      application.stop()
-    }
   }
 }
