@@ -23,7 +23,6 @@ import forms.behaviours._
 import play.api.data.FormError
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 

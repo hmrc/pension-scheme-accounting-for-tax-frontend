@@ -32,7 +32,6 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(nonNumerics -> "nonNumeric") {
         nonNumeric =>
           val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
-          println(s"\n\n\nbigDecimalField:${result.errors}\n\n\n")
           result.errors shouldEqual Seq(nonNumericError)
       }
     }
@@ -54,11 +53,11 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
     s"must not bind decimals below $minimum" in {
 
-      forAll(decimalBelowValue(minimum) -> "decimalBelowMin") {
-        number: BigDecimal =>
-          val result = form.bind(Map(fieldName -> number.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
-          println(s"\n\n\nbigDecimalFieldWithMinimum:${result.errors}\n\n\n")
-          result.errors shouldEqual Seq(expectedError)
+      forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") {
+        decimal: BigDecimal =>
+          val result = form.bind(Map(fieldName -> decimal.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+          result.errors.head.key shouldEqual expectedError.key
+          result.errors.head.message shouldEqual expectedError.message
       }
     }
   }
@@ -70,11 +69,11 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
     s"must not bind decimals above $maximum" in {
 
-      forAll(decimalAboveValue(maximum) -> "decimalAboveMax") {
-        number: BigDecimal =>
-          val result = form.bind(Map(fieldName -> number.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
-          println(s"\n\n\nbigDecimalFieldWithMaximum:${result.errors}\n\n\n")
-          result.errors shouldEqual Seq(expectedError)
+      forAll(decimalsAboveValue(maximum) -> "decimalAboveMax") {
+        decimal: BigDecimal =>
+          val result = form.bind(Map(fieldName -> decimal.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+          result.errors.head.key shouldEqual expectedError.key
+          result.errors.head.message shouldEqual expectedError.message
       }
     }
   }
