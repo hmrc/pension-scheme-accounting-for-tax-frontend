@@ -54,8 +54,8 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
     s"must not bind decimals below $minimum" in {
 
       forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") {
-        decimal: BigDecimal =>
-          val result = form.bind(Map(fieldName -> decimal.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+        decimal: String =>
+          val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
           result.errors.head.key shouldEqual expectedError.key
           result.errors.head.message shouldEqual expectedError.message
       }
@@ -69,9 +69,9 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
     s"must not bind decimals above $maximum" in {
 
-      forAll(decimalsAboveValue(maximum) -> "decimalAboveMax") {
-        decimal: BigDecimal =>
-          val result = form.bind(Map(fieldName -> decimal.setScale(2, RoundingMode.CEILING).toString)).apply(fieldName)
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
+        decimal: String =>
+          val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
           result.errors.head.key shouldEqual expectedError.key
           result.errors.head.message shouldEqual expectedError.message
       }

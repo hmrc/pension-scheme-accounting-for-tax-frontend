@@ -80,8 +80,30 @@ trait Formatters {
 
   private[mappings] def bigDecimalFormatter(requiredKey: String,
                                             invalidKey: String,
-                                            decimalKey: Option[String],
                                             args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
+    new Formatter[BigDecimal] {
+
+      private val baseFormatter = stringFormatter(requiredKey)
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
+        baseFormatter
+          .bind(key, data)
+          .right.map(_.replace(",", ""))
+          .right.flatMap { s =>
+          Try(BigDecimal(s)) match {
+            case Success(x) => Right(x)
+            case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+          }
+        }
+
+      override def unbind(key: String, value: BigDecimal): Map[String, String] =
+        baseFormatter.unbind(key, value.toString)
+    }
+
+  private[mappings] def bigDecimal2DPFormatter(requiredKey: String,
+                                               invalidKey: String,
+                                               decimalKey: String,
+                                               args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
       val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
@@ -93,8 +115,8 @@ trait Formatters {
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
-          if (decimalKey.isDefined && s.contains(".") && !s.matches(decimalRegexp))
-            Left(Seq(FormError(key, decimalKey.get, args)))
+          if (s.contains(".") && !s.matches(decimalRegexp))
+            Left(Seq(FormError(key, decimalKey, args)))
           else
             Try(BigDecimal(s)) match {
               case Success(x) => Right(x)
