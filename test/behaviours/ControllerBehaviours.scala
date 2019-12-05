@@ -21,7 +21,7 @@ import data.SampleData
 import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.{Page, QuestionPage}
 import play.api.data.Form
@@ -37,12 +37,12 @@ import scala.concurrent.Future
 
 trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   override def beforeEach: Unit = {
-    reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
+    super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
+  protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
 
   private def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest
