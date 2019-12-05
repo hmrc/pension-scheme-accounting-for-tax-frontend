@@ -17,7 +17,7 @@
 package controllers
 
 import models.requests.DataRequest
-import pages.SchemeNameQuery
+import pages.{Page, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 

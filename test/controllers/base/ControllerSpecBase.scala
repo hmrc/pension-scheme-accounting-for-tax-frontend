@@ -17,6 +17,7 @@
 package controllers.base
 
 import base.SpecBase
+import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import data.SampleData
@@ -27,7 +28,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
@@ -37,6 +37,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
+  protected val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
 
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
 
@@ -47,9 +48,10 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, PsaId(psaId))),
+        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+        bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
         bind[CompoundNavigator].toInstance(mockCompoundNavigator)
       )
 }

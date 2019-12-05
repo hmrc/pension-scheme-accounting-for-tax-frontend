@@ -25,35 +25,35 @@ sealed trait ChargeType
 
 object ChargeType extends Enumerable.Implicits {
 
-  case object ChargetypeAnnualAllowance extends WithName("chargeType.annualAllowance") with ChargeType
-  case object ChargetypAuthSurplus extends WithName("chargeType.authSurplus") with ChargeType
-  case object ChargetypeDeRegistration extends WithName("chargeType.deRegistration") with ChargeType
-  case object ChargetypeLifetimeAllowance extends WithName("chargeType.lifeTimeAllowance") with ChargeType
-  case object ChargetypeOverseasTransfer extends WithName("chargeType.overseasTransfer") with ChargeType
-  case object ChargetypeShortService extends WithName("chargeType.shortService") with ChargeType
-  case object ChargetypeLumpSumDeath extends WithName("chargeType.lumpSumDeath") with ChargeType
+  case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
+  case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
+  case object ChargeTypeDeRegistration extends WithName("deRegistration") with ChargeType
+  case object ChargeTypeLifetimeAllowance extends WithName("lifeTimeAllowance") with ChargeType
+  case object ChargeTypeOverseasTransfer extends WithName("overseasTransfer") with ChargeType
+  case object ChargeTypeShortService extends WithName("shortService") with ChargeType
+  case object ChargeTypeLumpSumDeath extends WithName("lumpSumDeath") with ChargeType
 
   val values: Seq[ChargeType] = Seq(
-    ChargetypeAnnualAllowance,
-    ChargetypAuthSurplus,
-    ChargetypeDeRegistration,
-    ChargetypeLifetimeAllowance,
-    ChargetypeOverseasTransfer,
-    ChargetypeShortService,
-    ChargetypeLumpSumDeath
+    ChargeTypeAnnualAllowance,
+    ChargeTypeAuthSurplus,
+    ChargeTypeDeRegistration,
+    ChargeTypeLifetimeAllowance,
+    ChargeTypeOverseasTransfer,
+    ChargeTypeShortService,
+    ChargeTypeLumpSumDeath
   )
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"chargeType.chargeType.annualAllowance", ChargetypeAnnualAllowance.toString),
-      Radios.Radio(msg"chargeType.chargeType.authSurplus", ChargetypAuthSurplus.toString),
-      Radios.Radio(msg"chargeType.chargeType.deRegistration", ChargetypeDeRegistration.toString),
-      Radios.Radio(msg"chargeType.chargeType.lifeTimeAllowance", ChargetypeLifetimeAllowance.toString),
-      Radios.Radio(msg"chargeType.chargeType.overseasTransfer", ChargetypeOverseasTransfer.toString),
-      Radios.Radio(msg"chargeType.chargeType.shortService", ChargetypeShortService.toString),
-      Radios.Radio(msg"chargeType.chargeType.lumpSumDeath", ChargetypeLumpSumDeath.toString)
+      Radios.Radio(msg"chargeType.radio.annualAllowance", ChargeTypeAnnualAllowance.toString),
+      Radios.Radio(msg"chargeType.radio.authSurplus", ChargeTypeAuthSurplus.toString),
+      Radios.Radio(msg"chargeType.radio.deRegistration", ChargeTypeDeRegistration.toString),
+      Radios.Radio(msg"chargeType.radio.lifeTimeAllowance", ChargeTypeLifetimeAllowance.toString),
+      Radios.Radio(msg"chargeType.radio.overseasTransfer", ChargeTypeOverseasTransfer.toString),
+      Radios.Radio(msg"chargeType.radio.shortService", ChargeTypeShortService.toString),
+      Radios.Radio(msg"chargeType.radio.lumpSumDeath", ChargeTypeLumpSumDeath.toString)
     )
 
     Radios(field, items)

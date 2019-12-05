@@ -14,42 +14,29 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.ChargeDetailsPage
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+  private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
+  private def httpGETRoute: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
-  private val templateToBeRendered = "chargeF/check-your-answers.njk"
-  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private val jsonToPassToTemplate:JsObject = Json.obj(
+    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
 
-  private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeDetails).toOption.get
-
-  val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
-
-  private val answers: Seq[SummaryList.Row] = Seq(
-    helper.date.get,
-    helper.amount.get
-  )
-
-  private val jsonToPassToTemplate:JsObject = Json.obj("list" -> answers)
-
-  "CheckYourAnswers Controller" must {
+  "whatYouWillNeed Controller" must {
     behave like controllerWithGET(
       httpPath = httpGETRoute,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
-      optionUserAnswers = Some(ua)
+      jsonToPassToTemplate = jsonToPassToTemplate
     )
   }
 }

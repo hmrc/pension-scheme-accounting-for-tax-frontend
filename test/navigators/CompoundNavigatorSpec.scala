@@ -26,25 +26,40 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class CompoundNavigatorSpec extends SpecBase {
+  private val srn = "test-srn"
 
-//  private def navigator(call: Option[Call]): CompoundNavigator =
-//    new CompoundNavigator {
-//      override protected def routeMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
-//
-//      override protected def editRouteMap(id: Page, userAnswers: UserAnswers): Option[Call] = call
-//    }
-//
-//  "CompoundNavigator" must {
-//    "delegate to the bound Navigators" in {
-//      val navigators = Set(
-//        navigator(None),
-//        navigator(Some(Call("GET", "www.example.com/1"))),
-//        navigator(None)
-//      )
-//      val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
-//      object TestIdentifier extends Page
-//      val result = compoundNavigator.nextPageOptional(TestIdentifier, NormalMode, UserAnswers(Json.obj()), None)
-//      result mustEqual Option(Call("GET", "www.example.com/1"))
-//    }
-//  }
+  case object PageOne extends Page
+  case object PageTwo extends Page
+  case object PageThree extends Page
+
+  private def navigator(pp: PartialFunction[Page, Call]): Navigator = new Navigator {
+    override protected def routeMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call] = pp
+
+    override protected def editRouteMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call] = pp
+  }
+
+  "CompoundNavigator" must {
+    "redirect to the correct page if there is navigation for the page" in {
+      val navigators = Set(
+        navigator({case PageOne => Call("GET", "/page1")}),
+        navigator({case PageTwo => Call("GET", "/page2")}),
+        navigator({case PageThree => Call("GET", "/page3")})
+      )
+      val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
+      val result = compoundNavigator.nextPage(PageTwo, NormalMode, UserAnswers(Json.obj()), srn)
+      result mustEqual Call("GET", "/page2")
+    }
+
+    "redirect to the index page if there is no navigation available for the given page" in {
+      case object PageFour extends Page
+      val navigators = Set(
+        navigator({case PageOne => Call("GET", "/page1")}),
+        navigator({case PageTwo => Call("GET", "/page2")}),
+        navigator({case PageThree => Call("GET", "/page3")})
+      )
+      val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
+      val result = compoundNavigator.nextPage(PageFour, NormalMode, UserAnswers(Json.obj()), srn)
+      result mustEqual controllers.routes.IndexController.onPageLoad()
+    }
+  }
 }
