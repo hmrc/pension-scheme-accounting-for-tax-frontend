@@ -52,8 +52,8 @@ class AuthenticatedIdentifierAction @Inject()(
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
-      case e =>
-        Logger.warn("No enrolment or internal id found: " +  e)
+      case e: AuthorisationException =>
+        Logger.warn(message = s"Authorization Failed with error $e")
         Redirect(routes.UnauthorisedController.onPageLoad())
     }
   }

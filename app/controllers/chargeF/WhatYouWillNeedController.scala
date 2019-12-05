@@ -44,12 +44,13 @@ class WhatYouWillNeedController @Inject()(
                                            navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      val ua = request.userAnswers.getOrElse(UserAnswers())
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("")
+      val ua = request.userAnswers
+      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+
       renderer.render(template = "chargeF/whatYouWillNeed.njk",
-        Json.obj("schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
   }
 }

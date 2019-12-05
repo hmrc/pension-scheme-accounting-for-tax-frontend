@@ -25,6 +25,6 @@ class ChargeTypeFormProvider @Inject() extends Mappings {
 
   def apply(): Form[ChargeType] =
     Form(
-      "value" -> enumerable[ChargeType]("chargeType.error.required")
+      "value" -> enumerable[ChargeType](requiredKey = "chargeType.error.required")
     )
 }

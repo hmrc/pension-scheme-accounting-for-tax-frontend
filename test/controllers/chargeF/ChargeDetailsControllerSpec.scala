@@ -33,7 +33,8 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private def form = new ChargeDetailsFormProvider()()
-  private def chargeDetailsRoute: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def chargeDetailsGetRoute: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def chargeDetailsPostRoute: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
@@ -62,7 +63,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "ChargeDetails Controller" must {
     behave like controllerWithGET(
-      httpPath = chargeDetailsRoute,
+      httpPath = chargeDetailsGetRoute,
       page = ChargeDetailsPage,
       data = chargeDetails,
       form = form,
@@ -71,7 +72,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
     behave like controllerWithPOST(
-      httpPath = chargeDetailsRoute,
+      httpPath = chargeDetailsPostRoute,
       page = ChargeDetailsPage,
       data = chargeDetails,
       form = form,
