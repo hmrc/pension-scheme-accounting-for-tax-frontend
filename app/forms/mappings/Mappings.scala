@@ -33,8 +33,10 @@ trait Mappings extends Formatters with Constraints {
     of(intFormatter(requiredKey, wholeNumberKey, nonNumericKey))
 
   protected def bigDecimal(requiredKey: String = "error.required",
-                           invalidKey: String = "error.invalid"): FieldMapping[BigDecimal] =
-    of(bigDecimalFormatter(requiredKey, invalidKey))
+                           invalidKey: String = "error.invalid",
+                           decimalKey: Option[String] = None
+                          ): FieldMapping[BigDecimal] =
+    of(bigDecimalFormatter(requiredKey, invalidKey, decimalKey))
 
   protected def boolean(requiredKey: String = "error.required",
                         invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
@@ -45,11 +47,10 @@ trait Mappings extends Formatters with Constraints {
                               invalidKey: String = "error.invalid")(implicit ev: Enumerable[A]): FieldMapping[A] =
     of(enumerableFormatter[A](requiredKey, invalidKey))
 
-  protected def localDate(
-                           invalidKey: String,
-                           allRequiredKey: String,
-                           twoRequiredKey: String,
-                           requiredKey: String,
-                           args: Seq[String] = Seq.empty): FieldMapping[LocalDate] =
+  protected def localDate(invalidKey: String,
+                          allRequiredKey: String,
+                          twoRequiredKey: String,
+                          requiredKey: String,
+                          args: Seq[String] = Seq.empty): FieldMapping[LocalDate] =
     of(new LocalDateFormatter(invalidKey, allRequiredKey, twoRequiredKey, requiredKey, args))
 }

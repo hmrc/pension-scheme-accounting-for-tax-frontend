@@ -16,25 +16,34 @@
 
 package forms
 
-import forms.mappings.Mappings
+import java.time.LocalDate
+
+import forms.mappings.{Constraints, Mappings}
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 
-class ChargeDetailsFormProvider @Inject() extends Mappings {
+class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(): Form[ChargeDetails] =
+  def apply(dateErrorMsg: String): Form[ChargeDetails] =
     Form(mapping(
       "deregistrationDate" -> localDate(
         invalidKey = "deregistrationDate.error.invalid",
         allRequiredKey = "deregistrationDate.error.required.all",
         twoRequiredKey = "deregistrationDate.error.required.two",
         requiredKey = "deregistrationDate.error.required"
+      ).verifying(
+        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
+        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
       ),
       "amountTaxDue" -> bigDecimal(
-        "amountTaxDue.error.required",
-        "amountTaxDue.error.invalid"
+        requiredKey = "amountTaxDue.error.required",
+        invalidKey = "amountTaxDue.error.invalid",
+        decimalKey = Some("amountTaxDue.error.decimal")
+      ).verifying(
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

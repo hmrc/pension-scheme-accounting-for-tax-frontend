@@ -30,5 +30,5 @@ object SampleData {
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
-  val chargeDetails = ChargeDetails(LocalDate.of(2003, 4, 3), BigDecimal(33.44))
+  val chargeDetails = ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
 }
