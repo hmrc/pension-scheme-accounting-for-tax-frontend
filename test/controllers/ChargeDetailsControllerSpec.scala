@@ -32,7 +32,8 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
-  private def form = new ChargeDetailsFormProvider()()
+  private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
+  private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
   private def chargeDetailsRoute: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
