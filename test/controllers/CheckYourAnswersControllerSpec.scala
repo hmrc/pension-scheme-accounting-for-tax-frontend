@@ -29,19 +29,19 @@ import utils.CheckYourAnswersHelper
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
 
   private val templateToBeRendered = "chargeF/check-your-answers.njk"
+
   private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
     .set(ChargeDetailsPage, SampleData.chargeDetails).toOption.get
 
-  val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
 
-  private val answers: Seq[SummaryList.Row] = Seq(
-    helper.date.get,
-    helper.amount.get
-  )
-
-  private val jsonToPassToTemplate:JsObject = Json.obj("list" -> answers)
+  private val jsonToPassToTemplate: JsObject = Json.obj(
+    "list" -> Seq(
+      helper.date.get,
+      helper.amount.get
+    ))
 
   "CheckYourAnswers Controller" must {
     behave like controllerWithGET(
@@ -49,7 +49,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
-      optionUserAnswers = Some(ua)
+      userAnswers = Some(ua)
     )
   }
 }
