@@ -79,28 +79,32 @@ trait Formatters {
     }
 
   private[mappings] def bigDecimalFormatter(requiredKey: String,
-                                            invalidKey: String, args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
+                                            invalidKey: String,
+                                            decimalKey: Option[String],
+                                            args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
-      val decimalRegexp = """^-?(\d*\.\d*)$"""
+      val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
-      override def bind(key: String, data: Map[String, String]) =
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
+          if (decimalKey.isDefined && s.contains(".") && !s.matches(decimalRegexp))
+            Left(Seq(FormError(key, decimalKey.get, args)))
+          else
             Try(BigDecimal(s)) match {
               case Success(x) => Right(x)
               case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
             }
         }
 
-      override def unbind(key: String, value: BigDecimal) =
+      override def unbind(key: String, value: BigDecimal): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
     }
-
 
   private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)(implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
