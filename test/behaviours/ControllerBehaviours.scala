@@ -19,10 +19,11 @@ package behaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
+import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
-import pages.QuestionPage
+import pages.{Page, QuestionPage}
 import play.api.data.Form
 import play.api.http.HeaderNames
 import play.api.libs.json.{JsObject, Json, Writes}
@@ -50,6 +51,34 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
         uri = path,
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
+
+
+  //scalastyle:off method.length
+  def controllerWithGET(httpPath: => String,
+                        page: Page,
+                        templateToBeRendered: String,
+                        jsonToPassToTemplate: JsObject,
+                        optionUserAnswers:Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = optionUserAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
+  }
 
   //scalastyle:off method.length
   def controllerWithGET[A](httpPath: => String,

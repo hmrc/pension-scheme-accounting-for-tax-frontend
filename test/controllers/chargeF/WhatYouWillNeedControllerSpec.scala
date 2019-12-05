@@ -14,33 +14,29 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
+import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
-import org.scalatestplus.mockito.MockitoSugar
+import data.SampleData
+import matchers.JsonMatchers
+import pages.chargeF.WhatYouWillNeedPage
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with MockitoSugar {
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+  private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
+  private def httpGETRoute: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+
+  private val jsonToPassToTemplate:JsObject = Json.obj(
+    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
 
   "whatYouWillNeed Controller" must {
-
-//    "return OK and the correct view for a GET" in {
-//
-//      when(mockRenderer.render(any(), any())(any()))
-//        .thenReturn(Future.successful(Html("")))
-//
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-//      val request = FakeRequest(GET, routes.whatYouWillNeedController.onPageLoad().url)
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual OK
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
-//
-//      templateCaptor.getValue mustEqual "whatYouWillNeed.njk"
-//
-//      application.stop()
-//    }
+    behave like controllerWithGET(
+      httpPath = httpGETRoute,
+      page = WhatYouWillNeedPage,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate
+    )
   }
 }
