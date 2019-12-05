@@ -43,7 +43,6 @@ class AuthenticatedIdentifierAction @Inject()(
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
     authorised(Enrolment("HMRC-PODS-ORG")).retrieve(Retrievals.internalId and Retrievals.allEnrolments) {
       case Some(id) ~ enrolments =>
         block(IdentifierRequest(request, id.toString, PsaId(getPsaId(enrolments))))

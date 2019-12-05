@@ -85,9 +85,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
+
         form.bindFromRequest().fold(
           formWithErrors => {
-            println(s"\n\n\n\n$formWithErrors\n\n\n")
             val viewModel = GenericViewModel(
               submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -98,8 +98,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
             )
-
-            renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+            renderer.render(template = "chargeF/chargeDetails.njk", json).map(BadRequest(_))
           },
           value => {
             for {

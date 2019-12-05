@@ -16,19 +16,9 @@
 
 package controllers
 
-import base.SpecBase
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.SummaryList
+import controllers.base.ControllerSpecBase
 
-import scala.concurrent.Future
-
-class CheckYourAnswersControllerSpec extends SpecBase {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase {
 //
 //  "Check Your Answers Controller" must {
 //
@@ -37,7 +27,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 //      when(mockRenderer.render(any(), any())(any()))
 //        .thenReturn(Future.successful(Html("")))
 //
-//      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
 //
 //      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
 //

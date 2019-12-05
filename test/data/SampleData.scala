@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package models.chargeF
+package data
 
-import java.time.LocalDate
+import models.UserAnswers
+import play.api.libs.json.Json
+import play.api.mvc.Call
 
-import play.api.libs.json.{Format, Json, Reads, Writes}
-
-case class ChargeDetails(deRegistrationDate: LocalDate, amountTaxDue: BigDecimal)
-
-object ChargeDetails {
-  implicit lazy val formats: Format[ChargeDetails] =
-    Json.format[ChargeDetails]
+object SampleData {
+  val userAnswersId = "id"
+  val psaId = "A0000000"
+  val srn = "aa"
+  val schemeName = "Big Scheme"
+  val dummyCall = Call("GET","/foo")
+  def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName))
 }
