@@ -36,15 +36,14 @@ import scala.concurrent.Future
 
 trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   override def beforeEach: Unit = {
-    reset(mockSchemeDetailsConnector, mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
-    when(mockSchemeDetailsConnector.getSchemeName(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeName))
-    when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(Json.obj()))
+    reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private def httpGETRequest(path:String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
+  private def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
 
-  private def httpPOSTRequest(path: String, values:Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
+  private def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest
       .apply(
         method = POST,
@@ -54,11 +53,11 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
   //scalastyle:off method.length
   def controllerWithGET[A](httpPath: => String,
-                           page:QuestionPage[A],
-                           data:A,
-                           form:Form[A],
-                           templateToBeRendered:String,
-                           jsonToPassToTemplate: Form[A]=>JsObject)(implicit writes:Writes[A]): Unit = {
+                           page: QuestionPage[A],
+                           data: A,
+                           form: Form[A],
+                           templateToBeRendered: String,
+                           jsonToPassToTemplate: Form[A] => JsObject)(implicit writes: Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -97,39 +96,39 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       application.stop()
     }
 
-//    "redirect to Session Expired page for a GET when there is no data" in {
-//      val application = applicationBuilder(userAnswers = None).build()
-//
-//      val result = route(application, httpGETRequest(httpPath)).value
-//
-//      status(result) mustEqual SEE_OTHER
-//      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-//
-//      application.stop()
-//    }
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
   }
 
   def controllerWithPOST[A](httpPath: => String,
-                            page:QuestionPage[A],
-                            data:A,
-                            form:Form[A],
-                            templateToBeRendered:String,
-                            requestValuesValid:Map[String, Seq[String]],
-                            requestValuesInvalid:Map[String, Seq[String]])(implicit writes:Writes[A]):Unit = {
+                            page: QuestionPage[A],
+                            data: A,
+                            form: Form[A],
+                            templateToBeRendered: String,
+                            requestValuesValid: Map[String, Seq[String]],
+                            requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page),any(),any(),any())(any(),any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
-      val expectedJson = Json.obj(page.toString -> Json.toJson(data) )
+      val expectedJson = Json.obj(page.toString -> Json.toJson(data))
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(),any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
 
       jsonCaptor.getValue must containJson(expectedJson)
 
@@ -145,7 +144,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(),any())
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
 
       application.stop()
     }
@@ -160,5 +159,6 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       application.stop()
     }
   }
+
   //scalastyle:on method.length
 }

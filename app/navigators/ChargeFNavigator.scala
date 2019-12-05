@@ -31,7 +31,6 @@ class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn)
     case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
   }
 }

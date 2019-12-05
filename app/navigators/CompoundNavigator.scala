@@ -21,14 +21,11 @@ import models.{Mode, UserAnswers}
 import pages.Page
 import play.api.Logger
 import play.api.mvc.Call
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
 
 trait CompoundNavigator {
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
-              (implicit ec: ExecutionContext, hc: HeaderCarrier): Call
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String): Call
 }
 
 
@@ -38,16 +35,14 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) exte
     controllers.routes.IndexController.onPageLoad()
   }
 
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
-              (implicit ec: ExecutionContext, hc: HeaderCarrier): Call = {
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String): Call = {
     nextPageOptional(id, mode, userAnswers, srn)
       .getOrElse(defaultPage(id, mode))
   }
 
-  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String)
-                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Option[Call] = {
+  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String): Option[Call] = {
     navigators.asScala.find(_.nextPageOptional(mode, userAnswers, srn).isDefinedAt(id)).map(
-      _.nextPageOptional(mode, userAnswers, srn)(ec, hc)(id)
+      _.nextPageOptional(mode, userAnswers, srn)(id)
     )
   }
 }
