@@ -22,9 +22,9 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.{ChargeType, GenericViewModel, Mode, UserAnswers}
+import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{ChargeTypePage, PSTRQuery, SchemeNameQuery}
+import pages.{AFTStatusQuery, ChargeTypePage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -58,7 +58,10 @@ class ChargeTypeController @Inject()(
       schemeDetailsConnector.getSchemeDetails(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeDetails =>
 
         Future.fromTry(ua.set(SchemeNameQuery, schemeDetails.schemeName).
-          flatMap(_.set(PSTRQuery, schemeDetails.pstr))).flatMap { answers =>
+          flatMap(_.set(PSTRQuery, schemeDetails.pstr)).flatMap(
+          _.set(QuarterPage, Quarter("01-04-2020", "30-06-2020")).flatMap(
+            _.set(AFTStatusQuery, value = "Compiled"))
+        )).flatMap { answers =>
 
           userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
 
