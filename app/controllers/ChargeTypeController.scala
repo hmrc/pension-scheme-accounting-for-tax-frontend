@@ -69,6 +69,7 @@ class ChargeTypeController @Inject()(
               "radios" -> ChargeType.radios(preparedForm),
               "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
             )
+
             renderer.render(template = "chargeType.njk", json).map(Ok(_))
           }
         }

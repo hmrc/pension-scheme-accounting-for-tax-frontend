@@ -16,28 +16,29 @@
 
 package navigators
 
+import base.SpecBase
 import models.{Mode, UserAnswers}
-import org.scalatest.FreeSpec
-import org.scalatest.prop.{PropertyChecks, TableFor3}
+import org.scalatest.MustMatchers
+import org.scalatest.prop.TableFor3
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.Page
 import play.api.mvc.Call
-import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
+trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPropertyChecks {
 
-trait NavigatorBehaviour extends FreeSpec with PropertyChecks {
+  protected def row(page: Page)(call: Call, ua: Option[UserAnswers] = None): (Page, UserAnswers, Call) = {
+    Tuple3(page, ua.getOrElse(UserAnswers()), call)
+  }
 
-  implicit val hc = HeaderCarrier
-  /*protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
+  protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
                                                        routes: TableFor3[Page, UserAnswers, Call],
                                                        srn: String): Unit = {
     forAll(routes) {
-      (id: Page, userAnswers: UserAnswers, call: Call) =>
-        s"move from $id to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
-          val result = navigator.nextPage(id, mode, userAnswers, srn)
+      (page: Page, userAnswers: UserAnswers, call: Call) =>
+        s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
+          val result = navigator.nextPage(page, mode, userAnswers, srn)
           result mustBe call
         }
     }
-  }*/
-
+  }
 }

@@ -27,7 +27,7 @@ import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
@@ -37,21 +37,22 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
-  protected val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
-
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
 
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None, psaId: String = SampleData.psaId): GuiceApplicationBuilder =
+  def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
+    bind[DataRequiredAction].to[DataRequiredActionImpl],
+    bind[IdentifierAction].to[FakeIdentifierAction],
+    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+    bind[NunjucksRenderer].toInstance(mockRenderer),
+    bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator)
+  )
+
+  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
-        bind[DataRequiredAction].to[DataRequiredActionImpl],
-        bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
-        bind[NunjucksRenderer].toInstance(mockRenderer),
-        bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
-        bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
-        bind[CompoundNavigator].toInstance(mockCompoundNavigator)
+        modules(userAnswers): _*
       )
 }
