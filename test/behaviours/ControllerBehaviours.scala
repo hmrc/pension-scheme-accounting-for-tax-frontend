@@ -19,6 +19,7 @@ package behaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
+import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -57,9 +58,10 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
   def controllerWithGET(httpPath: => String,
                         page: Page,
                         templateToBeRendered: String,
-                        jsonToPassToTemplate: JsObject): Unit = {
+                        jsonToPassToTemplate: JsObject,
+                        optionUserAnswers:Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = optionUserAnswers).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

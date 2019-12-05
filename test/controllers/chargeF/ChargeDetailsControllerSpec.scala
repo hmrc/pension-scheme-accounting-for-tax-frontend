@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import java.time.LocalDate
 
@@ -59,13 +59,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "date" -> DateInput.localDate(form("deregistrationDate"))
   )
 
-  private val chargeDetails = ChargeDetails(LocalDate.of(2003, 4, 3), BigDecimal(33.44))
-
   "ChargeDetails Controller" must {
     behave like controllerWithGET(
       httpPath = chargeDetailsGetRoute,
       page = ChargeDetailsPage,
-      data = chargeDetails,
+      data = SampleData.chargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
@@ -74,7 +72,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithPOST(
       httpPath = chargeDetailsPostRoute,
       page = ChargeDetailsPage,
-      data = chargeDetails,
+      data = SampleData.chargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,

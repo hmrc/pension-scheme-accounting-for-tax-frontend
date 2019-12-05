@@ -16,48 +16,40 @@
 
 package controllers
 
+import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
+import data.SampleData
+import matchers.JsonMatchers
+import pages.ChargeDetailsPage
+import pages.chargeF.WhatYouWillNeedPage
+import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import utils.CheckYourAnswersHelper
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase {
-//
-//  "Check Your Answers Controller" must {
-//
-//    "must return OK and the correct view for a GET" in {
-//
-//      when(mockRenderer.render(any(), any())(any()))
-//        .thenReturn(Future.successful(Html("")))
-//
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName)).build()
-//
-//      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual OK
-//
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      templateCaptor.getValue mustEqual "check-your-answers.njk"
-//
-//      application.stop()
-//    }
-//
-//    "must redirect to Session Expired for a GET if no existing data is found" in {
-//
-//      val application = applicationBuilder(userAnswers = None).build()
-//
-//      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad().url)
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-//
-//      application.stop()
-//    }
-//  }
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+
+  private val templateToBeRendered = "chargeF/check-your-answers.njk"
+  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+
+  private def ua = SampleData.userAnswersWithSchemeName
+    .set(ChargeDetailsPage, SampleData.chargeDetails).toOption.get
+
+  val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+
+  private val answers: Seq[SummaryList.Row] = Seq(
+    helper.date.get,
+    helper.amount.get
+  )
+
+  private val jsonToPassToTemplate:JsObject = Json.obj("list" -> answers)
+
+  "CheckYourAnswers Controller" must {
+    behave like controllerWithGET(
+      httpPath = httpGETRoute,
+      page = WhatYouWillNeedPage,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      optionUserAnswers = Some(ua)
+    )
+  }
 }
