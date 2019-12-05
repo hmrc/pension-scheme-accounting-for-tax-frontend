@@ -37,10 +37,10 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
         maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
       ),
-      "amountTaxDue" -> bigDecimal(
+      "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "amountTaxDue.error.required",
         invalidKey = "amountTaxDue.error.invalid",
-        decimalKey = Some("amountTaxDue.error.decimal")
+        decimalKey = "amountTaxDue.error.decimal"
       ).verifying(
         maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
         minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")

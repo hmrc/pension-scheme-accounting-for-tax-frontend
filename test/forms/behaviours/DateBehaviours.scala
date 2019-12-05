@@ -81,8 +81,6 @@ class DateBehaviours extends FieldBehaviours {
             s"$key.year"  -> date.getYear.toString
           )
 
-          println(formError)
-
           val result = form.bind(data)
 
           result.errors should contain(formError)
