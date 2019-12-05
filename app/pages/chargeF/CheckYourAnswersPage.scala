@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package data
+package pages.chargeF
 
-import models.{SchemeDetails, UserAnswers}
-import play.api.libs.json.Json
-import play.api.mvc.Call
+import pages.Page
 
-object SampleData {
-  val userAnswersId = "id"
-  val psaId = "A0000000"
-  val srn = "aa"
-  val pstr = "pstr"
-  val schemeName = "Big Scheme"
-  val dummyCall = Call("GET","/foo")
-  val schemeDetails = SchemeDetails(schemeName, pstr)
-  def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
-}
+case object CheckYourAnswersPage extends Page

@@ -37,7 +37,7 @@ import scala.concurrent.Future
 trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   override def beforeEach: Unit = {
     reset(mockSchemeDetailsConnector, mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
-    when(mockSchemeDetailsConnector.getSchemeName(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeName))
+    when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockUserAnswersCacheConnector.save(any(),any())(any(),any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }

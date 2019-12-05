@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package data
+package models
 
-import models.{SchemeDetails, UserAnswers}
-import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, JsPath, Json, Reads}
 
-object SampleData {
-  val userAnswersId = "id"
-  val psaId = "A0000000"
-  val srn = "aa"
-  val pstr = "pstr"
-  val schemeName = "Big Scheme"
-  val dummyCall = Call("GET","/foo")
-  val schemeDetails = SchemeDetails(schemeName, pstr)
-  def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
+case class SchemeDetails(schemeName: String, pstr: String)
+object SchemeDetails {
+  implicit def apiReads: Reads[SchemeDetails] = (
+    (JsPath \ "schemeName").read[String] and
+      (JsPath \ "pstr").read[String])(
+    (schemeName, pstr) => SchemeDetails(schemeName, pstr)
+  )
+  implicit lazy val formats: Format[SchemeDetails] =
+    Json.format[SchemeDetails]
 }
