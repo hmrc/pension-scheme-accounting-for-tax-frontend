@@ -17,22 +17,36 @@
 package controllers
 
 import behaviours.ControllerBehaviours
+import connectors.SchemeDetailsConnector
 import data.SampleData
 import forms.ChargeTypeFormProvider
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.ChargeTypePage
 import play.api.data.Form
+import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.FakeRequest
+import play.api.test.Helpers.{GET, route, status, _}
+
+import scala.concurrent.Future
 
 class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
 
   private val template = "chargeType.njk"
+
   private def form = new ChargeTypeFormProvider()()
 
   private def chargeTypeGetRoute: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+
   private def chargeTypePostRoute: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
+
+  private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
@@ -53,14 +67,55 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   "ChargeDetails Controller" must {
 
-    behave like controllerWithGET(
-      httpPath = chargeTypeGetRoute,
-      page = ChargeTypePage,
-      data = ChargeTypeAnnualAllowance,
-      form = form,
-      templateToBeRendered = template,
-      jsonToPassToTemplate = jsonToTemplate
-    )
+    "return OK and the correct view for a GET" in {
+      val application = new GuiceApplicationBuilder()
+        .overrides(
+          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
+            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
+          ): _*
+        ).build()
+      when(mockSchemeDetailsConnector.getSchemeName(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeName))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual template
+
+      jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+
+      application.stop()
+    }
+
+    "return OK and the correct view for a GET when the question has previously been answered" in {
+      reset(mockSchemeDetailsConnector)
+      val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
+      val application = new GuiceApplicationBuilder()
+        .overrides(
+          modules(Some(ua)) ++ Seq[GuiceableModule](
+            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
+          ): _*
+        ).build()
+      when(mockSchemeDetailsConnector.getSchemeName(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeName))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual template
+
+      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
+
+      application.stop()
+    }
 
     behave like controllerWithPOST(
       httpPath = chargeTypePostRoute,

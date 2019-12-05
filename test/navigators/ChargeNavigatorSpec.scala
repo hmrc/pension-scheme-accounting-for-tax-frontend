@@ -16,19 +16,24 @@
 
 package navigators
 
-import models._
-import pages.Page
+import controllers.chargeF.routes.WhatYouWillNeedController
+import models.{NormalMode, UserAnswers}
+import org.scalatest.prop.TableFor3
+import pages.{ChargeTypePage, Page}
 import play.api.mvc.Call
 
-trait Navigator {
-  protected def routeMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call]
+class ChargeNavigatorSpec extends NavigatorBehaviour {
 
-  protected def editRouteMap(userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call]
+  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
+  private val srn = "test-srn"
 
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String): PartialFunction[Page, Call] =  {
-      mode match {
-        case NormalMode => routeMap(userAnswers, srn)
-        case CheckMode => editRouteMap(userAnswers, srn)
-      }
+  "NormalMode" must {
+    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(ChargeTypePage)(WhatYouWillNeedController.onPageLoad(srn))
+      )
+
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
 }

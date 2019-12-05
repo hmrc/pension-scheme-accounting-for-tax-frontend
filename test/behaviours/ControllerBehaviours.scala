@@ -37,8 +37,7 @@ import scala.concurrent.Future
 
 trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   override def beforeEach: Unit = {
-    reset(mockSchemeDetailsConnector, mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
-    when(mockSchemeDetailsConnector.getSchemeName(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeName))
+    reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
@@ -65,7 +64,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())(any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val result = route(application, httpGETRequest(httpPath)).value
 
@@ -126,16 +125,16 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       application.stop()
     }
 
-    //    "redirect to Session Expired page for a GET when there is no data" in {
-    //      val application = applicationBuilder(userAnswers = None).build()
-    //
-    //      val result = route(application, httpGETRequest(httpPath)).value
-    //
-    //      status(result) mustEqual SEE_OTHER
-    //      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-    //
-    //      application.stop()
-    //    }
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
   }
 
   def controllerWithPOST[A](httpPath: => String,
@@ -148,7 +147,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())(any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val expectedJson = Json.obj(page.toString -> Json.toJson(data))
