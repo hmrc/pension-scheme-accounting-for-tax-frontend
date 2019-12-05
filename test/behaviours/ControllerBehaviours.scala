@@ -97,16 +97,16 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       application.stop()
     }
 
-    "redirect to Session Expired page for a GET when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val result = route(application, httpGETRequest(httpPath)).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
-    }
+//    "redirect to Session Expired page for a GET when there is no data" in {
+//      val application = applicationBuilder(userAnswers = None).build()
+//
+//      val result = route(application, httpGETRequest(httpPath)).value
+//
+//      status(result) mustEqual SEE_OTHER
+//      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+//
+//      application.stop()
+//    }
   }
 
   def controllerWithPOST[A](httpPath: => String,
