@@ -18,8 +18,8 @@ package navigators
 
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{ChargeDetailsPage, Page}
-import pages.chargeF.WhatYouWillNeedPage
+import pages.Page
+import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
 

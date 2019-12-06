@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.ChargeDetailsPage
-import pages.chargeF.WhatYouWillNeedPage
+import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
@@ -33,7 +32,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeDetails).toOption.get
+    .set(ChargeDetailsPage, SampleData.chargeTypeFChargeDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
 

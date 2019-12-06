@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeF
 
 import models.chargeF.ChargeDetails
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {

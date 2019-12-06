@@ -18,12 +18,12 @@ package navigators
 
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{ChargeDetailsPage, Page}
-import pages.chargeF.WhatYouWillNeedPage
+import pages.Page
+import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
-import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
+import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
 
-class ChargeFNavigatorSpec extends NavigatorBehaviour {
+class ChargeANavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"

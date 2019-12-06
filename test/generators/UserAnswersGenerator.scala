@@ -21,6 +21,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
 import pages._
+import pages.chargeF.ChargeDetailsPage
 import play.api.libs.json.{JsPath, JsValue, Json}
 
 trait UserAnswersGenerator extends TryValues {

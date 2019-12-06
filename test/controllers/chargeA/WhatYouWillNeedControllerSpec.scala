@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.chargeF.WhatYouWillNeedPage
+import pages.chargeA.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
-  private def httpGETRoute: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+  private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
+  private def httpGETRoute: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
   private val jsonToPassToTemplate:JsObject = Json.obj(
     fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)

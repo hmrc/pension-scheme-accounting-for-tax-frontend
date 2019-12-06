@@ -1,0 +1,70 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% block pageTitle %}
+  {{ title(messages("chargeDetails.title"), form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if form.errors.length > 0 %}
+          {{ govukErrorSummary({
+            "titleText": messages("error.summary.title"),
+            "errorList": form.errors
+          }) }}
+        {% endif %}
+
+        <h1 class="govuk-heading-xl">{{messages('chargeDetails.heading')}}</h1>
+
+        <form action="{{ submitUrl }}" method="post">
+
+          {{ csrf() | safe }}
+
+          {{ govukDateInput({
+            id: "deregistrationDate",
+            fieldset: {
+              legend: {
+                text: messages('chargeDetails.date.label'),
+                isPageHeading: false,
+                classes: "govuk-fieldset__legend--s"
+              }
+            },
+            errorMessage: date.error,
+            items: date.items
+          }) }}
+
+          {{ govukInput({
+            id: "amountTaxDue",
+            label: {
+              text: messages('chargeDetails.amount.label'),
+              isPageHeading: false,
+              classes: "govuk-form-label--s"
+            },
+            name: "amountTaxDue",
+            type: "text",
+            value: form.amountTaxDue.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.amountTaxDue.error
+          }) }}
+
+          {{ govukButton({
+            text: messages("site.continue")
+          }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+   <a href= {{ returnUrl }} class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}

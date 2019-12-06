@@ -18,19 +18,19 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import models.{CheckMode, NormalMode, UserAnswers}
-import pages.chargeF.WhatYouWillNeedPage
-import pages.{ChargeDetailsPage, Page}
+import models.{NormalMode, UserAnswers}
+import pages.Page
+import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
-class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
-    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
+    case WhatYouWillNeedPage => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
+    case ChargeDetailsPage => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
+    case ChargeDetailsPage => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
   }
 }

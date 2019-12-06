@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package generators
+package pages.chargeA
 
-import org.scalacheck.Arbitrary
-import pages._
-import pages.chargeF.ChargeDetailsPage
+import pages.behaviours.PageBehaviours
 
-trait PageGenerators {
+class ChargeDetailsPageSpec extends PageBehaviours {
 
-  implicit lazy val arbitraryChargeTypePage: Arbitrary[ChargeTypePage.type] =
-    Arbitrary(ChargeTypePage)
-
-
-
-  implicit lazy val arbitraryChargeDetailsPage: Arbitrary[ChargeDetailsPage.type] =
-    Arbitrary(ChargeDetailsPage)
+//  "ChargeDetailsPage" - {
+//
+//    implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
+//      datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
+//    }
+//
+//    beRetrievable[LocalDate](ChargeDetailsPage)
+//
+//    beSettable[LocalDate](ChargeDetailsPage)
+//
+//    beRemovable[LocalDate](ChargeDetailsPage)
+//  }
 }

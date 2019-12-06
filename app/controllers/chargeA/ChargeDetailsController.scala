@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -23,12 +23,12 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.ChargeDetailsFormProvider
+import forms.chargeA.ChargeDetailsFormProvider
 import javax.inject.Inject
-import models.chargeF.ChargeDetails
+import models.chargeA.ChargeDetails
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.ChargeDetailsPage
+import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -78,7 +78,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
         )
 
-        renderer.render(template = "chargeF/chargeDetails.njk", json).map(Ok(_))
+        renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -98,7 +98,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
             )
-            renderer.render(template = "chargeF/chargeDetails.njk", json).map(BadRequest(_))
+            renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
           value => {
             for {

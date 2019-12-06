@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -46,6 +46,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         helper.amount.get
       )
 
-      renderer.render("chargeF/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
+      renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
   }
 }

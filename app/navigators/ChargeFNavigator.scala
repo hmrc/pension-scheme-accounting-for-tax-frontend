@@ -19,8 +19,8 @@ package navigators
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{CheckMode, NormalMode, UserAnswers}
-import pages.chargeF.WhatYouWillNeedPage
-import pages.{ChargeDetailsPage, Page}
+import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.Page
 import play.api.mvc.Call
 
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {

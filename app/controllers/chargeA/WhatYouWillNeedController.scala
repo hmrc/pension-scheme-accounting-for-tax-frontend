@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -23,7 +23,7 @@ import javax.inject.Inject
 import models.{NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
-import pages.chargeF.WhatYouWillNeedPage
+import pages.chargeA.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -50,7 +50,7 @@ class WhatYouWillNeedController @Inject()(
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
 
-      renderer.render(template = "chargeF/whatYouWillNeed.njk",
+      renderer.render(template = "chargeA/whatYouWillNeed.njk",
         Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
   }
 }

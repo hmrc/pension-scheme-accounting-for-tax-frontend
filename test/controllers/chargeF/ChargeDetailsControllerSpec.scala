@@ -25,7 +25,7 @@ import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
-import pages.ChargeDetailsPage
+import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
@@ -64,7 +64,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithGET(
       httpPath = chargeDetailsGetRoute,
       page = ChargeDetailsPage,
-      data = SampleData.chargeDetails,
+      data = SampleData.chargeTypeFChargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
@@ -73,7 +73,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithPOST(
       httpPath = chargeDetailsPostRoute,
       page = ChargeDetailsPage,
-      data = SampleData.chargeDetails,
+      data = SampleData.chargeTypeFChargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
