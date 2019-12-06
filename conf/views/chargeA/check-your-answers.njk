@@ -27,9 +27,7 @@
           rows: list
         }) }}
 
-        {{ govukButton({
-            text: messages("site.save_and_continue")
-          }) }}
+        <a href = {{viewModel.submitUrl}} class="govuk-button">{{ messages("site.save_and_continue") }}</a>
 
       </div>
     </div>
