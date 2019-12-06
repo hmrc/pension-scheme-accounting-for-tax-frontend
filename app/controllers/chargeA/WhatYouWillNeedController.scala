@@ -20,17 +20,17 @@ import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsSuccess, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
