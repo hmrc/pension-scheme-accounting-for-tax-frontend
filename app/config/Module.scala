@@ -29,6 +29,7 @@ class Module extends AbstractModule {
     val navigators = Multibinder.newSetBinder(binder(), classOf[Navigator])
     // TODO: Add new navigators here:-
     navigators.addBinding().to(classOf[ChargeFNavigator])
+    navigators.addBinding().to(classOf[ChargeBNavigator])
     navigators.addBinding().to(classOf[ChargeNavigator])
 
     bind(classOf[CompoundNavigator]).to(classOf[CompoundNavigatorImpl])
