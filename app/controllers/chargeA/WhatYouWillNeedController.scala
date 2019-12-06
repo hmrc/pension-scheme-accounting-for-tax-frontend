@@ -16,11 +16,13 @@
 
 package controllers.chargeA
 
+import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
+import controllers.DataRetrievals
 import controllers.actions._
 import javax.inject.Inject
-import models.NormalMode
+import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeA.WhatYouWillNeedPage
@@ -38,6 +40,7 @@ class WhatYouWillNeedController @Inject()(
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
+                                           config: FrontendAppConfig,
                                            renderer: Renderer,
                                            schemeDetailsConnector: SchemeDetailsConnector,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -46,11 +49,18 @@ class WhatYouWillNeedController @Inject()(
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      val ua = request.userAnswers
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val ua = request.userAnswers
+        val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+        val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
 
-      renderer.render(template = "chargeA/whatYouWillNeed.njk",
-        Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        val viewModel = GenericViewModel(
+          submitUrl = "",
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
+
+        renderer.render(template = "chargeA/whatYouWillNeed.njk",
+          Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
+      }
   }
 }
