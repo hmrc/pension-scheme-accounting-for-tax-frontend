@@ -8,7 +8,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeTypeA.chargeDetails.title"), form.errors) }}
+  {{ title(messages("chargeA.chargeDetails.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -23,7 +23,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeTypeA.chargeDetails.heading')}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeA.chargeDetails.heading')}}</h1>
 
         <form action="{{ submitUrl }}" method="post">
 
@@ -32,7 +32,7 @@
           {{ govukInput({
             id: "members",
             label: {
-              text: messages('chargeTypeA.chargeDetails.members.title'),
+              text: messages('chargeA.chargeDetails.members.title'),
               isPageHeading: false,
               classes: "govuk-form-label--s"
             },
@@ -46,7 +46,7 @@
         {{ govukInput({
           id: "amountTaxDue20pc",
           label: {
-            text: messages('chargeTypeA.chargeDetails.amountTaxDue20pc.label'),
+            text: messages('chargeA.chargeDetails.amountTaxDue20pc.label'),
             isPageHeading: false,
             classes: "govuk-form-label--s"
           },
@@ -60,7 +60,7 @@
          {{ govukInput({
             id: "amountTaxDue50pc",
             label: {
-              text: messages('chargeTypeA.chargeDetails.amountTaxDue50pc.label'),
+              text: messages('chargeA.chargeDetails.amountTaxDue50pc.label'),
               isPageHeading: false,
               classes: "govuk-form-label--s"
             },

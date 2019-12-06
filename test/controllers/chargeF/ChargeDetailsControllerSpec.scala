@@ -64,7 +64,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithGET(
       httpPath = chargeDetailsGetRoute,
       page = ChargeDetailsPage,
-      data = SampleData.chargeTypeFChargeDetails,
+      data = SampleData.chargeFChargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
@@ -73,7 +73,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithPOST(
       httpPath = chargeDetailsPostRoute,
       page = ChargeDetailsPage,
-      data = SampleData.chargeTypeFChargeDetails,
+      data = SampleData.chargeFChargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,

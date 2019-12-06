@@ -26,8 +26,8 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   private val amountTaxDue20pcKey = "amountTaxDue20pc"
   private val amountTaxDue50pcKey = "amountTaxDue50pc"
 
-  private val messageKeyAmountTaxDue20pcKey = "chargeTypeA.amountTaxDue20pc"
-  private val messageKeyAmountTaxDue50pcKey = "chargeTypeA.amountTaxDue50pc"
+  private val messageKeyAmountTaxDue20pcKey = "chargeA.amountTaxDue20pc"
+  private val messageKeyAmountTaxDue50pcKey = "chargeA.amountTaxDue50pc"
 
   "amountTaxDue 20%" - {
 

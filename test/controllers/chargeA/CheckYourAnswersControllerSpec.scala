@@ -33,7 +33,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeTypeAChargeDetails).toOption.get
+    .set(ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
 

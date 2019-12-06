@@ -27,27 +27,27 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
   def apply(): Form[ChargeDetails] =
     Form(mapping(
       "members" -> int(
-        requiredKey = "chargeTypeA.members.error.required",
-        wholeNumberKey = "chargeTypeA.members.error.nonNumeric",
-        nonNumericKey = "chargeTypeA.members.error.nonNumeric").verifying(
-        maximumValue[Int](999999, "chargeTypeA.members.error.maximum"),
-        minimumValue[Int](0, "chargeTypeA.members.error.maximum")
+        requiredKey = "chargeA.members.error.required",
+        wholeNumberKey = "chargeA.members.error.nonNumeric",
+        nonNumericKey = "chargeA.members.error.nonNumeric").verifying(
+        maximumValue[Int](999999, "chargeA.members.error.maximum"),
+        minimumValue[Int](0, "chargeA.members.error.maximum")
       ),
       "amountTaxDue20pc" -> bigDecimal2DP(
-        requiredKey = "chargeTypeA.amountTaxDue20pc.error.required",
-        invalidKey = "chargeTypeA.amountTaxDue20pc.error.invalid",
-        decimalKey = "chargeTypeA.amountTaxDue20pc.error.decimal"
+        requiredKey = "chargeA.amountTaxDue20pc.error.required",
+        invalidKey = "chargeA.amountTaxDue20pc.error.invalid",
+        decimalKey = "chargeA.amountTaxDue20pc.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTaxDue20pc.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTaxDue20pc.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeA.amountTaxDue20pc.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeA.amountTaxDue20pc.error.minimum")
       ),
       "amountTaxDue50pc" -> bigDecimal2DP(
-        requiredKey = "chargeTypeA.amountTaxDue50pc.error.required",
-        invalidKey = "chargeTypeA.amountTaxDue50pc.error.invalid",
-        decimalKey = "chargeTypeA.amountTaxDue50pc.error.decimal"
+        requiredKey = "chargeA.amountTaxDue50pc.error.required",
+        invalidKey = "chargeA.amountTaxDue50pc.error.invalid",
+        decimalKey = "chargeA.amountTaxDue50pc.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTaxDue50pc.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTaxDue50pc.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeA.amountTaxDue50pc.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeA.amountTaxDue50pc.error.minimum")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }
