@@ -16,8 +16,6 @@
 
 package forms.chargeA
 
-import java.time.LocalDate
-
 import forms.mappings.{Constraints, Mappings}
 import javax.inject.Inject
 import models.chargeA.ChargeDetails
@@ -26,18 +24,22 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(dateErrorMsg: String): Form[ChargeDetails] =
+  /*
+  members: Int, amountTaxDue20pc: BigDecimal, amountTaxDue50pc: BigDecimal
+   */
+
+  def apply(): Form[ChargeDetails] =
     Form(mapping(
-      "deregistrationDate" -> localDate(
-        invalidKey = "deregistrationDate.error.invalid",
-        allRequiredKey = "deregistrationDate.error.required.all",
-        twoRequiredKey = "deregistrationDate.error.required.two",
-        requiredKey = "deregistrationDate.error.required"
+      "members" -> int("","",""),
+      "amountTaxDue20pc" -> bigDecimal2DP(
+        requiredKey = "amountTaxDue.error.required",
+        invalidKey = "amountTaxDue.error.invalid",
+        decimalKey = "amountTaxDue.error.decimal"
       ).verifying(
-        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
-        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
       ),
-      "amountTaxDue" -> bigDecimal2DP(
+      "amountTaxDue50pc" -> bigDecimal2DP(
         requiredKey = "amountTaxDue.error.required",
         invalidKey = "amountTaxDue.error.invalid",
         decimalKey = "amountTaxDue.error.decimal"

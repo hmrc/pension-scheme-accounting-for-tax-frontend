@@ -30,23 +30,19 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
-  private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  private val form = new ChargeDetailsFormProvider()()
   private def chargeDetailsGetRoute: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
   private def chargeDetailsPostRoute: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "deregistrationDate.day" -> Seq("3"),
-    "deregistrationDate.month" -> Seq("4"),
-    "deregistrationDate.year" -> Seq("2020"),
-    "amountTaxDue" -> Seq("33.44")
+    "members" -> Seq("44"),
+    "amountTaxDue20pc" -> Seq("33.44"),
+    "amountTaxDue20pc" -> Seq("34.34")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "deregistrationDate.day" -> Seq("32"),
-    "deregistrationDate.month" -> Seq("13"),
-    "deregistrationDate.year" -> Seq("2003"),
-    "amountTaxDue" -> Seq("33.44")
+    "members" -> Seq("999999999999999999999999999999999999999"),
+    "amountTaxDue20pc" -> Seq("33.44"),
+    "amountTaxDue20pc" -> Seq("34.34")
   )
 
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
@@ -54,8 +50,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName),
-    "date" -> DateInput.localDate(form("deregistrationDate"))
+      schemeName = SampleData.schemeName)
   )
 
   "ChargeDetails Controller" must {

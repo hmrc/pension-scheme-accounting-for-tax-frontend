@@ -138,6 +138,15 @@ whatYouWillNeed.li1 = the date that the scheme was de-registered
 whatYouWillNeed.li2 = the amount of tax due at 40%
 return.to.link = Return to {0}
 
+chargeTypeA.whatYouWillNeed.title = Short service refund lump sum charge
+chargeTypeA.whatYouWillNeed.heading = Short service refund lump sum charge
+chargeTypeA.whatYouWillNeed.p1 = To record a short service refund lump sum charge you will need:
+chargeTypeA.whatYouWillNeed.li1 = the number of members who received a short service refund lump sum in the quarter you are submitting the return for
+chargeTypeA.whatYouWillNeed.li2 = the total amount of tax due at 20%
+chargeTypeA.whatYouWillNeed.li3 = the total amount of tax due at 50%
+
+
+
 chargeDetails.title = De-registration charge details
 chargeDetails.heading = De-registration charge details
 chargeDetails.hint = For example, 12 11 2007
@@ -155,6 +164,12 @@ amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.9
 amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeDetails.amount.label = Amount of tax due at 40%
 chargeDetails.date.label = Date scheme was de-registered
+
+chargeTypeA.chargeDetails.title = Short service refund lump sum details
+chargeTypeA.chargeDetails.heading = Short service refund lump sum details
+chargeTypeA.chargeDetails.members.title = Number of members who received a short service refund lump sum in the quarter
+chargeTypeA.chargeDetails.amountTaxDue20pc.label = Total amount of tax due at 20%
+chargeTypeA.chargeDetails.amountTaxDue50pc.label = Total amount of tax due at 50%
 
 chargeType.title = Which type of charge are you adding to the AFT return?
 chargeType.heading = Which type of charge are you adding to the AFT return?

@@ -8,7 +8,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeDetails.title"), form.errors) }}
+  {{ title(messages("chargeTypeA.chargeDetails.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -23,38 +23,54 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeDetails.heading')}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeTypeA.chargeDetails.heading')}}</h1>
 
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
-          {{ govukDateInput({
-            id: "deregistrationDate",
-            fieldset: {
-              legend: {
-                text: messages('chargeDetails.date.label'),
-                isPageHeading: false,
-                classes: "govuk-fieldset__legend--s"
-              }
-            },
-            errorMessage: date.error,
-            items: date.items
-          }) }}
-
           {{ govukInput({
-            id: "amountTaxDue",
+            id: "members",
             label: {
-              text: messages('chargeDetails.amount.label'),
+              text: messages('chargeTypeA.chargeDetails.members.title'),
               isPageHeading: false,
               classes: "govuk-form-label--s"
             },
-            name: "amountTaxDue",
+            name: "members",
             type: "text",
-            value: form.amountTaxDue.value,
+            value: form.members.value,
             classes: "govuk-input--width-10",
-            errorMessage: form.amountTaxDue.error
+            errorMessage: form.members.error
           }) }}
+
+        {{ govukInput({
+          id: "amountTaxDue20pc",
+          label: {
+            text: messages('chargeTypeA.chargeDetails.amountTaxDue20pc.label'),
+            isPageHeading: false,
+            classes: "govuk-form-label--s"
+          },
+          name: "amountTaxDue20pc",
+          type: "text",
+          value: form.amountTaxDue20pc.value,
+          classes: "govuk-input--width-10",
+          errorMessage: form.amountTaxDue20pc.error
+        }) }}
+
+         {{ govukInput({
+            id: "amountTaxDue50pc",
+            label: {
+              text: messages('chargeTypeA.chargeDetails.amountTaxDue50pc.label'),
+              isPageHeading: false,
+              classes: "govuk-form-label--s"
+            },
+            name: "amountTaxDue50pc",
+            type: "text",
+            value: form.amountTaxDue50pc.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.amountTaxDue50pc.error
+          }) }}
+
 
           {{ govukButton({
             text: messages("site.continue")

@@ -16,9 +16,6 @@
 
 package controllers.chargeA
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -35,7 +32,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,12 +48,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
-  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
 
   def form()(implicit messages: Messages): Form[ChargeDetails] =
-    formProvider(dateErrorMsg = messages("deregistrationDate.error.date", min, max))
+    formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -74,8 +68,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
+          "viewModel" -> viewModel
         )
 
         renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
@@ -95,8 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
+              "viewModel" -> viewModel
             )
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
