@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package models
 
-import models.chargeF.ChargeDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Format, JsPath, Json, Reads, Writes}
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "chargeFDetails"
+case class SchemeDetails(schemeName: String, pstr: String)
+object SchemeDetails {
+  implicit def apiReads: Reads[SchemeDetails] = (
+    (JsPath \ "schemeName").read[String] and
+      (JsPath \ "pstr").read[String])(
+    (schemeName, pstr) => SchemeDetails(schemeName, pstr)
+  )
+  implicit lazy val writes: Writes[SchemeDetails] =
+    Json.writes[SchemeDetails]
 }

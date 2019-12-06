@@ -16,20 +16,21 @@
 
 package controllers.chargeF
 
-import behaviours.ControllerBehaviours
+import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "chargeF/check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
     .set(ChargeDetailsPage, SampleData.chargeTypeFChargeDetails).toOption.get
@@ -45,10 +46,15 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   "CheckYourAnswers Controller" must {
     behave like controllerWithGET(
       httpPath = httpGETRoute,
-      page = WhatYouWillNeedPage,
+      page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
       userAnswers = Some(ua)
+    )
+
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage
     )
   }
 }

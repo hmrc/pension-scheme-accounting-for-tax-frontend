@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package models
 
-import models.chargeF.ChargeDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import play.api.libs.json.{Format, Json}
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
+case class Quarter(startDate: String, endDate: String)
 
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "chargeFDetails"
+object Quarter {
+  implicit lazy val formats: Format[Quarter] =
+    Json.format[Quarter]
 }
+

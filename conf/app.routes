@@ -20,6 +20,7 @@ GET         /:srn/new-return/de-registration-charge/change/charge-details       
 POST        /:srn/new-return/de-registration-charge/change/charge-details        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/de-registration-charge/check-your-answers           controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
+GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers    controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
 
 GET        /:srn/new-return/charge-type                                          controllers.ChargeTypeController.onPageLoad(mode: Mode = NormalMode, srn: String)
 POST       /:srn/new-return/charge-type                                          controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
@@ -38,4 +39,6 @@ GET         /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-
 POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details        controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers           controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
+
+
 
