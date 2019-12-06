@@ -23,7 +23,7 @@ import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
 
-class ChargeFNavigatorSpec extends NavigatorBehaviour {
+class ChargeANavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"

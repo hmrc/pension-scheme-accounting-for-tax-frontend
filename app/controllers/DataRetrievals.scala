@@ -17,7 +17,7 @@
 package controllers
 
 import models.requests.DataRequest
-import pages.{Page, SchemeNameQuery}
+import pages.{PSTRQuery, Page, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -28,6 +28,13 @@ object DataRetrievals {
   def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrievePSTR(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    request.userAnswers.get(PSTRQuery) match {
+      case Some(pstr) => block(pstr)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

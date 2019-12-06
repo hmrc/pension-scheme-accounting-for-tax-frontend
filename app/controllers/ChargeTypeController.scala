@@ -22,9 +22,9 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.{ChargeType, GenericViewModel, Mode, UserAnswers}
+import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{ChargeTypePage, SchemeNameQuery}
+import pages.{AFTStatusQuery, ChargeTypePage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -55,9 +55,13 @@ class ChargeTypeController @Inject()(
 
       val ua = request.userAnswers.getOrElse(UserAnswers())
 
-      schemeDetailsConnector.getSchemeName(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeName =>
+      schemeDetailsConnector.getSchemeDetails(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeDetails =>
 
-        Future.fromTry(ua.set(SchemeNameQuery, schemeName)).flatMap { answers =>
+        Future.fromTry(ua.set(SchemeNameQuery, schemeDetails.schemeName).
+          flatMap(_.set(PSTRQuery, schemeDetails.pstr)).flatMap(
+          _.set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).flatMap(
+            _.set(AFTStatusQuery, value = "Compiled"))
+        )).flatMap { answers =>
 
           userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
 
@@ -66,7 +70,7 @@ class ChargeTypeController @Inject()(
             val json = Json.obj(
               fields = "form" -> preparedForm,
               "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeName, mode, srn)
+              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
             )
 
             renderer.render(template = "chargeType.njk", json).map(Ok(_))

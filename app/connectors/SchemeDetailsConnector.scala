@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
+import models.SchemeDetails
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -26,20 +26,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
 
-  def getSchemeName(psaId: String,
+  def getSchemeDetails(psaId: String,
                     schemeIdType: String,
                     idNumber: String)(implicit hc: HeaderCarrier,
-                                      ec: ExecutionContext): Future[String] = {
+                                      ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.schemeDetailsUrl
     val schemeHc = hc.withExtraHeaders(headers = "schemeIdType" -> schemeIdType, "idNumber" -> idNumber, "PSAId" -> psaId)
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      val json = Json.parse(response.body)
-      (json \ "schemeName").validate[String] match {
-        case JsSuccess(value, _) => value
-        case JsError(errors) => throw JsResultException(errors)
-      }
-    }
+    http.GET[SchemeDetails](url)(implicitly, schemeHc, implicitly)
   }
 }
 

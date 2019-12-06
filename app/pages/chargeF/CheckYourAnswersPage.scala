@@ -14,23 +14,8 @@
  * limitations under the License.
  */
 
-package data
+package pages.chargeF
 
-import java.time.LocalDate
+import pages.Page
 
-import models.chargeF.ChargeDetails
-import models.{SchemeDetails, UserAnswers}
-import play.api.libs.json.Json
-import play.api.mvc.Call
-
-object SampleData {
-  val userAnswersId = "id"
-  val psaId = "A0000000"
-  val srn = "aa"
-  val pstr = "pstr"
-  val schemeName = "Big Scheme"
-  val dummyCall = Call("GET","/foo")
-  val chargeDetails = ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val schemeDetails = SchemeDetails(schemeName, pstr)
-  def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
-}
+case object CheckYourAnswersPage extends Page
