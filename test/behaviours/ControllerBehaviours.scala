@@ -58,9 +58,9 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                         page: Page,
                         templateToBeRendered: String,
                         jsonToPassToTemplate: JsObject,
-                        optionUserAnswers:Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
+                        userAnswers:Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = optionUserAnswers).build()
+      val application = applicationBuilder(userAnswers = userAnswers).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

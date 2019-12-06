@@ -18,7 +18,6 @@ package forms.chargeF
 
 import java.time.LocalDate
 
-import forms.ChargeDetailsFormProvider
 import forms.behaviours._
 import play.api.data.FormError
 

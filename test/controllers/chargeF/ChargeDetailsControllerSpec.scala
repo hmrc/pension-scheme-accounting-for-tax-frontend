@@ -21,11 +21,11 @@ import java.time.LocalDate
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.ChargeDetailsFormProvider
+import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode}
-import pages.ChargeDetailsPage
+import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
