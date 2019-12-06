@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.chargeF
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.ChargeDetailsPage
-import pages.chargeF.WhatYouWillNeedPage
+import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {

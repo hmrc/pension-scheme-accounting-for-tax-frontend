@@ -18,6 +18,7 @@ package generators
 
 import org.scalacheck.Arbitrary
 import pages._
+import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 

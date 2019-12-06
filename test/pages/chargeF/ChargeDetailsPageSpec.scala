@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeF
 
-import models.chargeF.ChargeDetails
-import play.api.libs.json.JsPath
+import pages.behaviours.PageBehaviours
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
+class ChargeDetailsPageSpec extends PageBehaviours {
 
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "chargeDetails"
+//  "ChargeDetailsPage" - {
+//
+//    implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
+//      datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
+//    }
+//
+//    beRetrievable[LocalDate](ChargeDetailsPage)
+//
+//    beSettable[LocalDate](ChargeDetailsPage)
+//
+//    beRemovable[LocalDate](ChargeDetailsPage)
+//  }
 }
