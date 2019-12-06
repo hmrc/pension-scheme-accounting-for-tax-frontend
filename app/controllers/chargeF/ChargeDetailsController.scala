@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.ChargeDetailsFormProvider
+import forms.chargeF.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, Mode}
