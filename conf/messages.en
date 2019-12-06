@@ -199,3 +199,5 @@ chargeType.radio.overseasTransfer = Overseas transfer charge
 chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
+
+total = Total

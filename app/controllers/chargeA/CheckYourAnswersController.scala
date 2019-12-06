@@ -24,12 +24,14 @@ import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierA
 import controllers.chargeA.routes
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeA.CheckYourAnswersPage
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
@@ -51,18 +53,30 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
+        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmountTaxDue).getOrElse(BigDecimal(0))
+
         val answers: Seq[SummaryList.Row] = Seq(
           helper.chargeAMembers.get,
           helper.chargeAAmount20pc.get,
-          helper.chargeAAmount50pc.get
+          helper.chargeAAmount50pc.get,
+          Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
+            value = Value(Literal(total.toString()))
+          )
         )
 
         val viewModel = GenericViewModel(
           submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
 
-        renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers, "viewModel" -> viewModel)).map(Ok(_))
+        renderer.render(
+          "chargeA/check-your-answers.njk",
+          Json.obj(
+            "list" -> answers,
+            "viewModel" -> viewModel
+          )
+        ).map(Ok(_))
       }
   }
 

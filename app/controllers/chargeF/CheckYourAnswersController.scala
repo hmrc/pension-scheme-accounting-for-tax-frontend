@@ -64,7 +64,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           Json.obj(
             "list" -> answers,
             "viewModel" -> viewModel
-          )).map(Ok(_))
+          )
+        ).map(Ok(_))
       }
   }
 

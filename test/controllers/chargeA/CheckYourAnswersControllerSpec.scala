@@ -24,6 +24,8 @@ import models.GenericViewModel
 import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
@@ -41,7 +43,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     "list" -> Seq(
       helper.chargeAMembers.get,
       helper.chargeAAmount20pc.get,
-      helper.chargeAAmount50pc.get
+      helper.chargeAAmount50pc.get,
+      Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
+        value = Value(Literal(ua.get(ChargeDetailsPage).map( _.totalAmountTaxDue).getOrElse(BigDecimal(0)).toString()))
+      )
     ),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,

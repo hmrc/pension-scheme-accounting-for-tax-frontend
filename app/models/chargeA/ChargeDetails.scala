@@ -18,7 +18,9 @@ package models.chargeA
 
 import play.api.libs.json.{Format, Json}
 
-case class ChargeDetails(members: Int, amountTaxDue20pc: BigDecimal, amountTaxDue50pc: BigDecimal)
+case class ChargeDetails(members: Int, amountTaxDue20pc: BigDecimal, amountTaxDue50pc: BigDecimal) {
+  def totalAmountTaxDue: BigDecimal = amountTaxDue50pc + amountTaxDue20pc
+}
 
 object ChargeDetails {
   implicit lazy val formats: Format[ChargeDetails] =
