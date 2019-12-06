@@ -166,3 +166,9 @@ chargeType.radio.overseasTransfer = Overseas transfer charge
 chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
+
+chargeB.whatYouWillNeed.title = Special lump sum death benefits charge
+chargeB.whatYouWillNeed.heading = Special lump sum death benefits charge
+chargeB.whatYouWillNeed.p1 = To record a special lump sum death benefits charge you will need:
+chargeB.whatYouWillNeed.li1 = the number of deceased members for which payment of a lump sum death benefit was made in the quarter
+chargeB.whatYouWillNeed.li2 = the total amount of tax due
