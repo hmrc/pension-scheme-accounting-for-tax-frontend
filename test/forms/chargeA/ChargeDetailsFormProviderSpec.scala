@@ -33,21 +33,21 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
     behave like bigDecimalField(
       form = form,
-      fieldName = messageKeyAmountTaxDue20pcKey,
+      fieldName = amountTaxDue20pcKey,
       nonNumericError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.invalid"),
       decimalsError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.decimal")
     )
 
     behave like bigDecimalFieldWithMinimum(
       form = form,
-      fieldName = messageKeyAmountTaxDue20pcKey,
+      fieldName = amountTaxDue20pcKey,
       minimum = BigDecimal("0.01"),
       expectedError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.minimum")
     )
 
     behave like longBigDecimal(
       form = form,
-      fieldName = messageKeyAmountTaxDue20pcKey,
+      fieldName = amountTaxDue20pcKey,
       length = 12,
       expectedError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.maximum")
     )
@@ -57,21 +57,21 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
     behave like bigDecimalField(
       form = form,
-      fieldName = messageKeyAmountTaxDue50pcKey,
+      fieldName = amountTaxDue50pcKey,
       nonNumericError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.invalid"),
       decimalsError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.decimal")
     )
 
     behave like bigDecimalFieldWithMinimum(
       form = form,
-      fieldName = messageKeyAmountTaxDue50pcKey,
+      fieldName = amountTaxDue50pcKey,
       minimum = BigDecimal("0.01"),
       expectedError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.minimum")
     )
 
     behave like longBigDecimal(
       form = form,
-      fieldName = messageKeyAmountTaxDue50pcKey,
+      fieldName = amountTaxDue50pcKey,
       length = 12,
       expectedError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.maximum")
     )

@@ -34,20 +34,20 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         minimumValue[Int](0, "chargeTypeA.members.error.maximum")
       ),
       "amountTaxDue20pc" -> bigDecimal2DP(
-        requiredKey = "chargeTypeA.amountTax20pcDue.error.required",
-        invalidKey = "chargeTypeA.amountTax20pcDue.error.invalid",
-        decimalKey = "chargeTypeA.amountTax20pcDue.error.decimal"
+        requiredKey = "chargeTypeA.amountTaxDue20pc.error.required",
+        invalidKey = "chargeTypeA.amountTaxDue20pc.error.invalid",
+        decimalKey = "chargeTypeA.amountTaxDue20pc.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTax20pcDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTax20pcDue.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTaxDue20pc.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTaxDue20pc.error.minimum")
       ),
       "amountTaxDue50pc" -> bigDecimal2DP(
-        requiredKey = "chargeTypeA.amountTax50pcDue.error.required",
-        invalidKey = "chargeTypeA.amountTax50pcDue.error.invalid",
-        decimalKey = "chargeTypeA.amountTax50pcDue.error.decimal"
+        requiredKey = "chargeTypeA.amountTaxDue50pc.error.required",
+        invalidKey = "chargeTypeA.amountTaxDue50pc.error.invalid",
+        decimalKey = "chargeTypeA.amountTaxDue50pc.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTax50pcDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTax50pcDue.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTaxDue50pc.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTaxDue50pc.error.minimum")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }
