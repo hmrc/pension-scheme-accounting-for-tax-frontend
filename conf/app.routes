@@ -33,3 +33,6 @@ GET         /:srn/new-return/special-lump-sum-death-benefits-charge/charge-detai
 POST        /:srn/new-return/special-lump-sum-death-benefits-charge/charge-details               controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
 GET         /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details        controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST        /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details        controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+GET         /:srn/new-return/special-lump-sum-death-benefits-charge/check-your-answers           controllers.chargeB.CheckYourAnswersController.onPageLoad(srn: String)
+GET         /:srn/new-return/special-lump-sum-death-benefits-charge/on-click-check-your-answers    controllers.chargeB.CheckYourAnswersController.onClick(srn: String)

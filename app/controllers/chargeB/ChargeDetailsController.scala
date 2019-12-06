@@ -25,7 +25,7 @@ import javax.inject.Inject
 import models.chargeB.ChargeBDetails
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.chargeB.ChargeDetailsPage
+import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -55,7 +55,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
-        val preparedForm: Form[ChargeBDetails] = request.userAnswers.get(ChargeDetailsPage) match {
+        val preparedForm: Form[ChargeBDetails] = request.userAnswers.get(ChargeBDetailsPage) match {
           case Some(value) => form.fill(value)
           case None => form
         }
@@ -93,9 +93,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           },
           value => {
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn))
           }
         )
       }

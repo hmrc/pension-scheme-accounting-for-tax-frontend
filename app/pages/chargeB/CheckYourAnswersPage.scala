@@ -16,13 +16,6 @@
 
 package pages.chargeB
 
-import models.chargeB.ChargeBDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.Page
 
-case object ChargeDetailsPage extends QuestionPage[ChargeBDetails] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "chargeBDetails"
-}
+case object CheckYourAnswersPage extends Page

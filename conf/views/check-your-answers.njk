@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
@@ -9,10 +10,6 @@
 {% endblock %}
 
 {% block mainContent %}
-
-  {{ govukBackLink({
-    text: messages("site.back")
-  }) }}
 
   <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
@@ -22,9 +19,13 @@
           {{ messages("checkYourAnswers.heading") }}
         </h1>
 
+        <h2>{{messages(chargeName)}}</h2>
+
         {{ govukSummaryList({
           rows: list
         }) }}
+
+        <a href = {{viewModel.submitUrl}} class="govuk-button">{{ messages("site.save_charge_and_continue") }}</a>
 
       </div>
     </div>

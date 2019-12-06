@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeB
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
@@ -23,7 +23,7 @@ import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeF.CheckYourAnswersPage
+import pages.chargeB.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -55,16 +55,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val answers: Seq[SummaryList.Row] = Seq(
-          helper.date.get,
-          helper.amount.get
-        )
-
         renderer.render("check-your-answers.njk",
           Json.obj(
-            "list" -> answers,
+            "list" -> helper.chargeBDetails.get,
             "viewModel" -> viewModel,
-            "chargeName" -> "chargeF"
+            "chargeName" -> "chargeB"
           )).map(Ok(_))
       }
   }

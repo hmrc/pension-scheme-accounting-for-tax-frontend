@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeB
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
+import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
@@ -29,19 +29,17 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
-  private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeDetails).toOption.get
+    .set(ChargeBDetailsPage, SampleData.chargeBDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> Seq(
-      helper.date.get,
-      helper.amount.get
-    ))
+    "list" -> helper.chargeBDetails.get
+  )
 
   "CheckYourAnswers Controller" must {
     behave like controllerWithGET(
