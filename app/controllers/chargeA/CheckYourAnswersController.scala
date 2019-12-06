@@ -42,8 +42,9 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
       val answers: Seq[SummaryList.Row] = Seq(
-        helper.date.get,
-        helper.amount.get
+        helper.chargeAMembers.get,
+        helper.chargeAAmount20pc.get,
+        helper.chargeAAmount50pc.get
       )
 
       renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))

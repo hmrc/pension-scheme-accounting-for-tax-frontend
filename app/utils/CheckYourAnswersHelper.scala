@@ -18,15 +18,13 @@ package utils
 
 import java.time.format.DateTimeFormatter
 
-import controllers.chargeF.routes
 import models.{CheckMode, UserAnswers}
-import pages._
-import play.api.i18n.Messages
-import CheckYourAnswersHelper._
 import pages.chargeF.ChargeDetailsPage
-import uk.gov.hmrc.viewmodels._
+import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
+import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
@@ -38,14 +36,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
           )
         )
       )
   }
 
-  def amount: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+  def amount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
         key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
@@ -53,8 +51,53 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAMembers: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeTypeA.chargeDetails.members.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.members.toString)),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeTypeA.chargeDetails.members.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAAmount20pc: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeTypeA.chargeDetails.amount20pc.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.amountTaxDue20pc.toString())),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeTypeA.chargeDetails.amount20pc.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAAmount50pc: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeTypeA.chargeDetails.amount50pc.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.amountTaxDue50pc.toString())),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeTypeA.chargeDetails.amount50pc.checkYourAnswersLabel"))
           )
         )
       )
