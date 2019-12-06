@@ -17,7 +17,13 @@
 package controllers.chargeF
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
+import connectors.AFTConnector
+import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.{GenericViewModel, NormalMode}
+import navigators.CompoundNavigator
+import pages.chargeF.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -28,24 +34,46 @@ import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
-class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
+                                           override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
+                                           aftConnector: AFTConnector,
+                                           navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-      val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+        val viewModel = GenericViewModel(
+          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
 
-      val answers: Seq[SummaryList.Row] = Seq(
-        helper.date.get,
-        helper.amount.get
-      )
+        val answers: Seq[SummaryList.Row] = Seq(
+          helper.date.get,
+          helper.amount.get
+        )
 
-      renderer.render("chargeF/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
+        renderer.render("chargeF/check-your-answers.njk",
+          Json.obj(
+            "list" -> answers,
+            "viewModel" -> viewModel
+          )).map(Ok(_))
+      }
+  }
+
+  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+    implicit request =>
+      DataRetrievals.retrievePSTR { pstr =>
+        aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+        }
+      }
   }
 }
