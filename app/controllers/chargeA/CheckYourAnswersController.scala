@@ -17,7 +17,10 @@
 package controllers.chargeA
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
+import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.GenericViewModel
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,20 +36,27 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
+                                           config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-      val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+        val answers: Seq[SummaryList.Row] = Seq(
+          helper.chargeAMembers.get,
+          helper.chargeAAmount20pc.get,
+          helper.chargeAAmount50pc.get
+        )
 
-      val answers: Seq[SummaryList.Row] = Seq(
-        helper.chargeAMembers.get,
-        helper.chargeAAmount20pc.get,
-        helper.chargeAAmount50pc.get
-      )
+        val viewModel = GenericViewModel(
+          submitUrl = "",
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
 
-      renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers)).map(Ok(_))
+        renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers, "viewModel" -> viewModel)).map(Ok(_))
+      }
   }
 }
