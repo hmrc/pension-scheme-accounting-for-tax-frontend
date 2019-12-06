@@ -172,3 +172,19 @@ chargeB.whatYouWillNeed.heading = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.p1 = To record a special lump sum death benefits charge you will need:
 chargeB.whatYouWillNeed.li1 = the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 chargeB.whatYouWillNeed.li2 = the total amount of tax due
+
+chargeB.chargeDetails.title = Special lump sum death benefits charge details
+chargeB.chargeDetails.heading = Special lump sum death benefits charge details
+chargeB.chargeDetails.numberOfDeceased.label = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
+chargeB.chargeDetails.amount.label = Total amount of tax due
+
+numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
+numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
+numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
+
+totalTaxDue.error.required = Enter the total amount of tax due
+totalTaxDue.error.invalid = The total amount of tax due must be an amount of money, like 123.45 or 156.00
+totalTaxDue.error.decimal = The total amount of tax due must include pence, like 123.45 or 156.00
+totalTaxDue.error.maximum = The total amount of tax due must be £9999999999.99 or less
+totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
+

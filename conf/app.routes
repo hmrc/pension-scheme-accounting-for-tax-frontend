@@ -28,3 +28,8 @@ GET        /:srn/new-return/change/charge-type                                  
 POST       /:srn/new-return/change/charge-type                                   controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET        /:srn/new-return/special-lump-sum-death-benefits-charge/what-you-will-need           controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/special-lump-sum-death-benefits-charge/charge-details               controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/special-lump-sum-death-benefits-charge/charge-details               controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET         /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details        controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST        /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details        controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
