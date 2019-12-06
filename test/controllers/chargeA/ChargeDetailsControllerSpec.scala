@@ -36,13 +36,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val valuesValid: Map[String, Seq[String]] = Map(
     "members" -> Seq("44"),
     "amountTaxDue20pc" -> Seq("33.44"),
-    "amountTaxDue20pc" -> Seq("34.34")
+    "amountTaxDue50pc" -> Seq("34.34")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "members" -> Seq("999999999999999999999999999999999999999"),
     "amountTaxDue20pc" -> Seq("33.44"),
-    "amountTaxDue20pc" -> Seq("34.34")
+    "amountTaxDue50pc" -> Seq("34.34")
   )
 
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(

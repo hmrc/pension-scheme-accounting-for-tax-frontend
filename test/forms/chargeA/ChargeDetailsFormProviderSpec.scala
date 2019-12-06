@@ -16,61 +16,64 @@
 
 package forms.chargeA
 
-import java.time.LocalDate
-
 import forms.behaviours._
 import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
-  val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  val form = new ChargeDetailsFormProvider()()
-  val deRegDateKey = "deregistrationDate"
-  val amountTaxDueKey = "amountTaxDue"
+  private val form = new ChargeDetailsFormProvider()()
 
-  "deregistrationDate" - {
+  private val amountTaxDue20pcKey = "amountTaxDue20pc"
+  private val amountTaxDue50pcKey = "amountTaxDue50pc"
 
-    behave like dateFieldWithMin(
-      form = form,
-      key = deRegDateKey,
-      min = LocalDate.of(2020, 4, 1),
-      formError = FormError(deRegDateKey, dynamicErrorMsg)
-    )
+  private val messageKeyAmountTaxDue20pcKey = "chargeTypeA.amountTaxDue20pc"
+  private val messageKeyAmountTaxDue50pcKey = "chargeTypeA.amountTaxDue50pc"
 
-    behave like dateFieldWithMax(
-      form = form,
-      key = deRegDateKey,
-      max = LocalDate.of(2020, 6, 30),
-      formError = FormError(deRegDateKey, dynamicErrorMsg)
-    )
-
-    behave like mandatoryDateField(
-      form = form,
-      key = deRegDateKey,
-      requiredAllKey = s"$deRegDateKey.error.required.all")
-  }
-
-  "amountTaxDue" - {
+  "amountTaxDue 20%" - {
 
     behave like bigDecimalField(
       form = form,
-      fieldName = amountTaxDueKey,
-      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
-      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+      fieldName = messageKeyAmountTaxDue20pcKey,
+      nonNumericError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.invalid"),
+      decimalsError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.decimal")
     )
 
     behave like bigDecimalFieldWithMinimum(
       form = form,
-      fieldName = amountTaxDueKey,
+      fieldName = messageKeyAmountTaxDue20pcKey,
       minimum = BigDecimal("0.01"),
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.minimum")
+      expectedError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.minimum")
     )
 
     behave like longBigDecimal(
       form = form,
-      fieldName = amountTaxDueKey,
+      fieldName = messageKeyAmountTaxDue20pcKey,
       length = 12,
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
+      expectedError = FormError(amountTaxDue20pcKey, s"$messageKeyAmountTaxDue20pcKey.error.maximum")
+    )
+  }
+
+  "amountTaxDue 50%" - {
+
+    behave like bigDecimalField(
+      form = form,
+      fieldName = messageKeyAmountTaxDue50pcKey,
+      nonNumericError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.invalid"),
+      decimalsError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.decimal")
+    )
+
+    behave like bigDecimalFieldWithMinimum(
+      form = form,
+      fieldName = messageKeyAmountTaxDue50pcKey,
+      minimum = BigDecimal("0.01"),
+      expectedError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.minimum")
+    )
+
+    behave like longBigDecimal(
+      form = form,
+      fieldName = messageKeyAmountTaxDue50pcKey,
+      length = 12,
+      expectedError = FormError(amountTaxDue50pcKey, s"$messageKeyAmountTaxDue50pcKey.error.maximum")
     )
   }
 }

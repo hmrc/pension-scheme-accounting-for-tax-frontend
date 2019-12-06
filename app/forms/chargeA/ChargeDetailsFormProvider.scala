@@ -24,28 +24,30 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  /*
-  members: Int, amountTaxDue20pc: BigDecimal, amountTaxDue50pc: BigDecimal
-   */
-
   def apply(): Form[ChargeDetails] =
     Form(mapping(
-      "members" -> int("","",""),
+      "members" -> int(
+        requiredKey = "chargeTypeA.members.error.required",
+        wholeNumberKey = "chargeTypeA.members.error.nonNumeric",
+        nonNumericKey = "chargeTypeA.members.error.nonNumeric").verifying(
+        maximumValue[Int](999999, "chargeTypeA.members.error.maximum"),
+        minimumValue[Int](0, "chargeTypeA.members.error.maximum")
+      ),
       "amountTaxDue20pc" -> bigDecimal2DP(
-        requiredKey = "amountTaxDue.error.required",
-        invalidKey = "amountTaxDue.error.invalid",
-        decimalKey = "amountTaxDue.error.decimal"
+        requiredKey = "chargeTypeA.amountTax20pcDue.error.required",
+        invalidKey = "chargeTypeA.amountTax20pcDue.error.invalid",
+        decimalKey = "chargeTypeA.amountTax20pcDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTax20pcDue.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTax20pcDue.error.minimum")
       ),
       "amountTaxDue50pc" -> bigDecimal2DP(
-        requiredKey = "amountTaxDue.error.required",
-        invalidKey = "amountTaxDue.error.invalid",
-        decimalKey = "amountTaxDue.error.decimal"
+        requiredKey = "chargeTypeA.amountTax50pcDue.error.required",
+        invalidKey = "chargeTypeA.amountTax50pcDue.error.invalid",
+        decimalKey = "chargeTypeA.amountTax50pcDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeTypeA.amountTax50pcDue.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeTypeA.amountTax50pcDue.error.minimum")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }
