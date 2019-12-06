@@ -44,7 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeAAmount50pc.get
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = "",
+      submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName))
 

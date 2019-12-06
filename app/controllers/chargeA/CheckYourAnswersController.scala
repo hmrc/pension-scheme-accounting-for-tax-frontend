@@ -18,9 +18,13 @@ package controllers.chargeA
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.GenericViewModel
+import controllers.chargeA.routes
+import models.{GenericViewModel, NormalMode}
+import navigators.CompoundNavigator
+import pages.chargeA.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -35,6 +39,8 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
+                                           aftConnector: AFTConnector,
+                                           navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
                                            renderer: Renderer
@@ -52,11 +58,20 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         )
 
         val viewModel = GenericViewModel(
-          submitUrl = "",
+          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         renderer.render("chargeA/check-your-answers.njk", Json.obj("list" -> answers, "viewModel" -> viewModel)).map(Ok(_))
+      }
+  }
+
+  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+    implicit request =>
+      DataRetrievals.retrievePSTR { pstr =>
+        aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+        }
       }
   }
 }

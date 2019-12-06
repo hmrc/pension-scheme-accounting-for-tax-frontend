@@ -40,5 +40,6 @@ POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-
 
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers           controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
 
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers    controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
 
 
