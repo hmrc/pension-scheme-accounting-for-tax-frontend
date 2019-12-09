@@ -14,19 +14,32 @@
  * limitations under the License.
  */
 
-package pages
+package forms
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import forms.behaviours.OptionFieldBehaviours
+import models.YearRange
+import play.api.data.FormError
 
-class ChargeTypePageSpec extends PageBehaviours {
+class YearRangeFormProviderSpec extends OptionFieldBehaviours {
 
-  "ChargeTypePage" - {
+  val form = new YearRangeFormProvider()()
 
-    beRetrievable[ChargeType](ChargeTypePage)
+  ".value" - {
 
-    beSettable[ChargeType](ChargeTypePage)
+    val fieldName = "value"
+    val requiredKey = "yearRange.error.required"
 
-    beRemovable[ChargeType](ChargeTypePage)
+    behave like optionsField[YearRange](
+      form,
+      fieldName,
+      validValues  = YearRange.values,
+      invalidError = FormError(fieldName, "error.invalid")
+    )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
   }
 }

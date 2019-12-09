@@ -24,5 +24,9 @@ case class AnnualAllowanceYearPage(index: Int) extends QuestionPage[YearRange] {
 
   override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ toString
 
-  override def toString: String = "annualAllowanceYear"
+}
+
+object AnnualAllowanceYearPage {
+
+  override lazy val toString: String = "annualAllowanceYear"
 }

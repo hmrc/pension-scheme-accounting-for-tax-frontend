@@ -26,4 +26,9 @@ trait ModelGenerators {
     Arbitrary {
       Gen.oneOf(ChargeType.values.toSeq)
     }
+
+  implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =
+    Arbitrary {
+      Gen.oneOf(YearRange.values.toSeq)
+    }
 }
