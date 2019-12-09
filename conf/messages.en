@@ -176,3 +176,8 @@ chargeE.whatYouWillNeed.li3 = the tax year to which the annual allowance charge 
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the date you received the notice from the member requiring you to pay the annual allowance charge
 chargeE.whatYouWillNeed.li6 = whether the payment type was mandatory or voluntary
+
+yearRangeRadio = {0} to {1}
+annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
+annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
+annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
