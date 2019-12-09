@@ -26,3 +26,5 @@ GET        /:srn/new-return/charge-type                                         
 POST       /:srn/new-return/charge-type                                          controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
 GET        /:srn/new-return/change/charge-type                                   controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST       /:srn/new-return/change/charge-type                                   controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+GET         /:srn/new-return/annual-allowance-charge/what-you-will-need          controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String)

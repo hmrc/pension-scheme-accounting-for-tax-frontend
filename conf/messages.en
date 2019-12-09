@@ -166,3 +166,13 @@ chargeType.radio.overseasTransfer = Overseas transfer charge
 chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
+
+chargeE.whatYouWillNeed.title = Annual allowance charge
+chargeE.whatYouWillNeed.heading = Annual allowance charge
+chargeE.whatYouWillNeed.p1 = To record an annual allowance charge you will need the following for each member liable to the charge:
+chargeE.whatYouWillNeed.li1 = their name
+chargeE.whatYouWillNeed.li2 = their National Insurance number
+chargeE.whatYouWillNeed.li3 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
+chargeE.whatYouWillNeed.li5 = the date you received the notice from the member requiring you to pay the annual allowance charge
+chargeE.whatYouWillNeed.li6 = whether the payment type was mandatory or voluntary
