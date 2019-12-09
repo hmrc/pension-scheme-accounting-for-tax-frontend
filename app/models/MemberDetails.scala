@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package generators
+package models
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import play.api.libs.json._
+import uk.gov.hmrc.domain.Nino
 
-trait ModelGenerators {
+case class MemberDetails (firstName: String, lastName: String, nino: String)
 
-  implicit lazy val arbitraryMemberDetails: Arbitrary[MemberDetails] =
-    Arbitrary {
-      for {
-        firstName <- arbitrary[String]
-        lastName <- arbitrary[String]
-        nino <- arbitrary[String]
-      } yield MemberDetails(firstName, lastName, nino)
-    }
-
-  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
-    Arbitrary {
-      Gen.oneOf(ChargeType.values)
-    }
+object MemberDetails {
+  implicit val format = Json.format[MemberDetails]
 }

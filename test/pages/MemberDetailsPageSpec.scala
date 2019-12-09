@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package generators
+package pages
 
-import models._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import models.MemberDetails
+import pages.behaviours.PageBehaviours
 
-trait ModelGenerators {
+class MemberDetailsPageSpec extends PageBehaviours {
 
-  implicit lazy val arbitraryMemberDetails: Arbitrary[MemberDetails] =
-    Arbitrary {
-      for {
-        firstName <- arbitrary[String]
-        lastName <- arbitrary[String]
-        nino <- arbitrary[String]
-      } yield MemberDetails(firstName, lastName, nino)
-    }
+  "MemberDetailsPage" - {
 
-  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
-    Arbitrary {
-      Gen.oneOf(ChargeType.values)
-    }
+    beRetrievable[MemberDetails](MemberDetailsPage)
+
+    beSettable[MemberDetails](MemberDetailsPage)
+
+    beRemovable[MemberDetails](MemberDetailsPage)
+  }
 }

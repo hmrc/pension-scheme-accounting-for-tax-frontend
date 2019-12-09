@@ -22,6 +22,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryMemberDetailsPage: Arbitrary[MemberDetailsPage.type] =
+    Arbitrary(MemberDetailsPage)
+
   implicit lazy val arbitraryChargeTypePage: Arbitrary[ChargeTypePage.type] =
     Arbitrary(ChargeTypePage)
 
