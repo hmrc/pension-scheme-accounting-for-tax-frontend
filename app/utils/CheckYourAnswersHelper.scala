@@ -16,6 +16,7 @@
 
 package utils
 
+import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers}
@@ -27,6 +28,7 @@ import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
+  private val decimalFormat = new DecimalFormat("0.00")
 
   def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
@@ -73,11 +75,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       )
   }
 
+  def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
+
   def chargeAAmount20pc: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amount20pc.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.amountTaxDue20pc.toString())),
+        value = Value(Literal(formatBigDecimalAsString(answer.amountTaxDue20pc))),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -92,7 +96,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amount50pc.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.amountTaxDue50pc.toString())),
+        value = Value(Literal(formatBigDecimalAsString(answer.amountTaxDue50pc))),
         actions = List(
           Action(
             content = msg"site.edit",

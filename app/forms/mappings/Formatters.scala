@@ -67,8 +67,10 @@ trait Formatters {
           .right.map(_.replace(",", ""))
           .right.flatMap {
           case s if s.matches(decimalRegexp) =>
+            println( "\n>WHOLE")
             Left(Seq(FormError(key, wholeNumberKey, args)))
           case s =>
+            println( "\n>asasas")
             nonFatalCatch
               .either(s.toInt)
               .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
@@ -115,7 +117,7 @@ trait Formatters {
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
-          if (s.contains(".") && !s.matches(decimalRegexp))
+          if (!s.matches(decimalRegexp))
             Left(Seq(FormError(key, decimalKey, args)))
           else
             Try(BigDecimal(s)) match {

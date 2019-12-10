@@ -170,7 +170,7 @@ chargeA.chargeDetails.amountTaxDue20pc.label = Total amount of tax due at 20%
 chargeA.chargeDetails.amountTaxDue50pc.label = Total amount of tax due at 50%
 
 chargeA.members.error.required = Enter the number of members who received a short service refund lump sum in the quarter
-chargeA.members.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a number
+chargeA.members.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
 chargeA.members.error.maximum = The number of members who received a short service refund lump sum in the quarter must be 999999 or fewer
 
 chargeA.amountTaxDue20pc.error.required = Enter the amount of tax due at 20%
