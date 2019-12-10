@@ -1,0 +1,42 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("checkYourAnswers.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+  <div class="govuk-main-wrapper">
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("checkYourAnswers.heading") }}
+        </h1>
+
+        <h2 class="govuk-heading">
+          {{ messages("chargeA.whatYouWillNeed.heading") }}
+        </h2>
+
+        {{ govukSummaryList({
+          rows: list
+        }) }}
+
+        {{ govukButton({
+            href: viewModel.submitUrl,
+            attributes: {id: "submit"},
+            text: messages("site.save_and_continue")
+        }) }}
+
+      </div>
+    </div>
+  </div>
+
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}

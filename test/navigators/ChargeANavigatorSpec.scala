@@ -19,9 +19,9 @@ package navigators
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeF.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
-import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
+import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
 
 class ChargeANavigatorSpec extends NavigatorBehaviour {
 

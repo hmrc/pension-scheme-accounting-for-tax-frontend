@@ -38,3 +38,20 @@ GET         /:srn/new-return/annual-allowance-charge/:index/select-tax-year     
 POST        /:srn/new-return/annual-allowance-charge/:index/select-tax-year               controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET         /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year        controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year        controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+
+
+
+
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/what-you-will-need           controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/charge-details               controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/short-service-refund-lump-sum-charge/charge-details               controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details        controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details        controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers           controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers    controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
+
+
