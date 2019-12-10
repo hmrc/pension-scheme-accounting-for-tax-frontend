@@ -26,7 +26,13 @@
           <li>{{ messages("whatYouWillNeed.li2") }}</li>
         </ul>
 
-        <a href = {{nextPage}} class="govuk-button">{{ messages("site.continue") }}</a>
+        {{ govukButton({
+            text: messages("site.continue"),
+            href: nextPage,
+            attributes: {
+                id: "submit"
+            }
+          }) }}
       </div>
     </div>
 

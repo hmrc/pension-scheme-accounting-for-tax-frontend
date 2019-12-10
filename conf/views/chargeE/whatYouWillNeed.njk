@@ -1,0 +1,39 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+  {{ title(messages("chargeE.whatYouWillNeed.title")) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("chargeE.whatYouWillNeed.heading") }}
+        </h1>
+
+        <p class="govuk-body">
+        {{ messages("chargeE.whatYouWillNeed.p1") }}
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>{{ messages("chargeE.whatYouWillNeed.li1") }}</li>
+          <li>{{ messages("chargeE.whatYouWillNeed.li2") }}</li>
+          <li>{{ messages("chargeE.whatYouWillNeed.li3") }}</li>
+          <li>{{ messages("chargeE.whatYouWillNeed.li4") }}</li>
+          <li>{{ messages("chargeE.whatYouWillNeed.li5") }}</li>
+          <li>{{ messages("chargeE.whatYouWillNeed.li6") }}</li>
+        </ul>
+
+        <a href="{{nextPage}}" class="govuk-button">{{ messages("site.continue") }}</a>
+      </div>
+    </div>
+
+  <a href="{{nextPage}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+
+{% endblock %}
