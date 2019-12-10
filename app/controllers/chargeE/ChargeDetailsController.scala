@@ -52,8 +52,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
-  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
+  val min: String = LocalDate.of(2019, 4, 1).format(dateFormatter)
+  val max: String = LocalDate.of(2019, 6, 30).format(dateFormatter)
 
   def form()(implicit messages: Messages): Form[ChargeEDetails] =
     formProvider(dateErrorMsg = messages("dateNoticeReceived.error.outsideTaxYear", min, max))
@@ -76,10 +76,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
-          "radios" -> Radios.yesNo(preparedForm("value")),
+          "radios" -> Radios.yesNo(preparedForm("isPaymentMandatory")),
           "memberName" -> "Temporary name"
         )
-println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>. 1 here ")
+
         renderer.render(template = "chargeE/chargeDetails.njk", json).map(Ok(_))
       }
   }

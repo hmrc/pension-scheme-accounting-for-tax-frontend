@@ -18,6 +18,7 @@ package data
 
 import java.time.LocalDate
 
+import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.{SchemeDetails, UserAnswers}
 import play.api.libs.json.Json
@@ -31,6 +32,7 @@ object SampleData {
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
   val chargeDetails = ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
+  val chargeEDetails = ChargeEDetails(BigDecimal(33.44), LocalDate.of(2020, 4, 3), isPaymentMandatory = true)
   val schemeDetails = SchemeDetails(schemeName, pstr)
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
 }

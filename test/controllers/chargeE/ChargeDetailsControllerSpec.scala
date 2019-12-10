@@ -21,48 +21,52 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
-import models.chargeE.ChargeDetails
+import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, NormalMode}
 import pages.chargeE.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
-  private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
+  private val dynamicErrorMsg: String = "The date you received notice to pay the charge must be between 1 April 2020 and 30 June 2020"
   private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
-  private def chargeDetailsGetRoute: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def chargeDetailsPostRoute: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private def chargeDetailsGetRoute: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
+  private def chargeDetailsPostRoute: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "deregistrationDate.day" -> Seq("3"),
-    "deregistrationDate.month" -> Seq("4"),
-    "deregistrationDate.year" -> Seq("2020"),
-    "amountTaxDue" -> Seq("33.44")
+    "chargeAmount" -> Seq("33.44"),
+  "dateNoticeReceived.day" -> Seq("3"),
+  "dateNoticeReceived.month" -> Seq("4"),
+  "dateNoticeReceived.year" -> Seq("2020"),
+    "isPaymentMandatory" -> Seq("true")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "deregistrationDate.day" -> Seq("32"),
-    "deregistrationDate.month" -> Seq("13"),
-    "deregistrationDate.year" -> Seq("2003"),
-    "amountTaxDue" -> Seq("33.44")
+    "chargeAmount" -> Seq("33.44"),
+  "dateNoticeReceived.day" -> Seq("32"),
+  "dateNoticeReceived.month" -> Seq("13"),
+  "dateNoticeReceived.year" -> Seq("2003"),
+    "isPaymentMandatory" -> Seq("false")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
-    "date" -> DateInput.localDate(form("deregistrationDate"))
+    "date" -> DateInput.localDate(form("dateNoticeReceived")),
+    "radios" -> Radios.yesNo(form("isPaymentMandatory")),
+    "memberName" -> "Temporary name"
   )
 
   "ChargeDetails Controller" must {
     behave like controllerWithGET(
       httpPath = chargeDetailsGetRoute,
-      page = ChargeDetailsPage,
-      data = SampleData.chargeDetails,
+      page = ChargeDetailsPage(0),
+      data = SampleData.chargeEDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
@@ -70,8 +74,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     behave like controllerWithPOST(
       httpPath = chargeDetailsPostRoute,
-      page = ChargeDetailsPage,
-      data = SampleData.chargeDetails,
+      page = ChargeDetailsPage(0),
+      data = SampleData.chargeEDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
