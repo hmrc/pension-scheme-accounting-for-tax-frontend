@@ -19,7 +19,7 @@ package pages
 import models.ChargeType
 import pages.behaviours.PageBehaviours
 
-class ChargeTypeSpec extends PageBehaviours {
+class ChargeTypePageSpec extends PageBehaviours {
 
   "ChargeTypePage" - {
 
