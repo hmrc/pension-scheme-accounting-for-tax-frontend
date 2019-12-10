@@ -34,15 +34,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private def chargeDetailsGetRoute: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
   private def chargeDetailsPostRoute: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "members" -> Seq("44"),
-    "amountTaxDue20pc" -> Seq("33.44"),
-    "amountTaxDue50pc" -> Seq("34.34")
+    "numberOfMembers" -> Seq("44"),
+    "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
+    "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "members" -> Seq("999999999999999999999999999999999999999"),
-    "amountTaxDue20pc" -> Seq("33.44"),
-    "amountTaxDue50pc" -> Seq("34.34")
+    "numberOfMembers" -> Seq("999999999999999999999999999999999999999"),
+    "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
+    "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
   )
 
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(

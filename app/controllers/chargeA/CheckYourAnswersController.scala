@@ -53,12 +53,12 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmountTaxDue).getOrElse(BigDecimal(0))
+        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmount).getOrElse(BigDecimal(0))
 
         val answers: Seq[SummaryList.Row] = Seq(
           helper.chargeAMembers.get,
-          helper.chargeAAmount20pc.get,
-          helper.chargeAAmount50pc.get,
+          helper.chargeAAmountLowerRate.get,
+          helper.chargeAAmountHigherRate.get,
           Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
             value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
           )

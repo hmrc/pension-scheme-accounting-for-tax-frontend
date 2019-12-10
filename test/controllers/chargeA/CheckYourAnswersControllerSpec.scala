@@ -42,12 +42,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
       helper.chargeAMembers.get,
-      helper.chargeAAmount20pc.get,
-      helper.chargeAAmount50pc.get,
+      helper.chargeAAmountLowerRate.get,
+      helper.chargeAAmountHigherRate.get,
       Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
         value = Value(
           Literal(
-            CheckYourAnswersHelper.formatBigDecimalAsString(ua.get(ChargeDetailsPage).map(_.totalAmountTaxDue).getOrElse(BigDecimal(0)))
+            CheckYourAnswersHelper.formatBigDecimalAsString(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
           )
         )
       )

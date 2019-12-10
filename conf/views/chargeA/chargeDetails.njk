@@ -30,45 +30,45 @@
           {{ csrf() | safe }}
 
           {{ govukInput({
-            id: "members",
+            id: "numberOfMembers",
             label: {
-              text: messages('chargeA.chargeDetails.members.title'),
+              text: messages('chargeA.chargeDetails.numberOfMembers.title'),
               isPageHeading: false,
               classes: "govuk-form-label--s"
             },
-            name: "members",
+            name: "numberOfMembers",
             type: "text",
-            value: form.members.value,
+            value: form.numberOfMembers.value,
             classes: "govuk-input--width-10",
-            errorMessage: form.members.error
+            errorMessage: form.numberOfMembers.error
           }) }}
 
         {{ govukInput({
-          id: "amountTaxDue20pc",
+          id: "totalAmtOfTaxDueAtLowerRate",
           label: {
-            text: messages('chargeA.chargeDetails.amountTaxDue20pc.label'),
+            text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label'),
             isPageHeading: false,
             classes: "govuk-form-label--s"
           },
-          name: "amountTaxDue20pc",
+          name: "totalAmtOfTaxDueAtLowerRate",
           type: "text",
-          value: form.amountTaxDue20pc.value,
+          value: form.totalAmtOfTaxDueAtLowerRate.value,
           classes: "govuk-input--width-10",
-          errorMessage: form.amountTaxDue20pc.error
+          errorMessage: form.totalAmtOfTaxDueAtLowerRate.error
         }) }}
 
          {{ govukInput({
-            id: "amountTaxDue50pc",
+            id: "totalAmtOfTaxDueAtHigherRate",
             label: {
-              text: messages('chargeA.chargeDetails.amountTaxDue50pc.label'),
+              text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label'),
               isPageHeading: false,
               classes: "govuk-form-label--s"
             },
-            name: "amountTaxDue50pc",
+            name: "totalAmtOfTaxDueAtHigherRate",
             type: "text",
-            value: form.amountTaxDue50pc.value,
+            value: form.totalAmtOfTaxDueAtHigherRate.value,
             classes: "govuk-input--width-10",
-            errorMessage: form.amountTaxDue50pc.error
+            errorMessage: form.totalAmtOfTaxDueAtHigherRate.error
           }) }}
 
 
