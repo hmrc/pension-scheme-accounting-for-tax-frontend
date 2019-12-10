@@ -187,10 +187,10 @@ chargeE.whatYouWillNeed.heading = Annual allowance charge
 chargeE.whatYouWillNeed.p1 = To record an annual allowance charge you will need the following for each member liable to the charge:
 chargeE.whatYouWillNeed.li1 = their name
 chargeE.whatYouWillNeed.li2 = their National Insurance number
-chargeE.whatYouWillNeed.li3 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
-chargeE.whatYouWillNeed.li5 = the date you received the notice from the member requiring you to pay the annual allowance charge
-chargeE.whatYouWillNeed.li6 = whether the payment type was mandatory or voluntary
+chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
 
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
