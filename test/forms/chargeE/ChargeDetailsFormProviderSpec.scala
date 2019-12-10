@@ -20,30 +20,21 @@ import java.time.LocalDate
 
 import forms.behaviours._
 import play.api.data.FormError
-import play.api.libs.json.Json
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
-  val dynamicErrorMsg: String = "The date you received notice to pay the charge must be between 1 April 2020 and 30 June 2020"
-  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val form = new ChargeDetailsFormProvider()()
   val dateKey = "dateNoticeReceived"
   val chargeAmountKey = "chargeAmount"
   val isMandatoryKey = "isPaymentMandatory"
 
   "dateNoticeReceived" - {
 
-    behave like dateFieldWithMin(
+   behave like dateFieldWithMax(
       form = form,
       key = dateKey,
-      min = LocalDate.of(2019, 4, 1),
-      formError = FormError(dateKey, dynamicErrorMsg)
-    )
-
-    behave like dateFieldWithMax(
-      form = form,
-      key = dateKey,
-      max = LocalDate.of(2019, 6, 30),
-      formError = FormError(dateKey, dynamicErrorMsg)
+      max = LocalDate.now(),
+      formError = FormError(dateKey, s"$dateKey.error.future")
     )
 
     behave like mandatoryDateField(

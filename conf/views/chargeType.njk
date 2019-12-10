@@ -41,7 +41,8 @@
           }) }}
 
           {{ govukButton({
-            text: messages("site.continue")
+            text: messages("site.continue"),
+            attributes: {id: "submit"}
           }) }}
 
         </form>
@@ -50,6 +51,6 @@
     </div>
   </div>
 
-  <a href= {{ returnUrl }} class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}

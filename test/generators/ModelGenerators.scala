@@ -22,9 +22,18 @@ import org.scalacheck.{Arbitrary, Gen}
 
 trait ModelGenerators {
 
+  implicit lazy val arbitraryMemberDetails: Arbitrary[MemberDetails] =
+    Arbitrary {
+      for {
+        firstName <- arbitrary[String]
+        lastName <- arbitrary[String]
+        nino <- arbitrary[String]
+      } yield MemberDetails(firstName, lastName, nino)
+    }
+
   implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
     Arbitrary {
-      Gen.oneOf(ChargeType.values.toSeq)
+      Gen.oneOf(ChargeType.values)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =

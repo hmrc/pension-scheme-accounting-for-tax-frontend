@@ -14,67 +14,53 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
-import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
+import connectors.SchemeDetailsConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions._
+import javax.inject.Inject
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeF.CheckYourAnswersPage
+import pages.SchemeNameQuery
+import pages.chargeA.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
-class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
+class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
-                                           aftConnector: AFTConnector,
-                                           navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           config: FrontendAppConfig,
+                                           renderer: Renderer,
+                                           schemeDetailsConnector: SchemeDetailsConnector,
+                                           userAnswersCacheConnector: UserAnswersCacheConnector,
+                                           navigator: CompoundNavigator
+                                         )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+        val ua = request.userAnswers
+        val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+        val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+          submitUrl = "",
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val answers: Seq[SummaryList.Row] = Seq(
-          helper.date.get,
-          helper.amount.get
-        )
-
-        renderer.render("chargeF/check-your-answers.njk",
-          Json.obj(
-            "list" -> answers,
-            "viewModel" -> viewModel
-          )
-        ).map(Ok(_))
-      }
-  }
-
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrievePSTR { pstr =>
-        aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
-        }
+        renderer.render(template = "chargeA/whatYouWillNeed.njk",
+          Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
       }
   }
 }

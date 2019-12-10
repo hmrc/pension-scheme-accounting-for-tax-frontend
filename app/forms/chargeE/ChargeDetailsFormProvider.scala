@@ -16,8 +16,6 @@
 
 package forms.chargeE
 
-import java.time.LocalDate
-
 import forms.mappings.{Constraints, Mappings}
 import javax.inject.Inject
 import models.chargeE.ChargeEDetails
@@ -26,7 +24,7 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(dateErrorMsg: String): Form[ChargeEDetails] =
+  def apply(): Form[ChargeEDetails] =
     Form(mapping(
 
       "chargeAmount" -> bigDecimal2DP(
@@ -43,8 +41,6 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
-        minDate(LocalDate.of(2019, 4, 1), dateErrorMsg),
-        maxDate(LocalDate.of(2019, 6, 30), dateErrorMsg),
         futureDate("dateNoticeReceived.error.future")
       ),
       "isPaymentMandatory" -> boolean("isPaymentMandatory.error")

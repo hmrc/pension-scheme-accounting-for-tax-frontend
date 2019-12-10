@@ -10,7 +10,7 @@ site.edit.hidden = Change {0}
 site.no = No
 site.yes = Yes
 site.continue = Continue
-site.save_and_continue = Save and continue
+site.save_and_continue = Save this charge and continue
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - managing-pension schemes - GOV.UK
@@ -156,6 +156,39 @@ amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeDetails.amount.label = Amount of tax due at 40%
 chargeDetails.date.label = Date scheme was de-registered
 
+chargeA.whatYouWillNeed.title = Short service refund lump sum charge
+chargeA.whatYouWillNeed.heading = Short service refund lump sum charge
+chargeA.whatYouWillNeed.p1 = To record a short service refund lump sum charge you will need:
+chargeA.whatYouWillNeed.li1 = the number of members who received a short service refund lump sum in the quarter you are submitting the return for
+chargeA.whatYouWillNeed.li2 = the total amount of tax due at 20%
+chargeA.whatYouWillNeed.li3 = the total amount of tax due at 50%
+
+chargeA.chargeDetails.title = Short service refund lump sum details
+chargeA.chargeDetails.heading = Short service refund lump sum details
+chargeA.chargeDetails.numberOfMembers.title = Number of members who received a short service refund lump sum in the quarter
+chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label = Total amount of tax due at 20%
+chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label = Total amount of tax due at 50%
+
+chargeA.numberOfMembers.error.required = Enter the number of members who received a short service refund lump sum in the quarter
+chargeA.numberOfMembers.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
+chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be 999999 or fewer
+
+chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the amount of tax due at 20%
+chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.01 or more
+
+chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the amount of tax due at 50%
+chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £0.01 or more
+
+chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel = Number of members who received a short service refund lump sum in the quarter
+chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel = Total amount of tax due at 20%
+chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel = Total amount of tax due at 50%
+
 chargeType.title = Which type of charge are you adding to the AFT return?
 chargeType.heading = Which type of charge are you adding to the AFT return?
 chargeType.radio.annualAllowance = Annual allowance charge
@@ -167,20 +200,37 @@ chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
 
+memberDetails.title = Member’s details
+memberDetails.heading = Member’s details
+memberDetails.firstName = First name
+memberDetails.lastName = Last name
+memberDetails.nino = National Insurance number
+memberDetails.checkYourAnswersLabel = memberDetails
+memberDetails.error.firstName.required = Enter the member’s first name
+memberDetails.error.firstName.length = The member’s first name must be 35 characters or fewer
+memberDetails.error.firstName.invalid = The member’s first name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.lastName.required = Enter the member’s last name
+memberDetails.error.lastName.length = The member’s must be 35 characters or fewer
+memberDetails.error.lastName.invalid = The member’s last name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.nino.required = Enter the member’s National Insurance number
+memberDetails.error.nino.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
+
 chargeE.whatYouWillNeed.title = Annual allowance charge
 chargeE.whatYouWillNeed.heading = Annual allowance charge
 chargeE.whatYouWillNeed.p1 = To record an annual allowance charge you will need the following for each member liable to the charge:
 chargeE.whatYouWillNeed.li1 = their name
 chargeE.whatYouWillNeed.li2 = their National Insurance number
-chargeE.whatYouWillNeed.li3 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the notice from the member requiring them to pay the annual allowance charge
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
-chargeE.whatYouWillNeed.li5 = the date you received the notice from the member requiring you to pay the annual allowance charge
-chargeE.whatYouWillNeed.li6 = whether the payment type was mandatory or voluntary
+chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
 
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
+total = Total
+
 
 chargeAmount.error.required = Enter the charge amount
 chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00

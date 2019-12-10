@@ -16,8 +16,8 @@
 
 package navigators
 
-import controllers.chargeF.routes.WhatYouWillNeedController
-import models.{NormalMode, UserAnswers}
+import data.SampleData
+import models.{ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.{ChargeTypePage, Page}
 import play.api.mvc.Call
@@ -27,11 +27,14 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
 
+  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
+
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(WhatYouWillNeedController.onPageLoad(srn))
+        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeDeRegistration)),
+        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeShortService))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

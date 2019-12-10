@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeF
+package controllers.chargeA
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
@@ -23,25 +23,27 @@ import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeF.CheckYourAnswersPage
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
-class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
-                                           override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
                                            aftConnector: AFTConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
@@ -50,17 +52,25 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
+        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmount).getOrElse(BigDecimal(0))
+
+        val answers: Seq[SummaryList.Row] = Seq(
+          helper.chargeAMembers.get,
+          helper.chargeAAmountLowerRate.get,
+          helper.chargeAAmountHigherRate.get,
+          Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
+            value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
+          )
+        )
+
         val viewModel = GenericViewModel(
           submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
-        val answers: Seq[SummaryList.Row] = Seq(
-          helper.date.get,
-          helper.amount.get
+          schemeName = schemeName
         )
 
-        renderer.render("chargeF/check-your-answers.njk",
+        renderer.render(
+          "chargeA/check-your-answers.njk",
           Json.obj(
             "list" -> answers,
             "viewModel" -> viewModel

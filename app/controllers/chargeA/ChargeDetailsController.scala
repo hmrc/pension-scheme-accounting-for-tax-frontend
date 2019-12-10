@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeA
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeE.ChargeDetailsFormProvider
+import forms.chargeA.ChargeDetailsFormProvider
 import javax.inject.Inject
-import models.chargeE.ChargeEDetails
-import models.{GenericViewModel, Index, Mode}
+import models.chargeA.ChargeDetails
+import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.MemberDetailsPage
-import pages.chargeE.ChargeDetailsPage
+import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,59 +48,55 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form: Form[ChargeEDetails] = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def form()(implicit messages: Messages): Form[ChargeDetails] =
+    formProvider()
+
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
-        val preparedForm: Form[ChargeEDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
+        val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
           case Some(value) => form.fill(value)
           case None => form
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
-          "radios" -> Radios.yesNo(preparedForm("isPaymentMandatory")),
-          "memberName" -> memberName
+          "viewModel" -> viewModel
         )
 
-        renderer.render(template = "chargeE/chargeDetails.njk", json).map(Ok(_))
+        renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "date" -> DateInput.localDate(formWithErrors("dateNoticeReceived")),
-              "radios" -> Radios.yesNo(formWithErrors("isPaymentMandatory")),
-              "memberName" -> memberName
+              "viewModel" -> viewModel
             )
-            renderer.render(template = "chargeE/chargeDetails.njk", json).map(BadRequest(_))
+            renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
           value => {
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
           }
         )
       }
