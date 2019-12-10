@@ -20,6 +20,7 @@ import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers}
+import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
@@ -103,6 +104,35 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           )
         )
       )
+  }
+
+  def chargeBDetails: Option[Seq[Row]] = userAnswers.get(ChargeBDetailsPage) map {
+    answer =>
+      Seq(
+        Row(
+        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.numberOfDeceased.toString)),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"numberOfDeceased.checkYourAnswersLabel"))
+          )
+        )
+      ),
+        Row(
+          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${answer.amountTaxDue.toString()}")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalTaxDue.checkYourAnswersLabel"))
+            )
+          )
+        )
+      )
+
   }
 
   private def yesOrNo(answer: Boolean): Content =
