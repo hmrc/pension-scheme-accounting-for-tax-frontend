@@ -1,0 +1,41 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+
+{% block pageTitle %}
+  {{ title(messages("chargeA.whatYouWillNeed.title")) }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("chargeA.whatYouWillNeed.heading") }}
+        </h1>
+
+        <p class="govuk-body">
+        {{ messages("chargeA.whatYouWillNeed.p1") }}
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>{{ messages("chargeA.whatYouWillNeed.li1") }}</li>
+          <li>{{ messages("chargeA.whatYouWillNeed.li2") }}</li>
+          <li>{{ messages("chargeA.whatYouWillNeed.li3") }}</li>
+        </ul>
+
+        {{ govukButton({
+            href: nextPage,
+            attributes: {id: "submit"},
+            text: messages("site.continue")
+        }) }}
+
+      </div>
+    </div>
+
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+
+{% endblock %}

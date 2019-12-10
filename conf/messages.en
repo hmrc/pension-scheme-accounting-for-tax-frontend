@@ -157,6 +157,39 @@ amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeDetails.amount.label = Amount of tax due at 40%
 chargeDetails.date.label = Date scheme was de-registered
 
+chargeA.whatYouWillNeed.title = Short service refund lump sum charge
+chargeA.whatYouWillNeed.heading = Short service refund lump sum charge
+chargeA.whatYouWillNeed.p1 = To record a short service refund lump sum charge you will need:
+chargeA.whatYouWillNeed.li1 = the number of members who received a short service refund lump sum in the quarter you are submitting the return for
+chargeA.whatYouWillNeed.li2 = the total amount of tax due at 20%
+chargeA.whatYouWillNeed.li3 = the total amount of tax due at 50%
+
+chargeA.chargeDetails.title = Short service refund lump sum details
+chargeA.chargeDetails.heading = Short service refund lump sum details
+chargeA.chargeDetails.numberOfMembers.title = Number of members who received a short service refund lump sum in the quarter
+chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label = Total amount of tax due at 20%
+chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label = Total amount of tax due at 50%
+
+chargeA.numberOfMembers.error.required = Enter the number of members who received a short service refund lump sum in the quarter
+chargeA.numberOfMembers.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
+chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be 999999 or fewer
+
+chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the amount of tax due at 20%
+chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.01 or more
+
+chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the amount of tax due at 50%
+chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £0.01 or more
+
+chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel = Number of members who received a short service refund lump sum in the quarter
+chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel = Total amount of tax due at 20%
+chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel = Total amount of tax due at 50%
+
 chargeType.title = Which type of charge are you adding to the AFT return?
 chargeType.heading = Which type of charge are you adding to the AFT return?
 chargeType.radio.annualAllowance = Annual allowance charge
@@ -226,3 +259,4 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
+total = Total

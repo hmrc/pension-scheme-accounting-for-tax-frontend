@@ -16,35 +16,20 @@
 
 package utils
 
+import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
-import controllers.chargeF.routes
 import models.{CheckMode, UserAnswers}
-import pages._
-import play.api.i18n.Messages
-import CheckYourAnswersHelper._
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.ChargeDetailsPage
-import uk.gov.hmrc.viewmodels._
+import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
+import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
-//  def memberDetails: Option[Row] = userAnswers.get(MemberDetailsPage) map {
-//    answer =>
-//      Row(
-//        key     = Key(msg"memberDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-//        value   = Value(lit"${answer.firstName} ${answer.lastName}"),
-//        actions = List(
-//          Action(
-//            content            = msg"site.edit",
-//            href               = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn).url,
-//            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"memberDetails.checkYourAnswersLabel"))
-//          )
-//        )
-//      )
-//  }
 
   def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
@@ -54,14 +39,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
           )
         )
       )
   }
 
-  def amount: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+  def amount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
         key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
@@ -69,8 +54,53 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAMembers: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.numberOfMembers.toString)),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAAmountLowerRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate))),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeAAmountHigherRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
+    answer =>
+      Row(
+        key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate))),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel"))
           )
         )
       )
@@ -85,7 +115,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"numberOfDeceased.checkYourAnswersLabel"))
           )
         )
@@ -96,7 +126,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           actions = List(
             Action(
               content = msg"site.edit",
-              href = routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+              href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
               visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalTaxDue.checkYourAnswersLabel"))
             )
           )
@@ -114,6 +144,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 }
 
 object CheckYourAnswersHelper {
-
+  private val decimalFormat = new DecimalFormat("0.00")
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+  def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
 }

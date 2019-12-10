@@ -31,6 +31,7 @@ class Module extends AbstractModule {
     navigators.addBinding().to(classOf[ChargeFNavigator])
     navigators.addBinding().to(classOf[ChargeBNavigator])
     navigators.addBinding().to(classOf[ChargeNavigator])
+    navigators.addBinding().to(classOf[ChargeANavigator])
 
     bind(classOf[CompoundNavigator]).to(classOf[CompoundNavigatorImpl])
 

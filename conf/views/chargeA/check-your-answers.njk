@@ -19,20 +19,24 @@
           {{ messages("checkYourAnswers.heading") }}
         </h1>
 
-        <h2>{{messages(chargeName)}}</h2>
+        <h2 class="govuk-heading">
+          {{ messages("chargeA.whatYouWillNeed.heading") }}
+        </h2>
 
         {{ govukSummaryList({
           rows: list
         }) }}
 
         {{ govukButton({
-            text: messages("site.save_charge_and_continue"),
             href: viewModel.submitUrl,
-            attributes: {id: "continue"}
-          }) }}
+            attributes: {id: "submit"},
+            text: messages("site.save_and_continue")
+        }) }}
 
       </div>
     </div>
   </div>
+
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}
