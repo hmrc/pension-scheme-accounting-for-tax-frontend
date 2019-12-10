@@ -30,7 +30,7 @@ object SampleData {
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, BigDecimal(33.44), BigDecimal(34.34))
+  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, BigDecimal(33.44), BigDecimal(34.34), BigDecimal(67.78))
   val schemeDetails = SchemeDetails(schemeName, pstr)
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
 }

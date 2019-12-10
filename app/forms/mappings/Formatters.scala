@@ -130,6 +130,13 @@ trait Formatters {
         baseFormatter.unbind(key, value.toString)
     }
 
+  private[mappings] def bigDecimalCalculatedFormatter: Formatter[BigDecimal] =
+    new Formatter[BigDecimal] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = Right(BigDecimal(0))
+
+      override def unbind(key: String, value: BigDecimal): Map[String, String] = Map.empty
+    }
+
   private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)(implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
 

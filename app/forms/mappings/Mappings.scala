@@ -43,6 +43,8 @@ trait Mappings extends Formatters with Constraints {
                           ): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
+  protected def bigDecimalCalculated: FieldMapping[BigDecimal] = of(bigDecimalCalculatedFormatter)
+
   protected def boolean(requiredKey: String = "error.required",
                         invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
     of(booleanFormatter(requiredKey, invalidKey))
