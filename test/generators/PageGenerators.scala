@@ -25,9 +25,6 @@ trait PageGenerators {
   implicit lazy val arbitraryChargeTypePage: Arbitrary[ChargeTypePage.type] =
     Arbitrary(ChargeTypePage)
 
-  implicit lazy val arbitraryChargeADetailsPage: Arbitrary[pages.chargeA.ChargeDetailsPage.type] =
-    Arbitrary(pages.chargeA.ChargeDetailsPage)
-
-  implicit lazy val arbitraryChargeFDetailsPage: Arbitrary[pages.chargeF.ChargeDetailsPage.type] =
-    Arbitrary(pages.chargeF.ChargeDetailsPage)
+  implicit lazy val arbitraryChargeDetailsPage: Arbitrary[ChargeDetailsPage.type] =
+    Arbitrary(ChargeDetailsPage)
 }
