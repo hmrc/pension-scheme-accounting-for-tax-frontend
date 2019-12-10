@@ -105,9 +105,7 @@ trait Formatters {
                                                decimalKey: String,
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-
-      private def isAllNumeric(s: String):Boolean = s forall(c => Character.isDigit(c) || c == '.' || c == '-')
-
+      val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
       val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
@@ -117,7 +115,7 @@ trait Formatters {
           .bind(key, data)
           .right.map(_.replace(",", ""))
           .right.flatMap { s =>
-          if (!isAllNumeric(s))
+          if (!s.matches(numericRegexp))
             Left(Seq(FormError(key, invalidKey, args)))
           else if (!s.matches(decimalRegexp))
             Left(Seq(FormError(key, decimalKey, args)))

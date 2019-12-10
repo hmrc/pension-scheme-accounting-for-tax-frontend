@@ -27,12 +27,16 @@
           rows: list
         }) }}
 
-        <a href = {{viewModel.submitUrl}} class="govuk-button">{{ messages("site.save_and_continue") }}</a>
+        {{ govukButton({
+            href: viewModel.submitUrl,
+            attributes: {id: "submit"},
+            text: messages("site.save_and_continue")
+        }) }}
 
       </div>
     </div>
   </div>
 
-  <a href= {{ viewModel.returnUrl }} class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}
