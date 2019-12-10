@@ -20,13 +20,14 @@ import java.time.LocalDate
 
 import forms.behaviours._
 import play.api.data.FormError
+import play.api.libs.json.Json
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
   val dynamicErrorMsg: String = "The date you received notice to pay the charge must be between 1 April 2020 and 30 June 2020"
   val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
   val dateKey = "dateNoticeReceived"
-  val amountTaxDueKey = "chargeAmount"
+  val chargeAmountKey = "chargeAmount"
   val isMandatoryKey = "isPaymentMandatory"
 
   "dateNoticeReceived" - {
@@ -34,14 +35,14 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like dateFieldWithMin(
       form = form,
       key = dateKey,
-      min = LocalDate.of(2020, 4, 1),
+      min = LocalDate.of(2019, 4, 1),
       formError = FormError(dateKey, dynamicErrorMsg)
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = dateKey,
-      max = LocalDate.of(2020, 6, 30),
+      max = LocalDate.of(2019, 6, 30),
       formError = FormError(dateKey, dynamicErrorMsg)
     )
 
@@ -55,23 +56,23 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
     behave like bigDecimalField(
       form = form,
-      fieldName = amountTaxDueKey,
-      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
-      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+      fieldName = chargeAmountKey,
+      nonNumericError = FormError(chargeAmountKey, s"$chargeAmountKey.error.invalid"),
+      decimalsError = FormError(chargeAmountKey, s"$chargeAmountKey.error.decimal")
     )
 
     behave like bigDecimalFieldWithMinimum(
       form = form,
-      fieldName = amountTaxDueKey,
+      fieldName = chargeAmountKey,
       minimum = BigDecimal("0.01"),
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid")
+      expectedError = FormError(chargeAmountKey, s"$chargeAmountKey.error.invalid")
     )
 
     behave like longBigDecimal(
       form = form,
-      fieldName = amountTaxDueKey,
+      fieldName = chargeAmountKey,
       length = 12,
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
+      expectedError = FormError(chargeAmountKey, s"$chargeAmountKey.error.maximum")
     )
   }
 
@@ -79,7 +80,13 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like booleanField(
       form = form,
       fieldName = isMandatoryKey,
-      invalidError = FormError(isMandatoryKey, s"$isMandatoryKey.error.required")
+      invalidError = FormError(isMandatoryKey, "error.boolean")
+    )
+
+    behave like mandatoryField(
+      form,
+      isMandatoryKey,
+      requiredError = FormError(isMandatoryKey, s"$isMandatoryKey.error")
     )
   }
 }

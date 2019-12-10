@@ -43,8 +43,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
-        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
-        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg),
+        minDate(LocalDate.of(2019, 4, 1), dateErrorMsg),
+        maxDate(LocalDate.of(2019, 6, 30), dateErrorMsg),
         futureDate("dateNoticeReceived.error.future")
       ),
       "isPaymentMandatory" -> boolean("isPaymentMandatory.error")

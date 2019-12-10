@@ -99,7 +99,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("dateNoticeReceived")),
-              "radios" -> Radios.yesNo(formWithErrors("value")),
+              "radios" -> Radios.yesNo(formWithErrors("isPaymentMandatory")),
               "memberName" -> "Temporary name"
             )
             renderer.render(template = "chargeE/chargeDetails.njk", json).map(BadRequest(_))

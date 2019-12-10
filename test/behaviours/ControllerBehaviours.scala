@@ -44,7 +44,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
 
-  private def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
+  def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest
       .apply(
         method = POST,

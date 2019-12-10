@@ -23,9 +23,15 @@ import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, NormalMode}
+import org.mockito.Matchers.any
+import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.{times, verify, when}
 import pages.chargeE.ChargeDetailsPage
+import play.api.test.Helpers._
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.FakeRequest
+import play.api.test.Helpers.{redirectLocation, route, status}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
@@ -48,7 +54,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "dateNoticeReceived.day" -> Seq("32"),
   "dateNoticeReceived.month" -> Seq("13"),
   "dateNoticeReceived.year" -> Seq("2003"),
-    "isPaymentMandatory" -> Seq("false")
+    "isPaymentMandatory" -> Seq(true.toString)
   )
 
   private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
