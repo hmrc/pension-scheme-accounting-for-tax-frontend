@@ -181,3 +181,18 @@ memberDetails.error.lastName.length = The member’s must be 35 characters or fe
 memberDetails.error.lastName.invalid = The member’s last name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
 memberDetails.error.nino.required = Enter the member’s National Insurance number
 memberDetails.error.nino.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
+
+chargeE.whatYouWillNeed.title = Annual allowance charge
+chargeE.whatYouWillNeed.heading = Annual allowance charge
+chargeE.whatYouWillNeed.p1 = To record an annual allowance charge you will need the following for each member liable to the charge:
+chargeE.whatYouWillNeed.li1 = their name
+chargeE.whatYouWillNeed.li2 = their National Insurance number
+chargeE.whatYouWillNeed.li3 = the tax year to which the annual allowance charge relates
+chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
+chargeE.whatYouWillNeed.li5 = the date you received the notice from the member requiring you to pay the annual allowance charge
+chargeE.whatYouWillNeed.li6 = whether the payment type was mandatory or voluntary
+
+yearRangeRadio = {0} to {1}
+annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
+annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
+annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates

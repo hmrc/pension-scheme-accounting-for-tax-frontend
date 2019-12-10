@@ -27,7 +27,14 @@ POST        /:srn/new-return/charge-type                                        
 GET         /:srn/new-return/change/charge-type                                        controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST        /:srn/new-return/change/charge-type                                        controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
 
-GET         /:srn/new-return/annual-allowance-charge/members-details                   controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/annual-allowance-charge/members-details                   controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/change/annual-allowance-charge/members-details            controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/change/annual-allowance-charge/members-details            controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/annual-allowance-charge/:index/members-details                   controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST        /:srn/new-return/annual-allowance-charge/:index/members-details                   controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET         /:srn/new-return/change/annual-allowance-charge/:index/members-details            controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST        /:srn/new-return/change/annual-allowance-charge/:index/members-details            controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET         /:srn/new-return/annual-allowance-charge/what-you-will-need          controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET        /:srn/new-return/annual-allowance-charge/:index/select-tax-year             controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/select-tax-year             controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year      controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year      controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)

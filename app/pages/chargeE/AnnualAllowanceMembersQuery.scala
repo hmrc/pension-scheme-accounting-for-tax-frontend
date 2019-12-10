@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import pages.Page
+import play.api.libs.json.JsPath
 
-class ChargeTypePageSpec extends PageBehaviours {
+case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
+  def path: JsPath = JsPath \ AnnualAllowanceMembersQuery.toString \ index
+}
 
-  "ChargeTypePage" - {
-
-    beRetrievable[ChargeType](ChargeTypePage)
-
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
-  }
+object AnnualAllowanceMembersQuery {
+  override def toString: String = "members"
 }
