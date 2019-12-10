@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
-import models.ChargeType
+import models.YearRange
 import pages.behaviours.PageBehaviours
 
-class ChargeTypePageSpec extends PageBehaviours {
+class AnnualAllowanceYearPageSpec extends PageBehaviours {
 
-  "ChargeTypePage" - {
+  "AnnualAllowanceYearPage" - {
 
-    beRetrievable[ChargeType](ChargeTypePage)
+    beRetrievable[YearRange](AnnualAllowanceYearPage(0))
 
-    beSettable[ChargeType](ChargeTypePage)
+    beSettable[YearRange](AnnualAllowanceYearPage(0))
 
-    beRemovable[ChargeType](ChargeTypePage)
+    beRemovable[YearRange](AnnualAllowanceYearPage(0))
   }
 }

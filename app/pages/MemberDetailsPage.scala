@@ -16,17 +16,16 @@
 
 package pages
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import models.MemberDetails
+import pages.chargeE.AnnualAllowanceMembersQuery
+import play.api.libs.json.JsPath
 
-class ChargeTypePageSpec extends PageBehaviours {
+case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
 
-  "ChargeTypePage" - {
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
+}
 
-    beRetrievable[ChargeType](ChargeTypePage)
+object MemberDetailsPage {
 
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
-  }
+  override lazy val toString: String = "memberDetails"
 }

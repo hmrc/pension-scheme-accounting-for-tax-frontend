@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import models.chargeB.ChargeBDetails
 import models.chargeF.ChargeDetails
-import models.{SchemeDetails, UserAnswers}
+import models.{MemberDetails, SchemeDetails, UserAnswers}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -31,9 +31,10 @@ object SampleData {
   val pstr = "pstr"
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
-  val chargeDetails = ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val schemeDetails = SchemeDetails(schemeName, pstr)
+  val chargeDetails: ChargeDetails = ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
+  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
 
   val chargeBDetails = ChargeBDetails(4, BigDecimal(33.44))
+  val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
 }

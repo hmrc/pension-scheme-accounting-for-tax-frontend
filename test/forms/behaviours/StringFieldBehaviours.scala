@@ -30,7 +30,8 @@ trait StringFieldBehaviours extends FieldBehaviours {
       forAll(stringsLongerThan(maxLength) -> "longString") {
         string =>
           val result = form.bind(Map(fieldName -> string)).apply(fieldName)
-          result.errors shouldEqual Seq(lengthError)
+          result.errors.head.message shouldEqual lengthError.message
+          result.errors.head.key shouldEqual lengthError.key
       }
     }
   }

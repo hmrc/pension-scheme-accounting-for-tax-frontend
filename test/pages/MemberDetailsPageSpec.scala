@@ -16,17 +16,17 @@
 
 package pages
 
-import models.ChargeType
+import models.MemberDetails
 import pages.behaviours.PageBehaviours
 
-class ChargeTypePageSpec extends PageBehaviours {
+class MemberDetailsPageSpec extends PageBehaviours {
 
-  "ChargeTypePage" - {
+  "MemberDetailsPage" - {
 
-    beRetrievable[ChargeType](ChargeTypePage)
+    beRetrievable[MemberDetails](MemberDetailsPage(0))
 
-    beSettable[ChargeType](ChargeTypePage)
+    beSettable[MemberDetails](MemberDetailsPage(0))
 
-    beRemovable[ChargeType](ChargeTypePage)
+    beRemovable[MemberDetails](MemberDetailsPage(0))
   }
 }

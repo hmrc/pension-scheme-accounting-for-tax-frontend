@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package pages
+package models
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import play.api.libs.json._
+import uk.gov.hmrc.domain.Nino
 
-class ChargeTypePageSpec extends PageBehaviours {
+case class MemberDetails (firstName: String, lastName: String, nino: String)
 
-  "ChargeTypePage" - {
-
-    beRetrievable[ChargeType](ChargeTypePage)
-
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
-  }
+object MemberDetails {
+  implicit val format = Json.format[MemberDetails]
 }
