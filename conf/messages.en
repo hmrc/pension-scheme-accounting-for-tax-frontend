@@ -181,3 +181,20 @@ yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
+
+chargeAmount.error.required = Enter the charge amount
+chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
+chargeAmount.error.maximum = The charge amount must be £99999999999.99 or less
+dateNoticeReceived.error.required = Enter the date you received notice to pay the charge
+dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
+dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
+dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.outsideTaxYear = The date you received notice to pay the charge must be between {0} and {1}
+isPaymentMandatory.error = Select yes if the payment type is mandatory
+
+chargeEDetails.title = Annual allowance charge details for {0}
+chargeEDetails.heading = Annual allowance charge details for {0}
+chargeEDetails.chargeAmount.label = Charge amount
+chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
+chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?

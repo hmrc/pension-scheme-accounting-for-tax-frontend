@@ -33,3 +33,8 @@ GET        /:srn/new-return/annual-allowance-charge/:index/select-tax-year      
 POST       /:srn/new-return/annual-allowance-charge/:index/select-tax-year             controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year      controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST       /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year      controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET        /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET        /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
