@@ -137,20 +137,19 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
   }
 
-  def controllerWithPOST[A](httpPath: => String,
-                            page: QuestionPage[A],
-                            data: A,
-                            form: Form[A],
-                            templateToBeRendered: String,
-                            requestValuesValid: Map[String, Seq[String]],
-                            requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
-
+  def controllerWithPOSTWithJson[A](httpPath: => String,
+                                      page: QuestionPage[A],
+                                      expectedJson: JsObject,
+                                      form: Form[A],
+                                      templateToBeRendered: String,
+                                      requestValuesValid: Map[String, Seq[String]],
+                                      requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
-      val expectedJson = Json.obj(page.toString -> Json.toJson(data))
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
@@ -158,7 +157,6 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       status(result) mustEqual SEE_OTHER
 
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
@@ -187,6 +185,24 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
       application.stop()
     }
+  }
+
+  def controllerWithPOST[A](httpPath: => String,
+                            page: QuestionPage[A],
+                            data: A,
+                            form: Form[A],
+                            templateToBeRendered: String,
+                            requestValuesValid: Map[String, Seq[String]],
+                            requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
+
+    controllerWithPOSTWithJson(
+      httpPath,
+      page,
+      Json.obj(page.toString -> Json.toJson(data)),
+      form,
+      templateToBeRendered,
+      requestValuesValid,
+      requestValuesInvalid)
   }
 
   //scalastyle:on method.length

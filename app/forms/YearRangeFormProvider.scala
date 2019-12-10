@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package pages
+package forms
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import forms.mappings.Mappings
+import models.YearRange
+import play.api.data.Form
 
-class ChargeTypePageSpec extends PageBehaviours {
+class YearRangeFormProvider extends Mappings {
 
-  "ChargeTypePage" - {
-
-    beRetrievable[ChargeType](ChargeTypePage)
-
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
-  }
+  def apply(requiredKey: String = "yearRange.error.required"): Form[YearRange] =
+    Form(
+      "value" -> enumerable[YearRange](requiredKey)
+    )
 }

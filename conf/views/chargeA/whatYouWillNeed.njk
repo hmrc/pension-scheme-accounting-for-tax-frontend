@@ -27,10 +27,15 @@
           <li>{{ messages("chargeA.whatYouWillNeed.li3") }}</li>
         </ul>
 
-        <a href = {{nextPage}} id="submit" class="govuk-button">{{ messages("site.continue") }}</a>
+        {{ govukButton({
+            href: nextPage,
+            attributes: {id: "submit"},
+            text: messages("site.continue")
+        }) }}
+
       </div>
     </div>
 
-  <a href = {{ viewModel.returnUrl }} class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+  <a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 
 {% endblock %}

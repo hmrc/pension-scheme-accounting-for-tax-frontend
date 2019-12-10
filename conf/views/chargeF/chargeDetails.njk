@@ -25,12 +25,12 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeDetails.heading')}}</h1>
 
-        <form action="{{ submitUrl }}" method="post">
+        <form action="{{ viewModel.submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
           {{ govukDateInput({
-            id: "deregistrationDate",
+            id: "deregistrationDateWrapper",
             fieldset: {
               legend: {
                 text: messages('chargeDetails.date.label'),
@@ -57,7 +57,10 @@
           }) }}
 
           {{ govukButton({
-            text: messages("site.continue")
+            text: messages("site.continue"),
+            attributes: {
+                id: "submit"
+            }
           }) }}
 
         </form>
@@ -65,6 +68,6 @@
       </div>
     </div>
 
-   <a href= {{ returnUrl }} class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+   <a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}

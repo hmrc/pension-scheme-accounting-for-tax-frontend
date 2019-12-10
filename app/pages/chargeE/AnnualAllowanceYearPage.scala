@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import models.YearRange
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class ChargeTypePageSpec extends PageBehaviours {
+case class AnnualAllowanceYearPage(index: Int) extends QuestionPage[YearRange] {
 
-  "ChargeTypePage" - {
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ toString
 
-    beRetrievable[ChargeType](ChargeTypePage)
+}
 
-    beSettable[ChargeType](ChargeTypePage)
+object AnnualAllowanceYearPage {
 
-    beRemovable[ChargeType](ChargeTypePage)
-  }
+  override lazy val toString: String = "annualAllowanceYear"
 }
