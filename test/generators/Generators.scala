@@ -26,7 +26,7 @@ import scala.math.BigDecimal.RoundingMode
 
 trait Generators extends UserAnswersGenerator with PageGenerators with ModelGenerators with UserAnswersEntryGenerators {
 
-  implicit val dontShrink: Shrink[Any] = Shrink.shrinkAny
+  implicit val dontShrink: Shrink[String] = Shrink.shrinkAny
 
   def genIntersperseString(gen: Gen[String],
                            value: String,
