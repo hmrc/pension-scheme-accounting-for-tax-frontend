@@ -19,8 +19,10 @@ package forms.mappings
 import java.time.LocalDate
 
 import play.api.data.validation.{Constraint, Invalid, Valid}
+import uk.gov.hmrc.domain.Nino
 
 trait Constraints {
+  lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
@@ -109,4 +111,11 @@ trait Constraints {
       case _ =>
         Invalid(errorKey)
     }
+
+  protected def validNino(invalidKey: String): Constraint[String] = {
+    Constraint {
+      case nino if Nino.isValid(nino) => Valid
+      case _ => Invalid(invalidKey)
+    }
+  }
 }

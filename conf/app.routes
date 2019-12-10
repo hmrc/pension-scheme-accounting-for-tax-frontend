@@ -1,28 +1,40 @@
 # microservice specific routes
 
-GET         /                                                                    controllers.IndexController.onPageLoad
+GET         /                                                                             controllers.IndexController.onPageLoad
 
-GET         /assets/*file                                                        controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file                                                                 controllers.Assets.versioned(path="/public", file: Asset)
 
-GET         /language/:lang                                                      controllers.LanguageSwitchController.switchToLanguage(lang: String)
+GET         /language/:lang                                                               controllers.LanguageSwitchController.switchToLanguage(lang: String)
 
-GET         /this-service-has-been-reset                                         controllers.SessionExpiredController.onPageLoad
+GET         /this-service-has-been-reset                                                  controllers.SessionExpiredController.onPageLoad
 
-GET         /unauthorised                                                        controllers.UnauthorisedController.onPageLoad
+GET         /unauthorised                                                                 controllers.UnauthorisedController.onPageLoad
 
-GET         /accessibility-statement                                             controllers.AccessibilityController.onPageLoad
+GET         /accessibility-statement                                                      controllers.AccessibilityController.onPageLoad
 
-GET         /:srn/new-return/de-registration-charge/what-you-will-need           controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/de-registration-charge/what-you-will-need                    controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
 
-GET         /:srn/new-return/de-registration-charge/charge-details               controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/de-registration-charge/charge-details               controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/de-registration-charge/change/charge-details        controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/de-registration-charge/change/charge-details        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/de-registration-charge/charge-details                        controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/de-registration-charge/charge-details                        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET         /:srn/new-return/de-registration-charge/change/charge-details                 controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST        /:srn/new-return/de-registration-charge/change/charge-details                 controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
-GET         /:srn/new-return/de-registration-charge/check-your-answers           controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
-GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers    controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
+GET         /:srn/new-return/de-registration-charge/check-your-answers                    controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
+GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers           controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
 
-GET        /:srn/new-return/charge-type                                          controllers.ChargeTypeController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST       /:srn/new-return/charge-type                                          controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET        /:srn/new-return/change/charge-type                                   controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST       /:srn/new-return/change/charge-type                                   controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/charge-type                                                  controllers.ChargeTypeController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/charge-type                                                  controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET         /:srn/new-return/change/charge-type                                           controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST        /:srn/new-return/change/charge-type                                           controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+GET         /:srn/new-return/annual-allowance-charge/:index/members-details               controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST        /:srn/new-return/annual-allowance-charge/:index/members-details               controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET         /:srn/new-return/change/annual-allowance-charge/:index/members-details        controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST        /:srn/new-return/change/annual-allowance-charge/:index/members-details        controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET         /:srn/new-return/annual-allowance-charge/what-you-will-need                   controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/annual-allowance-charge/:index/select-tax-year               controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST        /:srn/new-return/annual-allowance-charge/:index/select-tax-year               controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET         /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year        controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year        controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)

@@ -16,8 +16,6 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
-
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
