@@ -119,7 +119,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(intsOutsideRange(minimum, maximum) -> "intOutsideRange") {
         number =>
           val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
-          result.errors shouldEqual Seq(expectedError)
+          result.errors.head.key shouldEqual expectedError.key
       }
     }
   }
