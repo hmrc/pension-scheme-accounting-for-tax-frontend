@@ -23,13 +23,32 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
   private val form = new ChargeDetailsFormProvider()()
 
+  private val totalNumberOfMembers = "numberOfMembers"
   private val totalAmtOfTaxDueAtLowerRateKey = "totalAmtOfTaxDueAtLowerRate"
   private val totalAmtOfTaxDueAtHigherRateKey = "totalAmtOfTaxDueAtHigherRate"
 
+  private val messageKeyNumberOfMembersKey = "chargeA.numberOfMembers"
   private val messageKeyAmountTaxDueLowerRateKey = "chargeA.totalAmtOfTaxDueAtLowerRate"
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
 
-  "amountTaxDue 20%" - {
+  "numberOfMembers" - {
+
+    behave like intField(
+      form = form,
+      fieldName = totalNumberOfMembers,
+      nonNumericError = FormError(totalNumberOfMembers, s"$messageKeyNumberOfMembersKey.error.nonNumeric")
+    )
+
+    behave like intFieldWithRange(
+      form = form,
+      fieldName = totalNumberOfMembers,
+      minimum = 0,
+      maximum = 999999,
+      expectedError = FormError(totalNumberOfMembers, s"$messageKeyNumberOfMembersKey.error.maximum")
+    )
+  }
+
+  "totalAmtOfTaxDueAtLowerRate" - {
 
     behave like bigDecimalField(
       form = form,
@@ -53,7 +72,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "amountTaxDue 50%" - {
+  "totalAmtOfTaxDueAtHigherRate" - {
 
     behave like bigDecimalField(
       form = form,
