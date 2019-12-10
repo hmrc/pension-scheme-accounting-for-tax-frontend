@@ -106,7 +106,7 @@ trait Formatters {
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
       val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
-      val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
+      val decimalRegexp = """^-?(\d*\.\d{2,2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
