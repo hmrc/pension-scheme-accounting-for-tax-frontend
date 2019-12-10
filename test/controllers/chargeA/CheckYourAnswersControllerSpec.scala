@@ -45,7 +45,11 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeAAmount20pc.get,
       helper.chargeAAmount50pc.get,
       Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
-        value = Value(Literal(ua.get(ChargeDetailsPage).map( _.totalAmountTaxDue).getOrElse(BigDecimal(0)).toString()))
+        value = Value(
+          Literal(
+            CheckYourAnswersHelper.formatBigDecimalAsString(ua.get(ChargeDetailsPage).map(_.totalAmountTaxDue).getOrElse(BigDecimal(0)))
+          )
+        )
       )
     ),
     "viewModel" -> GenericViewModel(

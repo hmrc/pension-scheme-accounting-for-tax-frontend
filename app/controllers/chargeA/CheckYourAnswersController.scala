@@ -60,7 +60,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.chargeAAmount20pc.get,
           helper.chargeAAmount50pc.get,
           Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
-            value = Value(Literal(helper.formatBigDecimalAsString(total)))
+            value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
           )
         )
 

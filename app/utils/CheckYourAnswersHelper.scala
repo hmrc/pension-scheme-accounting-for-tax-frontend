@@ -28,7 +28,7 @@ import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
-  private val decimalFormat = new DecimalFormat("0.00")
+
 
   def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
@@ -75,8 +75,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       )
   }
 
-  def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
-
   def chargeAAmount20pc: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
@@ -116,6 +114,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 }
 
 object CheckYourAnswersHelper {
-
+  private val decimalFormat = new DecimalFormat("0.00")
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+  def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
 }
