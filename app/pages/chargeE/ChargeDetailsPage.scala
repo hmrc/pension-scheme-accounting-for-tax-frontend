@@ -20,9 +20,13 @@ import models.chargeE.ChargeEDetails
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object ChargeDetailsPage extends QuestionPage[ChargeEDetails] {
+case class ChargeDetailsPage(index: Int) extends QuestionPage[ChargeEDetails] {
 
-  override def path: JsPath = JsPath \ toString
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ toString
+
+}
+
+object ChargeDetailsPage {
 
   override def toString: String = "chargeEDetails"
 }

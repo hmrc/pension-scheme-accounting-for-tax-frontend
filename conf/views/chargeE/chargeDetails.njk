@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
+{% from "govuk/components/radios/macro.njk"        import govukRadios %}
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
@@ -34,7 +35,7 @@
             label: {
               text: messages('chargeEDetails.chargeAmount.label'),
               isPageHeading: false,
-              classes: "govuk-form-label--s"
+              classes: "govuk-fieldset__legend--s"
             },
             name: "chargeAmount",
             type: "text",
@@ -44,22 +45,36 @@
           }) }}
 
           {{ govukDateInput({
-                      id: "dateNoticeReceived",
-                      fieldset: {
-                        legend: {
-                          text: messages('chargeEDetails.dateNoticeReceived.label'),
-                          isPageHeading: false,
-                          classes: "govuk-fieldset__legend--s"
-                        }
-                      },
-                      errorMessage: date.error,
-                      items: date.items
-                    }) }}
+                    id: "dateNoticeReceived",
+                    fieldset: {
+                      legend: {
+                        text: messages('chargeEDetails.dateNoticeReceived.label'),
+                        isPageHeading: false,
+                        classes: "govuk-fieldset__legend--s"
+                      }
+                    },
+                    errorMessage: date.error,
+                    items: date.items
+                  }) }}
+
+          {{ govukRadios({
+                              classes: "govuk-radios--inline",
+                              name: 'isPaymentMandatory',
+                              fieldset: {
+                                legend: {
+                                  text: messages('chargeEDetails.isPaymentMandatory.label'),
+                                  isPageHeading: false,
+                                  classes: "govuk-fieldset__legend--s"
+                                }
+                              },
+                              items: radios,
+                              errorMessage: form.isPaymentMandatory.error
+          }) }}
 
           {{ govukButton({
-                  text: messages("site.continue"),
-                  attributes: {id: "submit"}
-                }) }}
+                            text: messages("site.continue"),
+                            attributes: {id: "submit"}
+                  }) }}
 
         </form>
 

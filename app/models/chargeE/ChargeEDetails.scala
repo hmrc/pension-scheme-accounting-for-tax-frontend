@@ -18,6 +18,11 @@ package models.chargeE
 
 import java.time.LocalDate
 
+import play.api.libs.json.{Format, Json}
+
 case class ChargeEDetails(chargeAmount: BigDecimal, dateNoticeReceived: LocalDate, isPaymentMandatory: Boolean)
 
-
+object ChargeEDetails {
+  implicit lazy val formats: Format[ChargeEDetails] =
+    Json.format[ChargeEDetails]
+}
