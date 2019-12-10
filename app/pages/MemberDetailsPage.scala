@@ -17,11 +17,15 @@
 package pages
 
 import models.MemberDetails
+import pages.chargeE.AnnualAllowanceMembersQuery
 import play.api.libs.json.JsPath
 
-case object MemberDetailsPage extends QuestionPage[MemberDetails] {
+case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
 
-  override def path: JsPath = JsPath \ toString
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
+}
 
-  override def toString: String = "memberDetails"
+object MemberDetailsPage {
+
+  override lazy val toString: String = "memberDetails"
 }

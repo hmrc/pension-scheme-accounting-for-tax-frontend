@@ -157,7 +157,6 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       status(result) mustEqual SEE_OTHER
 
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)

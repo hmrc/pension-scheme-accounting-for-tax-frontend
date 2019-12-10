@@ -30,17 +30,17 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   val templateToBeRendered = "chargeE/memberDetails.njk"
   val formProvider = new MemberDetailsFormProvider()
-  val form = formProvider()
+  val form: Form[MemberDetails] = formProvider()
 
   lazy val memberDetailsRouteGetRoute: String =
-    controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+    controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
   lazy val memberDetailsRoutePostRoute: String =
-    controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn).url
+    controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
@@ -49,6 +49,20 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "firstName" -> Seq("first"),
     "lastName" -> Seq("last"),
     "nino" -> Seq("AB123456C")
+  )
+
+  private val expectedJson: JsObject = Json.obj(
+    "pstr" -> "pstr",
+    "members" -> Json.arr(
+      Json.obj(
+        "memberDetails" -> Json.obj(
+          "firstName" -> "first",
+          "lastName" -> "last",
+          "nino" -> "AB123456C"
+        )
+      )
+    ),
+    "schemeName" -> "Big Scheme"
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -60,17 +74,17 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "MemberDetails Controller" must {
     behave like controllerWithGET(
       httpPath = memberDetailsRouteGetRoute,
-      page = MemberDetailsPage,
+      page = MemberDetailsPage(0),
       data = SampleData.memberDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
     )
 
-    behave like controllerWithPOST(
+    behave like controllerWithPOSTWithJson(
       httpPath = memberDetailsRoutePostRoute,
-      page = MemberDetailsPage,
-      data = SampleData.memberDetails,
+      page = MemberDetailsPage(0),
+      expectedJson = expectedJson,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
