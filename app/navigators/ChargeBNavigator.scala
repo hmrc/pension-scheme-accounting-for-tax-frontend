@@ -18,28 +18,20 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import models.{ChargeType, UserAnswers}
-import pages.{ChargeTypePage, Page}
+import models.{NormalMode, UserAnswers}
+import pages.Page
+import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
-class ChargeNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case ChargeTypePage => chargeTypeNavigation(ua, srn)
+    case WhatYouWillNeedPage => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
+    case ChargeBDetailsPage => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn)
+    case CheckYourAnswersPage => controllers.routes.IndexController.onPageLoad()
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case ChargeTypePage => sessionExpiredPage
+    case ChargeBDetailsPage => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn)
   }
-
-  private def chargeTypeNavigation(ua:UserAnswers, srn:String):Call = {
-    ua.get(ChargeTypePage) match {
-      case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
-      case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn)
-      case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn)
-      case _ => sessionExpiredPage
-    }
-  }
-
-  private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad()
 }
