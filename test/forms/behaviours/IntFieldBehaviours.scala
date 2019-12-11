@@ -98,12 +98,27 @@ trait IntFieldBehaviours extends FieldBehaviours {
                         maximum: Int,
                         expectedError: FormError): Unit = {
 
-    s"must not bind integers outside the range $minimum to $maximum" in {
+    s"must not bind ints outside the range $minimum to $maximum" in {
 
       forAll(intsOutsideRange(minimum, maximum) -> "intOutsideRange") {
         number =>
           val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
-          result.errors shouldEqual Seq(expectedError)
+          result.errors.head.key shouldEqual expectedError.key
+      }
+    }
+  }
+
+
+  def intField(form: Form[_],
+               fieldName: String,
+               nonNumericError: FormError): Unit = {
+
+    "must not bind non-numeric numbers" in {
+
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric =>
+          val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
+          result.errors shouldEqual Seq(nonNumericError)
       }
     }
   }

@@ -172,7 +172,7 @@ chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label = Total amount of tax d
 
 chargeA.numberOfMembers.error.required = Enter the number of members who received a short service refund lump sum in the quarter
 chargeA.numberOfMembers.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
-chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be 999999 or fewer
+chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be between 1 and 999999
 
 chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the amount of tax due at 20%
 chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00

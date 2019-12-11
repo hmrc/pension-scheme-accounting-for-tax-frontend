@@ -48,6 +48,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       ).verifying(
         maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
         minimumValue[BigDecimal](BigDecimal("0.01"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
-      )
+      ),
+      "totalAmount" -> bigDecimalTotal("totalAmtOfTaxDueAtLowerRate", "totalAmtOfTaxDueAtHigherRate")
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

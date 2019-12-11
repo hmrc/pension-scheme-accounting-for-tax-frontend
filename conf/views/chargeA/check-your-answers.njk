@@ -19,11 +19,12 @@
           {{ messages("checkYourAnswers.heading") }}
         </h1>
 
-        <h2 class="govuk-heading">
+        <h2 class="govuk-heading-m">
           {{ messages("chargeA.whatYouWillNeed.heading") }}
         </h2>
 
         {{ govukSummaryList({
+          classes: 'aft-!-chargeA',
           rows: list
         }) }}
 

@@ -64,13 +64,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAMembers: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.numberOfMembers.toString)),
+        key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
+        value = Value(Literal(answer.numberOfMembers.toString),classes = Seq("aft-!-value-classes-width")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel")
+              )
           )
         )
       )

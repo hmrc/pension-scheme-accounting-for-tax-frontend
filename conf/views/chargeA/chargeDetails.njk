@@ -34,7 +34,7 @@
             label: {
               text: messages('chargeA.chargeDetails.numberOfMembers.title'),
               isPageHeading: false,
-              classes: "govuk-form-label--s"
+              classes: "govuk-label--s"
             },
             name: "numberOfMembers",
             type: "text",
@@ -48,7 +48,7 @@
           label: {
             text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label'),
             isPageHeading: false,
-            classes: "govuk-form-label--s"
+            classes: "govuk-label--s"
           },
           name: "totalAmtOfTaxDueAtLowerRate",
           type: "text",
@@ -62,7 +62,7 @@
             label: {
               text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label'),
               isPageHeading: false,
-              classes: "govuk-form-label--s"
+              classes: "govuk-label--s"
             },
             name: "totalAmtOfTaxDueAtHigherRate",
             type: "text",
@@ -73,7 +73,7 @@
 
 
           {{ govukButton({
-            attribute: {id: "submit"},
+            attributes: {id: "submit"},
             text: messages("site.continue")
           }) }}
 

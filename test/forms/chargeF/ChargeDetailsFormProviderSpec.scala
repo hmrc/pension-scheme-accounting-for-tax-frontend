@@ -69,7 +69,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
-      length = 12,
+      length = 11,
       expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
     )
   }
