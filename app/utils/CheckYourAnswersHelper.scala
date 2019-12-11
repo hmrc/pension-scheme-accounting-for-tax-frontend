@@ -34,7 +34,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
         value = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
         actions = List(
           Action(
@@ -49,7 +49,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def amount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
         value = Value(Literal(answer.amountTaxDue.toString())),
         actions = List(
           Action(
@@ -65,7 +65,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(answer.numberOfMembers.toString),classes = Seq("aft-!-value-classes-width")),
+        value = Value(Literal(answer.numberOfMembers.toString)),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -80,7 +80,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAAmountLowerRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
         value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate))),
         actions = List(
           Action(
@@ -95,7 +95,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAAmountHigherRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
         value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate))),
         actions = List(
           Action(
@@ -111,7 +111,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Seq(
         Row(
-        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
         value = Value(Literal(answer.numberOfDeceased.toString)),
         actions = List(
           Action(
@@ -122,7 +122,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         )
       ),
         Row(
-          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
           value = Value(Literal(s"£${answer.amountTaxDue.toString()}")),
           actions = List(
             Action(
@@ -146,7 +146,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 
 object CheckYourAnswersHelper {
   private val decimalFormat = new DecimalFormat("0.00")
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
   def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
 }
