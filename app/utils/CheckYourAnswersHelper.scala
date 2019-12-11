@@ -34,12 +34,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(answer.deRegistrationDate.format(dateFormatter))),
+        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.deRegistrationDate.format(dateFormatter)),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
           )
         )
@@ -49,7 +50,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def amount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
+        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(answer.amountTaxDue.toString())),
         actions = List(
           Action(
@@ -64,8 +65,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAMembers: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(answer.numberOfMembers.toString)),
+        key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.numberOfMembers.toString),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -80,8 +81,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAAmountLowerRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate))),
+        key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate)),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -95,8 +96,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeAAmountHigherRate: Option[Row] = userAnswers.get(pages.chargeA.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate))),
+        key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate)),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -107,12 +108,16 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       )
   }
 
+  def total(total:BigDecimal) = Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric","govuk-!-font-weight-bold")),
+    value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
+  )
+
   def chargeBDetails: Option[Seq[Row]] = userAnswers.get(ChargeBDetailsPage) map {
     answer =>
       Seq(
         Row(
-        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-        value = Value(Literal(answer.numberOfDeceased.toString)),
+        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.numberOfDeceased.toString),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -122,8 +127,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         )
       ),
         Row(
-          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-two-thirds")),
-          value = Value(Literal(s"£${answer.amountTaxDue.toString()}")),
+          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${answer.amountTaxDue.toString()}"),classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
