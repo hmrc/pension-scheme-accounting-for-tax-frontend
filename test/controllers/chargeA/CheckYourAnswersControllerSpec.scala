@@ -44,7 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeAMembers.get,
       helper.chargeAAmountLowerRate.get,
       helper.chargeAAmountHigherRate.get,
-      Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
+      Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric govuk-!-font-weight-bold")),
         value = Value(
           Literal(
             CheckYourAnswersHelper.formatBigDecimalAsString(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
