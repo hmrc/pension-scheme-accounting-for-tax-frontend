@@ -16,28 +16,37 @@
 
 package navigators
 
-import data.SampleData
-import models.{ChargeType, NormalMode, UserAnswers}
+import controllers.chargeB.routes.{ChargeDetailsController, CheckYourAnswersController}
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{ChargeTypePage, Page}
+import pages.Page
+import pages.chargeB.{ChargeBDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
-class ChargeNavigatorSpec extends NavigatorBehaviour {
+class ChargeBNavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
-
-  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeShortService)),
-        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeLumpSumDeath))
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
+        row(ChargeBDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
+
+  "CheckMode" must {
+    def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(ChargeBDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
+      )
+
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
+  }
+
 }

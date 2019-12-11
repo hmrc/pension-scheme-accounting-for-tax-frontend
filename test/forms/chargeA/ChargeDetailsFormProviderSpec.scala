@@ -23,7 +23,7 @@ import forms.behaviours._
 import models.chargeA.ChargeDetails
 import play.api.data.FormError
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with IntFieldBehaviours {
 
   private val form = new ChargeDetailsFormProvider()()
 
@@ -74,7 +74,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like longBigDecimal(
       form = form,
       fieldName = totalAmtOfTaxDueAtLowerRateKey,
-      length = 12,
+      length = 11,
       expectedError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.maximum")
     )
   }
@@ -98,7 +98,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like longBigDecimal(
       form = form,
       fieldName = totalAmtOfTaxDueAtHigherRateKey,
-      length = 12,
+      length = 11,
       expectedError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.maximum")
     )
   }

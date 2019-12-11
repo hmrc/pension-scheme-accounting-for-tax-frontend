@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import controllers.chargeA.routes
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
