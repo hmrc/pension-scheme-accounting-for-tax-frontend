@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
-import models.MemberDetails
-import pages.behaviours.PageBehaviours
-import pages.chargeE.MemberDetailsPage
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class MemberDetailsPageSpec extends PageBehaviours {
+case object AddMembersPage extends QuestionPage[Boolean] {
 
-  "MemberDetailsPage" - {
+  override def path: JsPath = JsPath \ toString
 
-    beRetrievable[MemberDetails](MemberDetailsPage(0))
-
-    beSettable[MemberDetails](MemberDetailsPage(0))
-
-    beRemovable[MemberDetails](MemberDetailsPage(0))
-  }
+  override def toString: String = "addMembers"
 }
+

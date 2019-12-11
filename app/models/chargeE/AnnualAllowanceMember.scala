@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package models.chargeE
 
-import models.MemberDetails
-import pages.behaviours.PageBehaviours
-import pages.chargeE.MemberDetailsPage
+import scala.language.implicitConversions
 
-class MemberDetailsPageSpec extends PageBehaviours {
+case class AnnualAllowanceMember(index: Int, name: String, chargeAmount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"member-$index"
 
-  "MemberDetailsPage" - {
+    def removeLinkId = s"$id-remove"
 
-    beRetrievable[MemberDetails](MemberDetailsPage(0))
+    def viewLinkId = s"$id-view"
 
-    beSettable[MemberDetails](MemberDetailsPage(0))
-
-    beRemovable[MemberDetails](MemberDetailsPage(0))
-  }
 }

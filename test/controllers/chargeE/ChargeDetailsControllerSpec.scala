@@ -26,8 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import pages.MemberDetailsPage
-import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.test.Helpers._
 import play.api.libs.json.{JsObject, Json}

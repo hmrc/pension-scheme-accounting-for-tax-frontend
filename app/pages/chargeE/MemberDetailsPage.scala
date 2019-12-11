@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
 import models.MemberDetails
-import pages.chargeE.AnnualAllowanceMembersQuery
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
 
-  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
+  override def path: JsPath = JsPath \ "members" \ index \ MemberDetailsPage.toString
 }
 
 object MemberDetailsPage {
-
+  def collectionPath: JsPath = JsPath \ "members" \\ toString
   override lazy val toString: String = "memberDetails"
 }

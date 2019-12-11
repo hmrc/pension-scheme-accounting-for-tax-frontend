@@ -278,3 +278,8 @@ chargeEDetails.heading = Annual allowance charge details for {0}
 chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
+
+chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
+chargeE.addMembers.title = Annual allowance charges for {0} to {1}
+chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
+chargeE.addMembers.label = Do you want to add another annual allowance charge?

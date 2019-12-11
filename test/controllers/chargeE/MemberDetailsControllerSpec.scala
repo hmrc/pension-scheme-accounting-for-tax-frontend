@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeE.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode}
-import pages.MemberDetailsPage
+import pages.chargeE.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport

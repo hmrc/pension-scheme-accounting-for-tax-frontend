@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package pages
+package forms.chargeE
 
-import models.MemberDetails
-import pages.behaviours.PageBehaviours
-import pages.chargeE.MemberDetailsPage
+import forms.mappings.{Constraints, Mappings}
+import javax.inject.Inject
+import models.chargeE.ChargeEDetails
+import play.api.data.Form
+import play.api.data.Forms.mapping
 
-class MemberDetailsPageSpec extends PageBehaviours {
+class AddMembersFormProvider @Inject() extends Mappings with Constraints {
 
-  "MemberDetailsPage" - {
-
-    beRetrievable[MemberDetails](MemberDetailsPage(0))
-
-    beSettable[MemberDetails](MemberDetailsPage(0))
-
-    beRemovable[MemberDetails](MemberDetailsPage(0))
-  }
+  def apply(): Form[Boolean] =
+    Form("value" -> boolean("chargeE.addMembers.error"))
 }

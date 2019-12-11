@@ -64,3 +64,6 @@ GET        /:srn/new-return/annual-allowance-charge/:index/charge-details       
 POST       /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET        /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST       /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET        /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onPageLoad(srn: String)
+POST       /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onSubmit(srn: String)
