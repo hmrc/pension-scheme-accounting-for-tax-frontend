@@ -16,20 +16,46 @@
 
 package forms.chargeA
 
+import java.text.DecimalFormat
+
+import data.SampleData
 import forms.behaviours._
+import models.chargeA.ChargeDetails
 import play.api.data.FormError
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with IntFieldBehaviours {
 
   private val form = new ChargeDetailsFormProvider()()
 
+  private val totalNumberOfMembersKey = "numberOfMembers"
   private val totalAmtOfTaxDueAtLowerRateKey = "totalAmtOfTaxDueAtLowerRate"
   private val totalAmtOfTaxDueAtHigherRateKey = "totalAmtOfTaxDueAtHigherRate"
+  private val totalAmtKey = "totalAmount"
 
+  private val messageKeyNumberOfMembersKey = "chargeA.numberOfMembers"
   private val messageKeyAmountTaxDueLowerRateKey = "chargeA.totalAmtOfTaxDueAtLowerRate"
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
 
-  "amountTaxDue 20%" - {
+  private val decimalFormat = new DecimalFormat("0.00")
+
+  "numberOfMembers" - {
+
+    behave like intField(
+      form = form,
+      fieldName = totalNumberOfMembersKey,
+      nonNumericError = FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.nonNumeric")
+    )
+
+    behave like intFieldWithRange(
+      form = form,
+      fieldName = totalNumberOfMembersKey,
+      minimum = 0,
+      maximum = 999999,
+      expectedError = FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.maximum")
+    )
+  }
+
+  "totalAmtOfTaxDueAtLowerRate" - {
 
     behave like bigDecimalField(
       form = form,
@@ -53,7 +79,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "amountTaxDue 50%" - {
+  "totalAmtOfTaxDueAtHigherRate" - {
 
     behave like bigDecimalField(
       form = form,
@@ -75,5 +101,17 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       length = 11,
       expectedError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.maximum")
     )
+  }
+
+  "totalAmount" - {
+    "must bind correctly calculated total to form" in {
+      val resultForm = form.bind(Map(
+        totalNumberOfMembersKey -> SampleData.chargeAChargeDetails.numberOfMembers.toString,
+        totalAmtOfTaxDueAtLowerRateKey -> decimalFormat.format(SampleData.chargeAChargeDetails.totalAmtOfTaxDueAtLowerRate),
+        totalAmtOfTaxDueAtHigherRateKey -> decimalFormat.format(SampleData.chargeAChargeDetails.totalAmtOfTaxDueAtHigherRate)
+      ))
+
+      resultForm.value shouldEqual Some(SampleData.chargeAChargeDetails)
+    }
   }
 }

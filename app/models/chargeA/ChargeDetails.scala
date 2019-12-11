@@ -18,8 +18,8 @@ package models.chargeA
 
 import play.api.libs.json.{Format, Json}
 
-case class ChargeDetails(numberOfMembers: Int, totalAmtOfTaxDueAtLowerRate: BigDecimal, totalAmtOfTaxDueAtHigherRate: BigDecimal) {
-  def totalAmount: BigDecimal = totalAmtOfTaxDueAtHigherRate + totalAmtOfTaxDueAtLowerRate
+case class ChargeDetails(numberOfMembers: Int, totalAmtOfTaxDueAtLowerRate: BigDecimal, totalAmtOfTaxDueAtHigherRate: BigDecimal, totalAmount:BigDecimal) {
+  def calcTotalAmount: BigDecimal = totalAmtOfTaxDueAtHigherRate + totalAmtOfTaxDueAtLowerRate
 }
 
 object ChargeDetails {
