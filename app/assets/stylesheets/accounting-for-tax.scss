@@ -1,0 +1,22 @@
+@media (min-width: 40.0625em) {
+ .govuk-summary-list__key{
+ width: 65%
+ }
+ .govuk-summary-list__value{
+  text-align: right;
+  width: 20%;
+  }
+  .govuk-summary-list__actions{
+    width: 14%;
+    }
+
+.aft-\!-chargeA .govuk-summary-list__row:last-child .govuk-summary-list__value,
+.aft-\!-chargeA .govuk-summary-list__row:last-child .govuk-summary-list__actions,
+.aft-\!-chargeA .govuk-summary-list__row:last-child .govuk-summary-list__key{
+  border-bottom: 0;
+}
+
+.aft-\!-chargeA .govuk-summary-list__row:last-child .govuk-summary-list__key{
+text-align: right;
+}
+}
