@@ -79,9 +79,10 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       .map[String](_.setScale(2, RoundingMode.FLOOR).toString())
 
   def longDecimalString(length: Int): Gen[String] =
-    Gen.listOfN(length, Gen.numChar).map(
-      list =>
+    Gen.listOfN(length, Gen.choose[Char](49.toChar, 57.toChar)).map(
+      list => {
         BigDecimal(list.mkString).setScale(2, RoundingMode.FLOOR).toString
+      }
     )
 
   def decimalsOutsideRange(min: BigDecimal, max: BigDecimal): Gen[BigDecimal] =
