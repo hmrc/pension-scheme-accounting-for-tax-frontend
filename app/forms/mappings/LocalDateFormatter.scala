@@ -76,6 +76,7 @@ private[mappings] class LocalDateFormatter(
           _.map(_.copy(key = key, args = args))
         }
       case 2 =>
+        println(s"\n 2rquird $requiredKey")
         Left(List(FormError(key, requiredKey, missingFields ++ args)))
       case 1 =>
         Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))

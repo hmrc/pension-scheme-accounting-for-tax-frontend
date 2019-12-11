@@ -58,9 +58,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.chargeAMembers.get,
           helper.chargeAAmountLowerRate.get,
           helper.chargeAAmountHigherRate.get,
-          Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
-            value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
-          )
+          helper.total(total)
         )
 
         val viewModel = GenericViewModel(
