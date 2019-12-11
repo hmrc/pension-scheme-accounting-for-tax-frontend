@@ -67,7 +67,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like bigDecimalFieldWithMinimum(
       form = form,
       fieldName = totalAmtOfTaxDueAtLowerRateKey,
-      minimum = BigDecimal("0.01"),
+      minimum = BigDecimal("0.00"),
       expectedError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.minimum")
     )
 
@@ -91,7 +91,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like bigDecimalFieldWithMinimum(
       form = form,
       fieldName = totalAmtOfTaxDueAtHigherRateKey,
-      minimum = BigDecimal("0.01"),
+      minimum = BigDecimal("0.00"),
       expectedError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.minimum")
     )
 
