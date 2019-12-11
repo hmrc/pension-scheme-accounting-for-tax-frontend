@@ -131,7 +131,7 @@ trait Formatters {
         baseFormatter.unbind(key, value.toString)
     }
 
-  private[mappings] def bigDecimalCalculatedFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
+  private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
       private val decimalFormat = new DecimalFormat("0.00")
