@@ -1,7 +1,9 @@
 package controllers
 
 import config.FrontendAppConfig
+import controllers.base.ControllerSpecBase
 import forms.$className$FormProvider
+import matchers.JsonMatchers
 import models.{$className$, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -32,7 +34,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   val userAnswers = UserAnswers(
     Json.obj(
       "schemeName" -> schemeName,
-      "pstr" -> pstr
+      "pstr" -> pstr,
       $className$Page.toString -> Json.obj(
         "$field1Name$" -> "value 1",
         "$field2Name$" -> "value 2"
@@ -41,8 +43,8 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   )
 
   val viewModel = GenericViewModel(
-    submitUrl = routes.$className$Controller.onSubmit(mode, srn).url,
-    returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+    submitUrl = routes.$className$Controller.onSubmit(NormalMode, srn).url,
+    returnUrl = onwardRoute.url,
     schemeName = schemeName)
 
   "$className$ Controller" must {
@@ -131,7 +133,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val request =
         FakeRequest(POST, $className;format="decap"$Route)
-          .withFormUrlEncodedBody(("$field1Name$", "value 1"), ("$field2Name$", "value 2"))
+      .withFormUrlEncodedBody(("$field1Name$", "value 1"), ("$field2Name$", "value 2"))
 
       val result = route(application, request).value
 
@@ -172,8 +174,8 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-      
-       application.stop()
+
+      application.stop()
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
@@ -196,7 +198,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val request =
         FakeRequest(POST, $className;format="decap"$Route)
-          .withFormUrlEncodedBody(("$field1Name$", "value 1"), ("$field2Name$", "value 2"))
+      .withFormUrlEncodedBody(("$field1Name$", "value 1"), ("$field2Name$", "value 2"))
 
       val result = route(application, request).value
 
