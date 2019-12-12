@@ -32,7 +32,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         invalidKey = "deregistrationDate.error.invalid",
         allRequiredKey = "deregistrationDate.error.required.all",
         twoRequiredKey = "deregistrationDate.error.required.two",
-        requiredKey = "deregistrationDate.error.required.two"
+        requiredKey = "deregistrationDate.error.required.all"
       ).verifying(
         minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
         maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
