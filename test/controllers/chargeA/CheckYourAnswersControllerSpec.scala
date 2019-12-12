@@ -44,13 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeAMembers.get,
       helper.chargeAAmountLowerRate.get,
       helper.chargeAAmountHigherRate.get,
-      Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "newclass")),
-        value = Value(
-          Literal(
-            CheckYourAnswersHelper.formatBigDecimalAsString(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
-          )
-        )
-      )
+      helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
