@@ -14,6 +14,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import data.SampleData._
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -33,7 +34,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
-  val answers: UserAnswers = userAnswersWithSchemeName.set($className$Page, $className.values.toSet).success.value
+  val answers: UserAnswers = userAnswersWithSchemeName.set($className$Page, $className$.values.toSet).success.value
 
   "$className$ Controller" must {
 
