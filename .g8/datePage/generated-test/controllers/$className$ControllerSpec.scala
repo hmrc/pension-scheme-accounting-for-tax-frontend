@@ -37,10 +37,10 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
   val emptyUserAnswers = UserAnswers(Json.obj())
 
-  def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
+  def getRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, $className;format="decap"$Route)
 
-  def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
+  def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, $className;format="decap"$Route)
   .withFormUrlEncodedBody(
     "value.day"   -> validAnswer.getDayOfMonth.toString,
@@ -175,7 +175,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val date = DateInput.localDate(form("value"))
+      val date = DateInput.localDate(boundForm("value"))
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
