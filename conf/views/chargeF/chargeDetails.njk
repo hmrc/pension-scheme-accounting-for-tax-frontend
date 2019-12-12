@@ -8,7 +8,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeDetails.title"), form.errors) }}
+  {{ title(messages("chargeF.chargeDetails.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -23,7 +23,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeDetails.heading')}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeF.chargeDetails.heading')}}</h1>
 
         <form action="{{ viewModel.submitUrl }}" method="post">
 
@@ -33,7 +33,7 @@
             id: "deregistrationDateWrapper",
             fieldset: {
               legend: {
-                text: messages('chargeDetails.date.label'),
+                text: messages('chargeF.chargeDetails.date.label'),
                 isPageHeading: false,
                 classes: "govuk-fieldset__legend--s"
               }
