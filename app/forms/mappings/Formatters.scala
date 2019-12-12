@@ -27,6 +27,7 @@ import scala.util.control.Exception.nonFatalCatch
 
 trait Formatters {
 
+  private[mappings] val decimalFormat = new DecimalFormat("0.00")
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
@@ -128,13 +129,11 @@ trait Formatters {
         }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
-        baseFormatter.unbind(key, value.toString)
+        baseFormatter.unbind(key, decimalFormat.format(value))
     }
 
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-
-      private val decimalFormat = new DecimalFormat("0.00")
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
         val total = itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>

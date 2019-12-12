@@ -76,7 +76,7 @@ private[mappings] class LocalDateFormatter(
           _.map(_.copy(key = key, args = args))
         }
       case 2 =>
-        Left(List(FormError(key, requiredKey, missingFields ++ args)))
+        Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
       case 1 =>
         Left(List(FormError(key, twoRequiredKey, missingFields ++ args)))
       case _ =>

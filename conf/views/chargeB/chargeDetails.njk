@@ -34,11 +34,12 @@
             label: {
                       text: messages('chargeB.chargeDetails.numberOfDeceased.label'),
                       isPageHeading: false,
-                      classes: "govuk-form-label--s"
+                      classes: "govuk-label--s"
                     },
             name: "numberOfDeceased",
             type: "text",
             value: form.numberOfDeceased.value,
+            classes: "govuk-input--width-10",
             errorMessage: form.numberOfDeceased.error
           }) }}
 
@@ -47,7 +48,7 @@
             label: {
               text: messages('chargeB.chargeDetails.amount.label'),
               isPageHeading: false,
-              classes: "govuk-form-label--s"
+              classes: "govuk-label--s"
             },
             name: "amountTaxDue",
             type: "text",
