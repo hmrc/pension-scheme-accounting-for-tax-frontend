@@ -178,7 +178,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val date = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
-        "form" -> form,
+        "form" -> boundForm,
         "viewModel" -> viewModel,
         "date" -> date
       )
