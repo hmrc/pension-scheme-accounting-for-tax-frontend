@@ -29,8 +29,11 @@ trait Mappings extends Formatters with Constraints {
 
   protected def int(requiredKey: String = "error.required",
                     wholeNumberKey: String = "error.wholeNumber",
-                    nonNumericKey: String = "error.nonNumeric"): FieldMapping[Int] =
-    of(intFormatter(requiredKey, wholeNumberKey, nonNumericKey))
+                    nonNumericKey: String = "error.nonNumeric",
+                    min:Option[(String,Int)] = None,
+                    max:Option[(String,Int)] = None
+                   ): FieldMapping[Int] =
+    of(intFormatter(requiredKey, wholeNumberKey, nonNumericKey, min, max))
 
   protected def bigDecimal(requiredKey: String = "error.required",
                            invalidKey: String = "error.invalid"
