@@ -99,8 +99,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
         )
         .build()
 
-      val userAnswers = UserAnswers(userAnswersId).set($className$Page, validAnswer).success.value
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -177,12 +175,12 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val viewModel = DateInput.localDate(boundForm("value"))
+      val date = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mode" -> NormalMode,
-        "date" -> viewModel
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "date" -> date
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
