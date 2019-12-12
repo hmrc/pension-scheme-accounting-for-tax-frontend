@@ -39,8 +39,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
-      helper.date.get,
-      helper.amount.get
+      helper.chargeFDate.get,
+      helper.chargeFAmount.get
     ))
 
   "CheckYourAnswers Controller" must {

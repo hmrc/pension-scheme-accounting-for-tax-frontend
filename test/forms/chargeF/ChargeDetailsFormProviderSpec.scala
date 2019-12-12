@@ -23,7 +23,7 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
-  val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
+  val dynamicErrorMsg: String = "The chargeFDate the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
   val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueKey = "amountTaxDue"

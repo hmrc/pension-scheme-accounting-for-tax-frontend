@@ -132,18 +132,18 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
-whatYouWillNeed.title = De-registration charge
-whatYouWillNeed.heading = De-registration charge
-whatYouWillNeed.p1 = To record a de-registration charge you will need:
-whatYouWillNeed.li1 = the date that the scheme was de-registered
-whatYouWillNeed.li2 = the amount of tax due at 40%
+chargeF.whatYouWillNeed.title = De-registration charge
+chargeF.whatYouWillNeed.heading = De-registration charge
+chargeF.whatYouWillNeed.p1 = To record a de-registration charge you will need:
+chargeF.whatYouWillNeed.li1 = the date that the scheme was de-registered
+chargeF.whatYouWillNeed.li2 = the amount of tax due at 40%
 return.to.link = Return to {0}
 
-chargeDetails.title = De-registration charge details
-chargeDetails.heading = De-registration charge details
-chargeDetails.hint = For example, 12 11 2007
-chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
-chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
+chargeF.chargeDetails.title = De-registration charge details
+chargeF.chargeDetails.heading = De-registration charge details
+chargeF.chargeDetails.hint = For example, 12 11 2007
+chargeF.chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
+chargeF.chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
 deregistrationDate.error.required.all = Enter the date the scheme was de-registered
 deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
 deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
@@ -225,9 +225,6 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
-
-
-
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details

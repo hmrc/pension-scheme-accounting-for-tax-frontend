@@ -47,7 +47,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
 
   "must bind valid data" in {
 
-    forAll(validData -> "valid date") {
+    forAll(validData -> "valid chargeFDate") {
       date =>
 
         val data = Map(
@@ -62,16 +62,16 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind an empty date" in {
+  "must fail to bind an empty chargeFDate" in {
 
     val result = form.bind(Map.empty[String, String])
 
     result.errors must contain only FormError("value", "error.required.all", List.empty)
   }
 
-  "must fail to bind a date with a missing day" in {
+  "must fail to bind a chargeFDate with a missing day" in {
 
-    forAll(validData -> "valid date", missingField -> "missing field") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing field") {
       (date, field) =>
 
         val initialData = Map(
@@ -90,9 +90,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with an invalid day" in {
+  "must fail to bind a chargeFDate with an invalid day" in {
 
-    forAll(validData -> "valid date", invalidField -> "invalid field") {
+    forAll(validData -> "valid chargeFDate", invalidField -> "invalid field") {
       (date, field) =>
 
         val data = Map(
@@ -109,9 +109,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with a missing month" in {
+  "must fail to bind a chargeFDate with a missing month" in {
 
-    forAll(validData -> "valid date", missingField -> "missing field") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing field") {
       (date, field) =>
 
         val initialData = Map(
@@ -130,7 +130,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with an invalid month" in {
+  "must fail to bind a chargeFDate with an invalid month" in {
 
     forAll(validData -> "valid data", invalidField -> "invalid field") {
       (date, field) =>
@@ -149,9 +149,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with a missing year" in {
+  "must fail to bind a chargeFDate with a missing year" in {
 
-    forAll(validData -> "valid date", missingField -> "missing field") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing field") {
       (date, field) =>
 
         val initialData = Map(
@@ -170,7 +170,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with an invalid year" in {
+  "must fail to bind a chargeFDate with an invalid year" in {
 
     forAll(validData -> "valid data", invalidField -> "invalid field") {
       (date, field) =>
@@ -189,9 +189,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with a missing day and month" in {
+  "must fail to bind a chargeFDate with a missing day and month" in {
 
-    forAll(validData -> "valid date", missingField -> "missing day", missingField -> "missing month") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing day", missingField -> "missing month") {
       (date, dayOpt, monthOpt) =>
 
         val day = dayOpt.fold(Map.empty[String, String]) {
@@ -214,9 +214,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with a missing day and year" in {
+  "must fail to bind a chargeFDate with a missing day and year" in {
 
-    forAll(validData -> "valid date", missingField -> "missing day", missingField -> "missing year") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing day", missingField -> "missing year") {
       (date, dayOpt, yearOpt) =>
 
         val day = dayOpt.fold(Map.empty[String, String]) {
@@ -239,9 +239,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind a date with a missing month and year" in {
+  "must fail to bind a chargeFDate with a missing month and year" in {
 
-    forAll(validData -> "valid date", missingField -> "missing month", missingField -> "missing year") {
+    forAll(validData -> "valid chargeFDate", missingField -> "missing month", missingField -> "missing year") {
       (date, monthOpt, yearOpt) =>
 
         val month = monthOpt.fold(Map.empty[String, String]) {
@@ -266,7 +266,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
 
   "must fail to bind an invalid day and month" in {
 
-    forAll(validData -> "valid date", invalidField -> "invalid day", invalidField -> "invalid month") {
+    forAll(validData -> "valid chargeFDate", invalidField -> "invalid day", invalidField -> "invalid month") {
       (date, day, month) =>
 
         val data = Map(
@@ -283,7 +283,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
 
   "must fail to bind an invalid day and year" in {
 
-    forAll(validData -> "valid date", invalidField -> "invalid day", invalidField -> "invalid year") {
+    forAll(validData -> "valid chargeFDate", invalidField -> "invalid day", invalidField -> "invalid year") {
       (date, day, year) =>
 
         val data = Map(
@@ -300,7 +300,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
 
   "must fail to bind an invalid month and year" in {
 
-    forAll(validData -> "valid date", invalidField -> "invalid month", invalidField -> "invalid year") {
+    forAll(validData -> "valid chargeFDate", invalidField -> "invalid month", invalidField -> "invalid year") {
       (date, month, year) =>
 
         val data = Map(
@@ -332,7 +332,7 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     }
   }
 
-  "must fail to bind an invalid date" in {
+  "must fail to bind an invalid chargeFDate" in {
 
     val data = Map(
       "value.day" -> "30",
@@ -347,9 +347,9 @@ class DateMappingsSpec extends FreeSpec with MustMatchers with ScalaCheckPropert
     )
   }
 
-  "must unbind a date" in {
+  "must unbind a chargeFDate" in {
 
-    forAll(validData -> "valid date") {
+    forAll(validData -> "valid chargeFDate") {
       date =>
 
         val filledForm = form.fill(date)

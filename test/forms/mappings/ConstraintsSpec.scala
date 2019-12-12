@@ -124,7 +124,7 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
 
   "maxDate" - {
 
-    "must return Valid for a date before or equal to the maximum" in {
+    "must return Valid for a chargeFDate before or equal to the maximum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
         max  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
@@ -139,7 +139,7 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
       }
     }
 
-    "must return Invalid for a date after the maximum" in {
+    "must return Invalid for a chargeFDate after the maximum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
         max  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
@@ -157,7 +157,7 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
 
   "minDate" - {
 
-    "must return Valid for a date after or equal to the minimum" in {
+    "must return Valid for a chargeFDate after or equal to the minimum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
         min  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
@@ -172,7 +172,7 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
       }
     }
 
-    "must return Invalid for a date before the minimum" in {
+    "must return Invalid for a chargeFDate before the minimum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
         min  <- datesBetween(LocalDate.of(2000, 1, 2), LocalDate.of(3000, 1, 1))
