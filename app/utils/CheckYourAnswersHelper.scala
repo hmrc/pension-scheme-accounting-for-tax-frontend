@@ -115,24 +115,24 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Seq(
         Row(
-        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeB.numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(answer.numberOfDeceased.toString),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"numberOfDeceased.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       ),
         Row(
-          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${answer.amountTaxDue.toString()}"),classes = Seq("govuk-!-width-one-quarter")),
+          key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"),classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalTaxDue.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel"))
             )
           )
         )
