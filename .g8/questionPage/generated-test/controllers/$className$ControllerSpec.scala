@@ -17,7 +17,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
+import data.SampleData._
 import scala.concurrent.Future
 
 class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
@@ -43,9 +43,9 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   )
 
   val viewModel = GenericViewModel(
-    submitUrl = routes.$className$Controller.onSubmit(NormalMode, srn).url,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
+    submitUrl = $className;format="decap"$SubmitRoute,
+  returnUrl = onwardRoute.url,
+  schemeName = schemeName)
 
   "$className$ Controller" must {
 
@@ -55,7 +55,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -123,6 +123,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides(
@@ -169,7 +170,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val expectedJson = Json.obj(
         "form"   -> boundForm,
-        "mode"   -> NormalMode
+        "viewModel" -> viewModel
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
