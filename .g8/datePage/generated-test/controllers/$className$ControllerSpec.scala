@@ -6,36 +6,36 @@ import config.FrontendAppConfig
 import controllers.base.ControllerSpecBase
 import forms.$className$FormProvider
 import matchers.JsonMatchers
-import models.{$className$, GenericViewModel, NormalMode, UserAnswers}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.$className$Page
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import data.SampleData._
+import play.api.data.Form
 import scala.concurrent.Future
 
 class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val formProvider = new $className$FormProvider()
-  private def form = formProvider()
+  private def form: Form[LocalDate] = formProvider()
 
-  def onwardRoute = Call("GET", "/foo")
+  def onwardRoute: Call = Call("GET", "/foo")
 
   val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
   lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode, srn).url
   lazy val $className;format="decap"$SubmitRoute = routes.$className$Controller.onSubmit(NormalMode, srn).url
 
-  override val emptyUserAnswers = UserAnswers(Json.obj())
+  val emptyUserAnswers = UserAnswers(Json.obj())
 
   def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, $className;format="decap"$Route)
@@ -58,8 +58,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "return OK and the correct view for a GET" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
@@ -92,10 +91,9 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "populate the view correctly on a GET when the question has previously been answered" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -140,7 +138,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -162,7 +160,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
 
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
