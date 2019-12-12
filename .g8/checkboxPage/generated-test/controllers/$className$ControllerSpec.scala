@@ -11,12 +11,13 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{OptionValues, TryValues}
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import data.SampleData._
+import pages.$className$Page
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
