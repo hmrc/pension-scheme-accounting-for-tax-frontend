@@ -180,6 +180,7 @@ chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
 
+chargeB = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.title = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.heading = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.p1 = To record a special lump sum death benefits charge you will need:
@@ -202,9 +203,6 @@ totalTaxDue.error.decimal = The total amount of tax due must include pence, like
 totalTaxDue.error.maximum = The total amount of tax due must be £9999999999.99 or less
 totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
 totalTaxDue.checkYourAnswersLabel = Total amount of tax due
-
-chargeB = Special lump sum death benefits charge
-chargeF = De-registration charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -231,6 +229,7 @@ chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
 chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
 
+chargeF = De-registration charge
 chargeF.whatYouWillNeed.title = De-registration charge
 chargeF.whatYouWillNeed.heading = De-registration charge
 chargeF.whatYouWillNeed.p1 = To record a de-registration charge you will need:

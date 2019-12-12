@@ -28,7 +28,7 @@ class DateBehaviours extends FieldBehaviours {
 
     "must bind valid data" in {
 
-      forAll(validData -> "valid chargeFDate") {
+      forAll(validData -> "valid date") {
         date =>
 
           val data = Map(
@@ -46,7 +46,7 @@ class DateBehaviours extends FieldBehaviours {
 
   def dateFieldWithMax(form: Form[_], key: String, max: LocalDate, formError: FormError): Unit = {
 
-    s"must fail to bind a chargeFDate greater than ${max.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
+    s"must fail to bind a date greater than ${max.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
 
       val generator = datesBetween(max.plusDays(1), max.plusYears(10))
 
@@ -68,7 +68,7 @@ class DateBehaviours extends FieldBehaviours {
 
   def dateFieldWithMin(form: Form[_], key: String, min: LocalDate, formError: FormError): Unit = {
 
-    s"must fail to bind a chargeFDate earlier than ${min.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
+    s"must fail to bind a date earlier than ${min.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
 
       val generator = datesBetween(min.minusYears(10), min.minusDays(1))
 
@@ -90,7 +90,7 @@ class DateBehaviours extends FieldBehaviours {
 
   def mandatoryDateField(form: Form[_], key: String, requiredAllKey: String, errorArgs: Seq[String] = Seq.empty): Unit = {
 
-    "must fail to bind an empty chargeFDate" in {
+    "must fail to bind an empty date" in {
 
       val result = form.bind(Map.empty[String, String])
 
