@@ -226,9 +226,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
-
-
-
+chargeE = Annual allowance charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -261,7 +259,6 @@ annualAllowanceYear.title = Select the tax year to which the annual allowance ch
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
 total = Total
 
-
 chargeAmount.error.required = Enter the charge amount
 chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
 chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
@@ -278,3 +275,8 @@ chargeEDetails.heading = Annual allowance charge details for {0}
 chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
+
+chargeE.cya.memberName.label = Member’s name
+chargeE.cya.nino.label = {0}'s National Insurance number
+chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
+chargeE.cya.mandatoryPayment.label = Mandatory payment type

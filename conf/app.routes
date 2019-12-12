@@ -57,10 +57,12 @@ GET         /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-
 POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details                controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers                   controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
-
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers          controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
 
 GET        /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
 POST       /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET        /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST       /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET         /:srn/new-return/annual-allowance-charge/:index/check-your-answers                 controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
+GET         /:srn/new-return/annual-allowance-charge/:index/on-click-check-your-answers        controllers.chargeE.CheckYourAnswersController.onClick(srn: String, index: Index)

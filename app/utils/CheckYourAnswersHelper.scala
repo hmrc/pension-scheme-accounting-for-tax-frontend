@@ -19,9 +19,11 @@ package utils
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
-import models.{CheckMode, UserAnswers}
+import models.{CheckMode, UserAnswers, YearRange}
+import pages.MemberDetailsPage
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.ChargeDetailsPage
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage => ChargeEDetailsPage}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -141,6 +143,94 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 
   }
 
+  def chargeEMemberDetails(index: Int): Option[Seq[Row]] = userAnswers.get(MemberDetailsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"chargeE.cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.memberName.label"))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"chargeE.cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.nino.label".withArgs(answer.fullName)))
+            )
+          )
+        )
+      )
+
+  }
+
+  def chargeETaxYear(index: Int): Option[Seq[Row]] = userAnswers.get(AnnualAllowanceYearPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"chargeE.cya.taxYear.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(YearRange.getLabel(answer)),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.taxYear.label"))
+            )
+          )
+        )
+      )
+
+  }
+
+
+  def chargeEDetails(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeEDetailsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${answer.chargeAmount.toString}"),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeEDetails.chargeAmount.label"))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"chargeEDetails.dateNoticeReceived.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeEDetails.dateNoticeReceived.label"))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"chargeE.cya.mandatoryPayment.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(yesOrNo(answer.isPaymentMandatory), classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.mandatoryPayment.label"))
+            )
+          )
+        )
+      )
+
+  }
+
   private def yesOrNo(answer: Boolean): Content =
     if (answer) {
       msg"site.yes"
@@ -151,7 +241,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 
 object CheckYourAnswersHelper {
   private val decimalFormat = new DecimalFormat("0.00")
-  private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+  private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
   def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
 }

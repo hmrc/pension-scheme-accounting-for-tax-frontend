@@ -73,7 +73,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-println(">>>>> \n"+jsonToPassToTemplate)
+
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
 
       application.stop()

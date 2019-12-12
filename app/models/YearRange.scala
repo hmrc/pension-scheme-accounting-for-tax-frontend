@@ -48,6 +48,19 @@ object YearRange extends Enumerable.Implicits {
     CurrentYearMinusEight
   )
 
+  def getLabel(yearRange: YearRange)(implicit messages: Messages) =
+    yearRange match {
+      case CurrentYear => msg"yearRangeRadio".withArgs(yearMinus(1), year.toString).resolve
+      case CurrentYearMinusOne => msg"yearRangeRadio".withArgs(yearMinus(2), yearMinus(1)).resolve
+      case CurrentYearMinusTwo => msg"yearRangeRadio".withArgs(yearMinus(3), yearMinus(2)).resolve
+      case CurrentYearMinusThree => msg"yearRangeRadio".withArgs(yearMinus(4), yearMinus(3)).resolve
+      case CurrentYearMinusFour => msg"yearRangeRadio".withArgs(yearMinus(5), yearMinus(4)).resolve
+      case CurrentYearMinusFive => msg"yearRangeRadio".withArgs(yearMinus(6), yearMinus(5)).resolve
+      case CurrentYearMinusSix => msg"yearRangeRadio".withArgs(yearMinus(7), yearMinus(6)).resolve
+      case CurrentYearMinusSeven => msg"yearRangeRadio".withArgs(yearMinus(8), yearMinus(7)).resolve
+      case CurrentYearMinusEight => msg"yearRangeRadio".withArgs(yearMinus(9), yearMinus(8)).resolve
+    }
+
 
   val year = Year.now.getValue
   def yearMinus(noOfYears: Int): String = (year-noOfYears).toString
