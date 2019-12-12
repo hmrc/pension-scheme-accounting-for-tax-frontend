@@ -3,11 +3,13 @@ package controllers
 import config.FrontendAppConfig
 import controllers.base.ControllerSpecBase
 import forms.$className$FormProvider
+import matchers.JsonMatchers
 import models.{$className$, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.{OptionValues, TryValues}
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, JsString, Json}
 import play.api.mvc.Call
