@@ -18,7 +18,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import data.SampleData._
 import scala.concurrent.Future
 
@@ -42,16 +42,16 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
   def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, $className;format="decap"$Route)
-      .withFormUrlEncodedBody(
-        "value.day"   -> validAnswer.getDayOfMonth.toString,
-        "value.month" -> validAnswer.getMonthValue.toString,
-        "value.year"  -> validAnswer.getYear.toString
-      )
+  .withFormUrlEncodedBody(
+    "value.day"   -> validAnswer.getDayOfMonth.toString,
+    "value.month" -> validAnswer.getMonthValue.toString,
+    "value.year"  -> validAnswer.getYear.toString
+  )
 
   val viewModel = GenericViewModel(
     submitUrl = $className;format="decap"$SubmitRoute,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
+  returnUrl = onwardRoute.url,
+  schemeName = schemeName)
 
   "$className$ Controller" must {
 
