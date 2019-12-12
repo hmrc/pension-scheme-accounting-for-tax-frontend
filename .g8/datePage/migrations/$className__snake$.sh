@@ -62,7 +62,7 @@ awk '/class CheckYourAnswersHelper/ {\
      print "        actions = List(";\
      print "          Action(";\
      print "            content            = msg\"site.edit\",";\
-     print "            href               = controllers.routes.$className$Controller.onPageLoad(CheckMode, srn).url,";\
+     print "            href               = routes.$className$Controller.onPageLoad(CheckMode).url,";\
      print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"$className;format="decap"$.checkYourAnswersLabel\"))";\
      print "          )";\
      print "        )";\
