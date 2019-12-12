@@ -34,9 +34,10 @@ class ChargeNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnecto
 
   private def chargeTypeNavigation(ua:UserAnswers, srn:String):Call = {
     ua.get(ChargeTypePage) match {
-      case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn)
+      case Some(ChargeType.ChargeTypeAnnualAllowance) => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)
+      case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
       case _ => sessionExpiredPage
     }
   }
