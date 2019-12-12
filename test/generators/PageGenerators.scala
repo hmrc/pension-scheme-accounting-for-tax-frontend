@@ -18,9 +18,8 @@ package generators
 
 import org.scalacheck.Arbitrary
 import pages._
-import pages.chargeE.AnnualAllowanceYearPage
+import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
-import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage}
 
 trait PageGenerators {
 

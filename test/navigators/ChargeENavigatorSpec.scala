@@ -19,8 +19,8 @@ package navigators
 import controllers.chargeE.routes._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{MemberDetailsPage, Page}
-import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.Page
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {

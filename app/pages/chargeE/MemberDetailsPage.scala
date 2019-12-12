@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeE
 
 import models.MemberDetails
-import pages.chargeE.AnnualAllowanceMembersQuery
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {

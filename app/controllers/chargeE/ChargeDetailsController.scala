@@ -25,8 +25,7 @@ import javax.inject.Inject
 import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.MemberDetailsPage
-import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json

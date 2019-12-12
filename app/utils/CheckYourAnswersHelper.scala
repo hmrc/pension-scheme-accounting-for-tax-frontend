@@ -20,10 +20,9 @@ import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers, YearRange}
-import pages.MemberDetailsPage
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.ChargeDetailsPage
-import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage => ChargeEDetailsPage}
+import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -177,7 +176,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"chargeE.cya.taxYear.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(YearRange.getLabel(answer)),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(YearRange.getLabel(answer), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",

@@ -22,7 +22,7 @@ import play.api.libs.json.JsPath
 
 case class AnnualAllowanceYearPage(index: Int) extends QuestionPage[YearRange] {
 
-  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ toString
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ AnnualAllowanceYearPage.toString
 
 }
 

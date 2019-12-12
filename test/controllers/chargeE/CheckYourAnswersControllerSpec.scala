@@ -21,8 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.YearRange
-import pages.MemberDetailsPage
-import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper

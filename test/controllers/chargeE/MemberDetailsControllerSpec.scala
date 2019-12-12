@@ -21,8 +21,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeE.MemberDetailsFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, MemberDetails, NormalMode}
-import pages.MemberDetailsPage
+import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
+import pages.chargeE.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -53,6 +53,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
+    "chargeEDetails" -> Json.obj(
     "members" -> Json.arr(
       Json.obj(
         "memberDetails" -> Json.obj(
@@ -61,7 +62,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
           "nino" -> "AB123456C"
         )
       )
-    ),
+    )),
     "schemeName" -> "Big Scheme"
   )
 
