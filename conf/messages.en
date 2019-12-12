@@ -132,29 +132,9 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
-chargeF.whatYouWillNeed.title = De-registration charge
-chargeF.whatYouWillNeed.heading = De-registration charge
-chargeF.whatYouWillNeed.p1 = To record a de-registration charge you will need:
-chargeF.whatYouWillNeed.li1 = the date that the scheme was de-registered
-chargeF.whatYouWillNeed.li2 = the amount of tax due at 40%
 return.to.link = Return to {0}
 
-chargeF.chargeDetails.title = De-registration charge details
-chargeF.chargeDetails.heading = De-registration charge details
-chargeF.chargeDetails.hint = For example, 12 11 2007
-chargeF.chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
-chargeF.chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
-deregistrationDate.error.required.all = Enter the date the scheme was de-registered
-deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
-deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
-deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
-amountTaxDue.error.required = Enter the amount of tax due at 40%
-amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
-amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
-amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.99 or less
-amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeDetails.amount.label = Amount of tax due at 40%
-chargeDetails.date.label = Date scheme was de-registered
 
 chargeA.whatYouWillNeed.title = Short service refund lump sum charge
 chargeA.whatYouWillNeed.heading = Short service refund lump sum charge
@@ -250,6 +230,27 @@ chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the not
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
 chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
+
+chargeF.whatYouWillNeed.title = De-registration charge
+chargeF.whatYouWillNeed.heading = De-registration charge
+chargeF.whatYouWillNeed.p1 = To record a de-registration charge you will need:
+chargeF.whatYouWillNeed.li1 = the date that the scheme was de-registered
+chargeF.whatYouWillNeed.li2 = the amount of tax due at 40%
+chargeF.chargeDetails.title = De-registration charge details
+chargeF.chargeDetails.heading = De-registration charge details
+chargeF.chargeDetails.hint = For example, 12 11 2007
+chargeF.chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
+chargeF.chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
+chargeF.deregistrationDate.error.required.all = Enter the date the scheme was de-registered
+chargeF.deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
+chargeF.deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
+chargeF.deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
+chargeF.amountTaxDue.error.required = Enter the amount of tax due at 40%
+chargeF.amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
+chargeF.amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
+chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.99 or less
+chargeF.amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
+chargeF.chargeDetails.date.label = Date scheme was de-registered
 
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates

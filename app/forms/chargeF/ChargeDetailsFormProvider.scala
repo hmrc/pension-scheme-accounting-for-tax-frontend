@@ -29,21 +29,21 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
   def apply(dateErrorMsg: String): Form[ChargeDetails] =
     Form(mapping(
       "deregistrationDate" -> localDate(
-        invalidKey = "deregistrationDate.error.invalid",
-        allRequiredKey = "deregistrationDate.error.required.all",
-        twoRequiredKey = "deregistrationDate.error.required.two",
-        requiredKey = "deregistrationDate.error.required.all"
+        invalidKey = "chargeF.deregistrationDate.error.invalid",
+        allRequiredKey = "chargeF.deregistrationDate.error.required.all",
+        twoRequiredKey = "chargeF.deregistrationDate.error.required.two",
+        requiredKey = "chargeF.deregistrationDate.error.required.all"
       ).verifying(
         minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
         maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
       ),
       "amountTaxDue" -> bigDecimal2DP(
-        requiredKey = "amountTaxDue.error.required",
-        invalidKey = "amountTaxDue.error.invalid",
-        decimalKey = "amountTaxDue.error.decimal"
+        requiredKey = "chargeF.amountTaxDue.error.required",
+        invalidKey = "chargeF.amountTaxDue.error.invalid",
+        decimalKey = "chargeF.amountTaxDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeF.amountTaxDue.error.maximum"),
+        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeF.amountTaxDue.error.minimum")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

@@ -25,7 +25,9 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
   val dynamicErrorMsg: String = "The chargeFDate the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
   val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
+  val amountTaxDueMsgKey = "chargeF.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
 
   "deregistrationDate" - {
@@ -47,7 +49,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like mandatoryDateField(
       form = form,
       key = deRegDateKey,
-      requiredAllKey = s"$deRegDateKey.error.required.all")
+      requiredAllKey = s"$deRegDateMsgKey.error.required.all")
   }
 
   "amountTaxDue" - {
@@ -55,22 +57,22 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like bigDecimalField(
       form = form,
       fieldName = amountTaxDueKey,
-      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
-      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.invalid"),
+      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.decimal")
     )
 
     behave like bigDecimalFieldWithMinimum(
       form = form,
       fieldName = amountTaxDueKey,
       minimum = BigDecimal("0.01"),
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.minimum")
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.minimum")
     )
 
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
       length = 11,
-      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.maximum")
     )
   }
 }
