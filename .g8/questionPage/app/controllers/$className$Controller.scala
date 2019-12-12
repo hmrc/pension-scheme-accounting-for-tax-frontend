@@ -5,7 +5,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.$className$FormProvider
 import javax.inject.Inject
-import models.Mode
+import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages.$className$Page
 import play.api.i18n.{I18nSupport, MessagesApi}
