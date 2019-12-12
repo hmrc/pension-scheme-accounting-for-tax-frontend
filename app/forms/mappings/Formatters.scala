@@ -27,7 +27,7 @@ import scala.util.control.Exception.nonFatalCatch
 
 trait Formatters {
 
-  private val decimalFormat = new DecimalFormat("0.00")
+  private[mappings] val decimalFormat = new DecimalFormat("0.00")
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
