@@ -56,8 +56,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           schemeName = schemeName)
 
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.date.get,
-          helper.amount.get
+          helper.chargeFDate.get,
+          helper.chargeFAmount.get
         )
 
         renderer.render("check-your-answers.njk",

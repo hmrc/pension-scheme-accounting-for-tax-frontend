@@ -56,7 +56,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
 
   def form()(implicit messages: Messages): Form[ChargeDetails] =
-    formProvider(dateErrorMsg = messages("deregistrationDate.error.date", min, max))
+    formProvider(dateErrorMsg = messages("chargeF.deregistrationDate.error.chargeFDate", min, max))
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>

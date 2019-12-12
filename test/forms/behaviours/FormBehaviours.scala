@@ -114,91 +114,91 @@ trait FormBehaviours extends FormSpec {
   def formWithDateField(field: String) = {
     s"must fail to bind when $field day is omitted" in {
       val data = validData - s"$field.day"
-      val expectedError = error(s"$field.day", "error.date.day_blank")
+      val expectedError = error(s"$field.day", "error.chargeFDate.day_blank")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field day is 0" in {
       val data = validData + (s"$field.day" -> "0")
-      val expectedError = error(s"$field.day", "error.date.day_invalid")
+      val expectedError = error(s"$field.day", "error.chargeFDate.day_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field day is greater than 31" in {
       val data = validData + (s"$field.day" -> "32")
-      val expectedError = error(s"$field.day", "error.date.day_invalid")
+      val expectedError = error(s"$field.day", "error.chargeFDate.day_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field day is negative" in {
       val data = validData + (s"$field.day" -> "-1")
-      val expectedError = error(s"$field.day", "error.date.day_invalid")
+      val expectedError = error(s"$field.day", "error.chargeFDate.day_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field day is non-numeric" in {
       val data = validData + (s"$field.day" -> "invalid")
-      val expectedError = error(s"$field.day", "error.date.day_invalid")
+      val expectedError = error(s"$field.day", "error.chargeFDate.day_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field month is omitted" in {
       val data = validData - s"$field.month"
-      val expectedError = error(s"$field.month", "error.date.month_blank")
+      val expectedError = error(s"$field.month", "error.chargeFDate.month_blank")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field month is 0" in {
       val data = validData + (s"$field.month" -> "0")
-      val expectedError = error(s"$field.month", "error.date.month_invalid")
+      val expectedError = error(s"$field.month", "error.chargeFDate.month_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field month is greater than 12" in {
       val data = validData + (s"$field.month" -> "13")
-      val expectedError = error(s"$field.month", "error.date.month_invalid")
+      val expectedError = error(s"$field.month", "error.chargeFDate.month_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field month is negative" in {
       val data = validData + (s"$field.month" -> "-1")
-      val expectedError = error(s"$field.month", "error.date.month_invalid")
+      val expectedError = error(s"$field.month", "error.chargeFDate.month_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field month is non-numeric" in {
       val data = validData + (s"$field.month" -> "invalid")
-      val expectedError = error(s"$field.month", "error.date.month_invalid")
+      val expectedError = error(s"$field.month", "error.chargeFDate.month_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field year is omitted" in {
       val data = validData - s"$field.year"
-      val expectedError = error(s"$field.year", "error.date.year_blank")
+      val expectedError = error(s"$field.year", "error.chargeFDate.year_blank")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field year is 0" in {
       val data = validData + (s"$field.year" -> "0")
-      val expectedError = error(s"$field.year", "error.date.year_invalid")
+      val expectedError = error(s"$field.year", "error.chargeFDate.year_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field year is greater than 2050" in {
       val data = validData + (s"$field.year" -> "2051")
-      val expectedError = error(s"$field.year", "error.date.year_invalid")
+      val expectedError = error(s"$field.year", "error.chargeFDate.year_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field year is negative" in {
       val data = validData + (s"$field.year" -> "-1")
-      val expectedError = error(s"$field.year", "error.date.year_invalid")
+      val expectedError = error(s"$field.year", "error.chargeFDate.year_invalid")
       checkForError(form, data, expectedError)
     }
 
     s"must fail to bind when $field year is non-numeric" in {
       val data = validData + (s"$field.year" -> "invalid")
-      val expectedError = error(s"$field.year", "error.date.year_invalid")
+      val expectedError = error(s"$field.year", "error.chargeFDate.year_invalid")
       checkForError(form, data, expectedError)
     }
 
