@@ -40,7 +40,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )
@@ -50,12 +50,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.amountTaxDue.toString())),
+        value = Value(Literal(formatBigDecimalAsString(answer.amountTaxDue))),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )

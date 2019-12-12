@@ -252,6 +252,9 @@ chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999
 chargeF.amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeF.chargeDetails.date.label = Date scheme was de-registered
 
+chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel = the date the scheme was de-registered
+chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel = the amount of tax due at 40%
+
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
