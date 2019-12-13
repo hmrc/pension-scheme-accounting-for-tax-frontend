@@ -37,7 +37,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
     returnUrl = onwardRoute.url,
     schemeName = schemeName)
 
-  val answers: UserAnswers = userAnswersWithSchemeName.set($className$Page, "validAnswer").success.value
+  val answers: UserAnswers = userAnswersWithSchemeName.set($className$Page, "answer").success.value
 
   "$className$ Controller" must {
 
