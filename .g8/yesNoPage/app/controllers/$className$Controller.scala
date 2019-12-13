@@ -6,7 +6,7 @@ import controllers.actions._
 import forms.$className$FormProvider
 import javax.inject.Inject
 import models.{Mode, GenericViewModel}
-import navigation.CompoundNavigator
+import navigators.CompoundNavigator
 import pages.$className$Page
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
