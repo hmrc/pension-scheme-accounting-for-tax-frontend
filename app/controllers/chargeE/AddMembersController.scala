@@ -24,6 +24,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.chargeE.AddMembersFormProvider
 import javax.inject.Inject
+import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeE.{AddMembersPage, MemberDetailsPage}
@@ -31,7 +32,7 @@ import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsArray, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -53,68 +54,17 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider()
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-//  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
-//  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
+  def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-        case (Some(schemeName), Some(quarter)) =>
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.AddMembersController.onSubmit(srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
-
-        val json = Json.obj(
-          "form" -> form,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(form("value")),
-          "quarterStart" -> quarter.startDate,
-          "quarterEnd" -> quarter.endDate
-        )
-
-
-
-          println(">>>>>>>>>>>>>>>>>>>>>>>>>>>.\n\n\n")
-          println(request.userAnswers.getAnnualAllowanceMembers(srn))
-
-        renderer.render(template = "chargeE/addMembers.njk", json).map(Ok(_))
-
-        case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
+      renderPage(srn, form)
   }
 
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-
-
         form.bindFromRequest().fold(
-          formWithErrors => {
-
-            (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-              case (Some(schemeName), Some(quarter)) =>
-
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.AddMembersController.onSubmit(srn).url,
-                  returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                  schemeName = schemeName)
-
-                val json = Json.obj(
-                  "form" -> formWithErrors,
-                  "viewModel" -> viewModel,
-                  "radios" -> Radios.yesNo(formWithErrors("value")),
-                  "quarterStart" -> quarter.startDate,
-                  "quarterEnd" -> quarter.endDate
-                )
-
-
-                renderer.render(template = "chargeE/addMembers.njk", json).map(Ok(_))
-
-              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-            }
-          },
+          formWithErrors => renderPage(srn, formWithErrors),
           value => {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
@@ -123,4 +73,29 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           }
         )
       }
+
+  def renderPage(srn: String, form: Form[_])(implicit request: DataRequest[AnyContent]): Future[Result] =
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) =>
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.AddMembersController.onSubmit(srn).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
+
+        val members = request.userAnswers.getAnnualAllowanceMembers(srn)
+
+        val json = Json.obj(
+          "form" -> form,
+          "viewModel" -> viewModel,
+          "radios" -> Radios.yesNo(form("value")),
+          "quarterStart" -> getFormattedDate(quarter.startDate),
+          "quarterEnd" -> getFormattedDate(quarter.endDate),
+          "members" -> Json.toJson(members)
+        )
+
+        renderer.render(template = "chargeE/addMembers.njk", json).map(Ok(_))
+
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
 }

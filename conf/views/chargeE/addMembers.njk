@@ -6,6 +6,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block pageTitle %}
   {{ title(messages("chargeE.addMembers.title", quarterStart, quarterEnd), form.errors) }}
@@ -29,82 +30,60 @@
 
           {{ csrf() | safe }}
 
-      {% for i in range(0, 10) -%}
-            {{ i }},
+
+      {% for i in range(0, members.length) -%}
+            {{ members[i].name }}
           {%- endfor %}
 
 
-          {{ govukSummaryList({
-
+          {{ govukTable({
+            firstCellIsHeader: false,
+            head: [
+              {
+                text: "Member"
+              },
+              {
+                text: "Charge amount"
+              },
+            {
+              text: ""
+            },
+           {
+             text: ""
+           }
+            ],
             rows: [
-              {
-                key: {
-                  text: "Name"
+
+              [
+                {
+                  text: members[0].name
                 },
-                value: {
-                  text: "Sarah Philips"
+                {
+                  text: members[0].chargeAmount
                 },
-                actions: {
-                  items: [
-                    {
-                      href: "#",
-                      text: "Change",
-                      visuallyHiddenText: "name"
-                    }
-                  ]
+                                 {
+                                   text: "feedback"
+                                 },
+                                                  {
+                                                    text: "£109.80 per week"
+                                                  }
+              ],
+              [
+                {
+                  text: "Next 33 weeks"
+                },
+                {
+                  text: "£109.80 per week"
                 }
-              },
-              {
-                key: {
-                  text: "Date of birth"
+              ],
+              [
+                {
+                  text: "Total estimated pay"
                 },
-                value: {
-                  text: "5 January 1978"
-                },
-                actions: {
-                  items: [
-                    {
-                      href: "#",
-                      text: "Change",
-                      visuallyHiddenText: "date of birth"
-                    }
-                  ]
+                {
+                  text: "£4,282.20"
                 }
-              },
-              {
-                key: {
-                  text: "Contact information"
-                },
-                value: {
-                  html: "72 Guild Street<br>London<br>SE23 6FH"
-                },
-                actions: {
-                  items: [
-                    {
-                      href: "#",
-                      text: "Change",
-                      visuallyHiddenText: "contact information"
-                    }
-                  ]
-                }
-              },
-              {
-                key: {
-                  text: "Contact details"
-                },
-                value: {
-                  html: '<p class="govuk-body">07700 900457</p><p class="govuk-body">sarah.phillips@example.com</p>'
-                },
-                actions: {
-                  items: [
-                    {
-                      href: "#",
-                      text: "Change",
-                      visuallyHiddenText: "contact details"
-                    }
-                  ]
-                }
-              }
+              ]
             ]
           }) }}
 

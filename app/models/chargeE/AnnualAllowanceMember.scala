@@ -29,7 +29,7 @@ case class AnnualAllowanceMember(index: Int, name: String, chargeAmount: BigDeci
 
 }
 
-object ChargeEDetails {
+object AnnualAllowanceMember {
     implicit lazy val formats: Format[AnnualAllowanceMember] =
         Json.format[AnnualAllowanceMember]
 }
