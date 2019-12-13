@@ -16,6 +16,8 @@
 
 package forms.mappings
 
+import java.text.DecimalFormat
+
 import play.api.data.FormError
 import play.api.data.format.Formatter
 import models.Enumerable
@@ -25,6 +27,7 @@ import scala.util.control.Exception.nonFatalCatch
 
 trait Formatters {
 
+  private[mappings] val decimalFormat = new DecimalFormat("0.00")
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
@@ -82,7 +85,6 @@ trait Formatters {
                                             invalidKey: String,
                                             args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-
       private val baseFormatter = stringFormatter(requiredKey)
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
@@ -106,7 +108,7 @@ trait Formatters {
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
       val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
-      val decimalRegexp = """^-?(\d*\.\d{1,2})$"""
+      val decimalRegexp = """^-?(\d*\.\d{2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
@@ -127,7 +129,20 @@ trait Formatters {
         }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
-        baseFormatter.unbind(key, value.toString)
+        baseFormatter.unbind(key, decimalFormat.format(value))
+    }
+
+  private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
+    new Formatter[BigDecimal] {
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
+        val total = itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
+          Try(BigDecimal(data.getOrElse(next, "0"))).toOption.fold(BigDecimal(0))(_ + acc)
+        }
+        Right(total)
+      }
+
+      override def unbind(key: String, value: BigDecimal): Map[String, String] = Map(key -> decimalFormat.format(value))
     }
 
   private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)(implicit ev: Enumerable[A]): Formatter[A] =

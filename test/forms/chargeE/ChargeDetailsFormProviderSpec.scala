@@ -55,7 +55,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like bigDecimalFieldWithMinimum(
       form = form,
       fieldName = chargeAmountKey,
-      minimum = BigDecimal("0.01"),
+      minimum = BigDecimal("0.00"),
       expectedError = FormError(chargeAmountKey, s"$chargeAmountKey.error.invalid")
     )
 

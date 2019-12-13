@@ -6,12 +6,11 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("checkYourAnswers.title")) }}
+  {{ title(messages("checkYourAnswers.title", messages(chargeName))) }}
 {% endblock %}
 
 {% block mainContent %}
 
-  <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
@@ -19,7 +18,7 @@
           {{ messages("checkYourAnswers.heading") }}
         </h1>
 
-        <h2>{{messages(chargeName)}}</h2>
+        <h2 class="govuk-heading-m">{{messages(chargeName)}}</h2>
 
         {{ govukSummaryList({
           rows: list
@@ -28,11 +27,11 @@
         {{ govukButton({
             text: messages("site.save_charge_and_continue"),
             href: viewModel.submitUrl,
-            attributes: {id: "continue"}
+            attributes: {id: "submit"}
           }) }}
 
       </div>
     </div>
-  </div>
+     <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}

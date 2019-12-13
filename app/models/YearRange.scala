@@ -20,21 +20,22 @@ import java.time.Year
 
 import play.api.data.Form
 import play.api.i18n.Messages
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
 
-  case object CurrentYear extends WithName("CY-1 to CY") with YearRange
-  case object CurrentYearMinusOne extends WithName("CY-2 to CY-1") with YearRange
-  case object CurrentYearMinusTwo extends WithName("CY-3 to CY-2") with YearRange
-  case object CurrentYearMinusThree extends WithName("CY-4 to CY-3") with YearRange
-  case object CurrentYearMinusFour extends WithName("CY-5 to CY-4") with YearRange
-  case object CurrentYearMinusFive extends WithName("CY-6 to CY-5") with YearRange
-  case object CurrentYearMinusSix extends WithName("CY-7 to CY-6") with YearRange
-  case object CurrentYearMinusSeven extends WithName("CY-8 to CY-7") with YearRange
-  case object CurrentYearMinusEight extends WithName("CY-9 to CY-8") with YearRange
+  case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
+  case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
+  case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
+  case object CurrentYearMinusThree extends WithName(yearMinus(3)) with YearRange
+  case object CurrentYearMinusFour extends WithName(yearMinus(4)) with YearRange
+  case object CurrentYearMinusFive extends WithName(yearMinus(5)) with YearRange
+  case object CurrentYearMinusSix extends WithName(yearMinus(6)) with YearRange
+  case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
+  case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
   val values: Seq[YearRange] = Seq(
     CurrentYear,
@@ -48,23 +49,34 @@ object YearRange extends Enumerable.Implicits {
     CurrentYearMinusEight
   )
 
+  def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal =
+    yearRange match {
+      case CurrentYear => Literal(msg"yearRangeRadio".withArgs(yearMinus(1), Year.now.getValue.toString).resolve)
+      case CurrentYearMinusOne => Literal(msg"yearRangeRadio".withArgs(yearMinus(2), yearMinus(1)).resolve)
+      case CurrentYearMinusTwo => Literal(msg"yearRangeRadio".withArgs(yearMinus(3), yearMinus(2)).resolve)
+      case CurrentYearMinusThree => Literal(msg"yearRangeRadio".withArgs(yearMinus(4), yearMinus(3)).resolve)
+      case CurrentYearMinusFour => Literal(msg"yearRangeRadio".withArgs(yearMinus(5), yearMinus(4)).resolve)
+      case CurrentYearMinusFive => Literal(msg"yearRangeRadio".withArgs(yearMinus(6), yearMinus(5)).resolve)
+      case CurrentYearMinusSix => Literal(msg"yearRangeRadio".withArgs(yearMinus(7), yearMinus(6)).resolve)
+      case CurrentYearMinusSeven => Literal(msg"yearRangeRadio".withArgs(yearMinus(8), yearMinus(7)).resolve)
+      case CurrentYearMinusEight => Literal(msg"yearRangeRadio".withArgs(yearMinus(9), yearMinus(8)).resolve)
+    }
 
-  val year = Year.now.getValue
-  def yearMinus(noOfYears: Int): String = (year-noOfYears).toString
+  def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(1), year.toString), CurrentYear.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(2), yearMinus(1)), CurrentYearMinusOne.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(3), yearMinus(2)), CurrentYearMinusTwo.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(4), yearMinus(3)), CurrentYearMinusThree.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(5), yearMinus(4)), CurrentYearMinusFour.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(6), yearMinus(5)), CurrentYearMinusFive.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(7), yearMinus(6)), CurrentYearMinusSix.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(8), yearMinus(7)), CurrentYearMinusSeven.toString),
-      Radios.Radio(msg"yearRangeRadio".withArgs(yearMinus(9), yearMinus(8)), CurrentYearMinusEight.toString)
+      Radios.Radio(getLabel(CurrentYear), CurrentYear.toString),
+      Radios.Radio(getLabel(CurrentYearMinusOne), CurrentYearMinusOne.toString),
+      Radios.Radio(getLabel(CurrentYearMinusTwo), CurrentYearMinusTwo.toString),
+      Radios.Radio(getLabel(CurrentYearMinusThree), CurrentYearMinusThree.toString),
+      Radios.Radio(getLabel(CurrentYearMinusFour), CurrentYearMinusFour.toString),
+      Radios.Radio(getLabel(CurrentYearMinusFive), CurrentYearMinusFive.toString),
+      Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
+      Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
+      Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
     )
 
     Radios(field, items)

@@ -14,70 +14,63 @@
  * limitations under the License.
  */
 
-package controllers.chargeA
+package controllers.chargeE
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
+import pages.chargeE.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
-class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
+class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
+                                           override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
                                            aftConnector: AFTConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmount).getOrElse(BigDecimal(0))
+        val viewModel = GenericViewModel(
+          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName)
 
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeAMembers.get,
-          helper.chargeAAmountLowerRate.get,
-          helper.chargeAAmountHigherRate.get,
-          helper.total(total)
-        )
+          helper.chargeEMemberDetails(index).get,
+          helper.chargeETaxYear(index).get,
+          helper.chargeEDetails(index).get
+        ).flatten
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName
-        )
-
-        renderer.render(
-          "chargeA/check-your-answers.njk",
+        renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel
-          )
-        ).map(Ok(_))
+            "viewModel" -> viewModel,
+            "chargeName" -> "chargeE"
+          )).map(Ok(_))
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>

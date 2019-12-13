@@ -36,7 +36,7 @@ phaseBanner.1 = This is a new service – your
 phaseBanner.2 = feedback
 phaseBanner.3 = will help us to improve it.
 
-checkYourAnswers.title = Check your answers
+checkYourAnswers.title = Check your answers - {0}
 checkYourAnswers.heading = Check your answers
 
 index.title = pension-scheme-accounting-for-tax-frontend
@@ -146,7 +146,6 @@ chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
 chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
 deregistrationDate.error.required.all = Enter the date the scheme was de-registered
 deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
-deregistrationDate.error.required = Enter the date the scheme was de-registered
 deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
 deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
 amountTaxDue.error.required = Enter the amount of tax due at 40%
@@ -172,13 +171,13 @@ chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label = Total amount of tax d
 
 chargeA.numberOfMembers.error.required = Enter the number of members who received a short service refund lump sum in the quarter
 chargeA.numberOfMembers.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
-chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be 999999 or fewer
+chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be between 1 and 999999
 
 chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the amount of tax due at 20%
 chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £9999999999.99 or less
-chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.01 or more
+chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.00 or more
 
 chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the amount of tax due at 50%
 chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
@@ -226,9 +225,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
-
-
-
+chargeE = Annual allowance charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -261,7 +258,6 @@ annualAllowanceYear.title = Select the tax year to which the annual allowance ch
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
 total = Total
 
-
 chargeAmount.error.required = Enter the charge amount
 chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
 chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
@@ -278,6 +274,11 @@ chargeEDetails.heading = Annual allowance charge details for {0}
 chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
+
+chargeE.cya.memberName.label = Member’s name
+chargeE.cya.nino.label = {0}’s National Insurance number
+chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
+chargeE.cya.mandatoryPayment.label = Mandatory payment type
 
 chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}

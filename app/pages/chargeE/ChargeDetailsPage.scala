@@ -28,5 +28,5 @@ case class ChargeDetailsPage(index: Int) extends QuestionPage[ChargeEDetails] {
 
 object ChargeDetailsPage {
 
-  override def toString: String = "chargeEDetails"
+  override def toString: String = "chargeDetails"
 }

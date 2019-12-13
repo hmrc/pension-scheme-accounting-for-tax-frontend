@@ -33,7 +33,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         decimalKey = "chargeAmount.error.decimal"
       ).verifying(
         maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeAmount.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.01"), "chargeAmount.error.invalid")
+        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeAmount.error.invalid")
       ),
       "dateNoticeReceived" -> localDate(
         invalidKey = "dateNoticeReceived.error.invalid",
@@ -41,7 +41,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
-        futureDate("dateNoticeReceived.error.future")
+        futureDate("dateNoticeReceived.error.future"),
+        yearHas4Digits("dateNoticeReceived.error.invalid")
       ),
       "isPaymentMandatory" -> boolean("isPaymentMandatory.error")
     )(ChargeEDetails.apply)(ChargeEDetails.unapply))

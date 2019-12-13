@@ -53,6 +53,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
+    "chargeEDetails" -> Json.obj(
     "members" -> Json.arr(
       Json.obj(
         "memberDetails" -> Json.obj(
@@ -61,7 +62,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
           "nino" -> "AB123456C"
         )
       )
-    ),
+    )),
     "schemeName" -> "Big Scheme"
   )
 
