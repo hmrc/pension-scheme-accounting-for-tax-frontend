@@ -28,41 +28,35 @@
 
           <h1 class="govuk-heading-xl">{{messages('aft.summary.heading', viewModel.schemeName)}}</h1>
 
-        <form action="{{ viewModel.submitUrl }}" method="post">
+            <form action="{{ viewModel.submitUrl }}" method="post">
 
-          {{ csrf() | safe }}
+              {{ csrf() | safe }}
 
-          {% for item in summaryData %}
-          <p class="govuk-body">
-                  {{ item.totalAmount }}
-                  </p>
-          {% endfor %}
+              {{ govukSummaryList({
+                        rows: list
+                      }) }}
 
-          {{ govukSummaryList({
-                    rows: list
-                  }) }}
+              {{ govukRadios({
+                classes: "govuk-radios--inline",
+                name: 'value',
+                fieldset: {
+                  legend: {
+                    text: messages('aft.summary.radio.question'),
+                    classes: "govuk-fieldset__legend--m"
+                  }
+                },
+                items: radios,
+                errorMessage: form.value.error
+              }) }}
 
-          {{ govukRadios({
-            classes: "govuk-radios--inline",
-            name: 'value',
-            fieldset: {
-              legend: {
-                text: messages('aft.summary.radio.question'),
-                classes: "govuk-fieldset__legend--m"
-              }
-            },
-            items: radios,
-            errorMessage: form.value.error
-          }) }}
+              {{ govukButton({
+                          text: messages("site.continue"),
+                          attributes: {
+                              id: "submit"
+                          }
+                        }) }}
 
-          {{ govukButton({
-                      text: messages("site.continue"),
-                      attributes: {
-                          id: "submit"
-                      }
-                    }) }}
-
-        </form>
+            </form>
 
     </div>
   </div>

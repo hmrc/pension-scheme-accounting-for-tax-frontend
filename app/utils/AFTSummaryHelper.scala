@@ -25,43 +25,44 @@ import uk.gov.hmrc.viewmodels.{SummaryList, _}
 
 class AFTSummaryHelper{
 
+  case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
+
   def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[SummaryList.Row] = {
 
-    val summaryData: Seq[(ChargeType, BigDecimal, Call)] = Seq(
-      (ChargeType.ChargeTypeAnnualAllowance,
+    val summaryData: Seq[SummaryDetails] = Seq(
+      SummaryDetails(ChargeType.ChargeTypeAnnualAllowance,
         BigDecimal(0),
         controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)),
-      (ChargeType.ChargeTypeAuthSurplus,
+      SummaryDetails(ChargeType.ChargeTypeAuthSurplus,
         BigDecimal(0),
         controllers.routes.IndexController.onPageLoad()),
-      (ChargeType.ChargeTypeDeRegistration,
+      SummaryDetails(ChargeType.ChargeTypeDeRegistration,
         ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
         controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)),
-      (ChargeType.ChargeTypeLifetimeAllowance,
+      SummaryDetails(ChargeType.ChargeTypeLifetimeAllowance,
         BigDecimal(0),
         controllers.routes.IndexController.onPageLoad()),
-      (ChargeType.ChargeTypeOverseasTransfer,
+      SummaryDetails(ChargeType.ChargeTypeOverseasTransfer,
         BigDecimal(0),
         controllers.routes.IndexController.onPageLoad()),
-      (ChargeType.ChargeTypeShortService,
+      SummaryDetails(ChargeType.ChargeTypeShortService,
         ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
         controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn)),
-      (ChargeType.ChargeTypeLumpSumDeath,
+      SummaryDetails(ChargeType.ChargeTypeLumpSumDeath,
         ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
         controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn))
     )
 
     summaryData.map { data =>
-      val (chargeType, totalAmount, hrefCall) = data
       Row(
-        key = Key(msg"aft.summary.${chargeType.toString}.row", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£$totalAmount"), classes = Seq("govuk-!-width-one-quarter")),
-        actions = if (totalAmount > BigDecimal(0)) {
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(s"£${data.totalAmount}"), classes = Seq("govuk-!-width-one-quarter")),
+        actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
               content = msg"site.view",
-              href = hrefCall.url,
-              visuallyHiddenText = Some(msg"aft.summary.${chargeType.toString}.visuallyHidden.row")
+              href = data.href.url,
+              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
             )
           )
         } else {
