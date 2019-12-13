@@ -21,8 +21,8 @@ import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers, YearRange}
 import pages.chargeB.ChargeBDetailsPage
-import pages.chargeF.ChargeDetailsPage
 import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
+import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -32,32 +32,31 @@ import utils.CheckYourAnswersHelper._
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
 
-  def date: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
+  def chargeFDate: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeF.chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(answer.deRegistrationDate.format(dateFormatter)),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )
   }
 
-  def amount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
+  def chargeFAmount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.amountTaxDue.toString())),
+        key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(formatBigDecimalAsString(answer.amountTaxDue))),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )
@@ -72,7 +71,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel")
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
               )
           )
         )
@@ -88,7 +87,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )
@@ -103,7 +102,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       )
@@ -117,24 +116,24 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Seq(
         Row(
-        key = Key(msg"numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeB.numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
         value = Value(Literal(answer.numberOfDeceased.toString),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"numberOfDeceased.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel"))
           )
         )
       ),
         Row(
-          key = Key(msg"totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${answer.amountTaxDue.toString()}"),classes = Seq("govuk-!-width-one-quarter")),
+          key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"),classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalTaxDue.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel"))
             )
           )
         )

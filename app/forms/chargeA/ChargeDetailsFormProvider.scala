@@ -29,10 +29,9 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       "numberOfMembers" -> int(
         requiredKey = "chargeA.numberOfMembers.error.required",
         wholeNumberKey = "chargeA.numberOfMembers.error.nonNumeric",
-        nonNumericKey = "chargeA.numberOfMembers.error.nonNumeric").verifying(
-        maximumValue[Int](999999, "chargeA.numberOfMembers.error.maximum"),
-        minimumValue[Int](0, "chargeA.numberOfMembers.error.maximum")
-      ),
+        nonNumericKey = "chargeA.numberOfMembers.error.nonNumeric",
+        min = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 0)),
+        max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))),
       "totalAmtOfTaxDueAtLowerRate" -> bigDecimal2DP(
         requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
         invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",

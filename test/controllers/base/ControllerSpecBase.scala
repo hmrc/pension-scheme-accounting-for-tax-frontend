@@ -17,10 +17,8 @@
 package controllers.base
 
 import base.SpecBase
-import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import data.SampleData
 import models.UserAnswers
 import navigators.CompoundNavigator
 import org.mockito.Mockito

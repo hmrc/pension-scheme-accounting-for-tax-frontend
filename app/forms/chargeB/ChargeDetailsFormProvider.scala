@@ -29,10 +29,9 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       "numberOfDeceased" -> int(
         requiredKey = "numberOfDeceased.error.required",
         wholeNumberKey = "numberOfDeceased.error.wholeNumber",
-        nonNumericKey = "numberOfDeceased.error.wholeNumber"
-      ).verifying(
-        maximumValue(999999, "numberOfDeceased.error.maxLength"),
-        minimumValue(0, "numberOfDeceased.error.wholeNumber")
+        nonNumericKey = "numberOfDeceased.error.wholeNumber",
+        min = Some(Tuple2("numberOfDeceased.error.wholeNumber", 0)),
+        max = Some(Tuple2("numberOfDeceased.error.maxLength", 999999))
       ),
       "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "totalTaxDue.error.required",

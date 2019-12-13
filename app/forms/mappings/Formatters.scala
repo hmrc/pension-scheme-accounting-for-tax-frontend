@@ -28,6 +28,7 @@ import scala.util.control.Exception.nonFatalCatch
 trait Formatters {
 
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
+
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
 
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
@@ -45,7 +46,7 @@ trait Formatters {
 
       private val baseFormatter = stringFormatter(requiredKey)
 
-      override def bind(key: String, data: Map[String, String]) =
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Boolean] =
         baseFormatter
           .bind(key, data)
           .right.flatMap {
@@ -57,14 +58,19 @@ trait Formatters {
       def unbind(key: String, value: Boolean) = Map(key -> value.toString)
     }
 
-  private[mappings] def intFormatter(requiredKey: String, wholeNumberKey: String, nonNumericKey: String, args: Seq[String] = Seq.empty): Formatter[Int] =
+  private[mappings] def intFormatter(requiredKey: String,
+                                     wholeNumberKey: String,
+                                     nonNumericKey: String,
+                                     min: Option[(String, Int)] = None,
+                                     max: Option[(String, Int)] = None,
+                                     args: Seq[String] = Seq.empty): Formatter[Int] =
     new Formatter[Int] {
 
       val decimalRegexp = """^-?(\d*\.\d*)$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
-      override def bind(key: String, data: Map[String, String]) =
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Int] =
         baseFormatter
           .bind(key, data)
           .right.map(_.replace(",", ""))
@@ -72,12 +78,17 @@ trait Formatters {
           case s if s.matches(decimalRegexp) =>
             Left(Seq(FormError(key, wholeNumberKey, args)))
           case s =>
-            nonFatalCatch
-              .either(s.toInt)
-              .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
+            Try(BigInt(s)).toOption match {
+              case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
+              case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
+              case _ =>
+                nonFatalCatch
+                  .either(s.toInt)
+                  .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
+            }
         }
 
-      override def unbind(key: String, value: Int) =
+      override def unbind(key: String, value: Int): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
     }
 

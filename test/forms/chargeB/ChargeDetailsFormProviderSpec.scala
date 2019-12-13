@@ -31,7 +31,9 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
       form = form,
       fieldName = numberOfDeceased,
       nonNumericError = FormError(numberOfDeceased, "numberOfDeceased.error.wholeNumber"),
-      wholeNumberError = FormError(numberOfDeceased, "numberOfDeceased.error.wholeNumber")
+      wholeNumberError = FormError(numberOfDeceased, "numberOfDeceased.error.wholeNumber"),
+      minError = FormError(numberOfDeceased, "numberOfDeceased.error.wholeNumber"),
+      maxError = FormError(numberOfDeceased, "numberOfDeceased.error.maxLength")
     )
 
     behave like intFieldWithMinimum(

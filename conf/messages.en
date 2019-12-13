@@ -132,29 +132,9 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
-whatYouWillNeed.title = De-registration charge
-whatYouWillNeed.heading = De-registration charge
-whatYouWillNeed.p1 = To record a de-registration charge you will need:
-whatYouWillNeed.li1 = the date that the scheme was de-registered
-whatYouWillNeed.li2 = the amount of tax due at 40%
 return.to.link = Return to {0}
 
-chargeDetails.title = De-registration charge details
-chargeDetails.heading = De-registration charge details
-chargeDetails.hint = For example, 12 11 2007
-chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
-chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
-deregistrationDate.error.required.all = Enter the date the scheme was de-registered
-deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
-deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
-deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
-amountTaxDue.error.required = Enter the amount of tax due at 40%
-amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
-amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
-amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.99 or less
-amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeDetails.amount.label = Amount of tax due at 40%
-chargeDetails.date.label = Date scheme was de-registered
 
 chargeA.whatYouWillNeed.title = Short service refund lump sum charge
 chargeA.whatYouWillNeed.heading = Short service refund lump sum charge
@@ -173,21 +153,24 @@ chargeA.numberOfMembers.error.required = Enter the number of members who receive
 chargeA.numberOfMembers.error.nonNumeric = The number of members who received a short service refund lump sum in the quarter must be a whole number
 chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be between 1 and 999999
 
-chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the amount of tax due at 20%
+chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the total amount of tax due at 20%
 chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £9999999999.99 or less
 chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.00 or more
 
-chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the amount of tax due at 50%
+chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the total amount of tax due at 50%
 chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must include pence, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £9999999999.99 or less
 chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £0.01 or more
 
 chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel = Number of members who received a short service refund lump sum in the quarter
+chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel =  the number of members who received a short service refund lump sum in the quarter
 chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel = Total amount of tax due at 20%
+chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel = the total amount of tax due at 20%
 chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel = Total amount of tax due at 50%
+chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel = the total amount of tax due at 50%
 
 chargeType.title = Which type of charge are you adding to the AFT return?
 chargeType.heading = Which type of charge are you adding to the AFT return?
@@ -200,6 +183,7 @@ chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 chargeType.error.required = Select the type of charge you are adding to the AFT return
 
+chargeB = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.title = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.heading = Special lump sum death benefits charge
 chargeB.whatYouWillNeed.p1 = To record a special lump sum death benefits charge you will need:
@@ -210,11 +194,14 @@ chargeB.chargeDetails.title = Special lump sum death benefits charge details
 chargeB.chargeDetails.heading = Special lump sum death benefits charge details
 chargeB.chargeDetails.numberOfDeceased.label = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
 chargeB.chargeDetails.amount.label = Total amount of tax due
+chargeB.numberOfDeceased.checkYourAnswersLabel = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
+chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of deceased members for which payment of a lump sum death benefit was made in the quarter
+chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
+chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
-numberOfDeceased.checkYourAnswersLabel = Number of deceased members for which payment of a lump sum death benefit was made in the quarter
 
 totalTaxDue.error.required = Enter the total amount of tax due
 totalTaxDue.error.invalid = The total amount of tax due must be an amount of money, like 123.45 or 156.00
@@ -251,6 +238,31 @@ chargeE.whatYouWillNeed.li3 = the date the scheme administrator received the not
 chargeE.whatYouWillNeed.li4 = the amount of the annual allowance charge
 chargeE.whatYouWillNeed.li5 = the tax year to which the annual allowance charge relates
 chargeE.whatYouWillNeed.li6 = whether the annual allowance payment type was mandatory or voluntary
+
+chargeF = De-registration charge
+chargeF.whatYouWillNeed.title = De-registration charge
+chargeF.whatYouWillNeed.heading = De-registration charge
+chargeF.whatYouWillNeed.p1 = To record a de-registration charge you will need:
+chargeF.whatYouWillNeed.li1 = the date that the scheme was de-registered
+chargeF.whatYouWillNeed.li2 = the amount of tax due at 40%
+chargeF.chargeDetails.title = De-registration charge details
+chargeF.chargeDetails.heading = De-registration charge details
+chargeF.chargeDetails.hint = For example, 12 11 2007
+chargeF.chargeDetails.date.checkYourAnswersLabel = Date scheme was de-registered
+chargeF.chargeDetails.amount.checkYourAnswersLabel = Amount of tax due at 40%
+chargeF.deregistrationDate.error.required.all = Enter the date the scheme was de-registered
+chargeF.deregistrationDate.error.required.two = The date the scheme was de-registered must include a day, month and year
+chargeF.deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
+chargeF.deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
+chargeF.amountTaxDue.error.required = Enter the amount of tax due at 40%
+chargeF.amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
+chargeF.amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
+chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.99 or less
+chargeF.amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
+chargeF.chargeDetails.date.label = Date scheme was de-registered
+
+chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel = the date the scheme was de-registered
+chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel = the amount of tax due at 40%
 
 yearRangeRadio = {0} to {1}
 annualAllowanceYear.error.required = Select the tax year to which the annual allowance charge relates
