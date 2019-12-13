@@ -2,59 +2,69 @@ package controllers
 
 import java.time.{LocalDate, ZoneOffset}
 
-import base.SpecBase
+import config.FrontendAppConfig
+import controllers.base.ControllerSpecBase
 import forms.$className$FormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.$className$Page
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-
+import data.SampleData._
+import play.api.data.Form
 import scala.concurrent.Future
 
-class $className$ControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
 
+  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val formProvider = new $className$FormProvider()
-  private def form = formProvider()
+  private def form: Form[LocalDate] = formProvider()
 
-  def onwardRoute = Call("GET", "/foo")
+  def onwardRoute: Call = Call("GET", "/foo")
 
   val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
-  lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode).url
+  lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode, srn).url
+  lazy val $className;format="decap"$SubmitRoute = routes.$className$Controller.onSubmit(NormalMode, srn).url
 
-  override val emptyUserAnswers = UserAnswers(userAnswersId)
+  val emptyUserAnswers = UserAnswers(Json.obj())
 
-  def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
+  def getRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, $className;format="decap"$Route)
 
-  def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
+  def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, $className;format="decap"$Route)
-      .withFormUrlEncodedBody(
-        "value.day"   -> validAnswer.getDayOfMonth.toString,
-        "value.month" -> validAnswer.getMonthValue.toString,
-        "value.year"  -> validAnswer.getYear.toString
-      )
+  .withFormUrlEncodedBody(
+    "value.day"   -> validAnswer.getDayOfMonth.toString,
+    "value.month" -> validAnswer.getMonthValue.toString,
+    "value.year"  -> validAnswer.getYear.toString
+  )
 
-  "$className$ Controller" - {
+  val viewModel = GenericViewModel(
+    submitUrl = $className;format="decap"$SubmitRoute,
+  returnUrl = onwardRoute.url,
+  schemeName = schemeName)
 
-    "must return OK and the correct view for a GET" in {
+  "$className$ Controller" must {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+    "return OK and the correct view for a GET" in {
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -64,12 +74,12 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val viewModel = DateInput.localDate(form("value"))
+      val date = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
         "form" -> form,
-        "mode" -> NormalMode,
-        "date" -> viewModel
+        "viewModel" -> viewModel,
+        "date" -> date
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -78,13 +88,17 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       application.stop()
     }
 
-    "must populate the view correctly on a GET when the question has previously been answered" in {
+    "populate the view correctly on a GET when the question has previously been answered" in {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val userAnswers = UserAnswers(userAnswersId).set($className$Page, validAnswer).success.value
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -102,12 +116,12 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
         )
       )
 
-      val viewModel = DateInput.localDate(filledForm("value"))
+      val date = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mode" -> NormalMode,
-        "date" -> viewModel
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "date" -> date
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -116,19 +130,17 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       application.stop()
     }
 
-    "must redirect to the next page when valid data is submitted" in {
+    "redirect to the next page when valid data is submitted" in {
 
-      val mockSessionRepository = mock[SessionRepository]
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
-
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
 
       val result = route(application, postRequest).value
 
@@ -139,12 +151,19 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       application.stop()
     }
 
-    "must return a Bad Request and errors when invalid data is submitted" in {
+    "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+
       val request = FakeRequest(POST, $className;format="decap"$Route).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm = form.bind(Map("value" -> "invalid value"))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -156,12 +175,12 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val viewModel = DateInput.localDate(boundForm("value"))
+      val date = DateInput.localDate(boundForm("value"))
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
-        "mode" -> NormalMode,
-        "date" -> viewModel
+        "viewModel" -> viewModel,
+        "date" -> date
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -170,7 +189,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       application.stop()
     }
 
-    "must redirect to Session Expired for a GET if no existing data is found" in {
+    "redirect to Session Expired for a GET if no existing data is found" in {
 
       val application = applicationBuilder(userAnswers = None).build()
 
@@ -182,7 +201,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       application.stop()
     }
 
-    "must redirect to Session Expired for a POST if no existing data is found" in {
+    "redirect to Session Expired for a POST if no existing data is found" in {
 
       val application = applicationBuilder(userAnswers = None).build()
 
