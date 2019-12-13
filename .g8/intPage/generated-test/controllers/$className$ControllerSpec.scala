@@ -78,7 +78,6 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val userAnswers = UserAnswers(userAnswersId).set($className$Page, validAnswer).success.value
       val application = applicationBuilder(userAnswers = Some(answers))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
