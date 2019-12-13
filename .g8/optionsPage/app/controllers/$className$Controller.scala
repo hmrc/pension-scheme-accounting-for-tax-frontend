@@ -68,7 +68,7 @@ class $className$Controller @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> preparedForm,
+              "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "radios" -> $className$.radios(formWithErrors)
             )
