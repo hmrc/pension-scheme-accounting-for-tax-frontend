@@ -15,6 +15,8 @@ site.save_charge_and_continue = Save this charge and continue
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - managing-pension schemes - GOV.UK
+site.view = View
+site.remove = Remove
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -296,3 +298,6 @@ chargeE.addMembers.error = Select yes if you want to add another annual allowanc
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
+chargeE.addMembers.members.header = Member
+chargeE.addMembers.chargeAmount.header = Charge amount
+chargeE.addMembers.total = Total £{0}

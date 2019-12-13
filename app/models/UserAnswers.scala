@@ -38,7 +38,7 @@ final case class UserAnswers(
 
   def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] = {
 
-    def viewUrl(index: Int): Call = controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, index)
+    def viewUrl(index: Int): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
     def removeUrl(index: Int): Call = controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, index)
     val members = for((member, index) <- getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex) yield {
       get(ChargeDetailsPage(index)).map { chargeDetails =>
