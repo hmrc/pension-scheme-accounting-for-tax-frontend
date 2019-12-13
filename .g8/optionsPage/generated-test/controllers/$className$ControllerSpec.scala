@@ -62,7 +62,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val expectedJson = Json.obj(
         "form"   -> form,
-        "viewModel" -> viewModel
+        "viewModel" -> viewModel,
       "radios" -> $className$.radios(form)
       )
 
@@ -95,7 +95,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val expectedJson = Json.obj(
         "form"   -> filledForm,
-        "viewModel" -> viewModel
+        "viewModel" -> viewModel,
       "radios" -> $className$.radios(filledForm)
       )
 
@@ -153,7 +153,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       val expectedJson = Json.obj(
         "form"   -> boundForm,
-        "viewModel" -> viewModel
+        "viewModel" -> viewModel,
       "radios" -> $className$.radios(boundForm)
       )
 
