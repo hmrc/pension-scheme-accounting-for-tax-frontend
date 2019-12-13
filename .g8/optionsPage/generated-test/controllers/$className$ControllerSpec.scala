@@ -27,7 +27,8 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   def onwardRoute = Call("GET", "/foo")
 
-  lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode).url
+  lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode, srn).url
+  lazy val $className;format="decap"$SubmitRoute = routes.$className$Controller.onSubmit(NormalMode, srn).url
 
   val formProvider = new $className$FormProvider()
   val form = formProvider()
@@ -63,7 +64,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val expectedJson = Json.obj(
         "form"   -> form,
         "viewModel" -> viewModel,
-      "radios" -> $className$.radios(form)
+        "radios" -> $className$.radios(form)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -96,7 +97,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val expectedJson = Json.obj(
         "form"   -> filledForm,
         "viewModel" -> viewModel,
-      "radios" -> $className$.radios(filledForm)
+        "radios" -> $className$.radios(filledForm)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -154,7 +155,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val expectedJson = Json.obj(
         "form"   -> boundForm,
         "viewModel" -> viewModel,
-      "radios" -> $className$.radios(boundForm)
+        "radios" -> $className$.radios(boundForm)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
