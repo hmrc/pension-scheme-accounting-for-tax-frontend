@@ -12,11 +12,6 @@
 
 {% block mainContent %}
 
-  {{ govukBackLink({
-    text: messages("site.back")
-  }) }}
-
-  <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
@@ -27,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ routes.controllers.$className$Controller.onSubmit(mode).url }}" method="post">
+        <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
@@ -45,13 +40,15 @@
           }) }}
 
           {{ govukButton({
-            text: messages("site.continue")
+            text: messages("site.continue"),
+            attributes: {id: "submit"}
           }) }}
 
         </form>
 
       </div>
     </div>
-  </div>
+
+    <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}
