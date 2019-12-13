@@ -65,3 +65,8 @@ GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-ans
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers          controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
 
 
+
+GET        /:srn/new-return/summary                                                                   controllers.AFTSummaryController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/summary                                                                   controllers.AFTSummaryController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/change/summary                                                            controllers.AFTSummaryController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/change/summary                                                            controllers.AFTSummaryController.onSubmit(mode: Mode = CheckMode, srn: String)

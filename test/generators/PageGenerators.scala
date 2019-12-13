@@ -23,6 +23,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryAFTSummaryPage: Arbitrary[AFTSummaryPage.type] =
+    Arbitrary(AFTSummaryPage)
+
   implicit lazy val arbitraryMemberDetailsPage: Arbitrary[MemberDetailsPage.type] =
     Arbitrary(MemberDetailsPage)
 
