@@ -2,6 +2,7 @@ package controllers
 
 import config.FrontendAppConfig
 import controllers.base.ControllerSpecBase
+import matchers.JsonMatchers
 import forms.$className$FormProvider
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
@@ -16,6 +17,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import data.SampleData._
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
