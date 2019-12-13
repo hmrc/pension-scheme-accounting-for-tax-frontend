@@ -18,7 +18,7 @@ package models
 
 import models.chargeE.AnnualAllowanceMember
 import pages._
-import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json._
 import play.api.mvc.Call
 
@@ -32,12 +32,16 @@ final case class UserAnswers(
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
 
     def getAllMembers: Seq[MemberDetails] =
-    (data \ "members" \\ "memberDetails").map {member =>
+    (data \ "chargeEDetails" \ "members" \\ "memberDetails").map {member =>
       validate[MemberDetails](member)
     }
 
+  def getAllMembers1[A](path: JsPath)(implicit rds: Reads[A]): Seq[A] =
+    Reads.seq(Reads.at(path)).reads(data).getOrElse(Seq.empty)
+
   def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] = {
     println(">>>>> 3 "+getAllMembers)
+    println(">>>>> 4 "+getAllMembers1[MemberDetails](MemberDetailsPage.collectionPath))
     def viewUrl(index: Int): Call = controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, index)
     def removeUrl(index: Int): Call = controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, index)
     val members = for((member, index) <- getAllMembers.zipWithIndex) yield {

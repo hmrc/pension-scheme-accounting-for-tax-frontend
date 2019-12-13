@@ -16,6 +16,8 @@
 
 package models.chargeE
 
+import play.api.libs.json.{Format, Json}
+
 import scala.language.implicitConversions
 
 case class AnnualAllowanceMember(index: Int, name: String, chargeAmount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
@@ -25,4 +27,9 @@ case class AnnualAllowanceMember(index: Int, name: String, chargeAmount: BigDeci
 
     def viewLinkId = s"$id-view"
 
+}
+
+object ChargeEDetails {
+    implicit lazy val formats: Format[AnnualAllowanceMember] =
+        Json.format[AnnualAllowanceMember]
 }

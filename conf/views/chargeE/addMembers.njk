@@ -1,12 +1,11 @@
 {% extends "includes/layout.njk" %}
 
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
-{% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
 {% from "govuk/components/radios/macro.njk"        import govukRadios %}
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block pageTitle %}
   {{ title(messages("chargeE.addMembers.title", quarterStart, quarterEnd), form.errors) }}
@@ -29,6 +28,85 @@
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
+
+      {% for i in range(0, 10) -%}
+            {{ i }},
+          {%- endfor %}
+
+
+          {{ govukSummaryList({
+
+            rows: [
+              {
+                key: {
+                  text: "Name"
+                },
+                value: {
+                  text: "Sarah Philips"
+                },
+                actions: {
+                  items: [
+                    {
+                      href: "#",
+                      text: "Change",
+                      visuallyHiddenText: "name"
+                    }
+                  ]
+                }
+              },
+              {
+                key: {
+                  text: "Date of birth"
+                },
+                value: {
+                  text: "5 January 1978"
+                },
+                actions: {
+                  items: [
+                    {
+                      href: "#",
+                      text: "Change",
+                      visuallyHiddenText: "date of birth"
+                    }
+                  ]
+                }
+              },
+              {
+                key: {
+                  text: "Contact information"
+                },
+                value: {
+                  html: "72 Guild Street<br>London<br>SE23 6FH"
+                },
+                actions: {
+                  items: [
+                    {
+                      href: "#",
+                      text: "Change",
+                      visuallyHiddenText: "contact information"
+                    }
+                  ]
+                }
+              },
+              {
+                key: {
+                  text: "Contact details"
+                },
+                value: {
+                  html: '<p class="govuk-body">07700 900457</p><p class="govuk-body">sarah.phillips@example.com</p>'
+                },
+                actions: {
+                  items: [
+                    {
+                      href: "#",
+                      text: "Change",
+                      visuallyHiddenText: "contact details"
+                    }
+                  ]
+                }
+              }
+            ]
+          }) }}
 
           {{ govukRadios({
                               classes: "govuk-radios--inline",

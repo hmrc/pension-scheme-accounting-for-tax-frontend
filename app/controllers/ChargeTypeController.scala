@@ -63,10 +63,7 @@ class ChargeTypeController @Inject()(
 
         Future.fromTry(ua.set(SchemeNameQuery, schemeDetails.schemeName).
           flatMap(_.set(PSTRQuery, schemeDetails.pstr)).flatMap(
-          _.set(QuarterPage,
-            Quarter(
-              LocalDate.of(2020, 4, 1).format(dateFormatter),
-              LocalDate.of(2020, 6, 30).format(dateFormatter))).flatMap(
+          _.set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).flatMap(
             _.set(AFTStatusQuery, value = "Compiled"))
         )).flatMap { answers =>
 
