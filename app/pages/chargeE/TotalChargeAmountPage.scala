@@ -19,10 +19,10 @@ package pages.chargeE
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object AddMembersPage extends QuestionPage[Boolean] {
+case object TotalChargeAmountPage extends QuestionPage[BigDecimal] {
 
   override def path: JsPath = JsPath \ "chargeEDetails" \ toString
 
-  override def toString: String = "addMembers"
+  override def toString: String = "totalChargeAmount"
 }
 

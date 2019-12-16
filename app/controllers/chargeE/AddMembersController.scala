@@ -26,14 +26,14 @@ import forms.chargeE.AddMembersFormProvider
 import javax.inject.Inject
 import models.chargeE.AnnualAllowanceMember
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value, Action => ViewAction}
@@ -61,13 +61,30 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      renderPage(srn, form)
+      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+        case (Some(schemeName), Some(quarter)) =>
+
+          renderer.render(template = "chargeE/addMembers.njk",
+            getJson(srn, form, schemeName, quarter)).map(Ok(_))
+
+        case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      }
   }
 
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
         form.bindFromRequest().fold(
-          formWithErrors => renderPage(srn, formWithErrors),
+          formWithErrors => {
+            (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+              case (Some(schemeName), Some(quarter)) =>
+
+                renderer.render(
+                  template = "chargeE/addMembers.njk",
+                  getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+
+              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            }
+          },
           value => {
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
@@ -77,9 +94,9 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         )
       }
 
-  def renderPage(srn: String, form: Form[_])(implicit request: DataRequest[AnyContent]): Future[Result] =
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-      case (Some(schemeName), Some(quarter)) =>
+  private def getJson(srn: String, form: Form[_], schemeName: String, quarter: Quarter
+                     )(implicit request: DataRequest[AnyContent]): JsObject = {
+
 
         val viewModel = GenericViewModel(
           submitUrl = routes.AddMembersController.onSubmit(srn).url,
@@ -88,21 +105,19 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
         val members = request.userAnswers.getAnnualAllowanceMembers(srn)
 
-        val json = Json.obj(
+        Json.obj(
           "form" -> form,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form("value")),
           "quarterStart" -> getFormattedDate(quarter.startDate),
           "quarterEnd" -> getFormattedDate(quarter.endDate),
-          "members" -> Json.toJson(data(members))
+          "members" -> Json.toJson(mapToSummaryList(members))
         )
 
-        renderer.render(template = "chargeE/addMembers.njk", json).map(Ok(_))
 
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
 
-  def data(members: Seq[AnnualAllowanceMember]): Seq[Row] = {
+  private def mapToSummaryList(members: Seq[AnnualAllowanceMember]): Seq[Row] = {
     val headerRow = Seq(Row(
       key = Key(msg"chargeE.addMembers.members.header", classes = Seq("govuk-!-width-one-half")),
       value = Value(msg"chargeE.addMembers.chargeAmount.header", classes = Seq("govuk-!-width-one-quarter")),
