@@ -59,7 +59,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         "memberDetails" -> Json.obj(
           "firstName" -> "first",
           "lastName" -> "last",
-          "nino" -> "AB123456C"
+          "nino" -> "AB123456C",
+          "isDeleted" -> false
         )
       )
     )),

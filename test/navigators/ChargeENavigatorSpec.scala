@@ -20,7 +20,7 @@ import controllers.chargeE.routes._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, MemberDetailsPage, WhatYouWillNeedPage}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
@@ -36,7 +36,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index)),
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
-        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
+        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

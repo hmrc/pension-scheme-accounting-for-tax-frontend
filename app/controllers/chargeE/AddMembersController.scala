@@ -97,7 +97,6 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   private def getJson(srn: String, form: Form[_], schemeName: String, quarter: Quarter
                      )(implicit request: DataRequest[AnyContent]): JsObject = {
 
-
         val viewModel = GenericViewModel(
           submitUrl = routes.AddMembersController.onSubmit(srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

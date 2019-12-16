@@ -69,3 +69,8 @@ GET         /:srn/new-return/annual-allowance-charge/:index/on-click-check-your-
 
 GET        /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onPageLoad(srn: String)
 POST       /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onSubmit(srn: String)
+
+GET        /:srn/new-return/annual-allowance-charge/:index/remove-charge                        controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/remove-charge                        controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET        /:srn/new-return/annual-allowance-charge/:index/change/remove-charge                  controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/change/remove-charge                  controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)

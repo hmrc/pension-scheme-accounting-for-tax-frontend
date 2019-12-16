@@ -64,7 +64,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
           Json.obj(
             "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url,
             "text" -> "View"),
-          Json.obj("href" -> controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url,
+          Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 0).url,
             "text" -> "Remove")))),
     Json.obj("key" -> Json.obj("text" -> "Joe Bloggs",
       "classes" -> cssHalfWidth),
@@ -76,7 +76,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
           Json.obj(
             "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 1).url,
             "text" -> "View"),
-          Json.obj("href" -> controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 1).url,
+          Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 1).url,
             "text" -> "Remove")))),
     Json.obj("key" -> Json.obj("text" -> "",
       "classes" -> cssHalfWidth),

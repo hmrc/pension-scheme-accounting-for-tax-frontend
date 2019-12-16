@@ -36,23 +36,30 @@ final case class UserAnswers(
       validate[A](member)
     }
 
-  def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] = {
+  def getAnnualAllowanceMembersIncludingDeleted(srn: String): Seq[AnnualAllowanceMember] = {
 
     def viewUrl(index: Int): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-    def removeUrl(index: Int): Call = controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, index)
-    val members = for((member, index) <- getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex) yield {
-      get(ChargeDetailsPage(index)).map { chargeDetails =>
-        AnnualAllowanceMember(
-          index,
-          member.fullName,
-          chargeDetails.chargeAmount,
-          viewUrl(index).url,
-          removeUrl(index).url
-        )
+    def removeUrl(index: Int): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index)
+    val members =
+      for {
+        (member, index) <- getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
+      } yield {
+        get(ChargeDetailsPage(index)).map { chargeDetails =>
+          AnnualAllowanceMember(
+            index,
+            member.fullName,
+            chargeDetails.chargeAmount,
+            viewUrl(index).url,
+            removeUrl(index).url,
+            member.isDeleted
+          )
+        }
       }
-    }
     members.flatten
   }
+
+  def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] =
+    getAnnualAllowanceMembers(srn).filterNot(_.isDeleted)
 
   private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
     jsValue.validate[A].fold(

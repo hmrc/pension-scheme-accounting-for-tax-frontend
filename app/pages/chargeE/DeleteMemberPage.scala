@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package pages.chargeE
 
-import play.api.libs.json._
-import uk.gov.hmrc.domain.Nino
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case class MemberDetails (firstName: String, lastName: String, nino: String, isDeleted: Boolean = false) {
-  def fullName: String = s"$firstName $lastName"
-}
+case object DeleteMemberPage extends QuestionPage[Boolean] {
 
-object MemberDetails {
-  implicit val format = Json.format[MemberDetails]
+  override def path: JsPath = JsPath \ toString
 
-  def applyDelete(firstName: String, lastName: String, nino: String): MemberDetails = {
-    MemberDetails(firstName, lastName, nino)
-  }
-
-  def unapplyDelete(member: MemberDetails): Option[(String, String, String)] = {
-    Some((member.firstName, member.lastName, member.nino))
-  }
+  override def toString: String = "deleteMember"
 }

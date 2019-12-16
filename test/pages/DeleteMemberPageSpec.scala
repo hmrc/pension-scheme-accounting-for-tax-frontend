@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.json._
-import uk.gov.hmrc.domain.Nino
+import pages.behaviours.PageBehaviours
+import pages.chargeE.DeleteMemberPage
 
-case class MemberDetails (firstName: String, lastName: String, nino: String, isDeleted: Boolean = false) {
-  def fullName: String = s"$firstName $lastName"
-}
+class DeleteMemberPageSpec extends PageBehaviours {
 
-object MemberDetails {
-  implicit val format = Json.format[MemberDetails]
+  "DeleteMemberPage" - {
 
-  def applyDelete(firstName: String, lastName: String, nino: String): MemberDetails = {
-    MemberDetails(firstName, lastName, nino)
-  }
+    beRetrievable[Boolean](DeleteMemberPage)
 
-  def unapplyDelete(member: MemberDetails): Option[(String, String, String)] = {
-    Some((member.firstName, member.lastName, member.nino))
+    beSettable[Boolean](DeleteMemberPage)
+
+    beRemovable[Boolean](DeleteMemberPage)
   }
 }

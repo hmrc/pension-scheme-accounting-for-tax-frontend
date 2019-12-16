@@ -31,7 +31,6 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
-
   def chargeFDate: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
       Row(

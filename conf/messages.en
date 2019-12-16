@@ -301,3 +301,7 @@ chargeE.addMembers.label = Do you want to add another annual allowance charge?
 chargeE.addMembers.members.header = Member
 chargeE.addMembers.chargeAmount.header = Charge amount
 chargeE.addMembers.total = Total £{0}
+
+deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
+deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
+deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}

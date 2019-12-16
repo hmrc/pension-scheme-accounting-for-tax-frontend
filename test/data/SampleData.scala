@@ -22,6 +22,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
+import pages.chargeE.MemberDetailsPage
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -39,6 +40,7 @@ object SampleData {
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr,
     QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
+
 
   val chargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")

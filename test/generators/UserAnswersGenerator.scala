@@ -21,6 +21,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
 import pages._
+import pages.chargeE.DeleteMemberPage
 import pages.chargeF.ChargeDetailsPage
 import play.api.libs.json.{JsPath, JsValue, Json}
 
@@ -28,6 +29,7 @@ trait UserAnswersGenerator extends TryValues {
   self: Generators =>
 
   val generators: Seq[Gen[(QuestionPage[_], JsValue)]] =
+    arbitrary[(DeleteMemberPage.type, JsValue)] ::
     arbitrary[(ChargeTypePage.type, JsValue)] ::
     arbitrary[(ChargeDetailsPage.type, JsValue)] ::
     Nil

@@ -20,30 +20,33 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeE.{AddMembersPage, AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage, WhatYouWillNeedPage}
+import pages.chargeE.{AddMembersPage, AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
+import controllers.chargeE.routes._
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String): Int = ua.getAnnualAllowanceMembers(srn).size
+  def nextIndex(ua: UserAnswers, srn: String): Int = ua.getAnnualAllowanceMembersIncludingDeleted(srn).size
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
-    case Some(true) => controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
+    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
     case _ => controllers.routes.IndexController.onPageLoad()
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case MemberDetailsPage(index) => controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)
-    case AnnualAllowanceYearPage(index) => controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, index)
-    case ChargeDetailsPage(index) => controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-    case CheckYourAnswersPage => controllers.chargeE.routes.AddMembersController.onPageLoad(srn)
+    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
+    case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)
+    case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
+    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
+    case DeleteMemberPage if ua.getAnnualAllowanceMembers(srn).nonEmpty => AddMembersController.onPageLoad(srn)
+    case DeleteMemberPage => AddMembersController.onPageLoad(srn) //TODO change to AFT summary page once it is merged in
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case MemberDetailsPage(index) => controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-    case AnnualAllowanceYearPage(index) => controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-    case ChargeDetailsPage(index) => controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
+    case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
+    case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
   }
 }
