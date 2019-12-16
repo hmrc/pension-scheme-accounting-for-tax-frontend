@@ -51,7 +51,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(formatBigDecimalAsString(answer.amountTaxDue))),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -82,7 +82,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate)),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate)}"),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -97,7 +97,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate)),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate)}"),classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -109,7 +109,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   }
 
   def total(total:BigDecimal) = Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric","govuk-!-font-weight-bold")),
-    value = Value(Literal(CheckYourAnswersHelper.formatBigDecimalAsString(total)))
+    value = Value(Literal(s"£${formatBigDecimalAsString(total)}"))
   )
 
   def chargeBDetails: Option[Seq[Row]] = userAnswers.get(ChargeBDetailsPage) map {
