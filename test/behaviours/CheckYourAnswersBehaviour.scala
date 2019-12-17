@@ -36,7 +36,7 @@ trait CheckYourAnswersBehaviour extends ControllerBehaviours {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful())
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       val application = new GuiceApplicationBuilder()
         .overrides(
           modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
