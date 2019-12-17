@@ -59,7 +59,7 @@ final case class UserAnswers(
   }
 
   def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] =
-    getAnnualAllowanceMembers(srn).filterNot(_.isDeleted)
+    getAnnualAllowanceMembersIncludingDeleted(srn).filterNot(_.isDeleted)
 
   private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
     jsValue.validate[A].fold(
