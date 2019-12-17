@@ -224,10 +224,10 @@ memberDetails.nino = National Insurance number
 memberDetails.checkYourAnswersLabel = memberDetails
 memberDetails.error.firstName.required = Enter the member’s first name
 memberDetails.error.firstName.length = The member’s first name must be 35 characters or fewer
-memberDetails.error.firstName.invalid = The member’s first name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.firstName.invalid = The member’s first name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 memberDetails.error.lastName.required = Enter the member’s last name
-memberDetails.error.lastName.length = The member’s must be 35 characters or fewer
-memberDetails.error.lastName.invalid = The member’s last name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.lastName.length = The member’s last name must be 35 characters or fewer
+memberDetails.error.lastName.invalid = The member’s last name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 memberDetails.error.nino.required = Enter the member’s National Insurance number
 memberDetails.error.nino.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
 

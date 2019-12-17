@@ -178,7 +178,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           actions = List(
             Action(
               content = msg"site.edit",
-              href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, index).url,
               visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.taxYear.label"))
             )
           )
