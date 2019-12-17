@@ -53,13 +53,11 @@ class AFTSummaryController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val preparedForm = request.userAnswers.get(AFTSummaryPage).fold(form)(form.fill)
-
         val json = Json.obj(
-          "form" -> preparedForm,
+          "form" -> form,
           "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
           "viewModel" -> viewModel(mode, srn, schemeName),
-          "radios" -> Radios.yesNo(preparedForm("value"))
+          "radios" -> Radios.yesNo(form("value"))
         )
 
         renderer.render("aftSummary.njk", json).map(Ok(_))

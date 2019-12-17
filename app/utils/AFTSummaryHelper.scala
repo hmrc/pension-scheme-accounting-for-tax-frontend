@@ -27,7 +27,7 @@ class AFTSummaryHelper{
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
-  def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[SummaryList.Row] = {
+  def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[Row] = {
 
     val summaryData: Seq[SummaryDetails] = Seq(
       SummaryDetails(ChargeType.ChargeTypeAnnualAllowance,
@@ -53,9 +53,9 @@ class AFTSummaryHelper{
         controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn))
     )
 
-    summaryData.map { data =>
+    val summaryRows: Seq[SummaryList.Row] = summaryData.map { data =>
       Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"£${data.totalAmount}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
@@ -70,5 +70,15 @@ class AFTSummaryHelper{
         }
       )
     }
+
+    val totalRow: Row = Row(
+      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
+      value = Value(Literal(s"£${summaryData.map(_.totalAmount).sum}"), classes = Seq("govuk-!-width-one-quarter")),
+      actions = Nil
+    )
+
+    val rows: Seq[Row] = summaryRows :+ totalRow
+    rows
   }
+
 }

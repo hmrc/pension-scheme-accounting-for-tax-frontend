@@ -58,7 +58,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                         page: Page,
                         templateToBeRendered: String,
                         jsonToPassToTemplate: JsObject,
-                        userAnswers:Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
+                        userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = userAnswers).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -75,6 +75,43 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
+  }
+
+  //scalastyle:off method.length
+  def controllerWithGETNeverFilledForm[A](httpPath: => String,
+                                          page: QuestionPage[A],
+                                          data: A,
+                                          form: Form[A],
+                                          templateToBeRendered: String,
+                                          jsonToPassToTemplate: Form[A] => JsObject)(implicit writes: Writes[A]): Unit = {
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
 
       application.stop()
     }
@@ -138,12 +175,12 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
   }
 
   def controllerWithPOSTWithJson[A](httpPath: => String,
-                                      page: QuestionPage[A],
-                                      expectedJson: JsObject,
-                                      form: Form[A],
-                                      templateToBeRendered: String,
-                                      requestValuesValid: Map[String, Seq[String]],
-                                      requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
+                                    page: QuestionPage[A],
+                                    expectedJson: JsObject,
+                                    form: Form[A],
+                                    templateToBeRendered: String,
+                                    requestValuesValid: Map[String, Seq[String]],
+                                    requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)

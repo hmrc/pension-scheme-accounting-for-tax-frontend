@@ -22,9 +22,14 @@ import data.SampleData
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify}
 import pages.AFTSummaryPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.FakeRequest
+import play.api.test.Helpers.{redirectLocation, route, status}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 
@@ -53,8 +58,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  "ChargeDetails Controller" must {
-    behave like controllerWithGET(
+  "AFTSummary Controller" must {
+
+    behave like controllerWithGETNeverFilledForm(
       httpPath = aftSummaryGetRoute,
       page = AFTSummaryPage,
       data = true,

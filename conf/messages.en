@@ -292,3 +292,4 @@ aft.summary.shortService.visuallyHidden.row = short service refund lump sum char
 aft.summary.lumpSumDeath.row = Special lump sum death benefits charges
 aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits charges
 aft.summary.error.required = Select yes if you want to add another charge
+aft.summary.total = Total
