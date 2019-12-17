@@ -16,12 +16,15 @@
 
 package utils
 
+import controllers._
+import controllers.chargeB.{routes => _, _}
 import models.{ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
+import models.ChargeType._
 
 class AFTSummaryHelper{
 
@@ -30,27 +33,41 @@ class AFTSummaryHelper{
   def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[Row] = {
 
     val summaryData: Seq[SummaryDetails] = Seq(
-      SummaryDetails(ChargeType.ChargeTypeAnnualAllowance,
-        BigDecimal(0),
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)),
-      SummaryDetails(ChargeType.ChargeTypeAuthSurplus,
-        BigDecimal(0),
-        controllers.routes.IndexController.onPageLoad()),
-      SummaryDetails(ChargeType.ChargeTypeDeRegistration,
-        ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)),
-      SummaryDetails(ChargeType.ChargeTypeLifetimeAllowance,
-        BigDecimal(0),
-        controllers.routes.IndexController.onPageLoad()),
-      SummaryDetails(ChargeType.ChargeTypeOverseasTransfer,
-        BigDecimal(0),
-        controllers.routes.IndexController.onPageLoad()),
-      SummaryDetails(ChargeType.ChargeTypeShortService,
-        ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-        controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn)),
-      SummaryDetails(ChargeType.ChargeTypeLumpSumDeath,
-        ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn))
+      SummaryDetails(
+        chargeType = ChargeTypeAnnualAllowance,
+        totalAmount = BigDecimal(0),
+        href = chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeAuthSurplus,
+        totalAmount = BigDecimal(0),
+        href = routes.IndexController.onPageLoad()
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeDeRegistration,
+        totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+        href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeLifetimeAllowance,
+        totalAmount = BigDecimal(0),
+        href = routes.IndexController.onPageLoad()
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeOverseasTransfer,
+        totalAmount = BigDecimal(0),
+        href = routes.IndexController.onPageLoad()
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeShortService,
+        totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
+        href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
+      ),
+      SummaryDetails(
+        chargeType = ChargeTypeLumpSumDeath,
+        totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+        href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn)
+      )
     )
 
     val summaryRows: Seq[SummaryList.Row] = summaryData.map { data =>
@@ -77,8 +94,6 @@ class AFTSummaryHelper{
       actions = Nil
     )
 
-    val rows: Seq[Row] = summaryRows :+ totalRow
-    rows
+    summaryRows :+ totalRow
   }
-
 }
