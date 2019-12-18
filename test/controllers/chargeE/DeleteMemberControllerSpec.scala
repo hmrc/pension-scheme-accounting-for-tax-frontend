@@ -98,7 +98,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       application.stop()
     }
 
-    "redirect to the next page when valid data is submitted" in {
+    "redirect to the next page when valid data is submitted and re-submit the data to DES" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
