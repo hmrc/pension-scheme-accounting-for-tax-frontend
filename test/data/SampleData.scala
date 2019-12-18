@@ -45,6 +45,7 @@ object SampleData {
   val chargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
+  val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
 
   val chargeEMember = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
