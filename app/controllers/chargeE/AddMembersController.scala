@@ -57,7 +57,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider()
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  private def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -133,13 +133,13 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
               content = msg"site.view",
               href = data.viewLink,
               visuallyHiddenText = None,
-              attributes = Map("id" -> s"view-link-${data.index}")
+              attributes = Map("id" -> data.viewLinkId())
             ),
             ViewAction(
               content = msg"site.remove",
               href = data.removeLink,
               visuallyHiddenText = None,
-                attributes = Map("id" -> s"remove-link-${data.index}")
+                attributes = Map("id" -> data.removeLinkId())
             )
           )
 
