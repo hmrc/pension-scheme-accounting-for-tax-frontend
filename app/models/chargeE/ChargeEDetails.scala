@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package models.chargeE
 
-import models.MemberDetails
-import pages.chargeE.AnnualAllowanceMembersQuery
-import play.api.libs.json.JsPath
+import java.time.LocalDate
 
-case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
+import play.api.libs.json.{Format, Json}
 
-  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
-}
+case class ChargeEDetails(chargeAmount: BigDecimal, dateNoticeReceived: LocalDate, isPaymentMandatory: Boolean)
 
-object MemberDetailsPage {
-
-  override lazy val toString: String = "memberDetails"
+object ChargeEDetails {
+  implicit lazy val formats: Format[ChargeEDetails] =
+    Json.format[ChargeEDetails]
 }

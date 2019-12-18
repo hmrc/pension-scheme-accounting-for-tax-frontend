@@ -25,13 +25,13 @@ trait BooleanFieldBehaviours extends FieldBehaviours {
                    invalidError: FormError): Unit = {
 
     "must bind true" in {
-      val result = form.bind(Map(fieldName -> "true"))
-      result.value.value shouldBe true
+      val result = form.bind(Map(fieldName -> "true")).apply(fieldName)
+      result.value.value.toBoolean shouldBe true
     }
 
     "must bind false" in {
-      val result = form.bind(Map(fieldName -> "false"))
-      result.value.value shouldBe false
+      val result = form.bind(Map(fieldName -> "false")).apply(fieldName)
+      result.value.value.toBoolean shouldBe false
     }
 
     "must not bind non-booleans" in {

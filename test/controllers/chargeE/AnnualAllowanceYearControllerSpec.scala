@@ -30,7 +30,7 @@ import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
 
@@ -39,23 +39,13 @@ import scala.concurrent.Future
 class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
 
   private val template = "chargeE/annualAllowanceYear.njk"
-
-  private def form = new YearRangeFormProvider()()
-
-  private def annualAllowanceYearGetRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
-
-  private def annualAllowanceYearPostRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
-
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(CurrentYear.toString)
   )
-
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
   )
-
   private val jsonToTemplate: Form[YearRange] => JsObject = form => Json.obj(
     fields = "form" -> form,
     "radios" -> YearRange.radios(form),
@@ -65,7 +55,13 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
       schemeName = SampleData.schemeName)
   )
 
-  "ChargeDetails Controller" must {
+  private def form = new YearRangeFormProvider()()
+
+  private def annualAllowanceYearGetRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
+
+  private def annualAllowanceYearPostRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
+
+  "AnnualAllowanceYear Controller" must {
 
     "return OK and the correct view for a GET" in {
       val application = new GuiceApplicationBuilder()
@@ -118,9 +114,11 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
     }
 
     val expectedJson = Json.obj(
-      AnnualAllowanceMembersQuery.toString -> Json.arr(
-        Json.obj(
-          AnnualAllowanceYearPage(0).toString ->  Json.toJson(CurrentYear.toString)
+      "chargeEDetails" -> Json.obj(
+        AnnualAllowanceMembersQuery.toString -> Json.arr(
+          Json.obj(
+            AnnualAllowanceYearPage.toString -> Json.toJson(CurrentYear.toString)
+          )
         )
       )
     )

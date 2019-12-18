@@ -16,13 +16,17 @@
 
 package pages.chargeE
 
-import pages.Page
+import models.chargeE.ChargeEDetails
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
-  def path: JsPath = JsPath \ "chargeEDetails" \ AnnualAllowanceMembersQuery.toString \ index
+case class ChargeDetailsPage(index: Int) extends QuestionPage[ChargeEDetails] {
+
+  override def path: JsPath = AnnualAllowanceMembersQuery(index).path \ ChargeDetailsPage.toString
+
 }
 
-object AnnualAllowanceMembersQuery {
-  override def toString: String = "members"
+object ChargeDetailsPage {
+
+  override def toString: String = "chargeDetails"
 }

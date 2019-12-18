@@ -15,6 +15,8 @@ site.save_charge_and_continue = Save this charge and continue
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - managing-pension schemes - GOV.UK
+site.view = View
+site.remove = Remove
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -36,7 +38,7 @@ phaseBanner.1 = This is a new service – your
 phaseBanner.2 = feedback
 phaseBanner.3 = will help us to improve it.
 
-checkYourAnswers.title = Check your answers
+checkYourAnswers.title = Check your answers - {0}
 checkYourAnswers.heading = Check your answers
 
 index.title = pension-scheme-accounting-for-tax-frontend
@@ -208,6 +210,11 @@ totalTaxDue.error.invalid = The total amount of tax due must be an amount of mon
 totalTaxDue.error.decimal = The total amount of tax due must include pence, like 123.45 or 156.00
 totalTaxDue.error.maximum = The total amount of tax due must be £9999999999.99 or less
 totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
+totalTaxDue.checkYourAnswersLabel = Total amount of tax due
+
+chargeB = Special lump sum death benefits charge
+chargeF = De-registration charge
+chargeE = Annual allowance charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -217,10 +224,10 @@ memberDetails.nino = National Insurance number
 memberDetails.checkYourAnswersLabel = memberDetails
 memberDetails.error.firstName.required = Enter the member’s first name
 memberDetails.error.firstName.length = The member’s first name must be 35 characters or fewer
-memberDetails.error.firstName.invalid = The member’s first name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.firstName.invalid = The member’s first name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 memberDetails.error.lastName.required = Enter the member’s last name
-memberDetails.error.lastName.length = The member’s must be 35 characters or fewer
-memberDetails.error.lastName.invalid = The member’s last name must only include letters, numbers, spaces and the characters , . ( ) & - ‘ /"
+memberDetails.error.lastName.length = The member’s last name must be 35 characters or fewer
+memberDetails.error.lastName.invalid = The member’s last name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 memberDetails.error.nino.required = Enter the member’s National Insurance number
 memberDetails.error.nino.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
 
@@ -264,3 +271,37 @@ annualAllowanceYear.error.required = Select the tax year to which the annual all
 annualAllowanceYear.title = Select the tax year to which the annual allowance charge relates
 annualAllowanceYear.heading = Select the tax year to which the annual allowance charge relates
 total = Total
+
+chargeAmount.error.required = Enter the charge amount
+chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
+chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
+chargeAmount.error.maximum = The charge amount must be £99999999999.99 or less
+dateNoticeReceived.error.required = Enter the date you received notice to pay the charge
+dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
+dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
+dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.outsideTaxYear = The date you received notice to pay the charge must be between {0} and {1}
+isPaymentMandatory.error = Select yes if the payment type is mandatory
+
+chargeEDetails.title = Annual allowance charge details for {0}
+chargeEDetails.heading = Annual allowance charge details for {0}
+chargeEDetails.chargeAmount.label = Charge amount
+chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
+chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
+
+chargeE.cya.memberName.label = Member’s name
+chargeE.cya.nino.label = {0}’s National Insurance number
+chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
+chargeE.cya.mandatoryPayment.label = Mandatory payment type
+
+chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
+chargeE.addMembers.title = Annual allowance charges for {0} to {1}
+chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
+chargeE.addMembers.label = Do you want to add another annual allowance charge?
+chargeE.addMembers.members.header = Member
+chargeE.addMembers.chargeAmount.header = Charge amount
+chargeE.addMembers.total = Total £{0}
+
+deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
+deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
+deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}

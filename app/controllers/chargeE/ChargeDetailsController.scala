@@ -20,81 +20,88 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeE.MemberDetailsFormProvider
+import forms.chargeE.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeE.MemberDetailsPage
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
+class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
                                         requireData: DataRequiredAction,
-                                        formProvider: MemberDetailsFormProvider,
+                                        formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private val form = formProvider()
+  def form: Form[ChargeEDetails] = formProvider()
 
   def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
-        val preparedForm = request.userAnswers.get(MemberDetailsPage(index)) match {
-          case None => form
+        val preparedForm: Form[ChargeEDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
           case Some(value) => form.fill(value)
+          case None => form
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName
-        )
+          schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
+          "radios" -> Radios.yesNo(preparedForm("isPaymentMandatory")),
+          "memberName" -> memberName
         )
 
-        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
+        renderer.render(template = "chargeE/chargeDetails.njk", json).map(Ok(_))
       }
   }
 
   def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
+
         form.bindFromRequest().fold(
           formWithErrors => {
-
             val viewModel = GenericViewModel(
-              submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel
+              "viewModel" -> viewModel,
+              "date" -> DateInput.localDate(formWithErrors("dateNoticeReceived")),
+              "radios" -> Radios.yesNo(formWithErrors("isPaymentMandatory")),
+              "memberName" -> memberName
             )
-
-            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
+            renderer.render(template = "chargeE/chargeDetails.njk", json).map(BadRequest(_))
           },
-          value =>
+          value => {
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+          }
         )
       }
   }

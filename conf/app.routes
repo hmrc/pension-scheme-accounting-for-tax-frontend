@@ -49,11 +49,7 @@ POST        /:srn/new-return/annual-allowance-charge/:index/select-tax-year     
 GET         /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year                     controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year                     controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
-
-
-
-
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/what-you-will-need                   controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/short-service-refund-lump-sum-charge/what-you-will-need           controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/charge-details                       controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
 POST        /:srn/new-return/short-service-refund-lump-sum-charge/charge-details                       controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
@@ -61,7 +57,20 @@ GET         /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-
 POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details                controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers                   controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
-
 GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers          controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
 
+GET        /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/charge-details             controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET        /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/change/charge-details      controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
+GET         /:srn/new-return/annual-allowance-charge/:index/check-your-answers                 controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
+GET         /:srn/new-return/annual-allowance-charge/:index/on-click-check-your-answers        controllers.chargeE.CheckYourAnswersController.onClick(srn: String, index: Index)
+
+GET        /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onPageLoad(srn: String)
+POST       /:srn/new-return/annual-allowance-charge/list-of-charges                     controllers.chargeE.AddMembersController.onSubmit(srn: String)
+
+GET        /:srn/new-return/annual-allowance-charge/:index/remove-charge                        controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/remove-charge                        controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET        /:srn/new-return/annual-allowance-charge/:index/change/remove-charge                  controllers.chargeE.DeleteMemberController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST       /:srn/new-return/annual-allowance-charge/:index/change/remove-charge                  controllers.chargeE.DeleteMemberController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)

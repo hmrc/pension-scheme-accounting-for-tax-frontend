@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package pages.chargeE
+package forms
 
-import pages.Page
-import play.api.libs.json.JsPath
+import javax.inject.Inject
 
-case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
-  def path: JsPath = JsPath \ "chargeEDetails" \ AnnualAllowanceMembersQuery.toString \ index
-}
+import forms.mappings.Mappings
+import play.api.data.Form
 
-object AnnualAllowanceMembersQuery {
-  override def toString: String = "members"
+class DeleteMemberFormProvider @Inject() extends Mappings {
+
+  def apply(errorKey: String): Form[Boolean] =
+    Form(
+      "value" -> boolean(errorKey)
+    )
 }

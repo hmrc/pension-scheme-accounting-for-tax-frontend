@@ -17,12 +17,5 @@
 package pages.chargeE
 
 import pages.Page
-import play.api.libs.json.JsPath
 
-case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
-  def path: JsPath = JsPath \ "chargeEDetails" \ AnnualAllowanceMembersQuery.toString \ index
-}
-
-object AnnualAllowanceMembersQuery {
-  override def toString: String = "members"
-}
+case object CheckYourAnswersPage extends Page

@@ -6,7 +6,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("checkYourAnswers.title")) }}
+  {{ title(messages("checkYourAnswers.title", messages(chargeName))) }}
 {% endblock %}
 
 {% block mainContent %}

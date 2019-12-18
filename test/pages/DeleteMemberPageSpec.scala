@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package pages.chargeE
+package pages
 
-import pages.Page
-import play.api.libs.json.JsPath
+import pages.behaviours.PageBehaviours
+import pages.chargeE.DeleteMemberPage
 
-case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
-  def path: JsPath = JsPath \ "chargeEDetails" \ AnnualAllowanceMembersQuery.toString \ index
-}
+class DeleteMemberPageSpec extends PageBehaviours {
 
-object AnnualAllowanceMembersQuery {
-  override def toString: String = "members"
+  "DeleteMemberPage" - {
+
+    beRetrievable[Boolean](DeleteMemberPage)
+
+    beSettable[Boolean](DeleteMemberPage)
+
+    beRemovable[Boolean](DeleteMemberPage)
+  }
 }
