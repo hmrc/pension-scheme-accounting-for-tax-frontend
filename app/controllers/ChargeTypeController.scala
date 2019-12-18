@@ -16,9 +16,6 @@
 
 package controllers
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -27,7 +24,7 @@ import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, ChargeTypePage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -52,7 +49,6 @@ class ChargeTypeController @Inject()(
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>

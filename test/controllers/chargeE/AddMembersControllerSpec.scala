@@ -34,8 +34,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeE/addMembers.njk"
   private val form = new AddMembersFormProvider()()
-  private def addMembersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def addMembersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
+  private def addMembersGetRoute(): String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
+  private def addMembersPostRoute(): String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -63,9 +63,17 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.arr(
           Json.obj(
             "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url,
-            "text" -> "View"),
-          Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 0).url,
-            "text" -> "Remove")))),
+            "text" -> "View",
+            "attributes" -> Json.obj("id" -> "view-link-0")
+          ),
+            Json.obj(
+              "href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 0).url,
+                  "text" -> "Remove",
+              "attributes" -> Json.obj("id" -> "remove-link-0")
+            )
+        )
+      )
+    ),
     Json.obj("key" -> Json.obj("text" -> "Joe Bloggs",
       "classes" -> cssHalfWidth),
       "value" -> Json.obj(
@@ -75,9 +83,13 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.arr(
           Json.obj(
             "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 1).url,
-            "text" -> "View"),
+            "text" -> "View",
+            "attributes" -> Json.obj("id" -> "view-link-1")
+          ),
           Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 1).url,
-            "text" -> "Remove")))),
+            "text" -> "Remove",
+            "attributes" -> Json.obj("id" -> "remove-link-1")
+          )))),
     Json.obj("key" -> Json.obj("text" -> "",
       "classes" -> cssHalfWidth),
       "value" -> Json.obj("text" -> "Total £66.88",
@@ -112,7 +124,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(addMembersGetRoute)).value
+      val result = route(application, httpGETRequest(addMembersGetRoute())).value
 
       status(result) mustEqual OK
 
@@ -128,7 +140,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a GET when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpGETRequest(addMembersGetRoute)).value
+      val result = route(application, httpGETRequest(addMembersGetRoute())).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -144,7 +156,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(addMembersPostRoute(), valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -159,7 +171,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(addMembersPostRoute(), valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -171,7 +183,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a POST when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(addMembersPostRoute(), valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
