@@ -44,16 +44,13 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
-  
+
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
-    "head" -> Json.arr(Json.obj(
-      "text" -> "Member",
-      "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "National Insurance number",
-        "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "Charge amount",
-        "classes" -> cssQuarterWidth),
+    "head" -> Json.arr(
+      Json.obj("text" -> "Member", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "National Insurance number", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "Charge amount", "classes" -> cssQuarterWidth),
       Json.obj("text" -> ""),
       Json.obj("text" -> "")
     ),
@@ -91,7 +88,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> "1 April 2020",
     "quarterEnd" -> "30 June 2020",
-    "members" -> table
+    "table" -> table
   )
 
   private def ua = SampleData.userAnswersWithSchemeName

@@ -111,7 +111,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           "radios" -> Radios.yesNo(form("value")),
           "quarterStart" -> getFormattedDate(quarter.startDate),
           "quarterEnd" -> getFormattedDate(quarter.endDate),
-          "members" -> Json.toJson(mapToTable(members))
+          "table" -> Json.toJson(mapToTable(members))
         )
 
 

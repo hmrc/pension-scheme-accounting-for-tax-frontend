@@ -19,18 +19,17 @@ package controllers.chargeE
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
-import data.SampleData
 import data.SampleData._
 import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
+import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -64,7 +63,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).success.value
 
   private val answers: UserAnswers = userAnswers
-    .set(DeleteMemberPage, true).success.value
     .set(PSTRQuery, pstr).success.value
 
   "DeleteMember Controller" must {
@@ -124,9 +122,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA =  answers.get(MemberDetailsPage(0)).flatMap( md =>
-        answers.set(MemberDetailsPage(0), md copy(isDeleted = true)).toOption
-      ).getOrElse(answers)
+      val expectedUA =  answers.set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
+          .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
 

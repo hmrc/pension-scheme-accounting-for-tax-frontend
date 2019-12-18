@@ -26,7 +26,7 @@ import javax.inject.Inject
 import models.requests.DataRequest
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
+import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -102,9 +102,11 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               value =>
                 if(value) {
                   DataRetrievals.retrievePSTR { pstr =>
+                    val totalAmount = request.userAnswers.getAnnualAllowanceMembers(srn).map(_.chargeAmount).sum
                     for {
-                      updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                        .flatMap(_.set(DeleteMemberPage, value)))
+                      updatedAnswers <- Future.fromTry(request.userAnswers
+                        .set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
+                        .flatMap(_.set(TotalChargeAmountPage, totalAmount)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
