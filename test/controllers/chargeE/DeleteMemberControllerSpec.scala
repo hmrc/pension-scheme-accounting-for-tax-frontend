@@ -24,11 +24,12 @@ import data.SampleData._
 import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.PSTRQuery
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.inject.bind
@@ -58,11 +59,13 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
+  private val pstr = "test pstr"
 
   private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).success.value
 
   private val answers: UserAnswers = userAnswers
     .set(DeleteMemberPage, true).success.value
+    .set(PSTRQuery, pstr).success.value
 
   "DeleteMember Controller" must {
 
@@ -98,7 +101,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       application.stop()
     }
 
-    "redirect to the next page when valid data is submitted and re-submit the data to DES" in {
+    "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
@@ -121,7 +124,11 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
+      val expectedUA =  answers.get(MemberDetailsPage(0)).flatMap( md =>
+        answers.set(MemberDetailsPage(0), md copy(isDeleted = true)).toOption
+      ).getOrElse(answers)
+
+      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
 
       application.stop()
     }

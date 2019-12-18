@@ -101,18 +101,14 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               },
               value =>
                 if(value) {
-
                   DataRetrievals.retrievePSTR { pstr =>
-
                     for {
                       updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
                         .flatMap(_.set(DeleteMemberPage, value)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
-
                   }
-
                 } else {
                   Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, mode, request.userAnswers, srn)))
                 }
