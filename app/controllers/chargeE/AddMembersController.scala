@@ -132,12 +132,14 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
             ViewAction(
               content = msg"site.view",
               href = data.viewLink,
-              visuallyHiddenText = None
+              visuallyHiddenText = None,
+              attributes = Map("id" -> s"view-link-${data.index}")
             ),
             ViewAction(
               content = msg"site.remove",
               href = data.removeLink,
-              visuallyHiddenText = None
+              visuallyHiddenText = None,
+                attributes = Map("id" -> s"remove-link-${data.index}")
             )
           )
 
