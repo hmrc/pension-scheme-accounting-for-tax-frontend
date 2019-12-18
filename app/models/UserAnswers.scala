@@ -48,6 +48,7 @@ final case class UserAnswers(
           AnnualAllowanceMember(
             index,
             member.fullName,
+            member.nino,
             chargeDetails.chargeAmount,
             viewUrl(index).url,
             removeUrl(index).url,

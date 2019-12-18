@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeE.AddMembersFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, YearRange}
+import models.{GenericViewModel, YearRange}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -34,8 +34,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeE/addMembers.njk"
   private val form = new AddMembersFormProvider()()
-  private def addMembersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def addMembersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
+  private def membersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
+  private def membersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -44,44 +44,42 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
-  private val cssHalfWidth = "govuk-!-width-one-half"
-
-  private def membersJson = Json.arr( Json.obj(
-    "key" -> Json.obj(
+  
+  private def table = Json.obj(
+    "firstCellIsHeader" -> false,
+    "head" -> Json.arr(Json.obj(
       "text" -> "Member",
-      "classes" -> cssHalfWidth),
-      "value" -> Json.obj(
-        "text" ->"Charge amount",
-        "classes" -> cssQuarterWidth)
-  ),
-    Json.obj("key" -> Json.obj("text" -> "first last",
-      "classes" -> cssHalfWidth),
-      "value" -> Json.obj(
-        "text" -> "£33.44",
+      "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "National Insurance number",
         "classes" -> cssQuarterWidth),
-      "actions" -> Json.obj("items" ->
-        Json.arr(
-          Json.obj(
-            "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url,
-            "text" -> "View"),
-          Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 0).url,
-            "text" -> "Remove")))),
-    Json.obj("key" -> Json.obj("text" -> "Joe Bloggs",
-      "classes" -> cssHalfWidth),
-      "value" -> Json.obj(
-        "text" -> "£33.44",
+      Json.obj("text" -> "Charge amount",
         "classes" -> cssQuarterWidth),
-      "actions" -> Json.obj("items" ->
-        Json.arr(
-          Json.obj(
-            "href" -> controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 1).url,
-            "text" -> "View"),
-          Json.obj("href" -> controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, SampleData.srn, 1).url,
-            "text" -> "Remove")))),
-    Json.obj("key" -> Json.obj("text" -> "",
-      "classes" -> cssHalfWidth),
-      "value" -> Json.obj("text" -> "Total £66.88",
-        "classes" -> cssQuarterWidth))
+      Json.obj("text" -> ""),
+      Json.obj("text" -> "")
+    ),
+    "rows" -> Json.arr(
+      Json.arr(
+        Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/check-your-answers> View </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/remove-charge> Remove </a>","classes" -> cssQuarterWidth)
+      ),
+      Json.arr(
+        Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/check-your-answers> View </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/remove-charge> Remove </a>","classes" -> cssQuarterWidth)
+      ),
+      Json.arr(
+        Json.obj("text" -> ""),
+        Json.obj("text" -> ""),
+        Json.obj("text" -> "Total £66.88","classes" -> cssQuarterWidth),
+        Json.obj("text" -> ""),
+        Json.obj("text" -> "")
+      )
+    )
   )
 
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
@@ -93,7 +91,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> "1 April 2020",
     "quarterEnd" -> "30 June 2020",
-    "members" -> membersJson
+    "members" -> table
   )
 
   private def ua = SampleData.userAnswersWithSchemeName
@@ -112,7 +110,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(addMembersGetRoute)).value
+      val result = route(application, httpGETRequest(membersGetRoute)).value
 
       status(result) mustEqual OK
 
@@ -128,7 +126,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a GET when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpGETRequest(addMembersGetRoute)).value
+      val result = route(application, httpGETRequest(membersGetRoute)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -144,7 +142,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(membersPostRoute, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -159,7 +157,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(membersPostRoute, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -171,7 +169,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a POST when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpPOSTRequest(addMembersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(membersPostRoute, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

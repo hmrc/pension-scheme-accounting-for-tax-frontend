@@ -20,7 +20,6 @@ import base.SpecBase
 import data.SampleData
 import models.chargeE.AnnualAllowanceMember
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
-import play.api.libs.json.{JsObject, Json}
 
 class UserAnswersSpec extends SpecBase {
 
@@ -38,7 +37,7 @@ class UserAnswersSpec extends SpecBase {
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
-    AnnualAllowanceMember(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    AnnualAllowanceMember(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[AnnualAllowanceMember] = Seq(
     expectedMember(SampleData.memberDetails, 0),
@@ -50,13 +49,13 @@ class UserAnswersSpec extends SpecBase {
 
     ".getAnnualAllowanceMembers" must {
       "return all the members added in charge E" in {
-        allMembers.getAnnualAllowanceMembersIncludingDeleted(srn).toSeq mustBe expectedAllMembers
+        allMembers.getAnnualAllowanceMembersIncludingDeleted(srn) mustBe expectedAllMembers
       }
     }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      allMembersIncludingDeleted.getAnnualAllowanceMembersIncludingDeleted(srn).toSeq mustBe expectedMembersIncludingDeleted
+      allMembersIncludingDeleted.getAnnualAllowanceMembersIncludingDeleted(srn) mustBe expectedMembersIncludingDeleted
     }
   }
 

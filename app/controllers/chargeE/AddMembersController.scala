@@ -31,14 +31,15 @@ import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value, Action => ViewAction}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
+import viewmodels.Table
+import viewmodels.Table.Cell
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -110,48 +111,42 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           "radios" -> Radios.yesNo(form("value")),
           "quarterStart" -> getFormattedDate(quarter.startDate),
           "quarterEnd" -> getFormattedDate(quarter.endDate),
-          "members" -> Json.toJson(mapToSummaryList(members))
+          "members" -> Json.toJson(mapToTable(members))
         )
 
 
     }
 
-  private def mapToSummaryList(members: Seq[AnnualAllowanceMember]): Seq[Row] = {
-    val headerRow = Seq(Row(
-      key = Key(msg"chargeE.addMembers.members.header", classes = Seq("govuk-!-width-one-half")),
-      value = Value(msg"chargeE.addMembers.chargeAmount.header", classes = Seq("govuk-!-width-one-quarter")),
-      actions = Seq.empty
-    ))
+  private def mapToTable(members: Seq[AnnualAllowanceMember])(implicit messages: Messages): Table = {
+
+    val head = Seq(
+      Cell(msg"chargeE.addMembers.members.header", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"chargeE.addMembers.nino.header", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"chargeE.addMembers.chargeAmount.header", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg""),
+      Cell(msg"")
+    )
 
     val rows = members.map { data =>
-      Row(
-        key = Key(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${data.chargeAmount}"), classes = Seq("govuk-!-width-one-quarter")),
-        actions =
-          List(
-            ViewAction(
-              content = msg"site.view",
-              href = data.viewLink,
-              visuallyHiddenText = None
-            ),
-            ViewAction(
-              content = msg"site.remove",
-              href = data.removeLink,
-              visuallyHiddenText = None
-            )
-          )
+        Seq(
+          Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Literal(s"£${data.chargeAmount}"), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Html(s"<a id=${data.viewLinkId} href=${data.viewLink}> ${messages("site.view")} </a>"), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Html(s"<a id=${data.removeLinkId} href=${data.removeLink}> ${messages("site.remove")} </a>"), classes = Seq("govuk-!-width-one-quarter"))
 
-      )
+        )
     }
-
     val totalAmount = members.map(_.chargeAmount).sum
 
-    val totalRow = Seq(Row(
-      key = Key(Literal(""), classes = Seq("govuk-!-width-one-half")),
-      value = Value(msg"chargeE.addMembers.total".withArgs(totalAmount), classes = Seq("govuk-!-width-one-quarter")),
-      actions = Seq.empty
+    val totalRow = Seq(Seq(
+      Cell(msg""), Cell(msg""),
+      Cell(msg"chargeE.addMembers.total".withArgs(totalAmount), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg""),
+      Cell(msg"")
     ))
-    headerRow ++ rows ++ totalRow
+
+    Table(head = head, rows = rows ++ totalRow)
   }
 
 }

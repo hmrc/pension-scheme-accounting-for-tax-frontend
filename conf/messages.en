@@ -299,6 +299,7 @@ chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
 chargeE.addMembers.members.header = Member
+chargeE.addMembers.nino.header = National Insurance number
 chargeE.addMembers.chargeAmount.header = Charge amount
 chargeE.addMembers.total = Total £{0}
 
