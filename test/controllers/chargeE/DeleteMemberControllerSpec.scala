@@ -17,6 +17,7 @@
 package controllers.chargeE
 
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -41,26 +42,26 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-
-  def onwardRoute = Call("GET", "/foo")
+  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private def onwardRoute = Call("GET", "/foo")
 
   private val memberName = "first last"
-  val formProvider = new DeleteMemberFormProvider()
-  val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
+  private val formProvider = new DeleteMemberFormProvider()
+  private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
 
-  def deleteMemberRoute: String = routes.DeleteMemberController.onPageLoad(NormalMode, srn, 0).url
-  def deleteMemberSubmitRoute: String = routes.DeleteMemberController.onSubmit(NormalMode, srn, 0).url
+  private def deleteMemberRoute(): String = routes.DeleteMemberController.onPageLoad(NormalMode, srn, 0).url
+  private def deleteMemberSubmitRoute(): String = routes.DeleteMemberController.onSubmit(NormalMode, srn, 0).url
 
-  val viewModel = GenericViewModel(
-    submitUrl = deleteMemberSubmitRoute,
+  private val viewModel = GenericViewModel(
+    submitUrl = deleteMemberSubmitRoute(),
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
 
-  def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).success.value
+  private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).success.value
 
-  val answers: UserAnswers = userAnswers
+  private val answers: UserAnswers = userAnswers
     .set(DeleteMemberPage, true).success.value
 
   "DeleteMember Controller" must {
@@ -74,7 +75,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(GET, deleteMemberRoute)
+      val request = FakeRequest(GET, deleteMemberRoute())
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -101,15 +102,17 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val application = applicationBuilder(userAnswers = Some(answers))
         .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
+          bind[FrontendAppConfig].toInstance(mockAppConfig),
+          bind[AFTConnector].toInstance(mockAftConnector)
         )
         .build()
 
       val request =
-        FakeRequest(POST, deleteMemberRoute)
+        FakeRequest(POST, deleteMemberRoute())
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -118,6 +121,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
+      verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
+
       application.stop()
     }
 
@@ -125,13 +130,14 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(POST, deleteMemberRoute).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, deleteMemberRoute()).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -158,7 +164,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, deleteMemberRoute)
+      val request = FakeRequest(GET, deleteMemberRoute())
 
       val result = route(application, request).value
 
@@ -174,7 +180,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       val application = applicationBuilder(userAnswers = None).build()
 
       val request =
-        FakeRequest(POST, deleteMemberRoute)
+        FakeRequest(POST, deleteMemberRoute())
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

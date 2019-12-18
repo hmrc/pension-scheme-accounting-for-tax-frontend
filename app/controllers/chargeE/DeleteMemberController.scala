@@ -17,6 +17,7 @@
 package controllers.chargeE
 
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -42,6 +43,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
                                        requireData: DataRequiredAction,
+                                       aftConnector: AFTConnector,
                                        formProvider: DeleteMemberFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -99,11 +101,18 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               },
               value =>
                 if(value) {
-                  for {
-                    updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                    .flatMap(_.set(DeleteMemberPage, value)))
-                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                  } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
+
+                  DataRetrievals.retrievePSTR { pstr =>
+
+                    for {
+                      updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
+                        .flatMap(_.set(DeleteMemberPage, value)))
+                      _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                      _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+                    } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
+
+                  }
+
                 } else {
                   Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, mode, request.userAnswers, srn)))
                 }
