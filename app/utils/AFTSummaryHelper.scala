@@ -35,8 +35,8 @@ class AFTSummaryHelper{
     val summaryData: Seq[SummaryDetails] = Seq(
       SummaryDetails(
         chargeType = ChargeTypeAnnualAllowance,
-        totalAmount = BigDecimal(0),
-        href = chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)
+        totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+        href = chargeE.routes.AddMembersController.onPageLoad(srn)
       ),
       SummaryDetails(
         chargeType = ChargeTypeAuthSurplus,

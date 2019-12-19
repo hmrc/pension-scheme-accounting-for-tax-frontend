@@ -20,7 +20,7 @@ class $className$Controller @Inject()(
 
   def onPageLoad: Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      
+
       renderer.render("$className;format="decap"$.njk").map(Ok(_))
   }
 }

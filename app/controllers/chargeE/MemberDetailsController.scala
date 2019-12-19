@@ -24,7 +24,7 @@ import forms.chargeE.MemberDetailsFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.MemberDetailsPage
+import pages.chargeE.MemberDetailsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

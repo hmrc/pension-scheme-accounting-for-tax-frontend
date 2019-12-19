@@ -17,9 +17,10 @@
 package navigators
 
 import data.SampleData
+import models.ChargeType._
 import models.{ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{ChargeTypePage, Page}
+import pages.{AFTSummaryPage, ChargeTypePage, Page}
 import play.api.mvc.Call
 
 class ChargeNavigatorSpec extends NavigatorBehaviour {
@@ -28,14 +29,21 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private val srn = "test-srn"
 
   private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
+  private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
+  private def addAnotherChargeYes: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, true).toOption
+  private def addAnotherChargeNo: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, false).toOption
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeShortService)),
-        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeType.ChargeTypeLumpSumDeath))
+        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeShortService)),
+        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeLumpSumDeath)),
+        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeEMemberExists),
+        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeDeRegistration)),
+        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn), addAnotherChargeYes),
+        row(AFTSummaryPage)(Call("GET", frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn)), addAnotherChargeNo)
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

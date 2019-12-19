@@ -18,6 +18,7 @@ package pages
 
 import models.MemberDetails
 import pages.behaviours.PageBehaviours
+import pages.chargeE.MemberDetailsPage
 
 class MemberDetailsPageSpec extends PageBehaviours {
 

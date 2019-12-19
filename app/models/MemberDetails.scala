@@ -19,8 +19,18 @@ package models
 import play.api.libs.json._
 import uk.gov.hmrc.domain.Nino
 
-case class MemberDetails (firstName: String, lastName: String, nino: String)
+case class MemberDetails (firstName: String, lastName: String, nino: String, isDeleted: Boolean = false) {
+  def fullName: String = s"$firstName $lastName"
+}
 
 object MemberDetails {
   implicit val format = Json.format[MemberDetails]
+
+  def applyDelete(firstName: String, lastName: String, nino: String): MemberDetails = {
+    MemberDetails(firstName, lastName, nino)
+  }
+
+  def unapplyDelete(member: MemberDetails): Option[(String, String, String)] = {
+    Some((member.firstName, member.lastName, member.nino))
+  }
 }

@@ -20,7 +20,7 @@ import pages.Page
 import play.api.libs.json.JsPath
 
 case class AnnualAllowanceMembersQuery(index: Int) extends Page  {
-  def path: JsPath = JsPath \ AnnualAllowanceMembersQuery.toString \ index
+  def path: JsPath = JsPath \ "chargeEDetails" \ AnnualAllowanceMembersQuery.toString \ index
 }
 
 object AnnualAllowanceMembersQuery {
