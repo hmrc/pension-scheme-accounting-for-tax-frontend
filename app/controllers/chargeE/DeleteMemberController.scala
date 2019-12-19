@@ -24,7 +24,7 @@ import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
 import models.requests.DataRequest
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
@@ -102,11 +102,10 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               value =>
                 if(value) {
                   DataRetrievals.retrievePSTR { pstr =>
-                    val totalAmount = request.userAnswers.getAnnualAllowanceMembers(srn).map(_.chargeAmount).sum
+
                     for {
-                      updatedAnswers <- Future.fromTry(request.userAnswers
-                        .set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                        .flatMap(_.set(TotalChargeAmountPage, totalAmount)))
+                      interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
@@ -119,4 +118,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
         }
       }
   }
+
+  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = ua.getAnnualAllowanceMembers(srn).map(_.chargeAmount).sum
 }
