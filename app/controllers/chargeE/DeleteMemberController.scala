@@ -23,7 +23,6 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
-import models.requests.DataRequest
 import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
@@ -32,6 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.chargeE.ChargeEService.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -119,5 +119,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = ua.getAnnualAllowanceMembers(srn).map(_.chargeAmount).sum
+  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.chargeAmount).sum
 }

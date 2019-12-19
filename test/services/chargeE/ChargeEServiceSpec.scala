@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package services.chargeE
 
 import base.SpecBase
 import data.SampleData
+import models.{MemberDetails, NormalMode, UserAnswers}
 import models.chargeE.AnnualAllowanceMember
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 
-class UserAnswersSpec extends SpecBase {
+class ChargeEServiceSpec extends SpecBase {
 
   val srn = "S1234567"
 
@@ -47,15 +48,15 @@ class UserAnswersSpec extends SpecBase {
     expectedMember(SampleData.memberDetailsDeleted, 2)
   )
 
-    ".getAnnualAllowanceMembers" must {
-      "return all the members added in charge E" in {
-        allMembers.getAnnualAllowanceMembersIncludingDeleted(srn) mustBe expectedAllMembers
-      }
+  ".getAnnualAllowanceMembers" must {
+    "return all the members added in charge E" in {
+      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembers, srn) mustBe expectedAllMembers
     }
+  }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      allMembersIncludingDeleted.getAnnualAllowanceMembersIncludingDeleted(srn) mustBe expectedMembersIncludingDeleted
+      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn) mustBe expectedMembersIncludingDeleted
     }
   }
 
