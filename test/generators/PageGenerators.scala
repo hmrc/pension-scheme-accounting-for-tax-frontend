@@ -23,6 +23,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryAFTSummaryPage: Arbitrary[AFTSummaryPage.type] =
+    Arbitrary(AFTSummaryPage)
+
   implicit lazy val arbitraryDeleteMemberPage: Arbitrary[DeleteMemberPage.type] =
     Arbitrary(DeleteMemberPage)
 

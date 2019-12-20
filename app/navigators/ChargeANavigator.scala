@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
@@ -28,6 +28,7 @@ class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
     case ChargeDetailsPage => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
+    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

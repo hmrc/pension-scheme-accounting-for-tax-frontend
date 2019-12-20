@@ -19,7 +19,7 @@ package navigators
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
 
@@ -33,7 +33,8 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
