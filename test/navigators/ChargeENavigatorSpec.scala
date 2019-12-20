@@ -17,6 +17,7 @@
 package navigators
 
 import controllers.chargeE.routes._
+import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
@@ -29,6 +30,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
   private val srn = "test-srn"
   private val index = 0
 
+
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
@@ -37,7 +39,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn))
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeEMember))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
