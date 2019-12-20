@@ -24,7 +24,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.chargeE.AddMembersFormProvider
 import javax.inject.Inject
-import models.chargeE.AnnualAllowanceMember
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
@@ -35,9 +34,8 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.chargeE.ChargeEService.{getAnnualAllowanceMembers, mapToTable}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value, Action => ViewAction}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -57,7 +55,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider()
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  private def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -102,7 +100,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val members = request.userAnswers.getAnnualAllowanceMembers(srn)
+        val members = getAnnualAllowanceMembers(request.userAnswers, srn)
 
         Json.obj(
           "form" -> form,
@@ -110,50 +108,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           "radios" -> Radios.yesNo(form("value")),
           "quarterStart" -> getFormattedDate(quarter.startDate),
           "quarterEnd" -> getFormattedDate(quarter.endDate),
-          "members" -> Json.toJson(mapToSummaryList(members))
+          "table" -> Json.toJson(mapToTable(members))
         )
 
 
     }
-
-  private def mapToSummaryList(members: Seq[AnnualAllowanceMember]): Seq[Row] = {
-    val headerRow = Seq(Row(
-      key = Key(msg"chargeE.addMembers.members.header", classes = Seq("govuk-!-width-one-half")),
-      value = Value(msg"chargeE.addMembers.chargeAmount.header", classes = Seq("govuk-!-width-one-quarter")),
-      actions = Seq.empty
-    ))
-
-    val rows = members.map { data =>
-      Row(
-        key = Key(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${data.chargeAmount}"), classes = Seq("govuk-!-width-one-quarter")),
-        actions =
-          List(
-            ViewAction(
-              content = msg"site.view",
-              href = data.viewLink,
-              visuallyHiddenText = None,
-              attributes = Map("id" -> data.viewLinkId())
-            ),
-            ViewAction(
-              content = msg"site.remove",
-              href = data.removeLink,
-              visuallyHiddenText = None,
-                attributes = Map("id" -> data.removeLinkId())
-            )
-          )
-
-      )
-    }
-
-    val totalAmount = members.map(_.chargeAmount).sum
-
-    val totalRow = Seq(Row(
-      key = Key(Literal(""), classes = Seq("govuk-!-width-one-half")),
-      value = Value(msg"chargeE.addMembers.total".withArgs(totalAmount), classes = Seq("govuk-!-width-one-quarter")),
-      actions = Seq.empty
-    ))
-    headerRow ++ rows ++ totalRow
-  }
 
 }

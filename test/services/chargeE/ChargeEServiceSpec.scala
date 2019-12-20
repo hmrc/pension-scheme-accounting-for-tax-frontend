@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package services.chargeE
 
 import base.SpecBase
 import data.SampleData
+import models.{MemberDetails, NormalMode, UserAnswers}
 import models.chargeE.AnnualAllowanceMember
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
-import play.api.libs.json.{JsObject, Json}
 
-class UserAnswersSpec extends SpecBase {
+class ChargeEServiceSpec extends SpecBase {
 
   val srn = "S1234567"
 
@@ -38,7 +38,7 @@ class UserAnswersSpec extends SpecBase {
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
-    AnnualAllowanceMember(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    AnnualAllowanceMember(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[AnnualAllowanceMember] = Seq(
     expectedMember(SampleData.memberDetails, 0),
@@ -48,15 +48,15 @@ class UserAnswersSpec extends SpecBase {
     expectedMember(SampleData.memberDetailsDeleted, 2)
   )
 
-    ".getAnnualAllowanceMembers" must {
-      "return all the members added in charge E" in {
-        allMembers.getAnnualAllowanceMembersIncludingDeleted(srn).toSeq mustBe expectedAllMembers
-      }
+  ".getAnnualAllowanceMembers" must {
+    "return all the members added in charge E" in {
+      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembers, srn) mustBe expectedAllMembers
     }
+  }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      allMembersIncludingDeleted.getAnnualAllowanceMembersIncludingDeleted(srn).toSeq mustBe expectedMembersIncludingDeleted
+      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn) mustBe expectedMembersIncludingDeleted
     }
   }
 

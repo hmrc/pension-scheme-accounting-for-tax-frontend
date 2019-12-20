@@ -23,15 +23,15 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
-import models.requests.DataRequest
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
+import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.chargeE.ChargeEService.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -102,9 +102,10 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               value =>
                 if(value) {
                   DataRetrievals.retrievePSTR { pstr =>
+
                     for {
-                      updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                        .flatMap(_.set(DeleteMemberPage, value)))
+                      interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
@@ -117,4 +118,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
         }
       }
   }
+
+  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.chargeAmount).sum
 }

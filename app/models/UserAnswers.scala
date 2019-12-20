@@ -16,11 +16,8 @@
 
 package models
 
-import models.chargeE.AnnualAllowanceMember
 import pages._
-import pages.chargeE.ChargeDetailsPage
 import play.api.libs.json._
-import play.api.mvc.Call
 
 import scala.util.{Failure, Success, Try}
 
@@ -35,31 +32,6 @@ final case class UserAnswers(
     (data \ charge \ "members" \\ "memberDetails").map {member =>
       validate[A](member)
     }
-
-  def getAnnualAllowanceMembersIncludingDeleted(srn: String): Seq[AnnualAllowanceMember] = {
-
-    def viewUrl(index: Int): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-    def removeUrl(index: Int): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index)
-    val members =
-      for {
-        (member, index) <- getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
-      } yield {
-        get(ChargeDetailsPage(index)).map { chargeDetails =>
-          AnnualAllowanceMember(
-            index,
-            member.fullName,
-            chargeDetails.chargeAmount,
-            viewUrl(index).url,
-            removeUrl(index).url,
-            member.isDeleted
-          )
-        }
-      }
-    members.flatten
-  }
-
-  def getAnnualAllowanceMembers(srn: String): Seq[AnnualAllowanceMember] =
-    getAnnualAllowanceMembersIncludingDeleted(srn).filterNot(_.isDeleted)
 
   private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
     jsValue.validate[A].fold(

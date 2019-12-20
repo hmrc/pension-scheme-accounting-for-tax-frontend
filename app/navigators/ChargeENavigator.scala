@@ -23,10 +23,12 @@ import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import play.api.mvc.Call
+import controllers.chargeE.routes._
+import services.chargeE.ChargeEService._
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String): Int = ua.getAnnualAllowanceMembersIncludingDeleted(srn).size
+  def nextIndex(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
@@ -40,7 +42,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
-    case DeleteMemberPage if ua.getAnnualAllowanceMembers(srn).nonEmpty => AddMembersController.onPageLoad(srn)
+    case DeleteMemberPage if getAnnualAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
     case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
   }
 

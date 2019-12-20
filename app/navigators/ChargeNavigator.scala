@@ -22,10 +22,11 @@ import connectors.cache.UserAnswersCacheConnector
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages.{AFTSummaryPage, ChargeTypePage, Page}
 import play.api.mvc.Call
+import services.chargeE.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndexChargeE(ua: UserAnswers, srn: String): Int = ua.getAnnualAllowanceMembersIncludingDeleted(srn).size
+  def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
