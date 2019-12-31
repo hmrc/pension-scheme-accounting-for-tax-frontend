@@ -17,7 +17,7 @@
 package utils
 
 import controllers._
-import controllers.chargeB.{routes => _, _}
+import controllers.chargeB.{routes => _}
 import models.{ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
@@ -25,6 +25,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import models.ChargeType._
+import utils.CheckYourAnswersHelper.formatBigDecimalAsString
 
 class AFTSummaryHelper{
 
@@ -73,7 +74,7 @@ class AFTSummaryHelper{
     val summaryRows: Seq[SummaryList.Row] = summaryData.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"£${data.totalAmount}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(

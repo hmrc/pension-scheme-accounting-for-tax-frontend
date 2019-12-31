@@ -293,6 +293,11 @@ chargeE.cya.memberName.label = Member’s name
 chargeE.cya.nino.label = {0}’s National Insurance number
 chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
 chargeE.cya.mandatoryPayment.label = Mandatory payment type
+chargeE.visuallyHidden.memberName.label = member’s name
+chargeE.visuallyHidden.taxYear.label = the tax year to which the annual allowance charge relates
+chargeE.visuallyHidden.chargeAmount.label = the charge amount
+chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
+chargeE.visuallyHidden.isPaymentMandatory.label = whether the payment type is mandatory
 
 chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
@@ -301,7 +306,8 @@ chargeE.addMembers.label = Do you want to add another annual allowance charge?
 chargeE.addMembers.members.header = Member
 chargeE.addMembers.nino.header = National Insurance number
 chargeE.addMembers.chargeAmount.header = Charge amount
-chargeE.addMembers.total = Total £{0}
+chargeE.addMembers.total = Total
+chargeE.addMembers.visuallyHidden = {0}’s annual allowance charge
 
 deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?

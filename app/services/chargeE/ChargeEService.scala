@@ -26,6 +26,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import utils.CheckYourAnswersHelper.formatBigDecimalAsString
 
 object ChargeEService {
 
@@ -70,21 +71,28 @@ object ChargeEService {
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"£${data.chargeAmount}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Html(s"<a id=${data.viewLinkId} href=${data.viewLink}> ${messages("site.view")} </a>"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Html(s"<a id=${data.removeLinkId} href=${data.removeLink}> ${messages("site.remove")} </a>"), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(Literal(s"£${formatBigDecimalAsString(data.chargeAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
 
       )
     }
     val totalAmount = members.map(_.chargeAmount).sum
 
     val totalRow = Seq(Seq(
-      Cell(msg""), Cell(msg""),
-      Cell(msg"chargeE.addMembers.total".withArgs(totalAmount), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg""), Cell(msg"chargeE.addMembers.total", classes = Seq("govuk-table__header--numeric")),
+      Cell(Literal(s"£${formatBigDecimalAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg""),
       Cell(msg"")
     ))
 
     Table(head = head, rows = rows ++ totalRow)
   }
+
+  def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {
+    val hiddenTag = "govuk-visually-hidden"
+    Html(s"<a id=$id href=$url> ${messages(text)}" +
+      s"<span class= $hiddenTag>${messages("chargeE.addMembers.visuallyHidden", name)}</span> </a>")
+  }
+
 }

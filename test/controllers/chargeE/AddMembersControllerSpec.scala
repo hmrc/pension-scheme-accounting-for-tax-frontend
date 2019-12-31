@@ -59,20 +59,20 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/check-your-answers> View </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/remove-charge> Remove </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/check-your-answers> View </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/remove-charge> Remove </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
-        Json.obj("text" -> ""),
-        Json.obj("text" -> "Total £66.88","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
+        Json.obj("text" -> "£66.88","classes" -> cssQuarterWidth),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
