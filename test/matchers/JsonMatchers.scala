@@ -24,7 +24,6 @@ trait JsonMatchers {
   class JsonContains(json: JsObject) extends Matcher[JsObject] {
 
     def apply(left: JsObject): MatchResult = {
-
       val mismatches = json.keys.filter(key => (left \ key) != (json \ key))
 
       MatchResult(

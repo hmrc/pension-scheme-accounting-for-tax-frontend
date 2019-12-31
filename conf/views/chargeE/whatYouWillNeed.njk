@@ -31,13 +31,13 @@
         </ul>
 
          {{ govukButton({
-            href: nextPage,
+            href: viewModel.submitUrl,
             attributes: {id: "submit"},
             text: messages("site.continue")
           }) }}
       </div>
     </div>
 
-  <a href="{{nextPage}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+  <a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}

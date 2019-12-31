@@ -16,11 +16,12 @@
 
 package controllers.chargeE
 
+import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.NormalMode
+import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeE.WhatYouWillNeedPage
@@ -41,16 +42,21 @@ class WhatYouWillNeedController @Inject()(
                                            renderer: Renderer,
                                            schemeDetailsConnector: SchemeDetailsConnector,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
-                                           navigator: CompoundNavigator
+                                           navigator: CompoundNavigator,
+                                           config: FrontendAppConfig
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       val ua = request.userAnswers
-      val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+
+      val viewModel = GenericViewModel(
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn).url,
+        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+        schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
+      )
 
       renderer.render(template = "chargeE/whatYouWillNeed.njk",
-        Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        Json.obj("viewModel" -> viewModel)).map(Ok(_))
   }
 }
