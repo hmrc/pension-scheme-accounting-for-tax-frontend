@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package models.chargeD
+package pages.chargeD
 
-import java.time.LocalDate
+import pages.Page
 
-import play.api.libs.json.{Format, Json}
-
-case class ChargeDDetails(dateOfEvent: LocalDate, taxAt25Percent: BigDecimal, taxAt55Percent: BigDecimal){
-  def total: BigDecimal = taxAt25Percent + taxAt55Percent
-}
-
-object ChargeDDetails {
-  implicit lazy val formats: Format[ChargeDDetails] =
-    Json.format[ChargeDDetails]
-}
+case object CheckYourAnswersPage extends Page
