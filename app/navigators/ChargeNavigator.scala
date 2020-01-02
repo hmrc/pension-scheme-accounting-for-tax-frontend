@@ -27,6 +27,7 @@ import services.chargeE.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
+  def nextIndexChargeD(ua: UserAnswers, srn: String): Int = 0
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
@@ -44,6 +45,8 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn) == 0 => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeAnnualAllowance) => controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeE(ua, srn))
       case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
+      case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeE(ua, srn) == 0 => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn)
+      case Some(ChargeType.ChargeTypeLifetimeAllowance) => controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeD(ua, srn))
       case _ => sessionExpiredPage
     }
 

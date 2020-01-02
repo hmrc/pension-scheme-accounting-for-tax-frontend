@@ -24,6 +24,7 @@ import models.chargeD.ChargeDDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeE.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -52,4 +53,7 @@ object SampleData {
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
+
+  val chargeDMember: UserAnswers = userAnswersWithSchemeName.set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
+    .set(ChargeDDetailsPage(0), chargeEDetails).toOption.get
 }
