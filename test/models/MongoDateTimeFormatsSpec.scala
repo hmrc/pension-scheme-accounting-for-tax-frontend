@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class MongoDateTimeFormatsSpec extends SpecBase with MustMatchers with OptionVal
     val dateMillis = 1517443200000L
 
     val json = Json.obj(
-      """$date""" -> dateMillis
+      "$date" -> dateMillis
     )
 
     "must serialise to json" in {

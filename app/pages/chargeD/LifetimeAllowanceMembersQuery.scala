@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package pages.chargeE
+package pages.chargeD
 
-import pages.QuestionPage
+import pages.Page
 import play.api.libs.json.JsPath
 
-case object DeleteMemberPage extends QuestionPage[Boolean] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "deleteMember"
+case class LifetimeAllowanceMembersQuery(index: Int) extends Page  {
+  def path: JsPath = JsPath \ "chargeDDetails" \ LifetimeAllowanceMembersQuery.toString \ index
 }
+
+object LifetimeAllowanceMembersQuery {
+  override def toString: String = "members"
+}
+

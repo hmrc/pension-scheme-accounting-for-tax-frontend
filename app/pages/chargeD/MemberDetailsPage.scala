@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package pages.chargeE
+package pages.chargeD
 
+import models.MemberDetails
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object DeleteMemberPage extends QuestionPage[Boolean] {
+case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
 
-  override def path: JsPath = JsPath \ toString
+  override def path: JsPath = LifetimeAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
+}
 
-  override def toString: String = "deleteMember"
+object MemberDetailsPage {
+  def collectionPath: JsPath = JsPath \ "chargeDDetails" \ LifetimeAllowanceMembersQuery.toString \\ MemberDetailsPage.toString
+  override lazy val toString: String = "memberDetails"
 }

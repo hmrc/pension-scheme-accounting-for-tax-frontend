@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeE.MemberDetailsFormProvider
+import forms.MemberDetailsFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
@@ -65,10 +65,11 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel,
+          "chargeName" -> "chargeE"
         )
 
-        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
+        renderer.render("memberDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -88,7 +89,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel
             )
 
-            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
+            renderer.render("memberDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {
