@@ -14,32 +14,19 @@
  * limitations under the License.
  */
 
-package forms
+package pages.chargeD
 
-import forms.behaviours.BooleanFieldBehaviours
-import play.api.data.FormError
+import models.chargeD.ChargeDDetails
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class AFTSummaryFormProviderSpec extends BooleanFieldBehaviours {
+case class ChargeDetailsPage(index: Int) extends QuestionPage[ChargeDDetails] {
 
-  val requiredKey = "aft.summary.error.required"
-  val invalidKey = "error.boolean"
+  override def path: JsPath = LifetimeAllowanceMembersQuery(index).path \ ChargeDetailsPage.toString
 
-  val form = new AFTSummaryFormProvider()()
+}
 
-  ".value" must {
+object ChargeDetailsPage {
 
-    val fieldName = "value"
-
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
-    )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
+  override def toString: String = "chargeDetails"
 }

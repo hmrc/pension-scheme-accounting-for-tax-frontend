@@ -23,7 +23,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
 
   val form = new MemberDetailsFormProvider()()
 
-  ".firstName" - {
+  ".firstName" must {
 
     val fieldName = "firstName"
     val requiredKey = "memberDetails.error.firstName.required"
@@ -50,7 +50,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  ".lastName" - {
+  ".lastName" must {
 
     val fieldName = "lastName"
     val requiredKey = "memberDetails.error.lastName.required"

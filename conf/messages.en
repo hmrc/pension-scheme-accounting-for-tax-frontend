@@ -350,3 +350,19 @@ chargeD.whatYouWillNeed.li2 = their National Insurance number
 chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+
+amountTaxDue.error.required = Enter the amount of tax due at {0}%
+amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
+amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
+amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
+
+dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
+dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.future = The date of the benefit crystallisation event giving rise to the charge must be today or in the past
+
+chargeDDetails.title = Lifetime allowance charge details for {0}
+chargeDDetails.heading = Lifetime allowance charge details for {0}
+chargeDDetails.dateOfEvent.label = Date of benefit crystallisation event giving rise to the charge
+taxAt25Percent.label = Amount of tax due at 25%
+taxAt55Percent.label = Amount of tax due at 55%

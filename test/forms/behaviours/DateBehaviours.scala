@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 import org.scalacheck.Gen
 import play.api.data.{Form, FormError}
 
-class DateBehaviours extends FieldBehaviours {
+trait DateBehaviours extends FieldBehaviours {
 
   def dateField(form: Form[_], key: String, validData: Gen[LocalDate]): Unit = {
 
@@ -39,7 +39,7 @@ class DateBehaviours extends FieldBehaviours {
 
           val result = form.bind(data)
 
-          result.value.value shouldEqual date
+          result.value.value mustEqual date
       }
     }
   }
@@ -61,7 +61,7 @@ class DateBehaviours extends FieldBehaviours {
 
           val result = form.bind(data)
 
-          result.errors should contain(formError)
+          result.errors must contain(formError)
       }
     }
   }
@@ -83,7 +83,7 @@ class DateBehaviours extends FieldBehaviours {
 
           val result = form.bind(data)
 
-          result.errors should contain(formError)
+          result.errors must contain(formError)
       }
     }
   }
@@ -94,7 +94,7 @@ class DateBehaviours extends FieldBehaviours {
 
       val result = form.bind(Map.empty[String, String])
 
-      result.errors should contain(FormError(key, requiredAllKey, errorArgs))
+      result.errors must contain(FormError(key, requiredAllKey, errorArgs))
     }
   }
 }

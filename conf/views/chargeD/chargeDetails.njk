@@ -1,0 +1,86 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
+{% from "govuk/components/radios/macro.njk"        import govukRadios %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% block pageTitle %}
+  {{ title(messages("chargeDDetails.title", memberName), form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if form.errors.length > 0 %}
+          {{ govukErrorSummary({
+            "titleText": messages("error.summary.title"),
+            "errorList": form.errors
+          }) }}
+        {% endif %}
+
+        <h1 class="govuk-heading-xl">{{messages('chargeDDetails.heading', memberName)}}</h1>
+
+        <form action="{{ submitUrl }}" method="post">
+
+          {{ csrf() | safe }}
+
+          {{ govukDateInput({
+                    id: "dateOfEvent",
+                    fieldset: {
+                      legend: {
+                        text: messages('chargeDDetails.dateOfEvent.label'),
+                        isPageHeading: false,
+                        classes: "govuk-fieldset__legend--s"
+                      }
+                    },
+                    errorMessage: form.dateOfEvent.error,
+                    items: date.items
+                  }) }}
+
+          {{ govukInput({
+                      id: "taxAt25Percent",
+                      label: {
+                        text: messages('taxAt25Percent.label'),
+                        isPageHeading: false,
+                        classes: "govuk-label--s"
+                      },
+                      name: "taxAt25Percent",
+                      type: "text",
+                      value: form.taxAt25Percent.value,
+                      classes: "govuk-input--width-10",
+                      errorMessage: form.taxAt25Percent.error
+                    }) }}
+
+            {{ govukInput({
+                        id: "taxAt55Percent",
+                        label: {
+                          text: messages('taxAt55Percent.label'),
+                          isPageHeading: false,
+                          classes: "govuk-label--s"
+                        },
+                        name: "taxAt55Percent",
+                        type: "text",
+                        value: form.taxAt55Percent.value,
+                        classes: "govuk-input--width-10",
+                        errorMessage: form.taxAt55Percent.error
+                      }) }}
+
+          {{ govukButton({
+                            text: messages("site.continue"),
+                            attributes: {id: "submit"}
+                  }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+   <a href= "{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}

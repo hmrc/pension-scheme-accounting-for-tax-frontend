@@ -38,7 +38,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
   private val decimalFormat = new DecimalFormat("0.00")
 
-  "numberOfMembers" - {
+  "numberOfMembers" must {
 
     behave like intField(
       form = form,
@@ -55,7 +55,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "totalAmtOfTaxDueAtLowerRate" - {
+  "totalAmtOfTaxDueAtLowerRate" must {
 
     behave like bigDecimalField(
       form = form,
@@ -79,7 +79,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "totalAmtOfTaxDueAtHigherRate" - {
+  "totalAmtOfTaxDueAtHigherRate" must {
 
     behave like bigDecimalField(
       form = form,
@@ -103,7 +103,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "totalAmount" - {
+  "totalAmount" must {
     "must bind correctly calculated total to form" in {
       val resultForm = form.bind(Map(
         totalNumberOfMembersKey -> SampleData.chargeAChargeDetails.numberOfMembers.toString,
@@ -111,7 +111,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
         totalAmtOfTaxDueAtHigherRateKey -> decimalFormat.format(SampleData.chargeAChargeDetails.totalAmtOfTaxDueAtHigherRate)
       ))
 
-      resultForm.value shouldEqual Some(SampleData.chargeAChargeDetails)
+      resultForm.value mustEqual Some(SampleData.chargeAChargeDetails)
     }
   }
 }

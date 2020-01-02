@@ -14,32 +14,15 @@
  * limitations under the License.
  */
 
-package forms
+package models.chargeD
 
-import forms.behaviours.BooleanFieldBehaviours
-import play.api.data.FormError
+import java.time.LocalDate
 
-class AFTSummaryFormProviderSpec extends BooleanFieldBehaviours {
+import play.api.libs.json.{Format, Json}
 
-  val requiredKey = "aft.summary.error.required"
-  val invalidKey = "error.boolean"
+case class ChargeDDetails(dateOfEvent: LocalDate, taxAt25Percent: BigDecimal, taxAt55Percent: BigDecimal)
 
-  val form = new AFTSummaryFormProvider()()
-
-  ".value" must {
-
-    val fieldName = "value"
-
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
-    )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
+object ChargeDDetails {
+  implicit lazy val formats: Format[ChargeDDetails] =
+    Json.format[ChargeDDetails]
 }
