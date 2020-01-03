@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
+import models.chargeG.{MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -44,6 +45,7 @@ object SampleData {
 
   val chargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
+  val memberDetailsG: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
   val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
 

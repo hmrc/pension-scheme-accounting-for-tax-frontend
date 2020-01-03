@@ -134,6 +134,12 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
+dob.label = Date of birth
+dob.error.required = Enter the member’s date of birth
+dob.error.invalid = Enter a real date for the member’s date of birth
+dob.error.incomplete = The member’s date of birth must include a day, month and year
+dob.error.future = The member’s date of birth must be in the past
+
 return.to.link = Return to {0}
 
 chargeDetails.amount.label = Amount of tax due at 40%
