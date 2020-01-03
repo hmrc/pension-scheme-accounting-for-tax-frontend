@@ -304,10 +304,6 @@ chargeE.addMembers.error = Select yes if you want to add another annual allowanc
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
-chargeE.addMembers.members.header = Member
-chargeE.addMembers.nino.header = National Insurance number
-chargeE.addMembers.chargeAmount.header = Charge amount
-chargeE.addMembers.total = Total
 chargeE.addMembers.visuallyHidden = {0}’s annual allowance charge
 
 deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
@@ -369,3 +365,15 @@ taxAt25Percent.label = Amount of tax due at 25%
 taxAt55Percent.label = Amount of tax due at 55%
 taxAt25Percent.visuallyHidden.label = the amount of tax due at 25%
 taxAt55Percent.visuallyHidden.label = the amount of tax due at 55%
+
+chargeD.addMembers.error = Select yes if you want to add another lifetime allowance charge
+chargeD.addMembers.title = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.heading = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.label = Do you want to add another lifetime allowance charge?
+chargeD.addMembers.visuallyHidden = {0}’s lifetime allowance charge
+
+addMembers.members.header = Member
+addMembers.nino.header = National Insurance number
+addMembers.chargeE.amount.header = Charge amount
+addMembers.chargeD.amount.header = Total tax due
+addMembers.total = Total

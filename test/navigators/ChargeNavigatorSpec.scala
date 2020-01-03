@@ -44,7 +44,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeEMemberExists),
         row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeDeRegistration)),
         row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeLifetimeAllowance)),
-        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 0), chargeDMemberExists),
+        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeDMemberExists),
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn), addAnotherChargeYes),
         row(AFTSummaryPage)(Call("GET", frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn)), addAnotherChargeNo)
       )

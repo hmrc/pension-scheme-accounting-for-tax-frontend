@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package models.chargeE
+package models
 
 import play.api.libs.json.{Format, Json}
 
 import scala.language.implicitConversions
 
-case class AnnualAllowanceMember(index: Int, name: String, nino: String, chargeAmount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
     def id = s"member-$index"
 
     def removeLinkId = s"$id-remove"
@@ -29,7 +29,7 @@ case class AnnualAllowanceMember(index: Int, name: String, nino: String, chargeA
 
 }
 
-object AnnualAllowanceMember {
-    implicit lazy val formats: Format[AnnualAllowanceMember] =
-        Json.format[AnnualAllowanceMember]
+object Member {
+    implicit lazy val formats: Format[Member] =
+        Json.format[Member]
 }

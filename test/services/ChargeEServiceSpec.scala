@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package services.chargeE
+package services
 
 import base.SpecBase
 import data.SampleData
-import models.{MemberDetails, NormalMode, UserAnswers}
-import models.chargeE.AnnualAllowanceMember
+import models.{Member, MemberDetails, NormalMode, UserAnswers}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 
 class ChargeEServiceSpec extends SpecBase {
@@ -38,13 +37,13 @@ class ChargeEServiceSpec extends SpecBase {
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
-    AnnualAllowanceMember(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
-  def expectedAllMembers: Seq[AnnualAllowanceMember] = Seq(
+  def expectedAllMembers: Seq[Member] = Seq(
     expectedMember(SampleData.memberDetails, 0),
     expectedMember(SampleData.memberDetails2, 1))
 
-  def expectedMembersIncludingDeleted: Seq[AnnualAllowanceMember] = expectedAllMembers ++ Seq(
+  def expectedMembersIncludingDeleted: Seq[Member] = expectedAllMembers ++ Seq(
     expectedMember(SampleData.memberDetailsDeleted, 2)
   )
 

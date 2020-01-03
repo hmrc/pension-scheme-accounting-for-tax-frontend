@@ -24,16 +24,17 @@ import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage}
+import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.ChargeDService.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -76,8 +77,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
+        val totalAmount = getLifetimeAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
         for {
-          _ <- aftConnector.fileAFTReturn(pstr, request.userAnswers)
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
+          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+          _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
         }
