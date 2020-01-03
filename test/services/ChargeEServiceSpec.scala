@@ -35,7 +35,7 @@ class ChargeEServiceSpec extends SpecBase {
     .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index).url
-  def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index).url
+  def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 

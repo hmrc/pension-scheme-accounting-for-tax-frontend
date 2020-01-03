@@ -100,7 +100,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val members = getLifetimeAllowanceMembersIncludingDeleted(request.userAnswers, srn)
+        val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
 
         Json.obj(
           "form" -> form,

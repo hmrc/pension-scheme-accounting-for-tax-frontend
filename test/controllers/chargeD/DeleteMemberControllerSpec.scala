@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
@@ -29,7 +29,7 @@ import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeD.{MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -48,7 +48,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val memberName = "first last"
   private val formProvider = new DeleteMemberFormProvider()
-  private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
+  private val form: Form[Boolean] = formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
   private def deleteMemberRoute(): String = routes.DeleteMemberController.onPageLoad(srn, 0).url
   private def deleteMemberSubmitRoute(): String = routes.DeleteMemberController.onSubmit(srn, 0).url
@@ -93,7 +93,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         "memberName" -> memberName
       )
 
-      templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
+      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -158,7 +158,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
+      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()

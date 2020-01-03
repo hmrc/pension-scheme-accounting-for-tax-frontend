@@ -50,7 +50,7 @@ object ChargeEService {
     getAnnualAllowanceMembersIncludingDeleted(ua, srn).filterNot(_.isDeleted)
 
   def viewUrl(index: Int, srn: String): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-  def removeUrl(index: Int, srn: String): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(NormalMode, srn, index)
+  def removeUrl(index: Int, srn: String): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, index)
 
   def mapToTable(members: Seq[Member])(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeE", members)

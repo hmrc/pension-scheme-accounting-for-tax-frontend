@@ -21,7 +21,7 @@ import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage, WhatYouWillNeedPage}
+import pages.chargeD.{AddMembersPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
@@ -29,6 +29,10 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
   private val index = 0
+  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
+  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
+
+
 
 
   "NormalMode" must {
@@ -37,7 +41,11 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index)),
         row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
-        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
+        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
+        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addMembersNo),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

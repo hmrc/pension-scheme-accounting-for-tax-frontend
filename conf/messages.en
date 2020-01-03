@@ -310,6 +310,10 @@ deleteMember.title = Are you sure you want to remove the annual allowance charge
 deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}
 
+deleteMember.chargeD.title = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.heading = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.error.required = Select yes if you want to remove the lifetime allowance charge for {0}
+
 chargeType.radio.annualAllowance = Annual allowance charge
 chargeType.radio.authSurplus = Authorised surplus payments charge
 chargeType.radio.deRegistration = De-registration charge

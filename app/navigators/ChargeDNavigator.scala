@@ -25,7 +25,7 @@ import pages.Page
 import pages.chargeD._
 import pages.chargeD.AddMembersPage
 import play.api.mvc.Call
-import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
+import services.ChargeDService._
 
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
@@ -42,6 +42,8 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
+    case DeleteMemberPage if getLifetimeAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
+    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

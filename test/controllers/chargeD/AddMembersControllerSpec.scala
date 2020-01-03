@@ -60,14 +60,14 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£83.44","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/1/check-your-answers> Remove<span class= govuk-visually-hidden>first last’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£83.44","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/2/check-your-answers> Remove<span class= govuk-visually-hidden>Joe Bloggs’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
