@@ -81,3 +81,5 @@ GET        /:srn/new-return/change/summary                                      
 POST       /:srn/new-return/change/summary                                                            controllers.AFTSummaryController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/authorised-surplus-payments-charge/what-you-will-need           controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
