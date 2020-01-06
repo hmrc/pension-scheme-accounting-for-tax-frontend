@@ -18,17 +18,18 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import controllers.chargeE.routes._
+import controllers.chargeD.routes._
+import controllers.chargeD.routes.MemberDetailsController
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeE._
+import pages.chargeD._
+import pages.chargeD.AddMembersPage
 import play.api.mvc.Call
-import controllers.chargeE.routes._
-import services.ChargeEService._
+import services.ChargeDService._
 
-class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
+  def nextIndex(ua: UserAnswers, srn: String): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn).size
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
@@ -37,18 +38,16 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)
-    case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
+    case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
-    case DeleteMemberPage if getAnnualAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
+    case DeleteMemberPage if getLifetimeAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
     case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
-    case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
   }
 }

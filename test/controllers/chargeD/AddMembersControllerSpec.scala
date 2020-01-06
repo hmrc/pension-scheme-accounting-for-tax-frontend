@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AddMembersFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, YearRange}
+import models.GenericViewModel
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
-import pages.chargeE._
+import pages.chargeD._
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  private val templateToBeRendered = "chargeE/addMembers.njk"
+  private val templateToBeRendered = "chargeD/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
-  private def membersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def membersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
+  private def membersGetRoute: String = controllers.chargeD.routes.AddMembersController.onPageLoad(SampleData.srn).url
+  private def membersPostRoute: String = controllers.chargeD.routes.AddMembersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -50,7 +50,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "head" -> Json.arr(
       Json.obj("text" -> "Member", "classes" -> cssQuarterWidth),
       Json.obj("text" -> "National Insurance number", "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "Charge amount", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "Total tax due", "classes" -> cssQuarterWidth),
       Json.obj("text" -> ""),
       Json.obj("text" -> "")
     ),
@@ -58,21 +58,21 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.arr(
         Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "£83.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/annual-allowance-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s annual allowance charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "£83.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/lifetime-allowance-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s lifetime allowance charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> "£66.88","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£166.88","classes" -> cssQuarterWidth),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
@@ -82,7 +82,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url,
+      submitUrl = controllers.chargeD.routes.AddMembersController.onSubmit(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value")),
@@ -94,10 +94,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private def ua = SampleData.userAnswersWithSchemeName
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(AnnualAllowanceYearPage(0), YearRange.CurrentYear).toOption.get
-    .set(AnnualAllowanceYearPage(1), YearRange.CurrentYear).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
+    .set(ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
+    .set(ChargeDetailsPage(1), SampleData.chargeDDetails).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeG
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
@@ -25,17 +25,17 @@ import models.{GenericViewModel, YearRange}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
-import pages.chargeE._
+import pages.chargeG._
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  private val templateToBeRendered = "chargeE/addMembers.njk"
+  private val templateToBeRendered = "chargeG/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
-  private def membersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def membersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
+  private def membersGetRoute: String = controllers.chargeG.routes.AddMembersController.onPageLoad(SampleData.srn).url
+  private def membersPostRoute: String = controllers.chargeG.routes.AddMembersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -82,7 +82,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url,
+      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value")),
@@ -92,12 +92,10 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   )
 
   private def ua = SampleData.userAnswersWithSchemeName
-    .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(AnnualAllowanceYearPage(0), YearRange.CurrentYear).toOption.get
-    .set(AnnualAllowanceYearPage(1), YearRange.CurrentYear).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
+    .set(MemberDetailsPage(0), SampleData.memberDetailsG).toOption.get
+    .set(MemberDetailsPage(1), SampleData.memberDetailsG2).toOption.get
+    .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
+    .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
 

@@ -16,6 +16,7 @@
 
 package forms.chargeE
 
+import forms.MemberDetailsFormProvider
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 

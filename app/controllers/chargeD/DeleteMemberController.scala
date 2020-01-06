@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
@@ -25,13 +25,13 @@ import forms.DeleteMemberFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeD.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.ChargeEService.getAnnualAllowanceMembers
+import services.ChargeDService.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -51,7 +51,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("deleteMember.error.required", memberName))
+    formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -70,7 +70,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               "memberName" -> memberDetails.fullName
             )
 
-            renderer.render("chargeE/deleteMember.njk", json).map(Ok(_))
+            renderer.render("chargeD/deleteMember.njk", json).map(Ok(_))
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
@@ -96,7 +96,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                   "memberName" -> memberDetails.fullName
                 )
 
-                renderer.render("chargeE/deleteMember.njk", json).map(BadRequest(_))
+                renderer.render("chargeD/deleteMember.njk", json).map(BadRequest(_))
 
               },
               value =>
@@ -119,5 +119,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getLifetimeAllowanceMembers(ua, srn).map(_.amount).sum
 }

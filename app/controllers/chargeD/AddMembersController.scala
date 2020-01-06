@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -27,32 +27,32 @@ import javax.inject.Inject
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
-import pages.chargeE.AddMembersPage
+import pages.chargeD.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.ChargeEService.{getAnnualAllowanceMembers, mapToTable}
+import services.ChargeDService._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AddMembersController @Inject()(override val messagesApi: MessagesApi,
-                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        navigator: CompoundNavigator,
-                                        identify: IdentifierAction,
-                                        getData: DataRetrievalAction,
-                                        requireData: DataRequiredAction,
-                                        formProvider: AddMembersFormProvider,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        config: FrontendAppConfig,
-                                        renderer: Renderer
+                                     userAnswersCacheConnector: UserAnswersCacheConnector,
+                                     navigator: CompoundNavigator,
+                                     identify: IdentifierAction,
+                                     getData: DataRetrievalAction,
+                                     requireData: DataRequiredAction,
+                                     formProvider: AddMembersFormProvider,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     config: FrontendAppConfig,
+                                     renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
+  def form: Form[Boolean] = formProvider("chargeD.addMembers.error")
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
@@ -62,7 +62,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
 
-          renderer.render(template = "chargeE/addMembers.njk",
+          renderer.render(template = "chargeD/addMembers.njk",
             getJson(srn, form, schemeName, quarter)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -77,7 +77,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
               case (Some(schemeName), Some(quarter)) =>
 
                 renderer.render(
-                  template = "chargeE/addMembers.njk",
+                  template = "chargeD/addMembers.njk",
                   getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -100,7 +100,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val members = getAnnualAllowanceMembers(request.userAnswers, srn)
+        val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
 
         Json.obj(
           "form" -> form,

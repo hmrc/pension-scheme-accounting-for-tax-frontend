@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
@@ -24,12 +24,12 @@ import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
+import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.ChargeEService.getAnnualAllowanceMembers
+import services.ChargeDService.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
@@ -52,6 +52,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+        val total = request.userAnswers.get(ChargeDetailsPage(index)).map(_.total).getOrElse(BigDecimal(0))
 
         val viewModel = GenericViewModel(
           submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
@@ -59,16 +60,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           schemeName = schemeName)
 
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeEMemberDetails(index).get,
-          helper.chargeETaxYear(index).get,
-          helper.chargeEDetails(index).get
+          helper.chargeDMemberDetails(index).get,
+          helper.chargeDDetails(index).get,
+          Seq(helper.total(total))
         ).flatten
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
             "viewModel" -> viewModel,
-            "chargeName" -> "chargeE"
+            "chargeName" -> "chargeD"
           )).map(Ok(_))
       }
   }
@@ -76,7 +77,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getAnnualAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
+        val totalAmount = getLifetimeAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)

@@ -16,15 +16,15 @@
 
 package navigators
 
-import controllers.chargeE.routes._
+import controllers.chargeD.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeE.{AddMembersPage, AnnualAllowanceYearPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
+import pages.chargeD.{AddMembersPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
-class ChargeENavigatorSpec extends NavigatorBehaviour {
+class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
@@ -33,18 +33,19 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
 
 
+
+
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index)),
-        row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)),
-        row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
+        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addMembersNo),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
-        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeEMember))
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -55,7 +56,6 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(MemberDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(AnnualAllowanceYearPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
       )
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -24,7 +24,7 @@ import forms.MemberDetailsFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
-import pages.chargeE.MemberDetailsPage
+import pages.chargeD.MemberDetailsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -65,10 +65,11 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel,
+          "chargeName" -> "chargeD"
         )
 
-        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
+        renderer.render("memberDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -85,10 +86,11 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel
+              "viewModel" -> viewModel,
+              "chargeName" -> "chargeD"
             )
 
-            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
+            renderer.render("memberDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {
