@@ -16,25 +16,36 @@
 
 package navigators
 
-import controllers.chargeC.routes.IsSponsoringEmployerIndividualController
+import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, SponsoringOrganisationDetailsController}
 import models.{NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeC.WhatYouWillNeedPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, WhatYouWillNeedPage}
+import play.api.libs.json.Json
 import play.api.mvc.Call
 
 class ChargeCNavigatorSpec extends NavigatorBehaviour {
-
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-  private val srn = "test-srn"
+
+  import ChargeCNavigatorSpec._
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn))
+        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)),
+        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
+}
+
+object ChargeCNavigatorSpec {
+
+  private val srn = "test-srn"
+
+  private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
+    IsSponsoringEmployerIndividualPage.toString -> false
+  ))
 }

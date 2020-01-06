@@ -17,15 +17,7 @@
 package forms.mappings
 
 trait Transforms {
-
-
-  protected def noTransform(value: String): String = {
-    value
-  }
-
-  protected def standardTextTransform(value: String): String = {
-    value.trim
-  }
+  protected def noTransform(value: String): String = value
 
   protected def noSpaceWithUpperCaseTransform(value: String): String =
     toUpperCaseAlphaOnly(strip(value))
@@ -36,12 +28,7 @@ trait Transforms {
       case c                                    => c
     }
 
-
   protected def strip(value: String): String = {
     value.replaceAll(" ", "")
   }
-
-  protected def minimiseSpace(value: String): String =
-    value.replaceAll(" {2,}", " ")
-
 }
