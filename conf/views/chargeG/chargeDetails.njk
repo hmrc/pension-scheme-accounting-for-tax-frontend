@@ -2,6 +2,7 @@
 
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
@@ -27,6 +28,20 @@
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
+
+          {{ govukInput({
+              id: "qropsReferenceNumber",
+              label: {
+                text: messages('chargeG.chargeDetails.qropsReferenceNumber.label'),
+                isPageHeading: false,
+                classes: "govuk-label--s"
+              },
+              name: "qropsReferenceNumber",
+              type: "text",
+              value: form.qropsReferenceNumber.value,
+              classes: "govuk-input--width-10",
+              errorMessage: form.qropsReferenceNumber.error
+            }) }}
 
           {{ govukDateInput({
             fieldset: {
