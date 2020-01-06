@@ -24,6 +24,6 @@ class IsSponsoringEmployerIndividualFormProvider @Inject() extends Mappings {
 
   def apply(): Form[Boolean] =
     Form(
-      "value" -> boolean("isSponsoringEmployerIndividual.error.required")
+      "value" -> boolean("chargeC.isSponsoringEmployerIndividual.error.required")
     )
 }

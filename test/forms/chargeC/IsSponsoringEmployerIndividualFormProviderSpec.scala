@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class IsSponsoringEmployerIndividualFormProviderSpec extends BooleanFieldBehaviours {
 
-  val requiredKey = "isSponsoringEmployerIndividual.error.required"
+  val requiredKey = "chargeC.isSponsoringEmployerIndividual.error.required"
   val invalidKey = "error.boolean"
 
   val form = new IsSponsoringEmployerIndividualFormProvider()()
