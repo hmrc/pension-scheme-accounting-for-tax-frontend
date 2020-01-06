@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package forms.chargeE
+package forms.chargeG
 
-import forms.behaviours.StringFieldBehaviours
+import java.time.LocalDate
+
+import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
+import models.chargeG.MemberDetails
 import play.api.data.FormError
 
-class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
+class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehaviours {
 
   val form = new MemberDetailsFormProvider()()
 
@@ -75,5 +78,33 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
     )
+  }
+
+  "nino" - {
+    behave like nino(
+      form,
+      fieldName = "nino",
+      requiredKey = "memberDetails.error.nino.required",
+      invalidKey = "memberDetails.error.nino.invalid"
+    )
+
+    "successfully bind when yes is selected and valid NINO with spaces is provided" in {
+      val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
+        "dob.day" -> "20",
+        "dob.month" -> "02",
+        "dob.year" -> "2002",
+        "nino" -> " a b 0 2 0 2 0 2 a "))
+      res.get shouldEqual MemberDetails("Jane", "Doe", LocalDate.of(2002, 2, 20), "AB020202A")
+    }
+  }
+
+  "dob" - {
+
+    val dobKey = "dob"
+
+    behave like mandatoryDateField(
+      form = form,
+      key = dobKey,
+      requiredAllKey = "dob.error.required")
   }
 }

@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package controllers.chargeA
+package controllers.chargeG
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.GenericViewModel
-import pages.chargeA.WhatYouWillNeedPage
-import play.api.libs.json.{JsObject, Json}
+import pages.chargeG.WhatYouWillNeedPage
+import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
-  private def httpGETRoute: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+  private val templateToBeRendered = "chargeG/whatYouWillNeed.njk"
+  private def httpGETRoute: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
-  private val jsonToPassToTemplate:JsObject = Json.obj(
-    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url, "viewModel" -> GenericViewModel(
-      submitUrl = "",
+  private val jsonToPassToTemplate = Json.obj(
+    "viewModel" -> GenericViewModel(
+      submitUrl = SampleData.dummyCall.url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName))
+      schemeName = SampleData.schemeName)
+  )
 
   "whatYouWillNeed Controller" must {
     behave like controllerWithGET(

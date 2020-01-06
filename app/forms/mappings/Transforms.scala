@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package pages
+package forms.mappings
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+trait Transforms {
 
-class ChargeTypePageSpec extends PageBehaviours {
-
-  "ChargeTypePage" - {
-
-    beRetrievable[ChargeType](ChargeTypePage)
-
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
+  protected def noTransform(value: String): String = {
+    value
   }
+
+  protected def noSpaceWithUpperCaseTransform(value: String): String =
+    toUpperCaseAlphaOnly(strip(value))
+
+  protected def toUpperCaseAlphaOnly(value: String): String =
+    value.map {
+      case c if ('a' to 'z').contains(c) => c.toUpper
+      case c                                    => c
+    }
+
+  protected def strip(value: String): String = {
+    value.replaceAll(" ", "")
+  }
+
 }

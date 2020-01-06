@@ -26,3 +26,4 @@ case class OverseasTransferMembersQuery(index: Int) extends Page  {
 object OverseasTransferMembersQuery {
   override def toString: String = "members"
 }
+

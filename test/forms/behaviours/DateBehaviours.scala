@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 import org.scalacheck.Gen
 import play.api.data.{Form, FormError}
 
-class DateBehaviours extends FieldBehaviours {
+trait DateBehaviours extends FieldBehaviours {
 
   def dateField(form: Form[_], key: String, validData: Gen[LocalDate]): Unit = {
 

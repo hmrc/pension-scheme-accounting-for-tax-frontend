@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeG
 
-import models.ChargeType
-import pages.behaviours.PageBehaviours
+import pages.Page
 
-class ChargeTypePageSpec extends PageBehaviours {
-
-  "ChargeTypePage" - {
-
-    beRetrievable[ChargeType](ChargeTypePage)
-
-    beSettable[ChargeType](ChargeTypePage)
-
-    beRemovable[ChargeType](ChargeTypePage)
-  }
-}
+case object WhatYouWillNeedPage extends Page
