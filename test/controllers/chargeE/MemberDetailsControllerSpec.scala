@@ -19,7 +19,7 @@ package controllers.chargeE
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.MemberDetailsFormProvider
+import forms.chargeE.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode}
 import pages.chargeE.MemberDetailsPage
@@ -28,7 +28,7 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
-  val templateToBeRendered = "memberDetails.njk"
+  val templateToBeRendered = "chargeE/memberDetails.njk"
   val formProvider = new MemberDetailsFormProvider()
   val form: Form[MemberDetails] = formProvider()
 
