@@ -356,3 +356,8 @@ aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits ch
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
 
+
+isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
+isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
+isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
