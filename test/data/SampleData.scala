@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
-import models.chargeG.{MemberDetails => MemberDetailsG}
+import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -35,6 +35,7 @@ object SampleData {
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
   val chargeAmount1 = BigDecimal(33.44)
+  val chargeAmounts = ChargeAmounts(BigDecimal(33.44), BigDecimal(44.44))
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)

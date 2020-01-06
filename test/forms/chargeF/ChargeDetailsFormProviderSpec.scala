@@ -30,7 +30,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
 
-  "deregistrationDate" - {
+  "deregistrationDate" must {
 
     behave like dateFieldWithMin(
       form = form,
@@ -52,7 +52,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       requiredAllKey = s"$deRegDateMsgKey.error.required.all")
   }
 
-  "amountTaxDue" - {
+  "amountTaxDue" must {
 
     behave like bigDecimalField(
       form = form,

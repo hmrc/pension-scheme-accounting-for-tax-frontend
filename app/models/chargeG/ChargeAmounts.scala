@@ -14,32 +14,12 @@
  * limitations under the License.
  */
 
-package forms
+package models.chargeG
 
-import forms.behaviours.BooleanFieldBehaviours
-import play.api.data.FormError
+import play.api.libs.json.{Format, Json}
 
-class AFTSummaryFormProviderSpec extends BooleanFieldBehaviours {
+case class ChargeAmounts(amountTransferred: BigDecimal, amountTaxDue: BigDecimal)
 
-  val requiredKey = "aft.summary.error.required"
-  val invalidKey = "error.boolean"
-
-  val form = new AFTSummaryFormProvider()()
-
-  ".value" must {
-
-    val fieldName = "value"
-
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
-    )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
+object ChargeAmounts {
+  implicit lazy val formats: Format[ChargeAmounts] = Json.format[ChargeAmounts]
 }

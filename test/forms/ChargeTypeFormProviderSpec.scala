@@ -24,7 +24,7 @@ class ChargeTypeFormProviderSpec extends OptionFieldBehaviours {
 
   val form = new ChargeTypeFormProvider()()
 
-  ".value" - {
+  ".value" must {
 
     val fieldName = "value"
     val requiredKey = "chargeType.error.required"
