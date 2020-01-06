@@ -26,4 +26,3 @@ case class LifetimeAllowanceMembersQuery(index: Int) extends Page  {
 object LifetimeAllowanceMembersQuery {
   override def toString: String = "members"
 }
-

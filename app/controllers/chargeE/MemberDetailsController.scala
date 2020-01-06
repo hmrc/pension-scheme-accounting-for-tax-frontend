@@ -65,11 +65,10 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "chargeName" -> "chargeE"
+          "viewModel" -> viewModel
         )
 
-        renderer.render("memberDetails.njk", json).map(Ok(_))
+        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -89,7 +88,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel
             )
 
-            renderer.render("memberDetails.njk", json).map(BadRequest(_))
+            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {
