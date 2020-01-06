@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package pages.chargeC
 
-import pages.Page
+import pages.behaviours.PageBehaviours
 
-case object WhatYouWillNeedPage extends Page
+class IsSponsoringEmployerIndividualPageSpec extends PageBehaviours {
+
+  "IsSponsoringEmployerIndividualPage" - {
+
+    beRetrievable[Boolean](IsSponsoringEmployerIndividualPage)
+
+    beSettable[Boolean](IsSponsoringEmployerIndividualPage)
+
+    beRemovable[Boolean](IsSponsoringEmployerIndividualPage)
+  }
+}

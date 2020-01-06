@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package pages.chargeC
 
-import pages.Page
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case object WhatYouWillNeedPage extends Page
+case object IsSponsoringEmployerIndividualPage extends QuestionPage[Boolean] {
+
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "chargeCIsSponsoringEmployerIndividual"
+}

@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package forms.chargeC
 
-import pages.Page
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-case object WhatYouWillNeedPage extends Page
+class IsSponsoringEmployerIndividualFormProvider @Inject() extends Mappings {
+
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("chargeC.isSponsoringEmployerIndividual.error.required")
+    )
+}
