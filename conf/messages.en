@@ -341,6 +341,15 @@ aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits ch
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
 
+chargeD.whatYouWillNeed.title = Lifetime allowance charge
+chargeD.whatYouWillNeed.heading = Lifetime allowance charge
+chargeD.whatYouWillNeed.p1 = To record a lifetime allowance charge you will need the following for each member liable to the charge:
+chargeD.whatYouWillNeed.li1 = their name
+chargeD.whatYouWillNeed.li2 = their National Insurance number
+chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
+chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
+chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
