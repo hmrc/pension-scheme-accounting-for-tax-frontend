@@ -351,6 +351,7 @@ chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event givi
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
 
+
 amountTaxDue.error.required = Enter the amount of tax due at {0}%
 amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
 amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
