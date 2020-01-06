@@ -215,8 +215,9 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
 chargeE = Annual allowance charge
+chargeD = Lifetime allowance charge
 
-memberDetails.title = Member’s details
+memberDetails.title = Member’s details - {0}
 memberDetails.heading = Member’s details
 memberDetails.firstName = First name
 memberDetails.lastName = Last name

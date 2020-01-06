@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeD
 
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
@@ -22,7 +22,7 @@ import data.SampleData
 import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode}
-import pages.chargeE.MemberDetailsPage
+import pages.chargeD.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -33,14 +33,14 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val form: Form[MemberDetails] = formProvider()
 
   lazy val memberDetailsRouteGetRoute: String =
-    controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
+    controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
   lazy val memberDetailsRoutePostRoute: String =
-    controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
+    controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
+      submitUrl = controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
@@ -53,7 +53,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
-    "chargeEDetails" -> Json.obj(
+    "chargeDDetails" -> Json.obj(
     "members" -> Json.arr(
       Json.obj(
         "memberDetails" -> Json.obj(

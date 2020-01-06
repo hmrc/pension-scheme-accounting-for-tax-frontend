@@ -16,6 +16,16 @@
 
 package pages.chargeD
 
-import pages.Page
+import models.MemberDetails
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case object WhatYouWillNeedPage extends Page
+case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
+
+  override def path: JsPath = LifetimeAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
+}
+
+object MemberDetailsPage {
+  def collectionPath: JsPath = JsPath \ "chargeDDetails" \ LifetimeAllowanceMembersQuery.toString \\ MemberDetailsPage.toString
+  override lazy val toString: String = "memberDetails"
+}
