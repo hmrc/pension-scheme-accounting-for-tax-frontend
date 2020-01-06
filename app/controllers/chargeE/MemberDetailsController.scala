@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.MemberDetailsFormProvider
+import forms.chargeE.MemberDetailsFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
@@ -65,11 +65,10 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "chargeName" -> "chargeE"
+          "viewModel" -> viewModel
         )
 
-        renderer.render("memberDetails.njk", json).map(Ok(_))
+        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -89,7 +88,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel
             )
 
-            renderer.render("memberDetails.njk", json).map(BadRequest(_))
+            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {
