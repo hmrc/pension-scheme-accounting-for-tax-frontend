@@ -83,3 +83,5 @@ POST       /:srn/new-return/change/summary                                      
 GET         /:srn/new-return/authorised-surplus-payments-charge/what-you-will-need           controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need           controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
