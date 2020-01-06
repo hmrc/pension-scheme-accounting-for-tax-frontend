@@ -24,6 +24,10 @@
         <ul class="govuk-list govuk-list--bullet">
           <li>{{ messages("chargeC.whatYouWillNeed.li1") }}</li>
           <li>{{ messages("chargeC.whatYouWillNeed.li2") }}</li>
+          <li>{{ messages("chargeC.whatYouWillNeed.li3") }}</li>
+          <li>{{ messages("chargeC.whatYouWillNeed.li4") }}</li>
+          <li>{{ messages("chargeC.whatYouWillNeed.li5") }}</li>
+          <li>{{ messages("chargeC.whatYouWillNeed.li6") }}</li>
         </ul>
 
         {{ govukButton({
@@ -35,6 +39,6 @@
       </div>
     </div>
 
-  <a href="{{nextPage}}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+  <a href="{{viewModel.returnUrl}}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}
