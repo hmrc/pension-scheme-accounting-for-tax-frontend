@@ -356,3 +356,9 @@ aft.summary.lumpSumDeath.row = Special lump sum death benefits charges
 aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits charges
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
+
+sponsoringOrganisationDetails.title = sponsoringOrganisationDetails
+sponsoringOrganisationDetails.heading = sponsoringOrganisationDetails
+sponsoringOrganisationDetails.checkYourAnswersLabel = sponsoringOrganisationDetails
+sponsoringOrganisationDetails.error.required = Enter sponsoringOrganisationDetails
+sponsoringOrganisationDetails.error.length = SponsoringOrganisationDetails must be 155 characters or less

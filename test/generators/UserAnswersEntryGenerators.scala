@@ -20,12 +20,20 @@ import models._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages._
-import pages.chargeC.IsSponsoringEmployerIndividualPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
+
+  implicit lazy val arbitrarySponsoringOrganisationDetailsUserAnswersEntry: Arbitrary[(SponsoringOrganisationDetailsPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[SponsoringOrganisationDetailsPage.type]
+        value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
+      } yield (page, value)
+    }
 
   implicit lazy val arbitraryIsSponsoringEmployerIndividualUserAnswersEntry: Arbitrary[(IsSponsoringEmployerIndividualPage.type, JsValue)] =
     Arbitrary {
