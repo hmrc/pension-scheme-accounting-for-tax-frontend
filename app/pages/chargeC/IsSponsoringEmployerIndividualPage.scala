@@ -23,5 +23,5 @@ case object IsSponsoringEmployerIndividualPage extends QuestionPage[Boolean] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "isSponsoringEmployerIndividual"
+  override def toString: String = "isChargeCSponsoringEmployerIndividual"
 }

@@ -16,20 +16,25 @@
 
 package navigators
 
-import com.google.inject.Inject
-import connectors.cache.UserAnswersCacheConnector
+import controllers.chargeC.routes.IsSponsoringEmployerIndividualController
 import models.{NormalMode, UserAnswers}
+import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeC.WhatYouWillNeedPage
 import play.api.mvc.Call
 
-class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeCNavigatorSpec extends NavigatorBehaviour {
 
-  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
-  }
+  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
+  private val srn = "test-srn"
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.routes.IndexController.onPageLoad()
+  "NormalMode" must {
+    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn))
+      )
+
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
 }

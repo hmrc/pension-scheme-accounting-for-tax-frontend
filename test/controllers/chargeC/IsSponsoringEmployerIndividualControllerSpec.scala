@@ -46,15 +46,15 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
   val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   val form = formProvider()
 
-  lazy val isSponsoringEmployerIndividualRoute = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn).url
-  lazy val isSponsoringEmployerIndividualSubmitRoute = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn).url
+  private def isSponsoringEmployerIndividualRoute = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn).url
+  private def isSponsoringEmployerIndividualSubmitRoute = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn).url
 
-  val viewModel = GenericViewModel(
+  private def viewModel = GenericViewModel(
     submitUrl = isSponsoringEmployerIndividualSubmitRoute,
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
-  val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage, true).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage, true).success.value
 
   "IsSponsoringEmployerIndividual Controller" must {
 
@@ -83,7 +83,8 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(form("value"))
       )
 
-      templateCaptor.getValue mustEqual "isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -116,7 +117,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(filledForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -173,7 +174,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()

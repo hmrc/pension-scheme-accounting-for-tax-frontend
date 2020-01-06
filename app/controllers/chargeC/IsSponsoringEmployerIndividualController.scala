@@ -67,7 +67,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
           "radios" -> Radios.yesNo (preparedForm("value"))
         )
 
-      renderer.render ("isSponsoringEmployerIndividual.njk", json).map(Ok (_))
+      renderer.render ("chargeC/isSponsoringEmployerIndividual.njk", json).map(Ok (_))
     }
   }
 
@@ -88,7 +88,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
               "radios" -> Radios.yesNo(formWithErrors("value"))
             )
 
-            renderer.render("isSponsoringEmployerIndividual.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/isSponsoringEmployerIndividual.njk", json).map(BadRequest(_))
           },
           value =>
             for {
