@@ -16,13 +16,13 @@
 
 package forms.chargeG
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.{Constraints, Mappings, Transforms}
 import javax.inject.Inject
 import models.chargeG.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
 
-class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
+class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with Transforms {
 
   def apply(): Form[MemberDetails] = Form(
     mapping(
@@ -41,8 +41,8 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
         futureDate("dob.error.future"),
         yearHas4Digits("dob.error.invalid")
       ),
-      "nino" -> text("memberDetails.error.nino.required")
-        .verifying(validNino("memberDetails.error.nino.invalid"))
+      "nino" -> text("memberDetails.error.nino.required").transform(noSpaceWithUpperCaseTransform, noTransform).
+        verifying(validNino("memberDetails.error.nino.invalid"))
     )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
   )
 }
