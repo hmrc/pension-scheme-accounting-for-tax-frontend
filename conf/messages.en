@@ -201,6 +201,9 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
 chargeC = Authorised surplus payments charge
 chargeC.whatYouWillNeed.title = Authorised surplus payments charge
 chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
@@ -373,3 +376,4 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
