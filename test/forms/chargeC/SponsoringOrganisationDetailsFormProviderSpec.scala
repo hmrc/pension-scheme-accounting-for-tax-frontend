@@ -29,59 +29,59 @@ class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviour
   private val nameMaxLength = 155
 
   private val crnRequiredKey = "chargeC.sponsoringOrganisationDetails.crn.error.required"
-  private val crnMinLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length.min"
-  private val crnMaxLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length.max"
+  private val crnMinLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length"
+  private val crnMaxLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length"
   private val crnMinLength = 8
-  private val crnMaxLength = 10
+  private val crnMaxLength = 8
 
   val form = new SponsoringOrganisationDetailsFormProvider()()
 
-//  "name" - {
-//    behave like fieldThatBindsValidData(
-//      form,
-//      nameKey,
-//      stringsWithMaxLength(nameMaxLength)
-//    )
-//
-//    behave like mandatoryField(
-//      form,
-//      nameKey,
-//      requiredError = FormError(nameKey, nameRequiredKey)
-//    )
-//
-//    behave like fieldWithMaxLength(
-//      form,
-//      nameKey,
-//      maxLength = nameMaxLength,
-//      lengthError = FormError(nameKey, nameLengthKey, Seq(nameKey))
-//    )
-//  }
-//
-//  "crn" - {
-//    behave like fieldThatBindsValidData(
-//      form,
-//      crnKey,
-//      stringsWithMaxLength(crnMaxLength)
-//    )
-//
-//    behave like mandatoryField(
-//      form,
-//      crnKey,
-//      requiredError = FormError(crnKey, crnRequiredKey)
-//    )
-//
-//    behave like fieldWithMinLength(
-//      form,
-//      crnKey,
-//      minLength = crnMinLength,
-//      lengthError = FormError(crnKey, crnMinLengthKey, Seq(crnKey))
-//    )
-//
-//    behave like fieldWithMaxLength(
-//      form,
-//      crnKey,
-//      maxLength = crnMaxLength,
-//      lengthError = FormError(crnKey, crnMaxLengthKey, Seq(crnKey))
-//    )
-//  }
+  "name" - {
+    behave like fieldThatBindsValidData(
+      form,
+      nameKey,
+      stringsWithMaxLength(nameMaxLength)
+    )
+
+    behave like mandatoryField(
+      form,
+      nameKey,
+      requiredError = FormError(nameKey, nameRequiredKey)
+    )
+
+    behave like fieldWithMaxLength(
+      form,
+      nameKey,
+      maxLength = nameMaxLength,
+      lengthError = FormError(nameKey, nameLengthKey, Seq(nameKey))
+    )
+  }
+
+  "crn" - {
+    behave like fieldThatBindsValidData(
+      form,
+      crnKey,
+      stringsWithMaxLength(crnMaxLength)
+    )
+
+    behave like mandatoryField(
+      form,
+      crnKey,
+      requiredError = FormError(crnKey, crnRequiredKey)
+    )
+
+    behave like fieldWithMinLength(
+      form,
+      crnKey,
+      minLength = crnMinLength,
+      lengthError = FormError(crnKey, crnMinLengthKey, Seq(crnKey))
+    )
+
+    behave like fieldWithMaxLength(
+      form,
+      crnKey,
+      maxLength = crnMaxLength,
+      lengthError = FormError(crnKey, crnMaxLengthKey, Seq(crnKey))
+    )
+  }
 }

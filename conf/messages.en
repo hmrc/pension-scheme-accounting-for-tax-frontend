@@ -226,7 +226,7 @@ chargeC.sponsoringOrganisationDetails.name.error.required = Enter the sponsoring
 chargeC.sponsoringOrganisationDetails.name.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
 
 chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the sponsoring company or organisation’s company number
-chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be exactly 8 characters
+chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be 8 characters, like 01234567 or AB123456
 chargeC.sponsoringOrganisationDetails.crn.error.invalid = The sponsoring company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
 
 
