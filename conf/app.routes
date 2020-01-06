@@ -86,3 +86,4 @@ GET         /:srn/new-return/lifetime-allowance-charge/:index/members-details   
 POST        /:srn/new-return/lifetime-allowance-charge/:index/members-details                            controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET         /:srn/new-return/change/lifetime-allowance-charge/:index/members-details                     controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/change/lifetime-allowance-charge/:index/members-details                     controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
