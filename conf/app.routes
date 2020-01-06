@@ -88,3 +88,5 @@ GET        /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsor
 POST       /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = CheckMode, srn: String)
 
 GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need           controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
