@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package forms.mappings
+package pages.chargeD
 
-import play.api.data.Mapping
-import play.api.data.validation.{Constraint, Valid}
+import pages.Page
 
-trait CrnMapping extends Mappings with Transforms {
-  def crnMapping( requiredCRNKey: String,
-                  lengthKey: String,
-                  invalidKey: String ): Mapping[String] = text(requiredCRNKey)
-    .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(stopOnFirstFail(
-      exactLength(8, lengthKey),
-      validCrn(invalidKey))
-    )
-}
+case object WhatYouWillNeedPage extends Page

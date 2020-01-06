@@ -21,8 +21,16 @@ import java.time.LocalDate
 import play.api.data.FieldMapping
 import play.api.data.Forms.of
 import models.Enumerable
+import play.api.data.validation.{Constraint, Valid}
 
 trait Mappings extends Formatters with Constraints {
+
+  protected def stopOnFirstFail[T](constraints: Constraint[T]*) = Constraint { field: T =>
+    constraints.toList dropWhile (_ (field) == Valid) match {
+      case Nil => Valid
+      case constraint :: _ => constraint(field)
+    }
+  }
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
     of(stringFormatter(errorKey))
