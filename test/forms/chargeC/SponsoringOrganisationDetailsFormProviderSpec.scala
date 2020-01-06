@@ -21,33 +21,67 @@ import play.api.data.FormError
 
 class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "chargeC.sponsoringOrganisationDetails.error.required"
-  val lengthKey = "chargeC.sponsoringOrganisationDetails.error.length"
-  val maxLength = 155
+  private val nameKey = "name"
+  private val crnKey = "crn"
+
+  private val nameRequiredKey = "chargeC.sponsoringOrganisationDetails.name.error.required"
+  private val nameLengthKey = "chargeC.sponsoringOrganisationDetails.name.error.length"
+  private val nameMaxLength = 155
+
+  private val crnRequiredKey = "chargeC.sponsoringOrganisationDetails.crn.error.required"
+  private val crnMinLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length.min"
+  private val crnMaxLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length.max"
+  private val crnMinLength = 8
+  private val crnMaxLength = 10
 
   val form = new SponsoringOrganisationDetailsFormProvider()()
 
-  ".value" - {
-
-    val fieldName = "value"
-
-    behave like fieldThatBindsValidData(
-      form,
-      fieldName,
-      stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
+//  "name" - {
+//    behave like fieldThatBindsValidData(
+//      form,
+//      nameKey,
+//      stringsWithMaxLength(nameMaxLength)
+//    )
+//
+//    behave like mandatoryField(
+//      form,
+//      nameKey,
+//      requiredError = FormError(nameKey, nameRequiredKey)
+//    )
+//
+//    behave like fieldWithMaxLength(
+//      form,
+//      nameKey,
+//      maxLength = nameMaxLength,
+//      lengthError = FormError(nameKey, nameLengthKey, Seq(nameKey))
+//    )
+//  }
+//
+//  "crn" - {
+//    behave like fieldThatBindsValidData(
+//      form,
+//      crnKey,
+//      stringsWithMaxLength(crnMaxLength)
+//    )
+//
+//    behave like mandatoryField(
+//      form,
+//      crnKey,
+//      requiredError = FormError(crnKey, crnRequiredKey)
+//    )
+//
+//    behave like fieldWithMinLength(
+//      form,
+//      crnKey,
+//      minLength = crnMinLength,
+//      lengthError = FormError(crnKey, crnMinLengthKey, Seq(crnKey))
+//    )
+//
+//    behave like fieldWithMaxLength(
+//      form,
+//      crnKey,
+//      maxLength = crnMaxLength,
+//      lengthError = FormError(crnKey, crnMaxLengthKey, Seq(crnKey))
+//    )
+//  }
 }

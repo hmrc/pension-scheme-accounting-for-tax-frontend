@@ -34,10 +34,22 @@
               isPageHeading: false,
               classes: "govuk-label--s"
             },
-            id: "value",
-            name: "value",
-            value: form.value.value,
-            errorMessage: form.value.error
+            id: "name",
+            name: "name",
+            value: form.name.value,
+            errorMessage: form.name.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringOrganisationDetails.crn.label'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "crn",
+            name: "crn",
+            value: form.crn.value,
+            errorMessage: form.crn.error
           }) }}
 
           {{ govukButton({

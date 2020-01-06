@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
+import models.chargeC.SponsoringOrganisationDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -38,6 +39,9 @@ object SampleData {
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
+
+  val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
+
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr,
     QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
 

@@ -16,15 +16,25 @@
 
 package forms.chargeC
 
-import forms.mappings.Mappings
+import forms.mappings.{CrnMapping, Mappings}
 import javax.inject.Inject
+import models.chargeC.SponsoringOrganisationDetails
 import play.api.data.Form
+import play.api.data.Forms.mapping
 
-class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings {
+class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with CrnMapping {
 
-  def apply(): Form[String] =
+  def apply(): Form[SponsoringOrganisationDetails] =
     Form(
-      "value" -> text("chargeC.sponsoringOrganisationDetails.error.required")
-        .verifying(maxLength(155, "chargeC.sponsoringOrganisationDetails.error.length"))
+      mapping(
+        "name" -> text("chargeC.sponsoringOrganisationDetails.name.error.required")
+          .verifying(maxLength(155, "chargeC.sponsoringOrganisationDetails.name.error.length")),
+        "crn" -> crnMapping(
+          requiredCRNKey = "chargeC.sponsoringOrganisationDetails.crn.error.required",
+          lengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length",
+          invalidKey = "chargeC.sponsoringOrganisationDetails.crn.error.invalid"
+        )
+      )
+      (SponsoringOrganisationDetails.apply)(SponsoringOrganisationDetails.unapply)
     )
 }

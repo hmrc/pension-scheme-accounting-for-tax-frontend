@@ -220,9 +220,15 @@ chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponso
 chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details
 chargeC.sponsoringOrganisationDetails.heading = Sponsoring company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.label = Company or organisation name
+chargeC.sponsoringOrganisationDetails.crn.label = Company number
 chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Sponsoring company or organisation’s details
-chargeC.sponsoringOrganisationDetails.error.required = Enter the sponsoring company or organisation’s name
-chargeC.sponsoringOrganisationDetails.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
+chargeC.sponsoringOrganisationDetails.name.error.required = Enter the sponsoring company or organisation’s name
+chargeC.sponsoringOrganisationDetails.name.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
+
+chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the sponsoring company or organisation’s company number
+chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be exactly 8 characters
+chargeC.sponsoringOrganisationDetails.crn.error.invalid = The sponsoring company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
+
 
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
