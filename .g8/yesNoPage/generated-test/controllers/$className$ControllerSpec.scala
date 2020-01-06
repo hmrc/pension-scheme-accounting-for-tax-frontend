@@ -30,8 +30,8 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
   val formProvider = new $className$FormProvider()
   val form = formProvider()
 
-  lazy val $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode, srn).url
-  lazy val $className;format="decap"$SubmitRoute = routes.$className$Controller.onSubmit(NormalMode, srn).url
+  def $className;format="decap"$Route = routes.$className$Controller.onPageLoad(NormalMode, srn).url
+  def $className;format="decap"$SubmitRoute = routes.$className$Controller.onSubmit(NormalMode, srn).url
 
   val viewModel = GenericViewModel(
     submitUrl = $className;format="decap"$SubmitRoute,
