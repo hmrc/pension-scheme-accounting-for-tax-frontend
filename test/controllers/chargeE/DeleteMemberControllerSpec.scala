@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -50,8 +50,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val formProvider = new DeleteMemberFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
 
-  private def deleteMemberRoute(): String = routes.DeleteMemberController.onPageLoad(NormalMode, srn, 0).url
-  private def deleteMemberSubmitRoute(): String = routes.DeleteMemberController.onSubmit(NormalMode, srn, 0).url
+  private def deleteMemberRoute(): String = routes.DeleteMemberController.onPageLoad(srn, 0).url
+  private def deleteMemberSubmitRoute(): String = routes.DeleteMemberController.onSubmit(srn, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = deleteMemberSubmitRoute(),
