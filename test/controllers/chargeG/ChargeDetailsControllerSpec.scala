@@ -44,13 +44,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val formProvider = new ChargeDetailsFormProvider()
+
   private def form: Form[ChargeDetails] = formProvider()
 
   def onwardRoute: Call = Call("GET", "/foo")
 
-  val validAnswer: ChargeDetails = ChargeDetails("", LocalDate.now(ZoneOffset.UTC))
+  val validAnswer: ChargeDetails = ChargeDetails("someRef", LocalDate.now(ZoneOffset.UTC))
 
   def chargeDetailsRoute: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 1).url
+
   def chargeDetailsSubmitRoute: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, 1).url
 
   val emptyUserAnswers: UserAnswers = UserAnswers(Json.obj())
@@ -60,16 +62,21 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, chargeDetailsRoute)
-  .withFormUrlEncodedBody(
-    "value.day"   -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
-    "value.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
-    "value.year"  -> validAnswer.qropsTransferDate.getYear.toString
-  )
+      .withFormUrlEncodedBody(
+        "qropsReferenceNumber" -> validAnswer.qropsReferenceNumber,
+        "qropsTransferDate.day" -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
+        "qropsTransferDate.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
+        "qropsTransferDate.year" -> validAnswer.qropsTransferDate.getYear.toString
+      )
 
   val viewModel: GenericViewModel = GenericViewModel(
     submitUrl = chargeDetailsSubmitRoute,
-  returnUrl = onwardRoute.url,
-  schemeName = schemeName)
+    returnUrl = onwardRoute.url,
+    schemeName = schemeName
+  )
+
+  val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
+    userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberDetailsG).toOption.get
 
   "ChargeDetails Controller" must {
 
@@ -78,7 +85,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -92,15 +99,14 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val date = DateInput.localDate(form("value"))
-
       val expectedJson = Json.obj(
         "form" -> form,
         "viewModel" -> viewModel,
-        "date" -> date
+        "date" -> DateInput.localDate(form("qropsTransferDate")),
+        "memberName" -> memberDetailsG.fullName
       )
 
-      templateCaptor.getValue mustEqual "chargeDetails.njk"
+      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -111,7 +117,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(chargeGMember))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -128,21 +134,23 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       val filledForm = form.bind(
         Map(
-          "value.day"   -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
-          "value.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
-          "value.year"  -> validAnswer.qropsTransferDate.getYear.toString
+          "qropsReferenceNumber" -> validAnswer.qropsReferenceNumber,
+          "qropsTransferDate.day" -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
+          "qropsTransferDate.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
+          "qropsTransferDate.year" -> validAnswer.qropsTransferDate.getYear.toString
         )
       )
 
-      val date = DateInput.localDate(form("value"))
+      val date = DateInput.localDate(form("qropsTransferDate"))
 
       val expectedJson = Json.obj(
-        "form" -> form,
+        "form" -> filledForm,
         "viewModel" -> viewModel,
-        "date" -> date
+        "date" -> date,
+        "memberName" -> memberDetailsG.fullName
       )
 
-      templateCaptor.getValue mustEqual "chargeDetails.njk"
+      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -154,7 +162,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -193,15 +201,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val date = DateInput.localDate(boundForm("value"))
+      val date = DateInput.localDate(boundForm("qropsTransferDate"))
 
       val expectedJson = Json.obj(
         "form" -> boundForm,
         "viewModel" -> viewModel,
-        "date" -> date
+        "date" -> date,
+        "memberName" -> memberDetailsG.fullName
       )
 
-      templateCaptor.getValue mustEqual "chargeDetails.njk"
+      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()

@@ -16,12 +16,9 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import models.MemberDetails
 import models.requests.DataRequest
-import pages.{PSTRQuery, Page, QuestionPage, SchemeNameQuery}
-import play.api.libs.json.Reads
+import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 

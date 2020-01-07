@@ -38,6 +38,7 @@ object SampleData {
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
+  val chargeGDetails = models.chargeG.ChargeDetails("qropsRef", LocalDate.of(2019, 4, 3))
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr,
     QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
@@ -51,4 +52,6 @@ object SampleData {
 
   val chargeEMember = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
+  val chargeGMember = userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberDetailsG).toOption.get
+    .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
 }
