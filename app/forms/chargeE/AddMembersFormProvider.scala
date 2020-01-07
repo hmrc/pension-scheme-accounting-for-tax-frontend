@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package forms.chargeE
 
-import play.api.libs.json.{Format, Json}
+import forms.mappings.{Constraints, Mappings}
+import javax.inject.Inject
+import models.chargeE.ChargeEDetails
+import play.api.data.Form
+import play.api.data.Forms.mapping
 
-import scala.language.implicitConversions
+class AddMembersFormProvider @Inject() extends Mappings with Constraints {
 
-case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
-
-    def removeLinkId = s"$id-remove"
-
-    def viewLinkId = s"$id-view"
-
-}
-
-object Member {
-    implicit lazy val formats: Format[Member] =
-        Json.format[Member]
+  def apply(): Form[Boolean] =
+    Form("value" -> boolean("chargeE.addMembers.error"))
 }

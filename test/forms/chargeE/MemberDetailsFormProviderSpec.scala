@@ -16,7 +16,6 @@
 
 package forms.chargeE
 
-import forms.MemberDetailsFormProvider
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
@@ -24,7 +23,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
 
   val form = new MemberDetailsFormProvider()()
 
-  ".firstName" must {
+  ".firstName" - {
 
     val fieldName = "firstName"
     val requiredKey = "memberDetails.error.firstName.required"
@@ -51,7 +50,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  ".lastName" must {
+  ".lastName" - {
 
     val fieldName = "lastName"
     val requiredKey = "memberDetails.error.lastName.required"

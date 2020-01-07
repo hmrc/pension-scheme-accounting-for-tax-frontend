@@ -26,7 +26,7 @@ class DeleteMemberFormProviderSpec extends BooleanFieldBehaviours {
 
   val form = new DeleteMemberFormProvider()(requiredKey)
 
-  ".value" must {
+  ".value" - {
 
     val fieldName = "value"
 

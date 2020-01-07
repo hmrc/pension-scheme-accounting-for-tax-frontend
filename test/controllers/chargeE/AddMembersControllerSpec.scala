@@ -19,7 +19,7 @@ package controllers.chargeE
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.AddMembersFormProvider
+import forms.chargeE.AddMembersFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, YearRange}
 import org.mockito.Matchers.any
@@ -33,7 +33,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeE/addMembers.njk"
-  private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
+  private val form = new AddMembersFormProvider()()
   private def membersGetRoute: String = controllers.chargeE.routes.AddMembersController.onPageLoad(SampleData.srn).url
   private def membersPostRoute: String = controllers.chargeE.routes.AddMembersController.onSubmit(SampleData.srn).url
 
