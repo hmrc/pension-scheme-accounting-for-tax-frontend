@@ -16,6 +16,8 @@
 
 package forms.chargeG
 
+import java.time.LocalDate
+
 import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeG.ChargeDetails
@@ -24,16 +26,19 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[ChargeDetails] =
+  def apply(dateErrorMsg: String): Form[ChargeDetails] =
     Form(mapping(
       "qropsReferenceNumber" -> text(
         errorKey = "chargeG.chargeDetails.qropsReferenceNumber.error.required"
-      ),
+      ).verifying(regexp("""^Q[0-9]{6}""", "chargeG.chargeDetails.qropsReferenceNumber.error.valid")),
       "qropsTransferDate" -> localDate(
         invalidKey     = "chargeG.chargeDetails.qropsTransferDate.error.invalid",
         allRequiredKey = "chargeG.chargeDetails.qropsTransferDate.error.required.all",
         twoRequiredKey = "chargeG.chargeDetails.qropsTransferDate.error.required.two",
         requiredKey    = "chargeG.chargeDetails.qropsTransferDate.error.required"
+      ).verifying(
+        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
+        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

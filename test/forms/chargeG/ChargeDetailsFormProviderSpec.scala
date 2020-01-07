@@ -18,21 +18,41 @@ package forms.chargeG
 
 import java.time.{LocalDate, ZoneOffset}
 
-import forms.behaviours.DateBehaviours
+import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
+import play.api.data.FormError
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours {
+class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider()()
+  val dynamicErrorMsg: String = "The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020"
+  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val qropsRefKey = "qropsReferenceNumber"
+  val qropsDateKey = "qropsTransferDate"
 
-  ".value" - {
+  "qropsTransferDate" - {
 
-    val validData = datesBetween(
-      min = LocalDate.of(2000, 1, 1),
-      max = LocalDate.now(ZoneOffset.UTC)
+    behave like dateFieldWithMin(
+      form = form,
+      key = qropsDateKey,
+      min = LocalDate.of(2020, 4, 1),
+      formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
-    behave like dateField(form, "value", validData)
+    behave like dateFieldWithMax(
+      form = form,
+      key = qropsDateKey,
+      max = LocalDate.of(2020, 6, 30),
+      formError = FormError(qropsDateKey, dynamicErrorMsg)
+    )
 
-    behave like mandatoryDateField(form, "value", "chargeDetails.error.required.all")
+    behave like mandatoryDateField(form, qropsDateKey, "chargeG.chargeDetails.qropsTransferDate.error.required.all")
+  }
+
+  "qropsReferenceNumber" - {
+    behave like fieldWithMaxLength(
+      form = form,
+      fieldName = qropsRefKey,
+      maxLength = 7,
+      lengthError = FormError(qropsRefKey, "chargeG.chargeDetails.qropsReferenceNumber.error.valid", Seq(7))
+    )
   }
 }
