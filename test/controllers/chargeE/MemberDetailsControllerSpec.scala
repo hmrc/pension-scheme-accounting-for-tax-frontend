@@ -19,7 +19,7 @@ package controllers.chargeE
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.MemberDetailsFormProvider
+import forms.chargeE.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode}
 import pages.chargeE.MemberDetailsPage

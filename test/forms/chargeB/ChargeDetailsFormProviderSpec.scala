@@ -25,7 +25,7 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
   val numberOfDeceased = "numberOfDeceased"
   val amountTaxDueKey = "amountTaxDue"
 
-  "numberOfDeceased" must {
+  "numberOfDeceased" - {
 
     behave like intField(
       form = form,
@@ -51,7 +51,7 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
     )
   }
 
-  "amountTaxDue" must {
+  "amountTaxDue" - {
 
     behave like bigDecimalField(
       form = form,

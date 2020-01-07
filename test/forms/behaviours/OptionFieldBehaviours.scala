@@ -31,7 +31,7 @@ class OptionFieldBehaviours extends FieldBehaviours {
       for(value <- validValues) {
 
         val result = form.bind(Map(fieldName -> value.toString)).apply(fieldName)
-        result.value.value mustEqual value.toString
+        result.value.value shouldEqual value.toString
       }
     }
 
@@ -43,7 +43,7 @@ class OptionFieldBehaviours extends FieldBehaviours {
         value =>
 
           val result = form.bind(Map(fieldName -> value)).apply(fieldName)
-          result.errors mustEqual Seq(invalidError)
+          result.errors shouldEqual Seq(invalidError)
       }
     }
   }

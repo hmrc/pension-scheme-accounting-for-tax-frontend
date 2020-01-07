@@ -28,7 +28,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   val chargeAmountKey = "chargeAmount"
   val isMandatoryKey = "isPaymentMandatory"
 
-  "dateNoticeReceived" must {
+  "dateNoticeReceived" - {
 
    behave like dateFieldWithMax(
       form = form,
@@ -43,7 +43,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       requiredAllKey = s"$dateKey.error.required")
   }
 
-  "chargeAmount" must {
+  "chargeAmount" - {
 
     behave like bigDecimalField(
       form = form,
@@ -67,7 +67,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     )
   }
 
-  "isPaymentMandatory" must {
+  "isPaymentMandatory" - {
     behave like booleanField(
       form = form,
       fieldName = isMandatoryKey,

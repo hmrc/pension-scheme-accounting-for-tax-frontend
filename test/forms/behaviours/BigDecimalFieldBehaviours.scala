@@ -32,7 +32,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(nonNumerics -> "nonNumeric") {
         nonNumeric =>
           val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
-          result.errors mustEqual Seq(nonNumericError)
+          result.errors shouldEqual Seq(nonNumericError)
       }
     }
 
@@ -41,7 +41,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(decimals -> "decimal") {
         decimal =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors mustEqual Seq(decimalsError)
+          result.errors shouldEqual Seq(decimalsError)
       }
     }
   }
@@ -56,8 +56,8 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") {
         decimal: String =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors.head.key mustEqual expectedError.key
-          result.errors.head.message mustEqual expectedError.message
+          result.errors.head.key shouldEqual expectedError.key
+          result.errors.head.message shouldEqual expectedError.message
       }
     }
   }
@@ -72,8 +72,8 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(longDecimalString(length) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors.head.key mustEqual expectedError.key
-          result.errors.head.message mustEqual expectedError.message
+          result.errors.head.key shouldEqual expectedError.key
+          result.errors.head.message shouldEqual expectedError.message
       }
     }
   }
@@ -89,7 +89,7 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       forAll(decimalsOutsideRange(minimum, maximum) -> "decimalOutsideRange") {
         number =>
           val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
-          result.errors mustEqual Seq(expectedError)
+          result.errors shouldEqual Seq(expectedError)
       }
     }
   }
