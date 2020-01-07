@@ -24,7 +24,7 @@ trait CrnMapping extends Mappings with Transforms {
                   lengthKey: String,
                   invalidKey: String ): Mapping[String] = text(requiredCRNKey)
     .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(stopOnFirstFail(
+    .verifying(firstError(
       exactLength(8, lengthKey),
       validCrn(invalidKey))
     )

@@ -27,12 +27,15 @@ class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
   def apply(): Form[SponsoringEmployerAddress] =
     Form(
       mapping(
-        "line1" -> text("chargeC.sponsoringOrganisationDetails.name.error.required"),
-        "line2" -> text("chargeC.sponsoringOrganisationDetails.name.error.required"),
-        "line3" -> text("chargeC.sponsoringOrganisationDetails.name.error.required"),
-        "line4" -> text("chargeC.sponsoringOrganisationDetails.name.error.required"),
-        "country" -> text("chargeC.sponsoringOrganisationDetails.name.error.required"),
-        "postcode" -> text("chargeC.sponsoringOrganisationDetails.name.error.required")
+        "line1" -> text("chargeC.sponsoringEmployerAddress.line1.error.required"),
+        "line2" -> text("chargeC.sponsoringEmployerAddress.line2.error.required"),
+        "line3" -> optionalText,
+        "line4" -> optionalText,
+        "country" -> text("chargeC.sponsoringEmployerAddress.country.error.required"),
+        "postcode" -> postCodeMapping(
+          keyRequired = "chargeC.sponsoringEmployerAddress.postcode.error.required",
+          keyInvalid = "chargeC.sponsoringEmployerAddress.postcode.error.invalid"
+        )
       )
       (SponsoringEmployerAddress.apply)(SponsoringEmployerAddress.unapply)
     )

@@ -22,12 +22,16 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
+import models.chargeC.SponsoringEmployerAddress
+import models.requests.DataRequest
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.chargeC.SponsoringEmployerAddressPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import play.api.data.Form
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Results.Redirect
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -50,7 +54,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndCompany { (schemeName, companyName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage) match {
           case None => form
           case Some(value) => form.fill(value)
@@ -63,16 +67,20 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel,
+          "companyName" -> companyName
         )
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
       }
   }
 
+  private def resolve(form:Form[SponsoringEmployerAddress], args:String *):Form[SponsoringEmployerAddress] =
+    form copy(errors = form.errors.map(_ copy(args = args)))
+
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndCompany { (schemeName, companyName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
@@ -82,8 +90,9 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel
+              "form" -> resolve(formWithErrors, companyName),
+              "viewModel" -> viewModel,
+              "companyName" -> companyName
             )
 
             renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
