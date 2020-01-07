@@ -16,18 +16,18 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import pages.behaviours.PageBehaviours
 
 
-class SponsoringEmployerAddressPageSpec extends PageBehaviours {
+class SponsoringOrganisationDetailsPageSpec extends PageBehaviours {
 
-  "SponsoringEmployerAddressPage" - {
+  "SponsoringOrganisationDetailsPage" - {
 
-    beRetrievable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
+    beRetrievable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
 
-    beSettable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
+    beSettable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
 
-    beRemovable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
+    beRemovable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
   }
 }
