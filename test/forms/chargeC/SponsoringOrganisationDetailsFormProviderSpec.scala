@@ -36,7 +36,7 @@ class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviour
 
   val form = new SponsoringOrganisationDetailsFormProvider()()
 
-  "name" - {
+  "name" must {
     behave like fieldThatBindsValidData(
       form,
       nameKey,
@@ -57,7 +57,7 @@ class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviour
     )
   }
 
-  "crn" - {
+  "crn" must {
     behave like fieldThatBindsValidData(
       form,
       crnKey,

@@ -25,7 +25,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
 
   val form = new SponsoringEmployerAddressFormProvider()()
 
-  "line1" - {
+  "line1" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.line1.error.required"
     val fieldName = "line1"
 
@@ -49,7 +49,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  "line2" - {
+  "line2" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.line2.error.required"
     val fieldName = "line2"
 
@@ -73,7 +73,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  "country" - {
+  "country" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.country.error.required"
     val fieldName = "country"
 
@@ -97,7 +97,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
     )
   }
 
-  "postcode" - {
+  "postcode" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.postcode.error.required"
     val fieldName = "postcode"
 
