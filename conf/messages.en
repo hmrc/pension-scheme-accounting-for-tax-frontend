@@ -437,3 +437,9 @@ chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
 
 
+
+sponsoringIndividualDetails.title = sponsoringIndividualDetails
+sponsoringIndividualDetails.heading = sponsoringIndividualDetails
+sponsoringIndividualDetails.checkYourAnswersLabel = sponsoringIndividualDetails
+sponsoringIndividualDetails.error.required = Enter sponsoringIndividualDetails
+sponsoringIndividualDetails.error.length = SponsoringIndividualDetails must be 35 characters or less

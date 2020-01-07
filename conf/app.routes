@@ -121,3 +121,8 @@ POST       /:srn/new-return/authorised-surplus-payments-charge/enter-address    
 GET        /:srn/new-return/authorised-surplus-payments-charge/change/enter-address                  controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST       /:srn/new-return/authorised-surplus-payments-charge/change/enter-address                  controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = CheckMode, srn: String)
 
+
+GET        /:srn/new-return/authorised-surplus-payments-charge/sponsoring-individual-details                        controllers.chargeC.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/sponsoring-individual-details                        controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/authorised-surplus-payments-charge/change/sponsoring-individual-details                  controllers.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/change/sponsoring-individual-details                  controllers.SponsoringIndividualDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
