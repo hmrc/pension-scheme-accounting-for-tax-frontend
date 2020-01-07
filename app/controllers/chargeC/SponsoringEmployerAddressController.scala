@@ -75,7 +75,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       }
   }
 
-  private def resolve(form:Form[SponsoringEmployerAddress], args:String *):Form[SponsoringEmployerAddress] =
+  private def addArgsToErrors(form:Form[SponsoringEmployerAddress], args:String *):Form[SponsoringEmployerAddress] =
     form copy(errors = form.errors.map(_ copy(args = args)))
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -90,7 +90,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> resolve(formWithErrors, companyName),
+              "form" -> addArgsToErrors(formWithErrors, companyName),
               "viewModel" -> viewModel,
               "companyName" -> companyName
             )

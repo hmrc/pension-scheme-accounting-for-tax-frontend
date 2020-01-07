@@ -55,7 +55,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   )
 
   "SponsoringOrganisationDetails Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETSavedData(
       httpPath = getRoute,
       page = SponsoringOrganisationDetailsPage,
       data = SampleData.sponsoringOrganisationDetails,
