@@ -85,6 +85,12 @@ POST       /:srn/new-return/authorised-surplus-payments-charge/is-sponsoring-emp
 GET        /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST       /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = CheckMode, srn: String)
 
+GET        /:srn/new-return/authorised-surplus-payments-charge/sponsoring-company-or-organisation-details                        controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/sponsoring-company-or-organisation-details                        controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/authorised-surplus-payments-charge/change/sponsoring-company-or-organisation-details                  controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/change/sponsoring-company-or-organisation-details                  controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+
 
 GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
 

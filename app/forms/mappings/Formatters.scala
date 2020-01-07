@@ -18,15 +18,16 @@ package forms.mappings
 
 import java.text.DecimalFormat
 
-import play.api.data.FormError
+import play.api.data.{FieldMapping, FormError, Mapping}
 import play.api.data.format.Formatter
 import models.Enumerable
+import play.api.data.Forms.of
+import play.api.data.validation.{Constraint, Invalid, Valid}
 
 import scala.util.{Failure, Success, Try}
 import scala.util.control.Exception.nonFatalCatch
 
 trait Formatters {
-
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
 
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
