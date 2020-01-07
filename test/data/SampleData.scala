@@ -21,9 +21,11 @@ import java.time.LocalDate
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
 import models.chargeC.SponsoringOrganisationDetails
+import models.chargeD.ChargeDDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -35,9 +37,11 @@ object SampleData {
   val schemeName = "Big Scheme"
   val dummyCall = Call("GET","/foo")
   val chargeAmount1 = BigDecimal(33.44)
+  val chargeAmount2 = BigDecimal(50.00)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
+  val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
   val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
@@ -51,6 +55,9 @@ object SampleData {
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
   val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
 
-  val chargeEMember = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
+  val chargeEMember: UserAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
+
+  val chargeDMember: UserAnswers = userAnswersWithSchemeName.set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
+    .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
 }

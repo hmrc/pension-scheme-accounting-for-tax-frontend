@@ -26,7 +26,7 @@ class AFTSummaryFormProviderSpec extends BooleanFieldBehaviours {
 
   val form = new AFTSummaryFormProvider()()
 
-  ".value" - {
+  ".value" must {
 
     val fieldName = "value"
 
