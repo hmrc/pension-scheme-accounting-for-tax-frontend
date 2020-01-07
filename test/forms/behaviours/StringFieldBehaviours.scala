@@ -46,8 +46,8 @@ trait StringFieldBehaviours extends FieldBehaviours {
       forAll(stringsShorterThan(minLength) -> "longString") {
         string =>
           val result = form.bind(Map(fieldName -> string)).apply(fieldName)
-          result.errors.head.message shouldEqual lengthError.message
-          result.errors.head.key shouldEqual lengthError.key
+          result.errors.head.message mustEqual lengthError.message
+          result.errors.head.key mustEqual lengthError.key
       }
     }
   }
