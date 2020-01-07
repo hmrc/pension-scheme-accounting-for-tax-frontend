@@ -22,19 +22,19 @@ import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
+import controllers.chargeC.routes._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    lazy val optionIsSponsoringEmployerIndividual = ua.get(IsSponsoringEmployerIndividualPage)
-    val pf: PartialFunction[Page, Call] = {
-      case WhatYouWillNeedPage => controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
+    lazy val optionIsSponsoringEmployerIndividual:Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage)
+
+    {
+      case WhatYouWillNeedPage => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
       case IsSponsoringEmployerIndividualPage if optionIsSponsoringEmployerIndividual.contains(false) =>
-        controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn)
-      case SponsoringOrganisationDetailsPage =>
-        controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
+        SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn)
+      case SponsoringOrganisationDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
     }
-    pf
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
