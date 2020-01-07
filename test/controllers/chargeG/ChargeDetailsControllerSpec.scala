@@ -24,11 +24,12 @@ import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.ChargeDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{ChargeType, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.ChargeTypePage
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -77,6 +78,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
     userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberDetailsG).toOption.get
+    .set(ChargeTypePage, ChargeType.ChargeTypeOverseasTransfer).toOption.get
 
   "ChargeDetails Controller" must {
 
