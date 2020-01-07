@@ -78,7 +78,16 @@ POST       /:srn/new-return/summary                                             
 GET        /:srn/new-return/change/summary                                                            controllers.AFTSummaryController.onPageLoad(mode: Mode = CheckMode, srn: String)
 POST       /:srn/new-return/change/summary                                                            controllers.AFTSummaryController.onSubmit(mode: Mode = CheckMode, srn: String)
 
+GET         /:srn/new-return/authorised-surplus-payments-charge/what-you-will-need           controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET        /:srn/new-return/authorised-surplus-payments-charge/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/change/is-sponsoring-employer-individual                  controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+
 GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
+
 
 GET         /:srn/new-return/lifetime-allowance-charge/:index/members-details                            controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
 POST        /:srn/new-return/lifetime-allowance-charge/:index/members-details                            controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
@@ -98,3 +107,6 @@ POST       /:srn/new-return/lifetime-allowance-charge/list-of-charges           
 
 GET        /:srn/new-return/lifetime-allowance-charge/:index/remove-charge                        controllers.chargeD.DeleteMemberController.onPageLoad(srn: String, index: Index)
 POST       /:srn/new-return/lifetime-allowance-charge/:index/remove-charge                        controllers.chargeD.DeleteMemberController.onSubmit(srn: String, index: Index)
+
+GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need           controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
+

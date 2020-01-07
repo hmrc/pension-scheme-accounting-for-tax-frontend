@@ -201,6 +201,25 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
+chargeC = Authorised surplus payments charge
+chargeC.whatYouWillNeed.title = Authorised surplus payments charge
+chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
+chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
+chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
+chargeC.whatYouWillNeed.li4 = their registered address
+chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+
+chargeC.isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
+
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
@@ -381,3 +400,13 @@ addMembers.nino.header = National Insurance number
 addMembers.chargeE.amount.header = Charge amount
 addMembers.chargeD.amount.header = Total tax due
 addMembers.total = Total
+
+chargeG.whatYouWillNeed.title = Overseas transfer charge
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
+chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
+chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
+chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
+chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
+chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+
