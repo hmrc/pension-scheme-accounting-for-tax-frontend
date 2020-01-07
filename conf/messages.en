@@ -207,6 +207,25 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
+chargeC = Authorised surplus payments charge
+chargeC.whatYouWillNeed.title = Authorised surplus payments charge
+chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
+chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
+chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
+chargeC.whatYouWillNeed.li4 = their registered address
+chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+
+chargeC.isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
+
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
@@ -365,3 +384,12 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+chargeD.whatYouWillNeed.title = Lifetime allowance charge
+chargeD.whatYouWillNeed.heading = Lifetime allowance charge
+chargeD.whatYouWillNeed.p1 = To record a lifetime allowance charge you will need the following for each member liable to the charge:
+chargeD.whatYouWillNeed.li1 = their name
+chargeD.whatYouWillNeed.li2 = their National Insurance number
+chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
+chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
+chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
