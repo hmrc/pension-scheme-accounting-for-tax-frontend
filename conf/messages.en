@@ -234,6 +234,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
 chargeE = Annual allowance charge
+chargeD = Lifetime allowance charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -308,11 +309,11 @@ chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
 
-chargeE.cya.memberName.label = Member’s name
-chargeE.cya.nino.label = {0}’s National Insurance number
+cya.memberName.label = Member’s name
+cya.nino.label = {0}’s National Insurance number
 chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
 chargeE.cya.mandatoryPayment.label = Mandatory payment type
-chargeE.visuallyHidden.memberName.label = member’s name
+visuallyHidden.memberName.label = member’s name
 chargeE.visuallyHidden.taxYear.label = the tax year to which the annual allowance charge relates
 chargeE.visuallyHidden.chargeAmount.label = the charge amount
 chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
@@ -322,15 +323,15 @@ chargeE.addMembers.error = Select yes if you want to add another annual allowanc
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
-chargeE.addMembers.members.header = Member
-chargeE.addMembers.nino.header = National Insurance number
-chargeE.addMembers.chargeAmount.header = Charge amount
-chargeE.addMembers.total = Total
 chargeE.addMembers.visuallyHidden = {0}’s annual allowance charge
 
 deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}
+
+deleteMember.chargeD.title = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.heading = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.error.required = Select yes if you want to remove the lifetime allowance charge for {0}
 
 chargeType.radio.annualAllowance = Annual allowance charge
 chargeType.radio.authSurplus = Authorised surplus payments charge
@@ -369,6 +370,37 @@ chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event givi
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
 
+amountTaxDue.error.required = Enter the amount of tax due at {0}%
+amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
+amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
+amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
+
+dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
+dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.future = The date of the benefit crystallisation event giving rise to the charge must be today or in the past
+
+chargeDDetails.title = Lifetime allowance charge details for {0}
+chargeDDetails.heading = Lifetime allowance charge details for {0}
+chargeDDetails.dateOfEvent.label = Date of benefit crystallisation event giving rise to the charge
+chargeDDetails.dateOfEvent.visuallyHidden.label = the date of the benefit crystallisation event giving rise to the charge
+taxAt25Percent.label = Amount of tax due at 25%
+taxAt55Percent.label = Amount of tax due at 55%
+taxAt25Percent.visuallyHidden.label = the amount of tax due at 25%
+taxAt55Percent.visuallyHidden.label = the amount of tax due at 55%
+
+chargeD.addMembers.error = Select yes if you want to add another lifetime allowance charge
+chargeD.addMembers.title = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.heading = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.label = Do you want to add another lifetime allowance charge?
+chargeD.addMembers.visuallyHidden = {0}’s lifetime allowance charge
+
+addMembers.members.header = Member
+addMembers.nino.header = National Insurance number
+addMembers.chargeE.amount.header = Charge amount
+addMembers.chargeD.amount.header = Total tax due
+addMembers.total = Total
+
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
@@ -376,4 +408,5 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
 

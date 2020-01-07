@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeE.MemberDetailsFormProvider
+import forms.MemberDetailsFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator

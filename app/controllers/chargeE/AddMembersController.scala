@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import forms.chargeE.AddMembersFormProvider
+import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
@@ -34,7 +34,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.chargeE.ChargeEService.{getAnnualAllowanceMembers, mapToTable}
+import services.ChargeEService.{getAnnualAllowanceMembers, mapToTable}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -52,7 +52,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form: Form[Boolean] = formProvider()
+  def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
