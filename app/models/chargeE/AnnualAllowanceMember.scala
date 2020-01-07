@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package models.chargeE
 
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import play.api.libs.json.{Format, Json}
 
-case object DeleteMemberPage extends QuestionPage[Boolean] {
+import scala.language.implicitConversions
 
-  override def path: JsPath = JsPath \ toString
+case class AnnualAllowanceMember(index: Int, name: String, nino: String, chargeAmount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"member-$index"
 
-  override def toString: String = "deleteMember"
+    def removeLinkId = s"$id-remove"
+
+    def viewLinkId = s"$id-view"
+
+}
+
+object AnnualAllowanceMember {
+    implicit lazy val formats: Format[AnnualAllowanceMember] =
+        Json.format[AnnualAllowanceMember]
 }

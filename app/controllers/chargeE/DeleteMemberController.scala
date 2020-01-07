@@ -23,7 +23,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
 import play.api.data.Form
@@ -31,7 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.ChargeEService.getAnnualAllowanceMembers
+import services.chargeE.ChargeEService.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -53,13 +53,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+              submitUrl = routes.DeleteMemberController.onSubmit(mode, srn, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -76,7 +76,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -85,7 +85,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               formWithErrors => {
 
                 val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+                  submitUrl = routes.DeleteMemberController.onSubmit(mode, srn, index).url,
                   returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                   schemeName = schemeName)
 
@@ -108,10 +108,10 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                       updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
+                    } yield Redirect(navigator.nextPage(DeleteMemberPage, mode, updatedAnswers, srn))
                   }
                 } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn)))
+                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, mode, request.userAnswers, srn)))
                 }
             )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -119,5 +119,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.chargeAmount).sum
 }

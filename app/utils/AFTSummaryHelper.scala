@@ -51,8 +51,8 @@ class AFTSummaryHelper{
       ),
       SummaryDetails(
         chargeType = ChargeTypeLifetimeAllowance,
-        totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeD.routes.AddMembersController.onPageLoad(srn)
+        totalAmount = BigDecimal(0),
+        href = routes.IndexController.onPageLoad()
       ),
       SummaryDetails(
         chargeType = ChargeTypeOverseasTransfer,

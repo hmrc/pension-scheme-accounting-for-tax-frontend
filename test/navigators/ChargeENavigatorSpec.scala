@@ -21,7 +21,7 @@ import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeE.{AddMembersPage, AnnualAllowanceYearPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, DeleteMemberPage, MemberDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeENavigatorSpec extends NavigatorBehaviour {
@@ -29,8 +29,6 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
   private val index = 0
-  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
-  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
 
 
   "NormalMode" must {
@@ -41,8 +39,6 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addMembersNo),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeEMember))
       )
