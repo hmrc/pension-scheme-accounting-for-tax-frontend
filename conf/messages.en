@@ -201,6 +201,9 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
 chargeC = Authorised surplus payments charge
 chargeC.whatYouWillNeed.title = Authorised surplus payments charge
 chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
@@ -378,3 +381,12 @@ chargeD.whatYouWillNeed.li2 = their National Insurance number
 chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+
+chargeG.whatYouWillNeed.title = Overseas transfer charge
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
+chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
+chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
+chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
+chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
+chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
