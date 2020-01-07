@@ -16,192 +16,64 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
+import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
-import data.SampleData._
+import data.SampleData
+import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import models.chargeC.SponsoringIndividualDetails
+import models.{GenericViewModel, NormalMode}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.inject.bind
+import pages.chargeC.SponsoringIndividualDetailsPage
+import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
-import play.api.test.Helpers._
-import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.Future
+class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
+  private val templateToBeRendered = "chargeC/sponsoringIndividualDetails.njk"
+  private val form = new SponsoringIndividualDetailsFormProvider()()
+  private def getRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def postRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
-class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-  def onwardRoute = Call("GET", "/foo")
+  private val valuesValid: Map[String, Seq[String]] = Map(
+    "firstName" -> Seq("Cyril"),
+    "lastName" -> Seq("Wibble"),
+    "nino" -> Seq("CS121212C")
+  )
 
-  val formProvider = new SponsoringIndividualDetailsFormProvider()
-  val form = formProvider()
+  private val valuesInvalid: Map[String, Seq[String]] = Map(
+    "firstName" -> Seq.empty,
+    "lastName" -> Seq("Wibble"),
+    "nino" -> Seq("CS121212C")
+  )
 
-  def sponsoringIndividualDetailsRoute = routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn).url
-  def sponsoringIndividualDetailsSubmitRoute = routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, srn).url
-
-  val viewModel = GenericViewModel(
-    submitUrl = sponsoringIndividualDetailsSubmitRoute,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
-
-  val answers: UserAnswers = userAnswersWithSchemeName.set(SponsoringIndividualDetailsPage, "answer").success.value
+  private val jsonToPassToTemplate:Form[SponsoringIndividualDetails]=>JsObject = form => Json.obj(
+    "form" -> form,
+    "viewModel" -> GenericViewModel(
+      submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
+      schemeName = SampleData.schemeName)
+  )
 
   "SponsoringIndividualDetails Controller" must {
+    behave like controllerWithGETSavedData(
+      httpPath = getRoute,
+      page = SponsoringIndividualDetailsPage,
+      data = SampleData.sponsoringIndividualDetails,
+      form = form,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate
+    )
 
-    "return OK and the correct view for a GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
-      val request = FakeRequest(GET, sponsoringIndividualDetailsRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "viewModel" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "sponsoringIndividualDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "populate the view correctly on a GET when the question has previously been answered" in {
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = Some(answers))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
-      val request = FakeRequest(GET, sponsoringIndividualDetailsRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val filledForm = form.bind(Map("value" -> "answer"))
-
-      val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "viewModel" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "sponsoringIndividualDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "redirect to the next page when valid data is submitted" in {
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
-
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
-
-      val request =
-        FakeRequest(POST, sponsoringIndividualDetailsRoute)
-      .withFormUrlEncodedBody(("value", "answer"))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual onwardRoute.url
-
-      application.stop()
-    }
-
-    "return a Bad Request and errors when invalid data is submitted" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
-      val request = FakeRequest(POST, sponsoringIndividualDetailsRoute).withFormUrlEncodedBody(("value", ""))
-      val boundForm = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "sponsoringIndividualDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "redirect to Session Expired for a GET if no existing data is found" in {
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val request = FakeRequest(GET, sponsoringIndividualDetailsRoute)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
-    }
-
-    "redirect to Session Expired for a POST if no existing data is found" in {
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val request =
-        FakeRequest(POST, sponsoringIndividualDetailsRoute)
-      .withFormUrlEncodedBody(("value", "answer"))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
-    }
+    behave like controllerWithPOST(
+      httpPath = postRoute,
+      page = SponsoringIndividualDetailsPage,
+      data = SampleData.sponsoringIndividualDetails,
+      form = form,
+      templateToBeRendered = templateToBeRendered,
+      requestValuesValid = valuesValid,
+      requestValuesInvalid = valuesInvalid
+    )
   }
 }

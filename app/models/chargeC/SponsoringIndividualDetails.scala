@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package models.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
-import pages.behaviours.PageBehaviours
+import play.api.libs.json.{Format, Json}
+
+case class SponsoringIndividualDetails(firstName:String, lastName:String, nino:String)
 
 
-class SponsoringIndividualDetailsPageSpec extends PageBehaviours {
-
-  "SponsoringIndividualDetailsPage" - {
-
-    beRetrievable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beSettable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beRemovable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-  }
+object SponsoringIndividualDetails {
+  implicit lazy val formats: Format[SponsoringIndividualDetails] =
+    Json.format[SponsoringIndividualDetails]
 }

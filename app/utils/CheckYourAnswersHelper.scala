@@ -21,9 +21,9 @@ import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers, YearRange}
 import pages.chargeB.ChargeBDetailsPage
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
-import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPage, ChargeDetailsPage => ChargeDDetailsPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
@@ -41,7 +41,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn).url,
+            href               = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sponsoringIndividualDetails.checkYourAnswersLabel"))
           )
         )

@@ -66,7 +66,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
           "viewModel" -> viewModel
         )
 
-        renderer.render("sponsoringIndividualDetails.njk", json).map(Ok(_))
+        renderer.render("chargeC/sponsoringIndividualDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -86,7 +86,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
               "viewModel" -> viewModel
             )
 
-            renderer.render("sponsoringIndividualDetails.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/sponsoringIndividualDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {

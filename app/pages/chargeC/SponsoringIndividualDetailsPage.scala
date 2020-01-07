@@ -16,10 +16,11 @@
 
 package pages.chargeC
 
+import models.chargeC.SponsoringIndividualDetails
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object SponsoringIndividualDetailsPage extends QuestionPage[String] {
+case object SponsoringIndividualDetailsPage extends QuestionPage[SponsoringIndividualDetails] {
 
   override def path: JsPath = JsPath \ toString
 

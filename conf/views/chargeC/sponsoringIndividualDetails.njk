@@ -22,21 +22,50 @@
           }) }}
         {% endif %}
 
+        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringIndividualDetails.heading')}}</h1>
+
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
           {{ govukInput({
             label: {
-              text: messages('sponsoringIndividualDetails.title'),
-              isPageHeading: true,
-              classes: "govuk-label--xl"
+              text: messages('chargeC.sponsoringIndividualDetails.firstName.label'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
             },
-            id: "value",
-            name: "value",
-            value: form.value.value,
-            errorMessage: form.value.error
+            id: "firstName",
+            name: "firstName",
+            value: form.firstName.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.firstName.error
           }) }}
+
+        {{ govukInput({
+          label: {
+            text: messages('chargeC.sponsoringIndividualDetails.firstName.label'),
+            isPageHeading: false,
+            classes: "govuk-label--s"
+          },
+          id: "lastName",
+          name: "lastName",
+          value: form.lastName.value,
+          classes: "govuk-input--width-20",
+          errorMessage: form.lastName.error
+        }) }}
+
+        {{ govukInput({
+          label: {
+            text: messages('chargeC.sponsoringIndividualDetails.firstName.label'),
+            isPageHeading: false,
+            classes: "govuk-label--s"
+          },
+          id: "nino",
+          name: "nino",
+          value: form.nino.value,
+          classes: "govuk-input--width-10",
+          errorMessage: form.nino.error
+        }) }}
 
           {{ govukButton({
             text: messages("site.continue"),

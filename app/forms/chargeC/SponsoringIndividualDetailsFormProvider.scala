@@ -18,13 +18,31 @@ package forms.chargeC
 
 import forms.mappings.Mappings
 import javax.inject.Inject
+import models.chargeC.SponsoringIndividualDetails
 import play.api.data.Form
+import play.api.data.Forms.mapping
 
 class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[String] =
+  def apply(): Form[SponsoringIndividualDetails] =
     Form(
-      "value" -> text("sponsoringIndividualDetails.error.required")
-        .verifying(maxLength(35, "sponsoringIndividualDetails.error.length"))
+      mapping(
+        "firstName" -> text("chargeC.sponsoringIndividualDetails.firstName.error.required")
+          .verifying(
+            firstError(
+              maxLength(35, "chargeC.sponsoringIndividualDetails.firstName.error.length"),
+              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.firstName.error.invalid"))
+          ),
+        "lastName" -> text("chargeC.sponsoringIndividualDetails.lastName.error.required")
+          .verifying(
+            firstError(
+              maxLength(35, "chargeC.sponsoringIndividualDetails.lastName.error.length"),
+              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.lastName.error.invalid"))
+          ),
+        "nino" -> text("chargeC.sponsoringIndividualDetails.nino.error.required")
+          .transform(noSpaceWithUpperCaseTransform, noTransform).
+          verifying(validNino("chargeC.sponsoringIndividualDetails.nino.error.invalid"))
+      )
+      (SponsoringIndividualDetails.apply)(SponsoringIndividualDetails.unapply)
     )
 }
