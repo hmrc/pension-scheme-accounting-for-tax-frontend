@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package forms.mappings
+package pages.chargeC
 
-import play.api.data.Mapping
-import play.api.data.validation.{Constraint, Valid}
+import models.chargeC.SponsoringOrganisationDetails
+import pages.behaviours.PageBehaviours
 
-trait CrnMapping extends Mappings with Transforms {
-  def crnMapping( requiredCRNKey: String,
-                  lengthKey: String,
-                  invalidKey: String ): Mapping[String] = text(requiredCRNKey)
-    .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(firstError(
-      exactLength(8, lengthKey),
-      validCrn(invalidKey))
-    )
+
+class SponsoringOrganisationDetailsPageSpec extends PageBehaviours {
+
+  "SponsoringOrganisationDetailsPage" - {
+
+    beRetrievable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
+
+    beSettable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
+
+    beRemovable[SponsoringOrganisationDetails](SponsoringOrganisationDetailsPage)
+  }
 }

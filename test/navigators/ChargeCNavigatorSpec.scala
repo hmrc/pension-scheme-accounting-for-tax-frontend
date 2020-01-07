@@ -20,7 +20,8 @@ import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, Spo
 import models.{NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, WhatYouWillNeedPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
+import controllers.chargeC.routes.SponsoringEmployerAddressController
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -34,7 +35,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)),
-        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation))
+        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation)),
+        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

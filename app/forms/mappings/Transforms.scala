@@ -31,4 +31,7 @@ trait Transforms {
   protected def strip(value: String): String = {
     value.replaceAll(" ", "")
   }
+
+  protected def minimiseSpace(value: String): String =
+    value.replaceAll(" {2,}", " ")
 }

@@ -17,6 +17,7 @@
 package generators
 
 import models._
+import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -34,6 +35,26 @@ trait ModelGenerators {
   implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =
     Arbitrary {
       Gen.oneOf(ChargeType.values)
+    }
+
+  implicit lazy val arbitrarySponsoringEmployerAddress: Arbitrary[SponsoringEmployerAddress] =
+    Arbitrary {
+      for {
+        line1 <- arbitrary[String]
+        line2 <- arbitrary[String]
+        line3 <- arbitrary[String]
+        line4 <- arbitrary[String]
+        country <- arbitrary[String]
+        postcode <- arbitrary[String]
+      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,postcode)
+    }
+
+  implicit lazy val arbitrarySponsoringOrganisationDetails: Arbitrary[SponsoringOrganisationDetails] =
+    Arbitrary {
+      for {
+        name <- arbitrary[String]
+        crn <- arbitrary[String]
+      } yield SponsoringOrganisationDetails(name,crn)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =

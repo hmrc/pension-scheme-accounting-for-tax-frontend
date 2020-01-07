@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package forms.mappings
+package pages.chargeC
 
-import play.api.data.Mapping
-import play.api.data.validation.{Constraint, Valid}
+import models.chargeC.SponsoringEmployerAddress
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-trait CrnMapping extends Mappings with Transforms {
-  def crnMapping( requiredCRNKey: String,
-                  lengthKey: String,
-                  invalidKey: String ): Mapping[String] = text(requiredCRNKey)
-    .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(firstError(
-      exactLength(8, lengthKey),
-      validCrn(invalidKey))
-    )
+case object SponsoringEmployerAddressPage extends QuestionPage[SponsoringEmployerAddress] {
+
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "chargeCSponsoringEmployerAddress"
 }

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package forms.mappings
+package models.chargeC
 
-import play.api.data.Mapping
-import play.api.data.validation.{Constraint, Valid}
+import play.api.libs.json.{Format, Json}
 
-trait CrnMapping extends Mappings with Transforms {
-  def crnMapping( requiredCRNKey: String,
-                  lengthKey: String,
-                  invalidKey: String ): Mapping[String] = text(requiredCRNKey)
-    .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(firstError(
-      exactLength(8, lengthKey),
-      validCrn(invalidKey))
-    )
+case class SponsoringEmployerAddress(line1:String, line2:String, line3:Option[String], line4:Option[String], country:String, postcode:String)
+
+object SponsoringEmployerAddress {
+  implicit lazy val formats: Format[SponsoringEmployerAddress] =
+    Json.format[SponsoringEmployerAddress]
 }
