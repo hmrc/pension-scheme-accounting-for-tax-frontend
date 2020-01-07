@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, WhatYouWillNeedPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
@@ -31,6 +31,8 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case WhatYouWillNeedPage => controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
       case IsSponsoringEmployerIndividualPage if optionIsSponsoringEmployerIndividual.contains(false) =>
         controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn)
+      case SponsoringOrganisationDetailsPage =>
+        controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
     }
     pf
   }
