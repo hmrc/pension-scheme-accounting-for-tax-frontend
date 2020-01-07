@@ -27,6 +27,9 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
 
+  protected def optionalPostcode(requiredKey:String, invalidKey:String, countryFieldName:String): FieldMapping[Option[String]] =
+    of(optionalPostcodeFormatter(requiredKey, invalidKey, countryFieldName))
+
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
     of(stringFormatter(errorKey))
 
@@ -67,9 +70,9 @@ trait Mappings extends Formatters with Constraints with Transforms {
                           args: Seq[String] = Seq.empty): FieldMapping[LocalDate] =
     of(new LocalDateFormatter(invalidKey, allRequiredKey, twoRequiredKey, requiredKey, args))
 
-  private[mappings] def postCodeTransform(value: String): String = {
-    minimiseSpace(value.trim.toUpperCase)
-  }
+//  private[mappings] def postCodeTransform(value: String): String = {
+//    minimiseSpace(value.trim.toUpperCase)
+//  }
 
   private[mappings] def postCodeValidTransform(value: String): String = {
     if (value.matches(regexPostcode)) {

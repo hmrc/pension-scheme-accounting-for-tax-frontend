@@ -56,7 +56,7 @@ object SampleData {
     line3 = Some("line3"),
     line4 = Some("line4"),
     country = "UK",
-    postcode = "ZZ1 1ZZ"
+    postcode = Some("ZZ1 1ZZ")
   )
 
   def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr,

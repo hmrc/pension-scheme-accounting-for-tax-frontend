@@ -27,7 +27,7 @@ import play.api.data.validation.{Constraint, Invalid, Valid}
 import scala.util.{Failure, Success, Try}
 import scala.util.control.Exception.nonFatalCatch
 
-trait Formatters {
+trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
 
   private def standardiseText(s: String): String = {
@@ -42,6 +42,39 @@ trait Formatters {
           .map(standardiseText)
           .filter(_.lengthCompare(0) > 0)
       )
+
+    override def unbind(key: String, value: Option[String]): Map[String, String] =
+      Map(key -> value.getOrElse(""))
+  }
+
+
+    private[mappings] def postCodeTransform(value: String): String = {
+    minimiseSpace(value.trim.toUpperCase)
+  }
+
+  private[mappings] def optionalPostcodeFormatter(requiredKey:String,
+                                                  invalidKey:String,
+                                                  countryFieldName:String): Formatter[Option[String]] = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+
+      val isPostcodeRequired = data.get(countryFieldName).contains("GB")
+
+      data.get(key) match {
+        case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
+        case None | Some("") => Right(None)
+        case Some(postcode) =>
+          if (postCodeTransform(postcode).matches(regexPostcode)) {
+            Right(
+              data
+                .get(key)
+                .map(standardiseText)
+                .filter(_.lengthCompare(0) > 0)
+            )
+          } else {
+            Left(Seq(FormError(key, invalidKey)))
+          }
+      }
+    }
 
     override def unbind(key: String, value: Option[String]): Map[String, String] =
       Map(key -> value.getOrElse(""))

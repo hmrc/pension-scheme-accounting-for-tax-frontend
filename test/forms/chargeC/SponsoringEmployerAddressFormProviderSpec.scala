@@ -100,24 +100,24 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   "postcode" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.postcode.error.required"
     val fieldName = "postcode"
+    "must not bind when key is not present at all when country is GB" in {
+      val result = form.bind(Map("country" -> "GB")).apply(fieldName)
+      result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
+    }
 
-//    behave like fieldThatBindsValidData(
-//      form,
-//      fieldName,
-//      stringsWithMaxLength(addressLineMaxLength)
-//    )
+    "must  not bind blank values when country is GB" in {
+      val result = form.bind(Map("country" -> "GB", fieldName -> "")).apply(fieldName)
+      result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
+    }
 
-    //    behave like fieldWithMaxLength(
-    //      form,
-    //      fieldName,
-    //      maxLength = maxLength,
-    //      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    //    )
+    "must have no errors when key is not present at all and country is not GB" in {
+      val result = form.bind(Map("country" -> "FR")).apply(fieldName)
+      result.errors.size mustBe 0
+    }
 
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
+    "must have no errors when postcode has a blank value and country is not GB" in {
+      val result = form.bind(Map("country" -> "FR", fieldName -> "")).apply(fieldName)
+      result.errors.size mustBe 0
+    }
   }
 }

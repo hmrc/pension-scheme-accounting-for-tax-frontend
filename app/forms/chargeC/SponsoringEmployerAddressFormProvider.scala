@@ -32,9 +32,10 @@ class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
         "line3" -> optionalText,
         "line4" -> optionalText,
         "country" -> text("chargeC.sponsoringEmployerAddress.country.error.required"),
-        "postcode" -> postCodeMapping(
-          keyRequired = "chargeC.sponsoringEmployerAddress.postcode.error.required",
-          keyInvalid = "chargeC.sponsoringEmployerAddress.postcode.error.invalid"
+        "postcode" -> optionalPostcode(
+          requiredKey = "chargeC.sponsoringEmployerAddress.postcode.error.required",
+          invalidKey = "chargeC.sponsoringEmployerAddress.postcode.error.invalid",
+          countryFieldName = "country"
         )
       )
       (SponsoringEmployerAddress.apply)(SponsoringEmployerAddress.unapply)

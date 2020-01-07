@@ -46,7 +46,7 @@ trait ModelGenerators {
         line4 <- arbitrary[String]
         country <- arbitrary[String]
         postcode <- arbitrary[String]
-      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,postcode)
+      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,Some(postcode))
     }
 
   implicit lazy val arbitrarySponsoringOrganisationDetails: Arbitrary[SponsoringOrganisationDetails] =
