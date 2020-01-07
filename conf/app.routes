@@ -97,3 +97,8 @@ POST       /:srn/new-return/authorised-surplus-payments-charge/change/sponsoring
 GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need           controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
+
+GET        /:srn/new-return/authorised-surplus-payments-charge/enter-address                        controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/enter-address                        controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/authorised-surplus-payments-charge/change/enter-address                  controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/change/enter-address                  controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = CheckMode, srn: String)
