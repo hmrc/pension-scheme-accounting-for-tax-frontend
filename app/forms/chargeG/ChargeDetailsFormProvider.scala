@@ -27,7 +27,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
   def apply(): Form[ChargeDetails] =
     Form(mapping(
       "qropsReferenceNumber" -> text(
-        errorKey = "chargeG.qropsReferenceNumber.error.required"
+        errorKey = "chargeG.chargeDetails.qropsReferenceNumber.error.required"
       ),
       "qropsTransferDate" -> localDate(
         invalidKey     = "chargeG.chargeDetails.qropsTransferDate.error.invalid",

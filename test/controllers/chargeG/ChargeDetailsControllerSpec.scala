@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controllers.chargeG
 
 import java.time.{LocalDate, ZoneOffset}
@@ -7,6 +23,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.chargeG.ChargeDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -27,16 +44,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   val formProvider = new ChargeDetailsFormProvider()
-  private def form: Form[LocalDate] = formProvider()
+  private def form: Form[ChargeDetails] = formProvider()
 
   def onwardRoute: Call = Call("GET", "/foo")
 
-  val validAnswer = LocalDate.now(ZoneOffset.UTC)
+  val validAnswer: ChargeDetails = ChargeDetails("", LocalDate.now(ZoneOffset.UTC))
 
-  def chargeDetailsRoute = routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
-  def chargeDetailsSubmitRoute = routes.ChargeDetailsController.onSubmit(NormalMode, srn).url
+  def chargeDetailsRoute: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 1).url
+  def chargeDetailsSubmitRoute: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, 1).url
 
-  val emptyUserAnswers = UserAnswers(Json.obj())
+  val emptyUserAnswers: UserAnswers = UserAnswers(Json.obj())
 
   def getRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, chargeDetailsRoute)
@@ -44,12 +61,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest(POST, chargeDetailsRoute)
   .withFormUrlEncodedBody(
-    "value.day"   -> validAnswer.getDayOfMonth.toString,
-    "value.month" -> validAnswer.getMonthValue.toString,
-    "value.year"  -> validAnswer.getYear.toString
+    "value.day"   -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
+    "value.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
+    "value.year"  -> validAnswer.qropsTransferDate.getYear.toString
   )
 
-  val viewModel = GenericViewModel(
+  val viewModel: GenericViewModel = GenericViewModel(
     submitUrl = chargeDetailsSubmitRoute,
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
@@ -111,9 +128,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       val filledForm = form.bind(
         Map(
-          "value.day"   -> validAnswer.getDayOfMonth.toString,
-          "value.month" -> validAnswer.getMonthValue.toString,
-          "value.year"  -> validAnswer.getYear.toString
+          "value.day"   -> validAnswer.qropsTransferDate.getDayOfMonth.toString,
+          "value.month" -> validAnswer.qropsTransferDate.getMonthValue.toString,
+          "value.year"  -> validAnswer.qropsTransferDate.getYear.toString
         )
       )
 
@@ -197,7 +214,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       val result = route(application, getRequest).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
 
       application.stop()
     }
@@ -210,7 +227,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
 
       application.stop()
     }
