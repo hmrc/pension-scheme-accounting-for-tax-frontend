@@ -78,7 +78,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
     userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberDetailsG).toOption.get
-    .set(ChargeTypePage, ChargeType.ChargeTypeOverseasTransfer).toOption.get
 
   "ChargeDetails Controller" must {
 
