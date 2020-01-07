@@ -21,6 +21,7 @@ import java.time.LocalDate
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
 import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
