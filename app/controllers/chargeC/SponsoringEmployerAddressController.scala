@@ -73,7 +73,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
-          "countryOptions" -> jsonCountries
+          "countries" -> jsonCountries
         )
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
