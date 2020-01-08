@@ -16,11 +16,11 @@
 
 package navigators
 
-import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, SponsoringOrganisationDetailsController, SponsoringIndividualDetailsController}
+import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, SponsoringIndividualDetailsController, SponsoringOrganisationDetailsController}
 import models.{NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
 import controllers.chargeC.routes.SponsoringEmployerAddressController
 import play.api.libs.json.Json
 import play.api.mvc.Call
@@ -37,7 +37,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)),
         row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation)),
         row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsIndividual)),
-        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn))
+        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
+        row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

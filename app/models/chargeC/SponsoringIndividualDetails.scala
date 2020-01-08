@@ -18,7 +18,9 @@ package models.chargeC
 
 import play.api.libs.json.{Format, Json}
 
-case class SponsoringIndividualDetails(firstName:String, lastName:String, nino:String)
+case class SponsoringIndividualDetails(firstName:String, lastName:String, nino:String) {
+  def fullName = s"$firstName $lastName"
+}
 
 
 object SponsoringIndividualDetails {
