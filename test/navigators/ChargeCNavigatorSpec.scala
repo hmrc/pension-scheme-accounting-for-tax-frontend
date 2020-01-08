@@ -16,7 +16,7 @@
 
 package navigators
 
-import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, SponsoringOrganisationDetailsController}
+import controllers.chargeC.routes.{IsSponsoringEmployerIndividualController, SponsoringOrganisationDetailsController, SponsoringIndividualDetailsController}
 import models.{NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
@@ -36,6 +36,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)),
         row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation)),
+        row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsIndividual)),
         row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn))
       )
 
@@ -49,5 +50,9 @@ object ChargeCNavigatorSpec {
 
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
     IsSponsoringEmployerIndividualPage.toString -> false
+  ))
+
+  private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
+    IsSponsoringEmployerIndividualPage.toString -> true
   ))
 }

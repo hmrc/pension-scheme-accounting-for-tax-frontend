@@ -247,6 +247,23 @@ chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
 chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
 chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
 
+chargeC.sponsoringIndividualDetails.title = Sponsoring individual’s details
+chargeC.sponsoringIndividualDetails.heading = Sponsoring individual’s details
+chargeC.sponsoringIndividualDetails.firstName.label = First name
+chargeC.sponsoringIndividualDetails.lastName.label = Last name
+chargeC.sponsoringIndividualDetails.nino.label = National Insurance number
+
+chargeC.sponsoringIndividualDetails.firstName.error.required = Enter the sponsoring individual’s first name
+chargeC.sponsoringIndividualDetails.firstName.error.length = The sponsoring individual’s first name must be 35 characters or fewer
+chargeC.sponsoringIndividualDetails.firstName.error.invalid = The sponsoring individual’s first last] name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
+
+chargeC.sponsoringIndividualDetails.lastName.error.required = Enter the sponsoring individual’s last name
+chargeC.sponsoringIndividualDetails.lastName.error.length = The sponsoring individual’s last name must be 35 characters or fewer
+chargeC.sponsoringIndividualDetails.lastName.error.invalid = The sponsoring individual’s last last] name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
+
+chargeC.sponsoringIndividualDetails.nino.error.required = Enter the sponsoring individual’s National Insurance number
+chargeC.sponsoringIndividualDetails.nino.error.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
+
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
@@ -435,5 +452,4 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
-
 

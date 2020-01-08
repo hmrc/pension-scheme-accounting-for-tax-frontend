@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
+import models.chargeC.{SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
 import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
@@ -49,6 +50,7 @@ object SampleData {
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
   val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
+  val sponsoringIndividualDetails = SponsoringIndividualDetails(firstName = "Cyril", lastName = "Wibble", nino = "CS121212C")
 
   val sponsoringEmployerAddress = SponsoringEmployerAddress(
     line1 = "line1",
