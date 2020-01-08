@@ -20,7 +20,6 @@ import com.google.inject.{Inject, Singleton}
 import controllers.routes
 import play.api.Configuration
 import play.api.i18n.Lang
-import scala.collection.JavaConverters._
 import play.api.mvc.Call
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -56,13 +55,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
-
-
-  lazy val validCountryCodes: Seq[String] = {
-    val xx = configuration.get[String]("validCountryCodes")
-    val vv = xx.split(",")
-    vv.toSeq
-  }
+  lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
