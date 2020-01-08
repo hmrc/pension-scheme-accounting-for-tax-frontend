@@ -1,0 +1,120 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("chargeC.sponsoringEmployerAddress.title", companyName), form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if form.errors.length > 0 %}
+          {{ govukErrorSummary({
+            "titleText": messages("error.summary.title"),
+            "errorList": form.errors
+          }) }}
+        {% endif %}
+
+        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', companyName)}}</h1>
+
+        <form action="{{ submitUrl }}" method="post">
+
+          {{ csrf() | safe }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.line1.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "line1",
+            name: "line1",
+            value: form.line1.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.line1.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.line2.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "line2",
+            name: "line2",
+            value: form.line2.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.line2.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.line3.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "line3",
+            name: "line3",
+            value: form.line3.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.line3.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.line4.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "line4",
+            name: "line4",
+            value: form.line4.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.line4.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.country.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "country",
+            name: "country",
+            value: form.country.value,
+            classes: "govuk-input--width-20",
+            errorMessage: form.country.error
+          }) }}
+
+          {{ govukInput({
+            label: {
+              text: messages('chargeC.sponsoringEmployerAddress.postcode.title'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            id: "postcode",
+            name: "postcode",
+            value: form.postcode.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.postcode.error
+          }) }}
+
+          {{ govukButton({
+            text: messages("site.continue"),
+            attributes: {id: "submit"}
+          }) }}
+
+        </form>
+
+      </div>
+    </div>
+    <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}

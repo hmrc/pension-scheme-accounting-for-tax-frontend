@@ -207,6 +207,52 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
+chargeC = Authorised surplus payments charge
+chargeC.whatYouWillNeed.title = Authorised surplus payments charge
+chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
+chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
+chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
+chargeC.whatYouWillNeed.li4 = their registered address
+chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+
+chargeC.isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
+
+chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.heading = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.name.label = Company or organisation name
+chargeC.sponsoringOrganisationDetails.crn.label = Company number
+chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.name.error.required = Enter the sponsoring company or organisation’s name
+chargeC.sponsoringOrganisationDetails.name.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
+
+chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the sponsoring company or organisation’s company number
+chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be 8 characters, like 01234567 or AB123456
+chargeC.sponsoringOrganisationDetails.crn.error.invalid = The sponsoring company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
+
+chargeC.sponsoringEmployerAddress.title = Enter {0}’s address
+chargeC.sponsoringEmployerAddress.heading = Enter {0}’s address
+chargeC.sponsoringEmployerAddress.line1.title = Address line 1
+chargeC.sponsoringEmployerAddress.line2.title = Address line 2
+chargeC.sponsoringEmployerAddress.line3.title = Address line 3 (optional)
+chargeC.sponsoringEmployerAddress.line4.title = Address line 4 (optional)
+chargeC.sponsoringEmployerAddress.country.title = Country
+chargeC.sponsoringEmployerAddress.postcode.title = Postcode
+
+chargeC.sponsoringEmployerAddress.line1.error.required = Enter the first line of {0}’s address
+chargeC.sponsoringEmployerAddress.line2.error.required = Enter the second line of {0}’s address
+chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
+chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
+chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
+
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
@@ -221,6 +267,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
 chargeE = Annual allowance charge
+chargeD = Lifetime allowance charge
 
 memberDetails.title = Member’s details
 memberDetails.heading = Member’s details
@@ -295,11 +342,11 @@ chargeEDetails.chargeAmount.label = Charge amount
 chargeEDetails.dateNoticeReceived.label = Date you received notice to pay the charge
 chargeEDetails.isPaymentMandatory.label = Is the payment type mandatory?
 
-chargeE.cya.memberName.label = Member’s name
-chargeE.cya.nino.label = {0}’s National Insurance number
+cya.memberName.label = Member’s name
+cya.nino.label = {0}’s National Insurance number
 chargeE.cya.taxYear.label = Tax year to which the annual allowance charge relates
 chargeE.cya.mandatoryPayment.label = Mandatory payment type
-chargeE.visuallyHidden.memberName.label = member’s name
+visuallyHidden.memberName.label = member’s name
 chargeE.visuallyHidden.taxYear.label = the tax year to which the annual allowance charge relates
 chargeE.visuallyHidden.chargeAmount.label = the charge amount
 chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
@@ -309,15 +356,15 @@ chargeE.addMembers.error = Select yes if you want to add another annual allowanc
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
 chargeE.addMembers.label = Do you want to add another annual allowance charge?
-chargeE.addMembers.members.header = Member
-chargeE.addMembers.nino.header = National Insurance number
-chargeE.addMembers.chargeAmount.header = Charge amount
-chargeE.addMembers.total = Total
 chargeE.addMembers.visuallyHidden = {0}’s annual allowance charge
 
 deleteMember.title = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.heading = Are you sure you want to remove the annual allowance charge for {0}?
 deleteMember.error.required = Select yes if you want to remove the annual allowance charge for {0}
+
+deleteMember.chargeD.title = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.heading = Are you sure you want to remove the lifetime allowance charge for {0}?
+deleteMember.chargeD.error.required = Select yes if you want to remove the lifetime allowance charge for {0}
 
 chargeType.radio.annualAllowance = Annual allowance charge
 chargeType.radio.authSurplus = Authorised surplus payments charge
@@ -355,6 +402,47 @@ chargeD.whatYouWillNeed.li2 = their National Insurance number
 chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event giving rise to the lifetime allowance charge
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
+
+amountTaxDue.error.required = Enter the amount of tax due at {0}%
+amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
+amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
+amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
+
+dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
+dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.future = The date of the benefit crystallisation event giving rise to the charge must be today or in the past
+
+chargeDDetails.title = Lifetime allowance charge details for {0}
+chargeDDetails.heading = Lifetime allowance charge details for {0}
+chargeDDetails.dateOfEvent.label = Date of benefit crystallisation event giving rise to the charge
+chargeDDetails.dateOfEvent.visuallyHidden.label = the date of the benefit crystallisation event giving rise to the charge
+taxAt25Percent.label = Amount of tax due at 25%
+taxAt55Percent.label = Amount of tax due at 55%
+taxAt25Percent.visuallyHidden.label = the amount of tax due at 25%
+taxAt55Percent.visuallyHidden.label = the amount of tax due at 55%
+
+chargeD.addMembers.error = Select yes if you want to add another lifetime allowance charge
+chargeD.addMembers.title = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.heading = Lifetime allowance charges for {0} to {1}
+chargeD.addMembers.label = Do you want to add another lifetime allowance charge?
+chargeD.addMembers.visuallyHidden = {0}’s lifetime allowance charge
+
+addMembers.members.header = Member
+addMembers.nino.header = National Insurance number
+addMembers.chargeE.amount.header = Charge amount
+addMembers.chargeD.amount.header = Total tax due
+addMembers.total = Total
+
+chargeG.whatYouWillNeed.title = Overseas transfer charge
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
+chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
+chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
+chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
+chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
+chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+
 
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge

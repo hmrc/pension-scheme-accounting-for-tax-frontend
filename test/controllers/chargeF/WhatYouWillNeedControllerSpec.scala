@@ -32,7 +32,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
 
   "whatYouWillNeed Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETNoSavedData(
       httpPath = httpGETRoute,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,

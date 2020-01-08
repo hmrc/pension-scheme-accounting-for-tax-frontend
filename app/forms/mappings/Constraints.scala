@@ -23,6 +23,8 @@ import uk.gov.hmrc.domain.Nino
 
 trait Constraints {
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
+  private val regexCrn = "^[A-Za-z0-9 -]{7,8}$"
+  protected val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
@@ -88,6 +90,14 @@ trait Constraints {
         Invalid(errorKey, maximum)
     }
 
+  protected def exactLength(length: Int, errorKey: String): Constraint[String] =
+    Constraint {
+      case str if str.length == length =>
+        Valid
+      case _ =>
+        Invalid(errorKey, length)
+    }
+
   protected def maxDate(maximum: LocalDate, errorKey: String, args: Any*): Constraint[LocalDate] =
     Constraint {
       case date if date.isAfter(maximum) =>
@@ -131,4 +141,13 @@ trait Constraints {
       case _ => Invalid(invalidKey)
     }
   }
+
+  protected def validCrn(invalidKey: String): Constraint[String] = {
+    Constraint {
+      case crn if crn.matches(regexCrn) => Valid
+      case _ => Invalid(invalidKey)
+    }
+  }
+
+  protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
 }

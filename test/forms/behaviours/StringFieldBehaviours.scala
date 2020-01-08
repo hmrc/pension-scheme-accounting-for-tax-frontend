@@ -30,8 +30,24 @@ trait StringFieldBehaviours extends FieldBehaviours {
       forAll(stringsLongerThan(maxLength) -> "longString") {
         string =>
           val result = form.bind(Map(fieldName -> string)).apply(fieldName)
-          result.errors.head.message shouldEqual lengthError.message
-          result.errors.head.key shouldEqual lengthError.key
+          result.errors.head.message mustEqual lengthError.message
+          result.errors.head.key mustEqual lengthError.key
+      }
+    }
+  }
+
+  def fieldWithMinLength(form: Form[_],
+                         fieldName: String,
+                         minLength: Int,
+                         lengthError: FormError): Unit = {
+
+    s"must not bind strings shorter than $minLength characters" in {
+
+      forAll(stringsShorterThan(minLength) -> "longString") {
+        string =>
+          val result = form.bind(Map(fieldName -> string)).apply(fieldName)
+          result.errors.head.message mustEqual lengthError.message
+          result.errors.head.key mustEqual lengthError.key
       }
     }
   }
@@ -49,13 +65,13 @@ trait StringFieldBehaviours extends FieldBehaviours {
 
     "successfully bind when yes is selected and valid NINO is provided" in {
       val res = form.bind(Map("nino" -> "AB020202A")).apply("nino")
-      res.value.get shouldEqual "AB020202A"
+      res.value.get mustEqual "AB020202A"
     }
 
     Seq("DE999999A", "AO111111B", "ORA12345C", "AB0202020", "AB0303030D", "AB040404E").foreach { nino =>
       s"fail to bind when NINO $nino is invalid" in {
         val result = form.bind(Map("nino" -> nino)).apply("nino")
-        result.errors shouldBe Seq(FormError("nino", invalidKey))
+        result.errors mustBe Seq(FormError("nino", invalidKey))
       }
     }
   }

@@ -21,7 +21,9 @@ import java.time.format.DateTimeFormatter
 
 import models.{CheckMode, UserAnswers, YearRange}
 import pages.chargeB.ChargeBDetailsPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
+import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPage, ChargeDetailsPage => ChargeDDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
@@ -30,6 +32,51 @@ import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
+
+  def sponsoringEmployerAddress: Option[Row] = userAnswers.get(SponsoringEmployerAddressPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"sponsoringEmployerAddress.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$answer"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sponsoringEmployerAddress.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def sponsoringOrganisationDetails: Option[Row] = userAnswers.get(SponsoringOrganisationDetailsPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$answer"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def isSponsoringEmployerIndividual: Option[Row] = userAnswers.get(IsSponsoringEmployerIndividualPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(yesOrNo(answer)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
 
   def chargeFDate: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
@@ -144,24 +191,24 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Seq(
         Row(
-          key = Key(msg"chargeE.cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
+          key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
           value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"chargeE.visuallyHidden.memberName.label")
+              visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
             )
           )
         ),
         Row(
-          key = Key(msg"chargeE.cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+          key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
           value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeE.cya.nino.label".withArgs(answer.fullName)))
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"cya.nino.label".withArgs(answer.fullName)))
             )
           )
         )
@@ -193,7 +240,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.chargeAmount)}"),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -204,7 +251,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"chargeEDetails.dateNoticeReceived.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -225,7 +272,74 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           )
         )
       )
+  }
 
+  def chargeDMemberDetails(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeDMemberDetailsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
+            )
+          )
+        )
+      )
+  }
+
+  def chargeDDetails(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeDDetailsPage(index)) map {
+    answer =>
+      Seq(
+
+        Row(
+          key = Key(msg"chargeDDetails.dateOfEvent.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.dateOfEvent.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeDDetails.dateOfEvent.visuallyHidden.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent)}"), classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"taxAt25Percent.visuallyHidden.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent)}"), classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"taxAt55Percent.visuallyHidden.label")
+            )
+          )
+        )
+      )
   }
 
   private def yesOrNo(answer: Boolean): Content =

@@ -18,6 +18,7 @@ package controllers
 
 import models.MemberDetails
 import models.requests.DataRequest
+import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.{PSTRQuery, Page, QuestionPage, SchemeNameQuery}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
@@ -48,4 +49,12 @@ object DataRetrievals {
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
+
+  def retrieveSchemeAndCompany(block: (String,String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SponsoringOrganisationDetailsPage), request.userAnswers.get(SchemeNameQuery)) match {
+      case (Some(company), Some(schemeName)) => block(schemeName, company.name)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
 }

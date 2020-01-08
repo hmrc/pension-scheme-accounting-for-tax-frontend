@@ -52,7 +52,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       schemeName = SampleData.schemeName))
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETNoSavedData(
       httpPath = httpGETRoute,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,

@@ -26,7 +26,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
 
   val form = new MemberDetailsFormProvider()()
 
-  ".firstName" - {
+  ".firstName" must {
 
     val fieldName = "firstName"
     val requiredKey = "memberDetails.error.firstName.required"
@@ -53,7 +53,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
     )
   }
 
-  ".lastName" - {
+  ".lastName" must {
 
     val fieldName = "lastName"
     val requiredKey = "memberDetails.error.lastName.required"
@@ -80,7 +80,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
     )
   }
 
-  "nino" - {
+  "nino" must {
     behave like nino(
       form,
       fieldName = "nino",
@@ -94,11 +94,11 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
         "dob.month" -> "02",
         "dob.year" -> "2002",
         "nino" -> " a b 0 2 0 2 0 2 a "))
-      res.get shouldEqual MemberDetails("Jane", "Doe", LocalDate.of(2002, 2, 20), "AB020202A")
+      res.get mustEqual MemberDetails("Jane", "Doe", LocalDate.of(2002, 2, 20), "AB020202A")
     }
   }
 
-  "dob" - {
+  "dob" must {
 
     val dobKey = "dob"
 

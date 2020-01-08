@@ -24,7 +24,7 @@ class YearRangeFormProviderSpec extends OptionFieldBehaviours {
 
   val form = new YearRangeFormProvider()()
 
-  ".value" - {
+  ".value" must {
 
     val fieldName = "value"
     val requiredKey = "yearRange.error.required"

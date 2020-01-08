@@ -24,7 +24,7 @@ import pages.Page
 import pages.chargeE._
 import play.api.mvc.Call
 import controllers.chargeE.routes._
-import services.chargeE.ChargeEService._
+import services.ChargeEService._
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
