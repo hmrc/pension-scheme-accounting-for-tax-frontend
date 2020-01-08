@@ -51,7 +51,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   private val form = formProvider()
 
   private def jsonCountries(implicit messages: Messages): JsArray =
-    config.validCountryCodes.map(x => (x, messages(s"country.$x"))).sortWith(_._2 < _._2).foldLeft(JsArray())((acc, c) =>
+    config.validCountryCodes.map(countryCode => (countryCode, messages(s"country.$countryCode"))).sortWith(_._2 < _._2).foldLeft(JsArray())((acc, c) =>
       acc ++ Json.arr( Json.obj(
         "value" -> c._1, "text" -> c._2
       ))
