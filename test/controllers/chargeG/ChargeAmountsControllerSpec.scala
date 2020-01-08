@@ -40,7 +40,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "amountTransferred" -> Seq("33.44"),
-    "amountTaxDue" -> Seq("44.44")
+    "amountTaxDue" -> Seq("50.00")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(

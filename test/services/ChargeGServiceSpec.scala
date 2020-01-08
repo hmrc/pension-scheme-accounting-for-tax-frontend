@@ -38,7 +38,7 @@ class ChargeGServiceSpec extends SpecBase {
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
-    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[Member] = Seq(
     expectedMember(SampleData.memberDetailsG, 0),
