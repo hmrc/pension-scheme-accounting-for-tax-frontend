@@ -138,3 +138,6 @@ POST       /:srn/new-return/overseas-transfer-charge/list-of-charges            
 GET         /:srn/new-return/overseas-transfer-charge/:index/check-your-answers                 controllers.chargeG.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
 
 GET        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                        controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
+
+GET        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                        controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
+POST       /:srn/new-return/overseas-transfer-charge/:index/remove-charge                        controllers.chargeG.DeleteMemberController.onSubmit(srn: String, index: Index)
