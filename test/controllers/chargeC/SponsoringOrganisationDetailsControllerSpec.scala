@@ -37,7 +37,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   private def postRoute: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "name" -> Seq("Big Organisation"),
+    "name" -> Seq("Big Company"),
     "crn" -> Seq("AB121212")
   )
 

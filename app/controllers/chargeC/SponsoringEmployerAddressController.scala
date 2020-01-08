@@ -54,7 +54,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndCompany { (schemeName, companyName) =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage) match {
           case None => form
           case Some(value) => form.fill(value)
@@ -68,7 +68,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "companyName" -> companyName
+          "sponsorName" -> sponsorName
         )
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
@@ -80,7 +80,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndCompany { (schemeName, companyName) =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
@@ -90,9 +90,9 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> addArgsToErrors(formWithErrors, companyName),
+              "form" -> addArgsToErrors(formWithErrors, sponsorName),
               "viewModel" -> viewModel,
-              "companyName" -> companyName
+              "sponsorName" -> sponsorName
             )
 
             renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))

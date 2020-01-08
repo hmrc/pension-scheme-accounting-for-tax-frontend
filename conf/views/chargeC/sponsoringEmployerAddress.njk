@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeC.sponsoringEmployerAddress.title", companyName), form.errors) }}
+  {{ title(messages("chargeC.sponsoringEmployerAddress.title", sponsorName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -27,7 +27,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', companyName)}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
 
         <form action="{{ submitUrl }}" method="post">
 

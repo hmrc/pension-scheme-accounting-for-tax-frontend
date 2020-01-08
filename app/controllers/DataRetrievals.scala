@@ -50,14 +50,12 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndCompany(block: (String,String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndSponsoringEmployer(block: (String,String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringOrganisationDetailsPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SchemeNameQuery)) match {
       case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
       case (Some(true), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
-      case _ =>
-        println( "\n<<<><><>Asasas")
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 

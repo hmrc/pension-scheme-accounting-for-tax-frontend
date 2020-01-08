@@ -26,7 +26,7 @@ import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
-import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import play.api.libs.json.Json
@@ -49,7 +49,7 @@ object SampleData {
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
-  val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
+  val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = companyName, crn = crn)
   val sponsoringIndividualDetails = SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
   val sponsoringEmployerAddress = SponsoringEmployerAddress(
@@ -65,7 +65,13 @@ object SampleData {
     QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringOrganisationDetailsPage,SponsoringOrganisationDetails(name=companyName, crn=crn)).toOption.get
+    .set(SponsoringOrganisationDetailsPage,sponsoringOrganisationDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage,false).toOption.get
+
+  def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeName
+    .set(SponsoringIndividualDetailsPage,sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage,true).toOption.get
+
 
   val chargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
