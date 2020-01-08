@@ -36,7 +36,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       schemeName = SampleData.schemeName))
 
   "whatYouWillNeed Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETNoSavedData(
       httpPath = httpGETRoute,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,

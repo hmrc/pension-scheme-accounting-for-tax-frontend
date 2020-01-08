@@ -19,7 +19,7 @@ package controllers.chargeE
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.chargeE.MemberDetailsFormProvider
+import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode}
 import pages.chargeE.MemberDetailsPage
@@ -74,7 +74,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   )
 
   "MemberDetails Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETSavedData(
       httpPath = memberDetailsRouteGetRoute,
       page = MemberDetailsPage(0),
       data = SampleData.memberDetails,

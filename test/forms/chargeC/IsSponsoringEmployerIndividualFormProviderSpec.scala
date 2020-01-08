@@ -26,7 +26,7 @@ class IsSponsoringEmployerIndividualFormProviderSpec extends BooleanFieldBehavio
 
   val form = new IsSponsoringEmployerIndividualFormProvider()()
 
-  ".value" - {
+  ".value" must {
 
     val fieldName = "value"
 

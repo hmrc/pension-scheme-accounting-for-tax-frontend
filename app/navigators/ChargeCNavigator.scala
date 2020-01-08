@@ -20,13 +20,21 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeC.WhatYouWillNeedPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
+import controllers.chargeC.routes._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
+    lazy val optionIsSponsoringEmployerIndividual:Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage)
+
+    {
+      case WhatYouWillNeedPage => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
+      case IsSponsoringEmployerIndividualPage if optionIsSponsoringEmployerIndividual.contains(false) =>
+        SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn)
+      case SponsoringOrganisationDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
+    }
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

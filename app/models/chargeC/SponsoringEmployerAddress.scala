@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package forms.chargeE
+package models.chargeC
 
-import forms.mappings.{Constraints, Mappings}
-import javax.inject.Inject
-import models.chargeE.ChargeEDetails
-import play.api.data.Form
-import play.api.data.Forms.mapping
+import play.api.libs.json.{Format, Json}
 
-class AddMembersFormProvider @Inject() extends Mappings with Constraints {
+case class SponsoringEmployerAddress(line1:String, line2:String, line3:Option[String], line4:Option[String], country:String, postcode:String)
 
-  def apply(): Form[Boolean] =
-    Form("value" -> boolean("chargeE.addMembers.error"))
+object SponsoringEmployerAddress {
+  implicit lazy val formats: Format[SponsoringEmployerAddress] =
+    Json.format[SponsoringEmployerAddress]
 }

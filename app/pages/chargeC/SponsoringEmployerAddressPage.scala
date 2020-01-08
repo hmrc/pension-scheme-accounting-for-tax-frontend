@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package models.chargeE
+package pages.chargeC
 
-import play.api.libs.json.{Format, Json}
+import models.chargeC.SponsoringEmployerAddress
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-import scala.language.implicitConversions
+case object SponsoringEmployerAddressPage extends QuestionPage[SponsoringEmployerAddress] {
 
-case class AnnualAllowanceMember(index: Int, name: String, nino: String, chargeAmount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
+  override def path: JsPath = JsPath \ toString
 
-    def removeLinkId = s"$id-remove"
-
-    def viewLinkId = s"$id-view"
-
-}
-
-object AnnualAllowanceMember {
-    implicit lazy val formats: Format[AnnualAllowanceMember] =
-        Json.format[AnnualAllowanceMember]
+  override def toString: String = "chargeCSponsoringEmployerAddress"
 }
