@@ -18,17 +18,16 @@ package forms.mappings
 
 import java.text.DecimalFormat
 
-import play.api.data.{FieldMapping, FormError, Mapping}
-import play.api.data.format.Formatter
 import models.Enumerable
-import play.api.data.Forms.of
-import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.data.FormError
+import play.api.data.format.Formatter
 
-import scala.util.{Failure, Success, Try}
 import scala.util.control.Exception.nonFatalCatch
+import scala.util.{Failure, Success, Try}
 
 trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
+  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
   private def standardiseText(s: String): String = {
     s.replaceAll("""\s{1,}""", " ").trim

@@ -50,7 +50,7 @@ object SampleData {
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
   val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
-  val sponsoringIndividualDetails = SponsoringIndividualDetails(firstName = "Cyril", lastName = "Wibble", nino = "CS121212C")
+  val sponsoringIndividualDetails = SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
   val sponsoringEmployerAddress = SponsoringEmployerAddress(
     line1 = "line1",

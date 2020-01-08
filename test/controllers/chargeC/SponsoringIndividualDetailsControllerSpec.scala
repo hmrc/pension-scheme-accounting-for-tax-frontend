@@ -37,14 +37,14 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
   private def postRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "firstName" -> Seq("Cyril"),
-    "lastName" -> Seq("Wibble"),
+    "firstName" -> Seq("First"),
+    "lastName" -> Seq("Last"),
     "nino" -> Seq("CS121212C")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "firstName" -> Seq.empty,
-    "lastName" -> Seq("Wibble"),
+    "lastName" -> Seq("Last"),
     "nino" -> Seq("CS121212C")
   )
 

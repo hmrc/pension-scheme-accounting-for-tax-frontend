@@ -83,13 +83,6 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
       stringsWithMaxLength(addressLineMaxLength)
     )
 
-    //    behave like fieldWithMaxLength(
-    //      form,
-    //      fieldName,
-    //      maxLength = maxLength,
-    //      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
-    //    )
-
     behave like mandatoryField(
       form,
       fieldName,
