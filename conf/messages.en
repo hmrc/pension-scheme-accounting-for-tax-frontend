@@ -207,6 +207,52 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
+
+
+
+chargeC = Authorised surplus payments charge
+chargeC.whatYouWillNeed.title = Authorised surplus payments charge
+chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
+chargeC.whatYouWillNeed.p1 = To record an authorised surplus payments charge you will need the following for each sponsoring employer who received a payment:
+chargeC.whatYouWillNeed.li1 = the name of the sponsoring employer
+chargeC.whatYouWillNeed.li2 = their company number if the sponsoring employer is a company
+chargeC.whatYouWillNeed.li3 = their National Insurance number if the sponsoring employer is an individual
+chargeC.whatYouWillNeed.li4 = their registered address
+chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
+chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
+
+chargeC.isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
+
+chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.heading = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.name.label = Company or organisation name
+chargeC.sponsoringOrganisationDetails.crn.label = Company number
+chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.name.error.required = Enter the sponsoring company or organisation’s name
+chargeC.sponsoringOrganisationDetails.name.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
+
+chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the sponsoring company or organisation’s company number
+chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be 8 characters, like 01234567 or AB123456
+chargeC.sponsoringOrganisationDetails.crn.error.invalid = The sponsoring company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
+
+chargeC.sponsoringEmployerAddress.title = Enter {0}’s address
+chargeC.sponsoringEmployerAddress.heading = Enter {0}’s address
+chargeC.sponsoringEmployerAddress.line1.title = Address line 1
+chargeC.sponsoringEmployerAddress.line2.title = Address line 2
+chargeC.sponsoringEmployerAddress.line3.title = Address line 3 (optional)
+chargeC.sponsoringEmployerAddress.line4.title = Address line 4 (optional)
+chargeC.sponsoringEmployerAddress.country.title = Country
+chargeC.sponsoringEmployerAddress.postcode.title = Postcode
+
+chargeC.sponsoringEmployerAddress.line1.error.required = Enter the first line of {0}’s address
+chargeC.sponsoringEmployerAddress.line2.error.required = Enter the second line of {0}’s address
+chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
+chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
+chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
+
 numberOfDeceased.error.required = Enter the number of deceased members for which payment of a lump sum death benefit was made in the quarter
 numberOfDeceased.error.wholeNumber = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be a whole number
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
@@ -388,6 +434,7 @@ addMembers.chargeE.amount.header = Charge amount
 addMembers.chargeD.amount.header = Total tax due
 addMembers.chargeG.amount.header = Tax due
 addMembers.total = Total
+
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:

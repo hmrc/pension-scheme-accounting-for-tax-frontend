@@ -18,11 +18,14 @@ package forms.mappings
 
 import java.time.LocalDate
 
-import play.api.data.FieldMapping
-import play.api.data.Forms.of
 import models.Enumerable
+import play.api.data.Forms.of
+import play.api.data.{FieldMapping, Mapping}
 
-trait Mappings extends Formatters with Constraints {
+trait Mappings extends Formatters with Constraints with Transforms {
+
+  protected def optionalText(): FieldMapping[Option[String]] =
+    of(optionalStringFormatter)
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
     of(stringFormatter(errorKey))
@@ -63,4 +66,29 @@ trait Mappings extends Formatters with Constraints {
                           requiredKey: String,
                           args: Seq[String] = Seq.empty): FieldMapping[LocalDate] =
     of(new LocalDateFormatter(invalidKey, allRequiredKey, twoRequiredKey, requiredKey, args))
+
+  private[mappings] def postCodeTransform(value: String): String = {
+    minimiseSpace(value.trim.toUpperCase)
+  }
+
+  private[mappings] def postCodeValidTransform(value: String): String = {
+    if (value.matches(regexPostcode)) {
+      if (value.contains(" ")) {
+        value
+      } else {
+        value.substring(0, value.length - 3) + " " + value.substring(value.length - 3, value.length)
+      }
+    }
+    else {
+      value
+    }
+  }
+
+  def postCodeMapping(keyRequired: String, keyInvalid: String): Mapping[String] = {
+    text(keyRequired)
+      .transform(postCodeTransform, noTransform)
+      .verifying(postCode(keyInvalid))
+      .transform(postCodeValidTransform, noTransform)
+  }
+
 }

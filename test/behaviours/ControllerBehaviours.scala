@@ -52,34 +52,6 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
         headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
         body = AnyContentAsFormUrlEncoded(values))
 
-
-  //scalastyle:off method.length
-  def controllerWithGET(httpPath: => String,
-                        page: Page,
-                        templateToBeRendered: String,
-                        jsonToPassToTemplate: JsObject,
-                        userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
-    "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
-
-      val result = route(application, httpGETRequest(httpPath)).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
-    }
-  }
-
   //scalastyle:off method.length
   def controllerWithGETNeverFilledForm[A](httpPath: => String,
                                           page: QuestionPage[A],
@@ -117,15 +89,45 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
   }
 
+
   //scalastyle:off method.length
-  def controllerWithGET[A](httpPath: => String,
-                           page: QuestionPage[A],
-                           data: A,
-                           form: Form[A],
-                           templateToBeRendered: String,
-                           jsonToPassToTemplate: Form[A] => JsObject)(implicit writes: Writes[A]): Unit = {
+  def controllerWithGETNoSavedData(httpPath: => String,
+                                   page: Page,
+                                   templateToBeRendered: String,
+                                   jsonToPassToTemplate: JsObject,
+                                   userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
+  }
+
+  //scalastyle:off method.length
+  def controllerWithGETSavedData[A](httpPath: => String,
+                                    page: QuestionPage[A],
+                                    data: A,
+                                    form: Form[A],
+                                    templateToBeRendered: String,
+                                    jsonToPassToTemplate: Form[A] => JsObject,
+                                    userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+                          )(implicit writes: Writes[A]): Unit = {
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -143,7 +145,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = SampleData.userAnswersWithSchemeName.set(page, data).get
+      val ua = userAnswers.map(_.set(page, data)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -180,12 +182,14 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                                     form: Form[A],
                                     templateToBeRendered: String,
                                     requestValuesValid: Map[String, Seq[String]],
-                                    requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
+                                    requestValuesInvalid: Map[String, Seq[String]],
+                                    userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+                                   )(implicit writes: Writes[A]): Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = userAnswers).build()
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -203,7 +207,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val application = applicationBuilder(userAnswers = userAnswers).build()
 
       val result = route(application, httpPOSTRequest(httpPath, requestValuesInvalid)).value
 
@@ -231,7 +235,9 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                             form: Form[A],
                             templateToBeRendered: String,
                             requestValuesValid: Map[String, Seq[String]],
-                            requestValuesInvalid: Map[String, Seq[String]])(implicit writes: Writes[A]): Unit = {
+                            requestValuesInvalid: Map[String, Seq[String]],
+                            userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+                           )(implicit writes: Writes[A]): Unit = {
 
     controllerWithPOSTWithJson(
       httpPath,
@@ -240,7 +246,8 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       form,
       templateToBeRendered,
       requestValuesValid,
-      requestValuesInvalid)
+      requestValuesInvalid,
+      userAnswers)
   }
 
   //scalastyle:on method.length

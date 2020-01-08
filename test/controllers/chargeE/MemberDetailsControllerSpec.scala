@@ -74,7 +74,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   )
 
   "MemberDetails Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETSavedData(
       httpPath = memberDetailsRouteGetRoute,
       page = MemberDetailsPage(0),
       data = SampleData.memberDetails,

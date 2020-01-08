@@ -44,7 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     ))
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETNoSavedData(
       httpPath = httpGETRoute,
       page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,

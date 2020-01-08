@@ -53,7 +53,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   )
 
   "ChargeDetails Controller" must {
-    behave like controllerWithGET(
+    behave like controllerWithGETSavedData(
       httpPath = chargeDetailsGetRoute,
       page = ChargeBDetailsPage,
       data = SampleData.chargeBDetails,
