@@ -23,15 +23,13 @@ import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
 import models.chargeC.SponsoringEmployerAddress
-import models.requests.DataRequest
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.chargeC.{SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
-import play.api.mvc.Results.Redirect
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.libs.json.{JsArray, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -52,6 +50,15 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   private val form = formProvider()
 
+  private def jsonCountries(implicit messages: Messages): JsArray = {
+    val countryCodes: Seq[(String, String)] = config.validCountryCodes.map(x => (x, messages(s"country.$x"))).sortWith(_._2 < _._2)
+    countryCodes.foldLeft(JsArray())((acc, c) =>
+      acc ++ Json.arr( Json.obj(
+        "value" -> c._1, "text" -> c._2
+      ))
+    )
+  }
+
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
@@ -59,7 +66,6 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           case None => form
           case Some(value) => form.fill(value)
         }
-
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -68,7 +74,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName
+          "sponsorName" -> sponsorName,
+          "countryOptions" -> jsonCountries
         )
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))

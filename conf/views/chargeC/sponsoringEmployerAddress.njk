@@ -85,21 +85,18 @@
             errorMessage: form.line4.error
           }) }}
 
+          <div class="govuk-form-group autocomplete-wrapper govuk-body">
+              <label class="govuk-label govuk-label--s" for="country">
+                  <span class="bold form-label-bold">Country</span>
+              </label>
 
-        <div class="govuk-form-group autocomplete-wrapper govuk-body">
-
-            <label class="govuk-label govuk-label--s" for="country">
-                <span class="bold form-label-bold">Country</span>
-            </label>
-
-
-            <select class="govuk-select" id="country-select" name="country">
-                <option value=""></option>
-                <option id="value-AD" value="AD">Andorra</option>
-                <option id="value-AE" value="AE">United Arab Emirates</option>
-                <option id="value-AF" value="AF">Afghanistan</option>
-            </select>
-        </div>
+              {{ govukSelect({
+                id: "country-select",
+                classes: "govuk-input--width-10",
+                name: "country",
+                items: countryOptions
+              }) }}
+          </div>
 
 
 
