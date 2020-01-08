@@ -70,41 +70,41 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   )
 
   private val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
-    userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberDetailsG).toOption.get
+    userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
 
   "ChargeGDetails Controller" must {
 
-//    "return OK and the correct view for a GET" in {
-//
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-//        .overrides(
-//          bind[FrontendAppConfig].toInstance(mockAppConfig)
-//        )
-//        .build()
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, getRequest).value
-//
-//      status(result) mustEqual OK
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val expectedJson = Json.obj(
-//        "form" -> form,
-//        "viewModel" -> viewModel,
-//        "date" -> DateInput.localDate(form("qropsTransferDate")),
-//        "memberName" -> memberDetailsG.fullName
-//      )
-//
-//      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
-//
-//      application.stop()
-//    }
+    "return OK and the correct view for a GET" in {
+
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, getRequest).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "date" -> DateInput.localDate(form("qropsTransferDate")),
+        "memberName" -> memberGDetails.fullName
+      )
+
+      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 
@@ -126,24 +126,24 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val filledForm =
-        Json.obj(
-          "qropsReferenceNumber" -> chargeGDetails.qropsReferenceNumber,
-          "qropsTransferDate.day" -> chargeGDetails.qropsTransferDate.getDayOfMonth.toString,
-          "qropsTransferDate.month" -> chargeGDetails.qropsTransferDate.getMonthValue.toString,
-          "qropsTransferDate.year" -> chargeGDetails.qropsTransferDate.getYear.toString
-        )
-
+//      val filledForm =
+//        Json.obj(
+//          "qropsReferenceNumber" -> chargeGDetails.qropsReferenceNumber,
+//          "qropsTransferDate.day" -> chargeGDetails.qropsTransferDate.getDayOfMonth.toString,
+//          "qropsTransferDate.month" -> chargeGDetails.qropsTransferDate.getMonthValue.toString,
+//          "qropsTransferDate.year" -> chargeGDetails.qropsTransferDate.getYear.toString
+//        )
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
+        "form" -> form.fill(chargeGDetails),
         "viewModel" -> viewModel,
         "date" -> DateInput.localDate(form("qropsTransferDate")),
-        "memberName" -> memberDetailsG.fullName
+        "memberName" -> memberGDetails.fullName
       )
 
-      println(s"\n\n${expectedJson("form")}\n")
-      println(s"\n${jsonCaptor.getValue.value("form")}\n\n")
+      println(s"\nqropsTransferDate\n${form.fill(chargeGDetails)}\n")
+      println(s"\nexpected\n${expectedJson("date")}\n")
+      println(s"\nactual\n${jsonCaptor.getValue.value("date")}\n\n")
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
@@ -151,87 +151,87 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       application.stop()
     }
 
-//    "redirect to the next page when valid data is submitted" in {
-//
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-//      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-//      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-//        .overrides(
-//          bind[FrontendAppConfig].toInstance(mockAppConfig)
-//        )
-//        .build()
-//
-//      val result = route(application, postRequest).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustEqual onwardRoute.url
-//
-//      application.stop()
-//    }
+    "redirect to the next page when valid data is submitted" in {
 
-//    "return a Bad Request and errors when invalid data is submitted" in {
-//
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-//
-//
-//      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-//        .overrides(
-//          bind[FrontendAppConfig].toInstance(mockAppConfig)
-//        )
-//        .build()
-//
-//      val request = FakeRequest(POST, chargeDetailsSubmitRoute).withFormUrlEncodedBody(("value", "invalid value"))
-//      val boundForm = form.bind(Map("value" -> "invalid value"))
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual BAD_REQUEST
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val expectedJson = Json.obj(
-//        "form" -> boundForm,
-//        "viewModel" -> viewModel,
-//        "date" -> DateInput.localDate(boundForm("qropsTransferDate")),
-//        "memberName" -> memberDetailsG.fullName
-//      )
-//
-//      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
-//
-//      application.stop()
-//    }
-//
-//    "redirect to Session Expired for a GET if no existing data is found" in {
-//
-//      val application = applicationBuilder(userAnswers = None).build()
-//
-//      val result = route(application, getRequest).value
-//
-//      status(result) mustEqual SEE_OTHER
-//      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-//
-//      application.stop()
-//    }
-//
-//    "redirect to Session Expired for a POST if no existing data is found" in {
-//
-//      val application = applicationBuilder(userAnswers = None).build()
-//
-//      val result = route(application, postRequest).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-//
-//      application.stop()
-//    }
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+
+      val result = route(application, postRequest).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+
+      application.stop()
+    }
+
+    "return a Bad Request and errors when invalid data is submitted" in {
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+
+
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+
+      val request = FakeRequest(POST, chargeDetailsSubmitRoute).withFormUrlEncodedBody(("value", "invalid value"))
+      val boundForm = form.bind(Map("value" -> "invalid value"))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel,
+        "date" -> DateInput.localDate(boundForm("qropsTransferDate")),
+        "memberName" -> memberGDetails.fullName
+      )
+
+      templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "redirect to Session Expired for a GET if no existing data is found" in {
+
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, getRequest).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
+
+    "redirect to Session Expired for a POST if no existing data is found" in {
+
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, postRequest).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
   }
 }
