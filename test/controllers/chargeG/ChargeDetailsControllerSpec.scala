@@ -27,6 +27,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.chargeG.ChargeDetailsPage
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -137,7 +138,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       val expectedJson = Json.obj(
         "form" -> form.fill(chargeGDetails),
         "viewModel" -> viewModel,
-        "date" -> DateInput.localDate(form("qropsTransferDate")),
+        "date" -> DateInput.localDate(form.fill(chargeGDetails)("qropsTransferDate")),
         "memberName" -> memberGDetails.fullName
       )
 
