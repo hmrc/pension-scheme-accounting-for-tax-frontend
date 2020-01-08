@@ -16,7 +16,7 @@
 
 package forms.chargeG
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
 
 import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import play.api.data.FormError
@@ -28,7 +28,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
   val qropsRefKey = "qropsReferenceNumber"
   val qropsDateKey = "qropsTransferDate"
 
-  "qropsTransferDate" - {
+  "qropsTransferDate" must {
 
     behave like dateFieldWithMin(
       form = form,
@@ -47,7 +47,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like mandatoryDateField(form, qropsDateKey, "chargeG.chargeDetails.qropsTransferDate.error.required.all")
   }
 
-  "qropsReferenceNumber" - {
+  "qropsReferenceNumber" must {
     behave like fieldWithMaxLength(
       form = form,
       fieldName = qropsRefKey,
