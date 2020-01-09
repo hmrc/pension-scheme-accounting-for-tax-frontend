@@ -134,6 +134,12 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
+dob.label = Date of birth
+dob.error.required = Enter the member’s date of birth
+dob.error.invalid = Enter a real date for the member’s date of birth
+dob.error.incomplete = The member’s date of birth must include a day, month and year
+dob.error.future = The member’s date of birth must be in the past
+
 return.to.link = Return to {0}
 
 chargeDetails.amount.label = Amount of tax due at 40%
@@ -437,3 +443,11 @@ chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
 
 
+
+chargeG.whatYouWillNeed.title = Overseas transfer charge
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
+chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
+chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
+chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
+chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
+chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
