@@ -41,8 +41,9 @@ object SampleData {
   val crn = "AB121212"
   val dummyCall = Call("GET", "/foo")
   val chargeAmount1 = BigDecimal(33.44)
-  val chargeAmounts = ChargeAmounts(BigDecimal(33.44), BigDecimal(44.44))
   val chargeAmount2 = BigDecimal(50.00)
+  val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
+  val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
@@ -69,9 +70,11 @@ object SampleData {
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
-  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
-  val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
+  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
+  val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.now(), "AB123456C")
+  val memberDetailsDeleted: MemberDetails = MemberDetails("Jill", "Bloggs", "AB123456C", isDeleted = true)
+  val memberGDetailsDeleted: MemberDetailsG = MemberDetailsG("Jill", "Bloggs", LocalDate.now(), "AB123456C", isDeleted = true)
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeName
     .set(MemberDetailsPage(0), memberDetails).toOption.get

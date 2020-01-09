@@ -68,7 +68,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
           "viewModel" -> viewModel
         )
 
-        renderer.render("chargeE/memberDetails.njk", json).map(Ok(_))
+        renderer.render("memberDetails.njk", json).map(Ok(_))
       }
   }
 
@@ -88,7 +88,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
               "viewModel" -> viewModel
             )
 
-            renderer.render("chargeE/memberDetails.njk", json).map(BadRequest(_))
+            renderer.render("memberDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {

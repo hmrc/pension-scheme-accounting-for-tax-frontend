@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-package forms.mappings
+package pages.chargeG
 
-trait Transforms {
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-  protected def noTransform(value: String): String = value
+case object AddMembersPage extends QuestionPage[Boolean] {
 
-  protected def noSpaceWithUpperCaseTransform(value: String): String =
-    toUpperCaseAlphaOnly(strip(value))
+  override def path: JsPath = JsPath \ "chargeGDetails" \ toString
 
-  protected def toUpperCaseAlphaOnly(value: String): String =
-    value.map {
-      case c if ('a' to 'z').contains(c) => c.toUpper
-      case c                                    => c
-    }
-
-  protected def strip(value: String): String = {
-    value.replaceAll(" ", "")
-  }
-
-  protected def minimiseSpace(value: String): String =
-    value.replaceAll(" {2,}", " ")
+  override def toString: String = "addMembers"
 }
+

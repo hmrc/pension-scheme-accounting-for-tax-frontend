@@ -65,4 +65,5 @@ object DataRetrievals {
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
+
 }
