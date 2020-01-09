@@ -488,3 +488,7 @@ chargeG.addMembers.heading = Overseas transfer charges for {0} to {1}
 chargeG.addMembers.label = Do you want to add another overseas transfer charge?
 chargeG.addMembers.visuallyHidden = {0}’s overseas transfer charge
 chargeG.addMembers.error = Select yes if you want to add another overseas transfer charge
+
+deleteMember.chargeG.title = Are you sure you want to remove {0}’s overseas transfer charge?
+deleteMember.chargeG.heading = Are you sure you want to remove {0}’s overseas transfer charge?
+deleteMember.chargeG.error.required = Select yes if you want to remove {0}’s overseas transfer charge
