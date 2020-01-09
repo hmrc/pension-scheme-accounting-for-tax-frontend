@@ -8,7 +8,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeC.chargeDetails.title"), form.errors) }}
+  {{ title(messages("chargeC.chargeDetails.title", sponsorName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -29,40 +29,32 @@
 
           {{ csrf() | safe }}
 
+          {{ govukDateInput({
+            id: "paymentDate",
+            fieldset: {
+              legend: {
+                text: messages('chargeC.paymentDate.label'),
+                isPageHeading: false,
+                classes: "govuk-fieldset__legend--s"
+              }
+            },
+            errorMessage: form.paymentDate.error,
+            items: date.items
+           }) }}
 
-                    {{ govukDateInput({
-                        id: "paymentDate",
-                        fieldset: {
-                          legend: {
-                            text: messages('chargeC.paymentDate.label'),
-                            isPageHeading: false,
-                            classes: "govuk-fieldset__legend--s"
-                          }
-                        },
-                        errorMessage: form.paymentDate.error,
-                        items: date.items
-                      }) }}
-
-                        {{ govukInput({
-                          id: "amountTaxDue",
-                          label: {
-                            text: messages('chargeC.amountTaxDue.label'),
-                            isPageHeading: false,
-                            classes: "govuk-label--s"
-                          },
-                          name: "amountTaxDue",
-                          type: "text",
-                          value: form.amountTaxDue.value,
-                          classes: "govuk-input--width-10",
-                          errorMessage: form.amountTaxDue.error
-                        }) }}
-
-
-
-
-
-
-
+          {{ govukInput({
+            id: "amountTaxDue",
+            label: {
+              text: messages('chargeC.amountTaxDue.label'),
+              isPageHeading: false,
+              classes: "govuk-label--s"
+            },
+            name: "amountTaxDue",
+            type: "text",
+            value: form.amountTaxDue.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.amountTaxDue.error
+          }) }}
 
           {{ govukButton({
             text: messages("site.continue"),

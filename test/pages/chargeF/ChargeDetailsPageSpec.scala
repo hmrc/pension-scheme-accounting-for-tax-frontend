@@ -16,20 +16,16 @@
 
 package pages.chargeF
 
+import models.chargeF.ChargeDetails
 import pages.behaviours.PageBehaviours
 
-class ChargeCDetailsPageSpec extends PageBehaviours {
+class ChargeDetailsPageSpec extends PageBehaviours {
 
-//  "ChargeDetailsPage" - {
-//
-//    implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
-//      datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
-//    }
-//
-//    beRetrievable[LocalDate](ChargeDetailsPage)
-//
-//    beSettable[LocalDate](ChargeDetailsPage)
-//
-//    beRemovable[LocalDate](ChargeDetailsPage)
-//  }
+  "ChargeDetailsPage (charge F)" - {
+    beRetrievable[ChargeDetails](ChargeDetailsPage)
+
+    beSettable[ChargeDetails](ChargeDetailsPage)
+
+    beRemovable[ChargeDetails](ChargeDetailsPage)
+  }
 }

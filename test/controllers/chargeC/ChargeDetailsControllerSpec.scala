@@ -63,7 +63,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       data = SampleData.chargeCDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
     )
 
     behave like controllerWithPOST(
@@ -73,7 +74,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
     )
   }
 }

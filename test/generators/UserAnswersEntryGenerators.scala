@@ -99,12 +99,4 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
         value <- arbitrary[ChargeType].map(Json.toJson(_))
       } yield (page, value)
     }
-
-//  implicit lazy val arbitraryChargeCDetailsUserAnswersEntry: Arbitrary[(ChargeCDetailsPage.type, JsValue)] =
-//    Arbitrary {
-//      for {
-//        page  <- arbitrary[ChargeCDetailsPage.type]
-//        value <- arbitrary[ChargeCDetails].map(Json.toJson(_))
-//      } yield (page, value)
-//    }
 }

@@ -20,6 +20,7 @@ import java.time.{Instant, LocalDate, ZoneOffset}
 
 import models._
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeF.ChargeDetails
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -87,12 +88,19 @@ trait ModelGenerators {
     datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
   }
 
-
   implicit lazy val arbitraryChargeCDetails: Arbitrary[ChargeCDetails] =
     Arbitrary {
       for {
         paymentDate <- arbitraryLocalDate.arbitrary
         amountTaxDue <- arbitrary[BigDecimal]
       } yield ChargeCDetails(paymentDate, amountTaxDue)
+    }
+
+  implicit lazy val arbitraryChargeFDetails: Arbitrary[ChargeDetails] =
+    Arbitrary {
+      for {
+        deregDate <- arbitraryLocalDate.arbitrary
+        amountTaxDue <- arbitrary[BigDecimal]
+      } yield ChargeDetails(deregDate, amountTaxDue)
     }
 }
