@@ -50,14 +50,27 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   private val form = formProvider()
 
-  private def jsonCountries(implicit messages: Messages): JsArray =
+  private def countryJsonElement(tuple:(String,String), isSelected:Boolean):JsArray = Json.arr(
+    if (isSelected) {
+      Json.obj(
+        "value" -> tuple._1,
+        "text" -> tuple._2,
+        "selected" -> true
+      )
+    } else {
+      Json.obj(
+        "value" -> tuple._1,
+        "text" -> tuple._2
+      )
+    }
+  )
+
+  private def jsonCountries(countrySelected:Option[String])(implicit messages: Messages): JsArray =
     config.validCountryCodes
       .map(countryCode => (countryCode, messages(s"country.$countryCode")))
-      .sortWith(_._2 < _._2).foldLeft(JsArray())((acc, c) =>
-      acc ++ Json.arr( Json.obj(
-        "value" -> c._1, "text" -> c._2
-      ))
-    )
+      .sortWith(_._2 < _._2).foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
+      acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
+    }
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
@@ -75,7 +88,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
-          "countries" -> jsonCountries
+          "countries" -> jsonCountries(preparedForm.data.get("country"))
         )
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
@@ -90,7 +103,6 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
-
             val viewModel = GenericViewModel(
               submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -100,7 +112,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
               "form" -> addArgsToErrors(formWithErrors, sponsorName),
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,
-              "countries" -> jsonCountries
+              "countries" -> jsonCountries(formWithErrors.data.get("country"))
             )
 
             renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))

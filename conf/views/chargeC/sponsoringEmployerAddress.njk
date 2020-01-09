@@ -85,16 +85,20 @@
             errorMessage: form.line4.error
           }) }}
 
-          <div class="govuk-form-group autocomplete-wrapper govuk-body">
-              <label class="govuk-label govuk-label--s" for="country">
-                  <span class="bold form-label-bold">Country</span>
-              </label>
-
+          <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-input--width-20">
               {{ govukSelect({
+                label: {
+                    text: "Country",
+                    classes: "govuk-label--s"
+                },
                 id: "country-select",
-                classes: "govuk-input--width-10",
+                classes: "autocomplete",
                 name: "country",
-                items: countries
+                items: countries,
+                errorMessage: form.country.error,
+                attributes: {
+                    value: form.country.value
+                }
               }) }}
           </div>
 
