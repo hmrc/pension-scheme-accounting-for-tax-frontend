@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package models.chargeC
 
-import pages.behaviours.PageBehaviours
+import java.time.LocalDate
 
-class ChargeDetailsPageSpec extends PageBehaviours {
+import play.api.libs.json.{Format, Json}
 
-//  "ChargeDetailsPage" - {
-//
-//    implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
-//      datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
-//    }
-//
-//    beRetrievable[LocalDate](ChargeDetailsPage)
-//
-//    beSettable[LocalDate](ChargeDetailsPage)
-//
-//    beRemovable[LocalDate](ChargeDetailsPage)
-//  }
+case class ChargeCDetails(paymentDate: LocalDate, amountTaxDue: BigDecimal)
+
+
+object ChargeCDetails {
+  implicit lazy val formats: Format[ChargeCDetails] =
+    Json.format[ChargeCDetails]
 }

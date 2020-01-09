@@ -131,3 +131,8 @@ GET         /:srn/new-return/overseas-transfer-charge/:index/members-details    
 POST        /:srn/new-return/overseas-transfer-charge/:index/members-details                            controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET         /:srn/new-return/change/overseas-transfer-charge/:index/members-details                     controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/change/overseas-transfer-charge/:index/members-details                     controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+
+GET        /:srn/new-return/authorised-surplus-payments-charge/charge-details                  controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/charge-details                  controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                        controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                        controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)

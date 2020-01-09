@@ -722,3 +722,16 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+chargeC.paymentDate.error.invalid = Enter a real date for the date the authorised surplus payment was made
+chargeC.paymentDate.error.required = Enter the date the authorised surplus payment was made
+chargeC.paymentDate.error.incomplete = The date the authorised surplus payment was made must include a day, month and year
+chargeC.paymentDate.error.future = The date the authorised surplus payment was made must be today or in the past
+chargeC.chargeAmount.error.required = Enter the amount of tax due at 35%
+chargeC.chargeAmount.error.invalid = The amount of tax due at 35% must be an amount of money, like 123.45 or 156.00
+chargeC.chargeAmount.error.decimal = The amount of tax due at 35% must include pence, like 123.45 or 156.00
+
+chargeC.paymentDate.label = Date authorised surplus payment was made
+chargeC.amountTaxDue.label = Amount of tax due at 35%
+chargeC.chargeDetails.heading = Authorised surplus payment charge details for
+chargeC.chargeDetails.title = Authorised surplus payment charge details for

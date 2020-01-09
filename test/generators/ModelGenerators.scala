@@ -16,8 +16,10 @@
 
 package generators
 
+import java.time.{Instant, LocalDate, ZoneOffset}
+
 import models._
-import models.chargeC.{SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -69,5 +71,28 @@ trait ModelGenerators {
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =
     Arbitrary {
       Gen.oneOf(YearRange.values.toSeq)
+    }
+  def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {
+
+    def toMillis(date: LocalDate): Long =
+      date.atStartOfDay.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
+
+    Gen.choose(toMillis(min), toMillis(max)).map {
+      millis =>
+        Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
+    }
+  }
+
+  implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
+    datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
+  }
+
+
+  implicit lazy val arbitraryChargeCDetails: Arbitrary[ChargeCDetails] =
+    Arbitrary {
+      for {
+        paymentDate <- arbitraryLocalDate.arbitrary
+        amountTaxDue <- arbitrary[BigDecimal]
+      } yield ChargeCDetails(paymentDate, amountTaxDue)
     }
 }

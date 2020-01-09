@@ -17,15 +17,24 @@
 package generators
 
 import models._
+import models.chargeC.ChargeCDetails
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages._
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC._
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
+
+  implicit lazy val arbitraryChargeDetailsUserAnswersEntry: Arbitrary[(ChargeDetailsPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[ChargeDetailsPage.type]
+        value <- arbitrary[Int].map(Json.toJson(_))
+      } yield (page, value)
+    }
 
   implicit lazy val arbitrarySponsoringIndividualDetailsUserAnswersEntry: Arbitrary[(SponsoringIndividualDetailsPage.type, JsValue)] =
     Arbitrary {
@@ -91,11 +100,11 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
       } yield (page, value)
     }
 
-  implicit lazy val arbitraryChargeDetailsUserAnswersEntry: Arbitrary[(ChargeDetailsPage.type, JsValue)] =
-    Arbitrary {
-      for {
-        page  <- arbitrary[ChargeDetailsPage.type]
-        value <- arbitrary[Int].map(Json.toJson(_))
-      } yield (page, value)
-    }
+//  implicit lazy val arbitraryChargeCDetailsUserAnswersEntry: Arbitrary[(ChargeCDetailsPage.type, JsValue)] =
+//    Arbitrary {
+//      for {
+//        page  <- arbitrary[ChargeCDetailsPage.type]
+//        value <- arbitrary[ChargeCDetails].map(Json.toJson(_))
+//      } yield (page, value)
+//    }
 }

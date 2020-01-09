@@ -33,6 +33,21 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
+  def chargeDetails: Option[Row] = userAnswers.get(pages.chargeC.ChargeCDetailsPage) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(""),classes = Seq("govuk-!-width-one-quarter")),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeDetails.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def sponsoringIndividualDetails: Option[Row] = userAnswers.get(SponsoringIndividualDetailsPage) map {
     answer =>
       Row(
