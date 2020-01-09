@@ -19,46 +19,48 @@ package controllers.chargeC
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import forms.chargeC.SponsoringOrganisationDetailsFormProvider
+import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
-import models.chargeC.SponsoringOrganisationDetails
+import models.chargeC.SponsoringIndividualDetails
 import models.{GenericViewModel, NormalMode}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.SponsoringIndividualDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
-  private val templateToBeRendered = "chargeC/sponsoringOrganisationDetails.njk"
-  private val form = new SponsoringOrganisationDetailsFormProvider()()
-  private def getRoute: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def postRoute: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn).url
+class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
+  private val templateToBeRendered = "chargeC/sponsoringIndividualDetails.njk"
+  private val form = new SponsoringIndividualDetailsFormProvider()()
+  private def getRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def postRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "name" -> Seq("Big Company"),
-    "crn" -> Seq("AB121212")
+    "firstName" -> Seq("First"),
+    "lastName" -> Seq("Last"),
+    "nino" -> Seq("CS121212C")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "name" -> Seq(""),
-    "crn" -> Seq("V")
+    "firstName" -> Seq.empty,
+    "lastName" -> Seq("Last"),
+    "nino" -> Seq("CS121212C")
   )
 
-  private val jsonToPassToTemplate:Form[SponsoringOrganisationDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate:Form[SponsoringIndividualDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
 
-  "SponsoringOrganisationDetails Controller" must {
+  "SponsoringIndividualDetails Controller" must {
     behave like controllerWithGETSavedData(
       httpPath = getRoute,
-      page = SponsoringOrganisationDetailsPage,
-      data = SampleData.sponsoringOrganisationDetails,
+      page = SponsoringIndividualDetailsPage,
+      data = SampleData.sponsoringIndividualDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
@@ -66,8 +68,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
 
     behave like controllerWithPOST(
       httpPath = postRoute,
-      page = SponsoringOrganisationDetailsPage,
-      data = SampleData.sponsoringOrganisationDetails,
+      page = SponsoringIndividualDetailsPage,
+      data = SampleData.sponsoringIndividualDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,

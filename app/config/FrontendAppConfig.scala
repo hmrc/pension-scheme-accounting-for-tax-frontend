@@ -55,6 +55,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
+  lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)

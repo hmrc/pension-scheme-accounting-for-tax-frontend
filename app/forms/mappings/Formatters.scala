@@ -18,21 +18,16 @@ package forms.mappings
 
 import java.text.DecimalFormat
 
-import play.api.data.{FieldMapping, FormError, Mapping}
-import play.api.data.format.Formatter
 import models.Enumerable
-import play.api.data.Forms.of
-import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.data.FormError
+import play.api.data.format.Formatter
 
-import scala.util.{Failure, Success, Try}
 import scala.util.control.Exception.nonFatalCatch
+import scala.util.{Failure, Success, Try}
 
-trait Formatters {
+trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
-
-  private def standardiseText(s: String): String = {
-    s.replaceAll("""\s{1,}""", " ").trim
-  }
+  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
@@ -42,6 +37,34 @@ trait Formatters {
           .map(standardiseText)
           .filter(_.lengthCompare(0) > 0)
       )
+
+    override def unbind(key: String, value: Option[String]): Map[String, String] =
+      Map(key -> value.getOrElse(""))
+  }
+
+  private[mappings] def optionalPostcodeFormatter(requiredKey:String,
+                                                  invalidKey:String,
+                                                  countryFieldName:String): Formatter[Option[String]] = new Formatter[Option[String]] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+
+      val isPostcodeRequired = data.get(countryFieldName).contains("GB")
+
+      data.get(key) match {
+        case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
+        case None | Some("") => Right(None)
+        case Some(postcode) =>
+          if (minimiseSpace(postcode.trim.toUpperCase).matches(regexPostcode)) {
+            Right(
+              data
+                .get(key)
+                .map(standardiseText)
+                .filter(_.lengthCompare(0) > 0)
+            )
+          } else {
+            Left(Seq(FormError(key, invalidKey)))
+          }
+      }
+    }
 
     override def unbind(key: String, value: Option[String]): Map[String, String] =
       Map(key -> value.getOrElse(""))

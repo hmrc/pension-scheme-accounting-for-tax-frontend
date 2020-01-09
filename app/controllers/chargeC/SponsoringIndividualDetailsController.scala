@@ -20,15 +20,13 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeC.SponsoringEmployerAddressFormProvider
+import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import javax.inject.Inject
-import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.chargeC.SponsoringEmployerAddressPage
-import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
+import pages.chargeC.SponsoringIndividualDetailsPage
+import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -36,13 +34,13 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SponsoringEmployerAddressController @Inject()(override val messagesApi: MessagesApi,
+class SponsoringIndividualDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
                                       requireData: DataRequiredAction,
-                                      formProvider: SponsoringEmployerAddressFormProvider,
+                                      formProvider: SponsoringIndividualDetailsFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       config: FrontendAppConfig,
                                       renderer: Renderer
@@ -50,78 +48,51 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
   private val form = formProvider()
 
-  private def countryJsonElement(tuple:(String,String), isSelected:Boolean):JsArray = Json.arr(
-    if (isSelected) {
-      Json.obj(
-        "value" -> tuple._1,
-        "text" -> tuple._2,
-        "selected" -> true
-      )
-    } else {
-      Json.obj(
-        "value" -> tuple._1,
-        "text" -> tuple._2
-      )
-    }
-  )
-
-  private def jsonCountries(countrySelected:Option[String])(implicit messages: Messages): JsArray =
-    config.validCountryCodes
-      .map(countryCode => (countryCode, messages(s"country.$countryCode")))
-      .sortWith(_._2 < _._2).foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
-      acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
-    }
-
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage) match {
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        val preparedForm = request.userAnswers.get(SponsoringIndividualDetailsPage) match {
           case None => form
           case Some(value) => form.fill(value)
         }
+
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn).url,
+          submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName,
-          "countries" -> jsonCountries(preparedForm.data.get("country"))
+          "viewModel" -> viewModel
         )
 
-        renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
+        renderer.render("chargeC/sponsoringIndividualDetails.njk", json).map(Ok(_))
       }
   }
 
-  private def addArgsToErrors(form:Form[SponsoringEmployerAddress], args:String *):Form[SponsoringEmployerAddress] =
-    form copy(errors = form.errors.map(_ copy(args = args)))
-
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
+
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn).url,
+              submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> addArgsToErrors(formWithErrors, sponsorName),
-              "viewModel" -> viewModel,
-              "sponsorName" -> sponsorName,
-              "countries" -> jsonCountries(formWithErrors.data.get("country"))
+              "form" -> formWithErrors,
+              "viewModel" -> viewModel
             )
 
-            renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/sponsoringIndividualDetails.njk", json).map(BadRequest(_))
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringIndividualDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(SponsoringIndividualDetailsPage, mode, updatedAnswers, srn))
         )
       }
   }

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package pages.chargeC
 
-import play.api.libs.json.{Format, Json}
+import models.chargeC.SponsoringIndividualDetails
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case class SponsoringEmployerAddress(line1:String, line2:String, line3:Option[String], line4:Option[String], country:String, postcode:Option[String])
+case object SponsoringIndividualDetailsPage extends QuestionPage[SponsoringIndividualDetails] {
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "chargeCSponsoringIndividualDetails"
 }

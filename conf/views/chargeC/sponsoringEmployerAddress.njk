@@ -5,9 +5,14 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
+{% from "govuk/components/select/macro.njk"        import govukSelect %}
+
+{% block pageHead %}
+    <link href="{{ routes.controllers.Assets.versioned("stylesheets/location-autocomplete.min.css").url }}" media="screen" rel="stylesheet" type="text/css" />
+{% endblock %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeC.sponsoringEmployerAddress.title", companyName), form.errors) }}
+  {{ title(messages("chargeC.sponsoringEmployerAddress.title", sponsorName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,7 +27,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', companyName)}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
 
         <form action="{{ submitUrl }}" method="post">
 
@@ -80,18 +85,24 @@
             errorMessage: form.line4.error
           }) }}
 
-          {{ govukInput({
-            label: {
-              text: messages('chargeC.sponsoringEmployerAddress.country.title'),
-              isPageHeading: false,
-              classes: "govuk-label--s"
-            },
-            id: "country",
-            name: "country",
-            value: form.country.value,
-            classes: "govuk-input--width-20",
-            errorMessage: form.country.error
-          }) }}
+          <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-input--width-20">
+              {{ govukSelect({
+                label: {
+                    text: "Country",
+                    classes: "govuk-label--s"
+                },
+                id: "country-select",
+                classes: "autocomplete",
+                name: "country",
+                items: countries,
+                errorMessage: form.country.error,
+                attributes: {
+                    value: form.country.value
+                }
+              }) }}
+          </div>
+
+
 
           {{ govukInput({
             label: {
@@ -116,5 +127,10 @@
       </div>
     </div>
     <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
-
 {% endblock %}
+
+{% block pageScripts %}
+    <script src="{{ routes.controllers.Assets.versioned("javascripts/autocomplete/location-autocomplete.min.js").url }}"></script>
+{% endblock %}
+
+
