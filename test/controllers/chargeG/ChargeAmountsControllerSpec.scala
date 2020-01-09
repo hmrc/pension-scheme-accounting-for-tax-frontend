@@ -57,7 +57,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "memberName" -> "first last"
   )
 
-  val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberDetailsG).get
+  val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberGDetails).get
   val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), SampleData.chargeAmounts).get.data
 
   "ChargeAmounts Controller" must {

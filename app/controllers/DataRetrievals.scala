@@ -19,8 +19,7 @@ package controllers
 import models.MemberDetails
 import models.requests.DataRequest
 import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.{PSTRQuery, Page, QuestionPage, SchemeNameQuery}
-import play.api.libs.json.Reads
+import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -28,22 +27,32 @@ import scala.concurrent.Future
 
 object DataRetrievals {
 
-  def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeName(block: String => Future[Result])
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrievePSTR(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrievePSTR(block: String => Future[Result])
+                  (implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
       case Some(pstr) => block(pstr)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result]
-  )(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result])
+                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
+      case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeAndMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
+                                    (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -56,11 +65,4 @@ object DataRetrievals {
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
-
-  def retrieveSchemeAndMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
-                                    (implicit request: DataRequest[AnyContent]): Future[Result] =
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
-      case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
 }

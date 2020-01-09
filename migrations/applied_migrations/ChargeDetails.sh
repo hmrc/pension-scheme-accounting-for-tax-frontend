@@ -6,11 +6,11 @@ echo "Applying migration ChargeDetails"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /chargeDetails                  controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode)" >> ../conf/app.routes
-echo "POST       /chargeDetails                  controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/chargeDetails                  controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/chargeDetails                  controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
 
-echo "GET        /changeChargeDetails                        controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode)" >> ../conf/app.routes
-echo "POST       /changeChargeDetails                        controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeChargeDetails                        controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeChargeDetails                        controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en
@@ -62,7 +62,7 @@ awk '/class CheckYourAnswersHelper/ {\
      print "        actions = List(";\
      print "          Action(";\
      print "            content            = msg\"site.edit\",";\
-     print "            href               = routes.ChargeDetailsController.onPageLoad(CheckMode).url,";\
+     print "            href               = controllers.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,";\
      print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"chargeDetails.checkYourAnswersLabel\"))";\
      print "          )";\
      print "        )";\

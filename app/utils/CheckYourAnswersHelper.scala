@@ -33,6 +33,36 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
+  def chargeGDate(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeG.chargeDetails.qropsTransferDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.qropsTransferDate.format(dateFormatter))),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsTransferDate.visuallyHidden.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeGQROPSReferenceNumber(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeG.chargeDetails.GQROPSReferenceNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.qropsReferenceNumber)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsReferenceNumber.visuallyHidden.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def sponsoringEmployerAddress: Option[Row] = userAnswers.get(SponsoringEmployerAddressPage) map {
     answer =>
       Row(

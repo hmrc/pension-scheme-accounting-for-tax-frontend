@@ -39,7 +39,7 @@ object SampleData {
   val schemeName = "Big Scheme"
   val companyName = "Big Company"
   val crn = "AB121212"
-  val dummyCall = Call("GET","/foo")
+  val dummyCall = Call("GET", "/foo")
   val chargeAmount1 = BigDecimal(33.44)
   val chargeAmounts = ChargeAmounts(BigDecimal(33.44), BigDecimal(44.44))
   val chargeAmount2 = BigDecimal(50.00)
@@ -47,6 +47,7 @@ object SampleData {
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
+  val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
   val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = "Big Organisation", crn = "AB121212")
@@ -64,17 +65,23 @@ object SampleData {
     QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringOrganisationDetailsPage,SponsoringOrganisationDetails(name=companyName, crn=crn)).toOption.get
+    .set(SponsoringOrganisationDetailsPage, SponsoringOrganisationDetails(name = companyName, crn = crn)).toOption.get
 
-  val chargeBDetails = ChargeBDetails(4, chargeAmount1)
+  val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
-  val memberDetailsG: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
+  val memberGDetails: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
   val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
 
-  val chargeEMember: UserAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).toOption.get
+  val chargeEMember: UserAnswers = userAnswersWithSchemeName
+    .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  val chargeDMember: UserAnswers = userAnswersWithSchemeName.set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
+  val chargeGMember: UserAnswers = userAnswersWithSchemeName
+    .set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
+    .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
+
+  val chargeDMember: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
     .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
 }
