@@ -735,5 +735,5 @@ amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999
 
 chargeC.paymentDate.label = Date authorised surplus payment was made
 chargeC.amountTaxDue.label = Amount of tax due at 35%
-chargeC.chargeDetails.heading = Authorised surplus payment charge details for
+chargeC.chargeDetails.heading = Authorised surplus payment charge details for {0}
 chargeC.chargeDetails.title = Authorised surplus payment charge details for

@@ -37,7 +37,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn)
       case SponsoringOrganisationDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
       case SponsoringIndividualDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
-
       case SponsoringEmployerAddressPage => ChargeDetailsController.onPageLoad(NormalMode, srn)
     }
   }

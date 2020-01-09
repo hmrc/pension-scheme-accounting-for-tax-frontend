@@ -50,7 +50,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(ChargeCDetailsPage) match {
           case Some(value) => form.fill(value)
           case None => form
@@ -66,7 +66,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "date" -> date
+          "date" -> date,
+          "sponsorName" -> sponsorName
         )
 
         renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
@@ -75,7 +76,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
@@ -87,7 +88,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
-              "date" -> DateInput.localDate(formWithErrors("paymentDate"))
+              "date" -> DateInput.localDate(formWithErrors("paymentDate")),
+              "sponsorName" -> sponsorName
             )
 
             renderer.render("chargeC/chargeDetails.njk", json).map(BadRequest(_))
