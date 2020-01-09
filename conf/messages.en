@@ -406,6 +406,7 @@ chargeG.chargeDetails.qropsTransferDate.error.required.two = The transfer into t
 chargeG.chargeDetails.qropsTransferDate.error.required = Enter the date of the transfer into the QROPS
 chargeG.chargeDetails.qropsTransferDate.error.invalid = Enter a real date for the transfer into the QROPS
 chargeG.chargeDetails.qropsTransferDate.error.date = The date of the transfer into the QROPS must be between {0} and {1}
+chargeG.chargeDetails.qropsTransferDate.error.future = The date of the transfer into the QROPS must be today or in the past
 
 chargeG.whatYouWillNeed.title = Overseas transfer charge
 chargeG.whatYouWillNeed.heading = Overseas transfer charge
