@@ -127,24 +127,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-//      val filledForm =
-//        Json.obj(
-//          "qropsReferenceNumber" -> chargeGDetails.qropsReferenceNumber,
-//          "qropsTransferDate.day" -> chargeGDetails.qropsTransferDate.getDayOfMonth.toString,
-//          "qropsTransferDate.month" -> chargeGDetails.qropsTransferDate.getMonthValue.toString,
-//          "qropsTransferDate.year" -> chargeGDetails.qropsTransferDate.getYear.toString
-//        )
-
       val expectedJson = Json.obj(
         "form" -> form.fill(chargeGDetails),
         "viewModel" -> viewModel,
         "date" -> DateInput.localDate(form.fill(chargeGDetails)("qropsTransferDate")),
         "memberName" -> memberGDetails.fullName
       )
-
-      println(s"\nqropsTransferDate\n${form.fill(chargeGDetails)}\n")
-      println(s"\nexpected\n${expectedJson("date")}\n")
-      println(s"\nactual\n${jsonCaptor.getValue.value("date")}\n\n")
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
