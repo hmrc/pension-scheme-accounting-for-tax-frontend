@@ -29,10 +29,6 @@ trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
-  private def standardiseText(s: String): String = {
-    s.replaceAll("""\s{1,}""", " ").trim
-  }
-
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
       Right(
@@ -46,11 +42,6 @@ trait Formatters extends Transforms with Constraints {
       Map(key -> value.getOrElse(""))
   }
 
-
-    private[mappings] def postCodeTransform(value: String): String = {
-    minimiseSpace(value.trim.toUpperCase)
-  }
-
   private[mappings] def optionalPostcodeFormatter(requiredKey:String,
                                                   invalidKey:String,
                                                   countryFieldName:String): Formatter[Option[String]] = new Formatter[Option[String]] {
@@ -62,7 +53,7 @@ trait Formatters extends Transforms with Constraints {
         case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
         case None | Some("") => Right(None)
         case Some(postcode) =>
-          if (postCodeTransform(postcode).matches(regexPostcode)) {
+          if (minimiseSpace(postcode.trim.toUpperCase).matches(regexPostcode)) {
             Right(
               data
                 .get(key)
