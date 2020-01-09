@@ -16,7 +16,7 @@
 
 package forms
 
-import org.scalatest.{Matchers, OptionValues}
+import org.scalatest.OptionValues
 import org.scalatestplus.play.PlaySpec
 import play.api.data.{Form, FormError}
 

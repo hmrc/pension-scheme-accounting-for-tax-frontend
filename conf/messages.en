@@ -451,3 +451,14 @@ chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance num
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
 chargeG.whatYouWillNeed.li3 = the amount of tax due in respect of each transfer
 chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to which each transfer is made
+
+chargeG.chargeAmount.title = Overseas transfer charge amounts for {0}
+chargeG.chargeAmount.heading = Overseas transfer charge amounts for {0}
+chargeG.chargeAmount.transferred = Amount transferred into the QROPS
+chargeG.chargeAmount.taxDue = Amount of tax due
+amountTransferred.error.required = Enter the amount transferred into the QROPS for {0}
+amountTransferred.error.invalid = The amount transferred into the QROPS for dsfdf sdfs must be an amount of money, like 123.45 or 156.00
+amountTransferred.error.decimal = The amount transferred into the QROPS for dsfdf sdfs must include pence, like 123.45 or 156.00
+amountTaxDue.error.required = Enter the amount of tax due for this transfer into the QROPS
+amountTaxDue.error.invalid = The amount of tax due for this transfer into the QROPS must be an amount of money, like 123.45 or 156.00
+amountTaxDue.error.decimal = The amount of tax due for this transfer into the QROPS must include pence, like 123.45 or 156.00

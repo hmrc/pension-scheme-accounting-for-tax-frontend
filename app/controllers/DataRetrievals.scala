@@ -57,4 +57,10 @@ object DataRetrievals {
     }
   }
 
+  def retrieveSchemeAndMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
+                                    (implicit request: DataRequest[AnyContent]): Future[Result] =
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
+      case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
 }

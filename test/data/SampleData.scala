@@ -18,17 +18,16 @@ package data
 
 import java.time.LocalDate
 
-import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
-import models.chargeG.{MemberDetails => MemberDetailsG}
 import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
-import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
+import models.chargeE.ChargeEDetails
+import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.QuarterPage
 import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 
@@ -42,6 +41,7 @@ object SampleData {
   val crn = "AB121212"
   val dummyCall = Call("GET","/foo")
   val chargeAmount1 = BigDecimal(33.44)
+  val chargeAmounts = ChargeAmounts(BigDecimal(33.44), BigDecimal(44.44))
   val chargeAmount2 = BigDecimal(50.00)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
