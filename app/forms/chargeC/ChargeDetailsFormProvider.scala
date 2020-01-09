@@ -37,12 +37,12 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         yearHas4Digits("chargeC.paymentDate.error.invalid")
       ),
       "amountTaxDue" -> bigDecimal2DP(
-        requiredKey = "chargeC.chargeAmount.error.required",
-        invalidKey = "chargeC.chargeAmount.error.invalid",
-        decimalKey = "chargeC.chargeAmount.error.decimal"
+        requiredKey = "chargeC.amountTaxDue.error.required",
+        invalidKey = "chargeC.amountTaxDue.error.invalid",
+        decimalKey = "chargeC.amountTaxDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeC.chargeAmount.error.invalid")
+        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeC.amountTaxDue.error.invalid"),
+        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeC.amountTaxDue.error.invalid")
       )
     )(ChargeCDetails.apply)(ChargeCDetails.unapply))
 }

@@ -16,17 +16,20 @@
 
 package forms.chargeC
 
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
 
-import forms.behaviours.DateBehaviours
+import forms.behaviours.{BigDecimalFieldBehaviours, DateBehaviours}
 import models.chargeC.ChargeCDetails
+import play.api.data.FormError
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours {
+class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
   val form = new ChargeDetailsFormProvider()()
+  val amountTaxDueMsgKey = "chargeC.amountTaxDue"
+  val amountTaxDueKey = "amountTaxDue"
+
 
   "paymentDate" must {
-
     "must bind valid data" in {
       val expectedResult = ChargeCDetails(
         paymentDate = LocalDate.of(2000, 3, 12),
@@ -47,5 +50,27 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours {
     behave like mandatoryDateField(form, "paymentDate", "chargeC.paymentDate.error.required")
   }
 
-  
+  "amountTaxDue" must {
+
+    behave like bigDecimalField(
+      form = form,
+      fieldName = amountTaxDueKey,
+      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.invalid"),
+      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.decimal")
+    )
+
+    behave like bigDecimalFieldWithMinimum(
+      form = form,
+      fieldName = amountTaxDueKey,
+      minimum = BigDecimal("0.00"),
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.invalid")
+    )
+
+    behave like longBigDecimal(
+      form = form,
+      fieldName = amountTaxDueKey,
+      length = 11,
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.invalid")
+    )
+  }
 }
