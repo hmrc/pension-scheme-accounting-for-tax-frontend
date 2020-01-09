@@ -83,6 +83,7 @@ object SampleData {
   val chargeGMember: UserAnswers = userAnswersWithSchemeName
     .set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
     .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
+    .set(pages.chargeG.ChargeAmountsPage(0), chargeAmounts).toOption.get
 
   val chargeDMember: UserAnswers = userAnswersWithSchemeName
     .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get

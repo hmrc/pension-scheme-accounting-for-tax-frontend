@@ -60,7 +60,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val pstr = "test pstr"
 
-  private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetailsG).success.value
+  private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberGDetails).success.value
 
   private val answers: UserAnswers = userAnswers
     .set(PSTRQuery, pstr).success.value
@@ -122,7 +122,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA =  answers.set(MemberDetailsPage(0), memberDetailsG.copy(isDeleted = true)).toOption.get
+      val expectedUA =  answers.set(MemberDetailsPage(0), memberGDetails.copy(isDeleted = true)).toOption.get
           .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
