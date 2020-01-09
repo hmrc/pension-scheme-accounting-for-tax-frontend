@@ -21,6 +21,7 @@ import java.time.LocalDate
 import models.chargeE.ChargeEDetails
 import models.chargeB.ChargeBDetails
 import models.chargeC.{SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeG.{MemberDetails => MemberDetailsG}
 import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
@@ -75,6 +76,7 @@ object SampleData {
 
   val chargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
+  val memberDetailsG: MemberDetailsG = MemberDetailsG("first", "last", LocalDate.now(), "AB123456C")
   val memberDetails2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C")
   val memberDetailsDeleted: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123456C", isDeleted = true)
 
