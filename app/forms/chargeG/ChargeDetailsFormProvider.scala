@@ -25,20 +25,25 @@ import play.api.data.Form
 import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
+  
+  val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
+  val qropsTransferDateKey: String = "chargeG.chargeDetails.qropsTransferDate.error"
 
   def apply(dateErrorMsg: String): Form[ChargeDetails] =
     Form(mapping(
       "qropsReferenceNumber" -> text(
-        errorKey = "chargeG.chargeDetails.qropsReferenceNumber.error.required"
-      ).verifying(regexp("""^Q[0-9]{6}""", "chargeG.chargeDetails.qropsReferenceNumber.error.valid")),
+        errorKey = s"$qropsReferenceNumberKey.required"
+      ).verifying(regexp("""^Q[0-9]{6}""", s"$qropsReferenceNumberKey.valid")),
       "qropsTransferDate" -> localDate(
-        invalidKey     = "chargeG.chargeDetails.qropsTransferDate.error.invalid",
-        allRequiredKey = "chargeG.chargeDetails.qropsTransferDate.error.required.all",
-        twoRequiredKey = "chargeG.chargeDetails.qropsTransferDate.error.required.two",
-        requiredKey    = "chargeG.chargeDetails.qropsTransferDate.error.required"
+        invalidKey     = s"$qropsTransferDateKey.invalid",
+        allRequiredKey = s"$qropsTransferDateKey.required.all",
+        twoRequiredKey = s"$qropsTransferDateKey.required.two",
+        requiredKey    = s"$qropsTransferDateKey.required"
       ).verifying(
-        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
-        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg)
+        minDate(LocalDate.of(2020, 1, 1), dateErrorMsg),
+        maxDate(LocalDate.of(2020, 3, 30), dateErrorMsg),
+        futureDate(s"$qropsTransferDateKey.future"),
+        yearHas4Digits(s"$qropsTransferDateKey.invalid")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

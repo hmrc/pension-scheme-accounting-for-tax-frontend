@@ -24,6 +24,7 @@ import play.api.data.FormError
 class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehaviours {
 
   val dynamicErrorMsg: String = "The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020"
+  val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
   val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
   val qropsRefKey = "qropsReferenceNumber"
   val qropsDateKey = "qropsTransferDate"
@@ -35,6 +36,13 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
       key = qropsDateKey,
       min = LocalDate.of(2020, 4, 1),
       formError = FormError(qropsDateKey, dynamicErrorMsg)
+    )
+
+    behave like dateFieldWithMax(
+      form = form,
+      key = qropsDateKey,
+      max = LocalDate.now(),
+      formError = FormError(qropsDateKey, futureErrorMsg)
     )
 
     behave like dateFieldWithMax(
