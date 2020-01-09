@@ -21,7 +21,7 @@ import models.chargeC.ChargeCDetails
 import pages.behaviours.PageBehaviours
 
 class ChargeCDetailsPageSpec extends PageBehaviours  {
-  "ChargeDetailsPage" - {
+  "ChargeCDetailsPage" - {
 
     beRetrievable[ChargeCDetails](ChargeCDetailsPage)
 
