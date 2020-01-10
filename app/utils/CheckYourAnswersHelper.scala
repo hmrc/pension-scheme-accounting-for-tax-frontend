@@ -46,21 +46,21 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     )
   }
 
-  def chargeCDetails: Seq[Row] = {
+  def chargeCDetails: Seq[Row] =
     (userAnswers.get(IsSponsoringEmployerIndividualPage),
       userAnswers.get(SponsoringIndividualDetailsPage),
       userAnswers.get(SponsoringOrganisationDetailsPage),
       userAnswers.get(SponsoringEmployerAddressPage), userAnswers.get(ChargeCDetailsPage)) match {
-      case (Some(isIndividual), id @ Some(individualDetails), _, Some(addr), Some(chargeDetails)) if isIndividual =>
-        chargeCIsSponsoringEmployerIndividual(isIndividual = isIndividual) ++
-          id.map(chargeCIndividualDetails).toSeq.flatten ++
+      case (Some(true), optionIndividualDetails @ Some(individualDetails), _, Some(addr), Some(chargeDetails)) =>
+        chargeCIsSponsoringEmployerIndividual(isIndividual = true) ++
+          optionIndividualDetails.map(chargeCIndividualDetails).toSeq.flatten ++
           chargeCLastSections(individualDetails.fullName, addr, chargeDetails)
-      case (Some(isIndividual), _, od @ Some(organisationDetails), Some(addr), Some(chargeDetails)) =>
-        chargeCIsSponsoringEmployerIndividual(isIndividual = isIndividual) ++
-          od.map(chargeCOrganisationDetails).toSeq.flatten ++
+      case (Some(false), _, optionOrganisationDetails @ Some(organisationDetails), Some(addr), Some(chargeDetails)) =>
+        chargeCIsSponsoringEmployerIndividual(isIndividual = false) ++
+          optionOrganisationDetails.map(chargeCOrganisationDetails).toSeq.flatten ++
           chargeCLastSections(organisationDetails.name, addr, chargeDetails)
+      case _ => Seq.empty
     }
-  }
 
   private def chargeCIsSponsoringEmployerIndividual(isIndividual: Boolean): Seq[Row] = {
     Seq(
@@ -165,7 +165,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       )
     )
   )
-
 
   def chargeFDate: Option[Row] = userAnswers.get(ChargeDetailsPage) map {
     answer =>
