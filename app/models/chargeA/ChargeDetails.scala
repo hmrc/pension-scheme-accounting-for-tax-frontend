@@ -18,11 +18,26 @@ package models.chargeA
 
 import play.api.libs.json.{Format, Json}
 
-case class ChargeDetails(numberOfMembers: Int, totalAmtOfTaxDueAtLowerRate: BigDecimal, totalAmtOfTaxDueAtHigherRate: BigDecimal, totalAmount:BigDecimal) {
-  def calcTotalAmount: BigDecimal = totalAmtOfTaxDueAtHigherRate + totalAmtOfTaxDueAtLowerRate
+case class ChargeDetails(
+                          numberOfMembers: Int,
+                          totalAmtOfTaxDue: TotalAmtOfTaxDue,
+                          totalAmount: BigDecimal
+                        ) {
+  def calcTotalAmount: BigDecimal =
+    totalAmtOfTaxDue.lowerRate.getOrElse(BigDecimal(0.00)) + totalAmtOfTaxDue.higherRate.getOrElse(BigDecimal(0.00))
 }
+
+case class TotalAmtOfTaxDue(
+                             lowerRate: Option[BigDecimal],
+                             higherRate: Option[BigDecimal]
+                           )
 
 object ChargeDetails {
   implicit lazy val formats: Format[ChargeDetails] =
     Json.format[ChargeDetails]
+}
+
+object TotalAmtOfTaxDue {
+  implicit lazy val formats: Format[TotalAmtOfTaxDue] =
+    Json.format[TotalAmtOfTaxDue]
 }

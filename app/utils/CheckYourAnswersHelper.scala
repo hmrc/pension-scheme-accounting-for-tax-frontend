@@ -36,12 +36,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def sponsoringIndividualDetails: Option[Row] = userAnswers.get(SponsoringIndividualDetailsPage) map {
     answer =>
       Row(
-        key     = Key(msg"sponsoringIndividualDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(lit"$answer"),
+        key = Key(msg"sponsoringIndividualDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$answer"),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn).url,
+            content = msg"site.edit",
+            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sponsoringIndividualDetails.checkYourAnswersLabel"))
           )
         )
@@ -51,12 +51,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def sponsoringEmployerAddress: Option[Row] = userAnswers.get(SponsoringEmployerAddressPage) map {
     answer =>
       Row(
-        key     = Key(msg"sponsoringEmployerAddress.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(lit"$answer"),
+        key = Key(msg"sponsoringEmployerAddress.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$answer"),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn).url,
+            content = msg"site.edit",
+            href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sponsoringEmployerAddress.checkYourAnswersLabel"))
           )
         )
@@ -66,12 +66,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def sponsoringOrganisationDetails: Option[Row] = userAnswers.get(SponsoringOrganisationDetailsPage) map {
     answer =>
       Row(
-        key     = Key(msg"chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(lit"$answer"),
+        key = Key(msg"chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$answer"),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn).url,
+            content = msg"site.edit",
+            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel"))
           )
         )
@@ -81,12 +81,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def isSponsoringEmployerIndividual: Option[Row] = userAnswers.get(IsSponsoringEmployerIndividualPage) map {
     answer =>
       Row(
-        key     = Key(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(yesOrNo(answer)),
+        key = Key(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(answer)),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn).url,
+            content = msg"site.edit",
+            href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel"))
           )
         )
@@ -97,7 +97,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeF.chargeDetails.date.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.deRegistrationDate.format(dateFormatter)),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(answer.deRegistrationDate.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -111,8 +111,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeFAmount: Option[Row] = userAnswers.get(pages.chargeF.ChargeDetailsPage) map {
     answer =>
       Row(
-        key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel",  classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"),classes = Seq("govuk-!-width-one-quarter")),
+        key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -127,13 +127,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.numberOfMembers.toString),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(answer.numberOfMembers.toString), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
-              )
+            )
           )
         )
       )
@@ -143,7 +143,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate)}"),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDue.lowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -158,7 +158,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate)}"),classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDue.higherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -169,7 +169,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       )
   }
 
-  def total(total:BigDecimal) = Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric","govuk-!-font-weight-bold")),
+  def total(total: BigDecimal) = Row(Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")),
     value = Value(Literal(s"£${formatBigDecimalAsString(total)}"))
   )
 
@@ -177,19 +177,19 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Seq(
         Row(
-        key = Key(msg"chargeB.numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.numberOfDeceased.toString),classes = Seq("govuk-!-width-one-quarter")),
-        actions = List(
-          Action(
-            content = msg"site.edit",
-            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel"))
+          key = Key(msg"chargeB.numberOfDeceased.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.numberOfDeceased.toString), classes = Seq("govuk-!-width-one-quarter")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel"))
+            )
           )
-        )
-      ),
+        ),
         Row(
           key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -207,7 +207,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -218,7 +218,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -294,7 +294,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -305,7 +305,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-quarter")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -369,5 +369,5 @@ object CheckYourAnswersHelper {
   private val decimalFormat = new DecimalFormat("0.00")
   private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
-  def formatBigDecimalAsString(bd:BigDecimal):String = decimalFormat.format(bd)
+  def formatBigDecimalAsString(bd: BigDecimal): String = decimalFormat.format(bd)
 }

@@ -18,6 +18,7 @@ package forms.mappings
 
 import java.time.LocalDate
 
+import models.chargeA.TotalAmtOfTaxDue
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import uk.gov.hmrc.domain.Nino
 
@@ -122,12 +123,11 @@ trait Constraints {
         Valid
     }
 
-  protected def futureDate(invalidKey: String): Constraint[LocalDate] = {
+  protected def futureDate(invalidKey: String): Constraint[LocalDate] =
     Constraint {
       case date if date.isAfter(LocalDate.now()) => Invalid(invalidKey)
       case _ => Valid
     }
-  }
 
   protected def yearHas4Digits(errorKey: String): Constraint[LocalDate] =
     Constraint {
@@ -143,17 +143,27 @@ trait Constraints {
         Invalid(errorKey)
     }
 
-  protected def validNino(invalidKey: String): Constraint[String] = {
+  protected def validNino(invalidKey: String): Constraint[String] =
     Constraint {
       case nino if Nino.isValid(nino) => Valid
       case _ => Invalid(invalidKey)
     }
-  }
 
-  protected def validCrn(invalidKey: String): Constraint[String] = {
+  protected def validCrn(invalidKey: String): Constraint[String] =
     Constraint {
       case crn if crn.matches(regexCrn) => Valid
       case _ => Invalid(invalidKey)
     }
-  }
+
+  def totalAmtTaxConstraint(errorKeys: (String, String, String)): Constraint[TotalAmtOfTaxDue] =
+    Constraint {
+      case amounts if amounts.lowerRate.isEmpty && amounts.higherRate.isEmpty =>
+        Invalid(errorKeys._1)
+      case amounts if amounts.lowerRate.contains(BigDecimal(0.00)) && amounts.higherRate.contains(BigDecimal(0.00)) =>
+        Invalid(errorKeys._2)
+      case amounts if (amounts.lowerRate.isEmpty && amounts.higherRate.contains(BigDecimal(0.00))) || (amounts.lowerRate.contains(BigDecimal(0.00)) && amounts.higherRate.isEmpty) =>
+        Invalid(errorKeys._3)
+      case _ =>
+        Valid
+    }
 }

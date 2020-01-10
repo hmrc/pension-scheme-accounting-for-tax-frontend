@@ -42,9 +42,9 @@ trait Formatters extends Transforms with Constraints {
       Map(key -> value.getOrElse(""))
   }
 
-  private[mappings] def optionalPostcodeFormatter(requiredKey:String,
-                                                  invalidKey:String,
-                                                  countryFieldName:String): Formatter[Option[String]] = new Formatter[Option[String]] {
+  private[mappings] def optionalPostcodeFormatter(requiredKey: String,
+                                                  invalidKey: String,
+                                                  countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
 
       val isPostcodeRequired = data.get(countryFieldName).contains("GB")
