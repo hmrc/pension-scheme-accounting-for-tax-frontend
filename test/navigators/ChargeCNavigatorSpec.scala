@@ -17,7 +17,8 @@
 package navigators
 
 import controllers.chargeC.routes._
-import models.{NormalMode, UserAnswers}
+import data.SampleData
+import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeC._
@@ -39,10 +40,31 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
         row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
         row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
-        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
+        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
+  }
+
+  "CheckMode" must {
+    def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn), Some(sponsoringEmployerIsOrganisation)),
+        row(IsSponsoringEmployerIndividualPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerIsOrganisationWithOrganisationDetails)),
+        row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn), Some(sponsoringEmployerIsIndividual)),
+        row(IsSponsoringEmployerIndividualPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerIsIndividualWithIndividualDetails)),
+        row(SponsoringOrganisationDetailsPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerAddress)),
+        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)),
+        row(SponsoringIndividualDetailsPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerAddress)),
+        row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)),
+        row(SponsoringEmployerAddressPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn))
+      )
+
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
   }
 }
 
@@ -56,5 +78,19 @@ object ChargeCNavigatorSpec {
 
   private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
     IsSponsoringEmployerIndividualPage.toString -> true
+  ))
+
+  private val sponsoringEmployerIsOrganisationWithOrganisationDetails = UserAnswers(Json.obj(
+    IsSponsoringEmployerIndividualPage.toString -> false,
+    SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails
+  ))
+
+  private val sponsoringEmployerIsIndividualWithIndividualDetails = UserAnswers(Json.obj(
+    IsSponsoringEmployerIndividualPage.toString -> true,
+    SponsoringIndividualDetailsPage.toString -> SampleData.sponsoringIndividualDetails
+  ))
+
+  private val sponsoringEmployerAddress = UserAnswers(Json.obj(
+    SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
   ))
 }
