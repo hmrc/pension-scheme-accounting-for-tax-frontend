@@ -30,8 +30,14 @@ case object IsSponsoringEmployerIndividualPage extends QuestionPage[Boolean] {
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
     val tidyResult = value match {
-      case Some(true) => userAnswers.remove(SponsoringOrganisationDetailsPage).toOption
-      case Some(false) => userAnswers.remove(SponsoringIndividualDetailsPage).toOption
+      case Some(true) if userAnswers.get(SponsoringOrganisationDetailsPage).isDefined =>
+        userAnswers
+          .remove(SponsoringOrganisationDetailsPage).toOption.getOrElse(userAnswers)
+          .remove(SponsoringEmployerAddressPage).toOption
+      case Some(false) if userAnswers.get(SponsoringIndividualDetailsPage).isDefined =>
+        userAnswers
+          .remove(SponsoringIndividualDetailsPage).toOption.getOrElse(userAnswers)
+          .remove(SponsoringEmployerAddressPage).toOption
       case _ => None
     }
     super.cleanup(value, tidyResult.getOrElse(userAnswers))
