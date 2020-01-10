@@ -747,5 +747,11 @@ chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the spon
 chargeC.sponsoringIndividualNino.checkYourAnswersLabel = {0}’s National Insurance number
 chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel = {0}’s National Insurance number
 
-chargeC.sponsoringEmployerAddress.checkYourAnswersLabel = ’s address
-chargeC.sponsoringEmployerAddress.visuallyHidden.checkYourAnswersLabel = ’s address
+chargeC.sponsoringEmployerAddress.checkYourAnswersLabel = {0}’s address
+chargeC.sponsoringEmployerAddress.visuallyHidden.checkYourAnswersLabel = {0}’s address
+
+chargeC.sponsoringOrganisationName.checkYourAnswersLabel = Sponsoring company or organisation’s name
+chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the sponsoring company or organisation’s name
+
+chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
+chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number
