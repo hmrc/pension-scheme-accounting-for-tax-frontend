@@ -58,7 +58,7 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
-  def dateFieldTwoMissing(form: Form[_], key: String, formError: FormError): Unit = {
+  def dateFieldDayMonthMissing(form: Form[_], key: String, formError: FormError): Unit = {
     s"must fail to bind a date with two date components missing" in {
       val data = Map(
         s"$key.year" -> "2000"

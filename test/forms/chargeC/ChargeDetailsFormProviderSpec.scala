@@ -62,7 +62,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       formError = FormError(dateKey, "chargeC.paymentDate.error.invalid")
     )
 
-    behave like dateFieldTwoMissing(
+    behave like dateFieldDayMonthMissing(
       form = form,
       key = dateKey,
       formError = FormError(dateKey, "chargeC.paymentDate.error.incomplete", Seq("day", "month"))
