@@ -25,7 +25,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeC.chargeDetails.heading', sponsorName)}}</h1>
 
-        <form action="{{ submitUrl }}" method="post">
+        <form action="{{ viewModel.submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
@@ -38,7 +38,7 @@
                 classes: "govuk-fieldset__legend--s"
               }
             },
-            errorMessage: form.paymentDate.error,
+            errorMessage: date.error,
             items: date.items
            }) }}
 

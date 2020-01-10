@@ -61,12 +61,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val date = DateInput.localDate(preparedForm("value"))
-
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "date" -> date,
+          "date" -> DateInput.localDate(preparedForm("paymentDate")),
           "sponsorName" -> sponsorName
         )
 
