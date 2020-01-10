@@ -35,4 +35,8 @@ trait Transforms {
 
   protected def minimiseSpace(value: String): String =
     value.replaceAll(" {2,}", " ")
+
+  protected def standardiseText(s: String): String =
+    s.replaceAll("""\s{1,}""", " ").trim
+
 }

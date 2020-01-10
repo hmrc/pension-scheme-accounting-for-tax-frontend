@@ -18,7 +18,7 @@ package generators
 
 import org.scalacheck.Arbitrary
 import pages._
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{AnnualAllowanceYearPage, DeleteMemberPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 
@@ -26,6 +26,9 @@ trait PageGenerators {
 
   implicit lazy val arbitraryChargeGDetailsPage: Arbitrary[pages.chargeG.ChargeDetailsPage.type] =
     Arbitrary(pages.chargeG.ChargeDetailsPage)
+
+  implicit lazy val arbitrarySponsoringIndividualDetailsPage: Arbitrary[SponsoringIndividualDetailsPage.type] =
+    Arbitrary(SponsoringIndividualDetailsPage)
 
   implicit lazy val arbitrarySponsoringEmployerAddressPage: Arbitrary[SponsoringEmployerAddressPage.type] =
     Arbitrary(SponsoringEmployerAddressPage)

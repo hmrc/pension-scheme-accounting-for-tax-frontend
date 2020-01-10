@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package pages.chargeC
 
-import play.api.libs.json.{Format, Json}
+import models.chargeC.SponsoringIndividualDetails
+import pages.behaviours.PageBehaviours
 
-case class SponsoringEmployerAddress(line1:String, line2:String, line3:Option[String], line4:Option[String], country:String, postcode:Option[String])
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+class SponsoringIndividualDetailsPageSpec extends PageBehaviours {
+
+  "SponsoringIndividualDetailsPage" - {
+
+    beRetrievable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+
+    beSettable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+
+    beRemovable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+  }
 }

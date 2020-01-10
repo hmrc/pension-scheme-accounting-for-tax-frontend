@@ -17,7 +17,7 @@
 package generators
 
 import models._
-import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.{SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 
@@ -46,7 +46,7 @@ trait ModelGenerators {
         line4 <- arbitrary[String]
         country <- arbitrary[String]
         postcode <- arbitrary[String]
-      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,postcode)
+      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,Some(postcode))
     }
 
   implicit lazy val arbitrarySponsoringOrganisationDetails: Arbitrary[SponsoringOrganisationDetails] =
@@ -55,6 +55,15 @@ trait ModelGenerators {
         name <- arbitrary[String]
         crn <- arbitrary[String]
       } yield SponsoringOrganisationDetails(name,crn)
+    }
+
+  implicit lazy val arbitrarySponsoringIndividualDetails: Arbitrary[SponsoringIndividualDetails] =
+    Arbitrary {
+      for {
+        firstName <- arbitrary[String]
+        lastName <- arbitrary[String]
+        nino <- arbitrary[String]
+      } yield SponsoringIndividualDetails(firstName, lastName, nino)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =

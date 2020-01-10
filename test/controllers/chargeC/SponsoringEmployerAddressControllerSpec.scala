@@ -55,23 +55,35 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "postcode" -> Seq("ZZ1 1ZZ")
   )
 
-  private val jsonToPassToTemplate:Form[SponsoringEmployerAddress]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(sponsorName:String):Form[SponsoringEmployerAddress]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
-    "companyName" -> SampleData.companyName
+    "sponsorName" -> sponsorName
   )
 
-  "SponsoringEmployerAddress Controller" must {
+  "SponsoringEmployerAddress Controller with individual sponsor" must {
     behave like controllerWithGETSavedData(
       httpPath = getRoute,
       page = SponsoringEmployerAddressPage,
       data = SampleData.sponsoringEmployerAddress,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
+      jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = "First Last"),
+      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndIndividual)
+    )
+  }
+
+  "SponsoringEmployerAddress Controller with organisation sponsor" must {
+    behave like controllerWithGETSavedData(
+      httpPath = getRoute,
+      page = SponsoringEmployerAddressPage,
+      data = SampleData.sponsoringEmployerAddress,
+      form = form,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = SampleData.companyName),
       userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
     )
 

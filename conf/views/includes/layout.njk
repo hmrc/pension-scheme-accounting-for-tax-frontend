@@ -7,6 +7,7 @@
 {% set containerClasses = "app-width-container--wide" %}
 
 {% block head %}
+  {% block pageHead %}{% endblock %}
   {% include "includes/head.njk" %}
 {% endblock %}
 
@@ -41,6 +42,7 @@
 
 {% block bodyEnd %}
   {% block scripts %}
+    {% block pageScripts %}{% endblock %}
     {% include "includes/scripts.njk" %}
   {% endblock %}
 {% endblock %}
