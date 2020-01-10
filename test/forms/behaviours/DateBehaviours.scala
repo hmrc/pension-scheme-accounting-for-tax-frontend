@@ -70,6 +70,20 @@ trait DateBehaviours extends FieldBehaviours {
     }
   }
 
+  def dateFieldYearNot4Digits(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind a date where year less than 4 digits" in {
+      val data = Map(
+        s"$key.day" -> "20",
+        s"$key.month" -> "12",
+        s"$key.year" -> "200"
+      )
+
+      val result = form.bind(data)
+
+      result.errors must contain(formError)
+    }
+  }
+
   def dateFieldWithMax(form: Form[_], key: String, max: LocalDate, formError: FormError): Unit = {
 
     s"must fail to bind a date greater than ${max.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {

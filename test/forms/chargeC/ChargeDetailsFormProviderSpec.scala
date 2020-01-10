@@ -67,6 +67,12 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       key = dateKey,
       formError = FormError(dateKey, "chargeC.paymentDate.error.incomplete", Seq("day", "month"))
     )
+
+    behave like dateFieldYearNot4Digits(
+      form = form,
+      key = dateKey,
+      formError = FormError(dateKey, "chargeC.paymentDate.error.invalid")
+    )
   }
 
   "amountTaxDue" must {
