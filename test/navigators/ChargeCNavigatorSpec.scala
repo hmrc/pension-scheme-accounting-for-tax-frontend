@@ -38,7 +38,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsIndividual)),
         row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
         row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
-        row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn))
+        row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
+        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

@@ -207,9 +207,6 @@ chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel = the number of de
 chargeB.totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the total amount of tax due
 
-
-
-
 chargeC = Authorised surplus payments charge
 chargeC.whatYouWillNeed.title = Authorised surplus payments charge
 chargeC.whatYouWillNeed.heading = Authorised surplus payments charge
@@ -737,3 +734,18 @@ chargeC.paymentDate.label = Date authorised surplus payment was made
 chargeC.amountTaxDue.label = Amount of tax due at 35%
 chargeC.chargeDetails.heading = Authorised surplus payment charge details for {0}
 chargeC.chargeDetails.title = Authorised surplus payment charge details for {0}
+
+chargeC.paymentDate.checkYourAnswersLabel = Date authorised surplus payment was made
+chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel = the date when the authorised surplus payment was made
+
+chargeC.totalTaxDue.checkYourAnswersLabel = Amount of tax due at 35%
+chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the amount of tax due at 35%
+
+chargeC.sponsoringIndividualName.checkYourAnswersLabel = Sponsoring individual’s name
+chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the sponsoring individual’s name
+
+chargeC.sponsoringIndividualNino.checkYourAnswersLabel = {0}’s National Insurance number
+chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel = {0}’s National Insurance number
+
+chargeC.sponsoringEmployerAddress.checkYourAnswersLabel = ’s address
+chargeC.sponsoringEmployerAddress.visuallyHidden.checkYourAnswersLabel = ’s address
