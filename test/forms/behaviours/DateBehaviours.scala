@@ -32,15 +32,41 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)
 
           result.value.value mustEqual date
       }
+    }
+  }
+
+  def dateFieldInvalid(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind an invalid date" in {
+      val data = Map(
+        s"$key.day" -> "33",
+        s"$key.month" -> "12",
+        s"$key.year" -> "2000"
+      )
+
+      val result = form.bind(data)
+
+      result.errors must contain(formError)
+    }
+  }
+
+  def dateFieldTwoMissing(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind a date with two date components missing" in {
+      val data = Map(
+        s"$key.year" -> "2000"
+      )
+
+      val result = form.bind(data)
+
+      result.errors must contain(formError)
     }
   }
 
@@ -54,9 +80,9 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)
@@ -76,9 +102,9 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)

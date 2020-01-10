@@ -27,7 +27,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   val form = new ChargeDetailsFormProvider()()
   val amountTaxDueMsgKey = "chargeC.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
-
+  val dateKey = "paymentDate"
 
   "paymentDate" must {
     "must bind valid data" in {
@@ -47,7 +47,26 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       result.value.value mustEqual expectedResult
     }
 
-    behave like mandatoryDateField(form, "paymentDate", "chargeC.paymentDate.error.required")
+    behave like mandatoryDateField(form, dateKey, "chargeC.paymentDate.error.required")
+
+    behave like dateFieldWithMax(
+      form = form,
+      key = dateKey,
+      max = LocalDate.now(),
+      formError = FormError(dateKey, "chargeC.paymentDate.error.future")
+    )
+
+    behave like dateFieldInvalid(
+      form = form,
+      key = dateKey,
+      formError = FormError(dateKey, "chargeC.paymentDate.error.invalid")
+    )
+
+    behave like dateFieldTwoMissing(
+      form = form,
+      key = dateKey,
+      formError = FormError(dateKey, "chargeC.paymentDate.error.incomplete", Seq("day", "month"))
+    )
   }
 
   "amountTaxDue" must {
