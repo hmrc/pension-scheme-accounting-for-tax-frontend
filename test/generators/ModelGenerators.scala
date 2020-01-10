@@ -73,6 +73,7 @@ trait ModelGenerators {
     Arbitrary {
       Gen.oneOf(YearRange.values.toSeq)
     }
+
   def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {
 
     def toMillis(date: LocalDate): Long =

@@ -45,16 +45,34 @@ trait DateBehaviours extends FieldBehaviours {
   }
 
   def dateFieldInvalid(form: Form[_], key: String, formError: FormError): Unit = {
-    s"must fail to bind an invalid date" in {
-      val data = Map(
-        s"$key.day" -> "33",
-        s"$key.month" -> "12",
-        s"$key.year" -> "2000"
-      )
+    s"must fail to bind dates with invalid day" in {
+      val genInt = intsAboveValue(31)
+      forAll(genInt -> "invalid") { i =>
+        val data = Map(
+          s"$key.day" -> i.toString,
+          s"$key.month" -> "12",
+          s"$key.year" -> "2000"
+        )
 
-      val result = form.bind(data)
+        val result = form.bind(data)
 
-      result.errors must contain(formError)
+        result.errors must contain(formError)
+      }
+    }
+
+    s"must fail to bind dates with invalid month" in {
+      val genInt = intsAboveValue(12)
+      forAll(genInt -> "invalid") { i =>
+        val data = Map(
+          s"$key.day" -> "1",
+          s"$key.month" -> i.toString,
+          s"$key.year" -> "2000"
+        )
+
+        val result = form.bind(data)
+
+        result.errors must contain(formError)
+      }
     }
   }
 
