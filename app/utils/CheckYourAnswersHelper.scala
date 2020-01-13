@@ -28,34 +28,40 @@ import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
-import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
+  private def addrLineToHtml(l: String): String = s"""<span style="display: block;">$l</span>"""
 
-  private def addressAnswer(addr: SponsoringEmployerAddress): Seq[String] = {
-    val country = "" //countryOptions.options.find(_.value == address.country).map(_.label).getOrElse(address.country)
-    Seq(
-      addr.line1,
-      addr.line2,
-      addr.line3.getOrElse(""),
-      addr.line4.getOrElse(""),
-      addr.postcode.getOrElse(""),
-      country
+  private def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
+    case None => ""
+    case Some(l) => addrLineToHtml(l)
+  }
+
+  private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
+    Html("<p>" +
+      addrLineToHtml(addr.line1) +
+        addrLineToHtml(addr.line2) +
+        optionalAddrLineToHtml(addr.line3) +
+        optionalAddrLineToHtml(addr.line4) +
+        optionalAddrLineToHtml(addr.postcode) +
+        addrLineToHtml(messages("country." + addr.country))
+      + "</p>"
     )
   }
 
-  def chargeCDetails: Seq[Row] =
+  def chargeCDetails(implicit messages: Messages): Seq[Row] =
     (userAnswers.get(IsSponsoringEmployerIndividualPage),
       userAnswers.get(SponsoringIndividualDetailsPage),
       userAnswers.get(SponsoringOrganisationDetailsPage),
       userAnswers.get(SponsoringEmployerAddressPage), userAnswers.get(ChargeCDetailsPage)) match {
-      case (Some(true), optionIndividualDetails @ Some(individualDetails), _, Some(addr), Some(chargeDetails)) =>
+      case (Some(true), optionIndividualDetails@Some(individualDetails), _, Some(addr), Some(chargeDetails)) =>
         chargeCIsSponsoringEmployerIndividual(isIndividual = true) ++
           optionIndividualDetails.map(chargeCIndividualDetails).toSeq.flatten ++
           chargeCLastSections(individualDetails.fullName, addr, chargeDetails)
-      case (Some(false), _, optionOrganisationDetails @ Some(organisationDetails), Some(addr), Some(chargeDetails)) =>
+      case (Some(false), _, optionOrganisationDetails@Some(organisationDetails), Some(addr), Some(chargeDetails)) =>
         chargeCIsSponsoringEmployerIndividual(isIndividual = false) ++
           optionOrganisationDetails.map(chargeCOrganisationDetails).toSeq.flatten ++
           chargeCLastSections(organisationDetails.name, addr, chargeDetails)
@@ -130,10 +136,10 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     )
   )
 
-  private def chargeCLastSections(sponsorName:String, addr: SponsoringEmployerAddress, chargeDetails: ChargeCDetails) = Seq(
+  private def chargeCLastSections(sponsorName: String, addr: SponsoringEmployerAddress, chargeDetails: ChargeCDetails)(implicit messages: Messages) = Seq(
     Row(
       key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(sponsorName), classes = Seq("govuk-!-width-one-half")),
-      value = Value(lit"${addressAnswer(addr)}"),
+      value = Value(addressAnswer(addr)),
       actions = List(
         Action(
           content = msg"site.edit",
