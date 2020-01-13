@@ -26,13 +26,14 @@ import navigators.CompoundNavigator
 import pages.chargeC.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
+import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -55,12 +56,15 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        renderer.render("check-your-answers.njk",
-          Json.obj(
-            "list" -> helper.chargeCDetails,
-            "viewModel" -> viewModel,
-            "chargeName" -> "chargeC"
-          )).map(Ok(_))
+        helper.chargeCDetails match {
+          case items if items.isEmpty => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          case items => renderer.render("check-your-answers.njk",
+            Json.obj(
+              "list" -> items,
+              "viewModel" -> viewModel,
+              "chargeName" -> "chargeC"
+            )).map(Ok(_))
+        }
       }
   }
 
