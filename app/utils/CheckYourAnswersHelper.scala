@@ -33,7 +33,7 @@ import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
-  private def addrLineToHtml(l: String): String = s"""<span style="display: block;">$l</span>"""
+  private def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
 
   private def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
     case None => ""
@@ -41,14 +41,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   }
 
   private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
-    Html("<p>" +
+    Html(
       addrLineToHtml(addr.line1) +
         addrLineToHtml(addr.line2) +
         optionalAddrLineToHtml(addr.line3) +
         optionalAddrLineToHtml(addr.line4) +
         optionalAddrLineToHtml(addr.postcode) +
         addrLineToHtml(messages("country." + addr.country))
-      + "</p>"
+
     )
   }
 
