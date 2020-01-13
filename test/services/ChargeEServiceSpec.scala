@@ -49,7 +49,7 @@ class ChargeEServiceSpec extends SpecBase {
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembers, srn) mustBe expectedAllMembers
+      ChargeEService.getAnnualAllowanceMembers(allMembers, srn) mustBe expectedAllMembers
     }
   }
 

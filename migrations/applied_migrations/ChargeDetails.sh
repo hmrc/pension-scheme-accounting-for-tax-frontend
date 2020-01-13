@@ -6,11 +6,11 @@ echo "Applying migration ChargeDetails"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/chargeDetails                  controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/chargeDetails                  controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/chargeDetails                  controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/chargeDetails                  controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeChargeDetails                        controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeChargeDetails                        controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeChargeDetails                        controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeChargeDetails                        controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

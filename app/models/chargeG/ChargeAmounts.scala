@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package models.chargeG
 
-import models.chargeF.ChargeDetails
-import pages.behaviours.PageBehaviours
+import play.api.libs.json.{Format, Json}
 
-class ChargeDetailsPageSpec extends PageBehaviours {
+case class ChargeAmounts(amountTransferred: BigDecimal, amountTaxDue: BigDecimal)
 
-  "ChargeDetailsPage (charge F)" - {
-    beRetrievable[ChargeDetails](ChargeDetailsPage)
-
-    beSettable[ChargeDetails](ChargeDetailsPage)
-
-    beRemovable[ChargeDetails](ChargeDetailsPage)
-  }
+object ChargeAmounts {
+  implicit lazy val formats: Format[ChargeAmounts] = Json.format[ChargeAmounts]
 }
