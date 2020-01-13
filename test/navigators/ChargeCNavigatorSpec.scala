@@ -62,7 +62,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringEmployerAddressPage)(CheckYourAnswersController.onPageLoad(srn)),
         row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
         row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn))
-      )p
+      )
 
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
   }

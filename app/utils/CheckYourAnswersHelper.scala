@@ -23,24 +23,24 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndi
 import models.{CheckMode, UserAnswers, YearRange}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC._
-import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
+import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
-  private def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
-
-  private def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
-    case None => ""
-    case Some(l) => addrLineToHtml(l)
-  }
-
   private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
+    def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
+
+    def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
+      case None => ""
+      case Some(l) => addrLineToHtml(l)
+    }
+
     Html(
       addrLineToHtml(addr.line1) +
         addrLineToHtml(addr.line2) +
@@ -48,7 +48,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         optionalAddrLineToHtml(addr.line4) +
         optionalAddrLineToHtml(addr.postcode) +
         addrLineToHtml(messages("country." + addr.country))
-
     )
   }
 
