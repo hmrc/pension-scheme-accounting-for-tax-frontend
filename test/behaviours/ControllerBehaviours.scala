@@ -199,6 +199,9 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
 
+      println( "ACT:" + jsonCaptor.getValue)
+      println( "EXP:" + expectedJson)
+
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
