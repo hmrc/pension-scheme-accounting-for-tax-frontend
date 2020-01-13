@@ -24,9 +24,9 @@ import scala.util.Try
 
 case object IsSponsoringEmployerIndividualPage extends QuestionPage[Boolean] {
 
-  override def path: JsPath = JsPath \ toString
+  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
 
-  override def toString: String = "chargeCIsSponsoringEmployerIndividual"
+  override def toString: String = "isSponsoringEmployerIndividual"
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
     val tidyResult = value match {
