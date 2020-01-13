@@ -25,7 +25,7 @@ import models.chargeC.SponsoringOrganisationDetails
 import models.{GenericViewModel, NormalMode}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -63,15 +63,17 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
     )
-
-    behave like controllerWithPOST(
+    behave like controllerWithPOSTWithJson(
       httpPath = postRoute,
       page = SponsoringOrganisationDetailsPage,
-      data = SampleData.sponsoringOrganisationDetails,
+      expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          SponsoringOrganisationDetailsPage.toString -> Json.toJson(SampleData.sponsoringOrganisationDetails)
+        )
+      ),
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
-    )
+      requestValuesInvalid = valuesInvalid)
   }
 }

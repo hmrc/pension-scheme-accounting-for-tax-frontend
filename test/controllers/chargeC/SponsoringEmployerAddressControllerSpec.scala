@@ -19,13 +19,14 @@ package controllers.chargeC
 import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData.sponsoringOrganisationDetails
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, NormalMode}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.SponsoringEmployerAddressPage
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -87,15 +88,20 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
     )
 
-    behave like controllerWithPOST(
+    behave like controllerWithPOSTWithJson(
       httpPath = postRoute,
       page = SponsoringEmployerAddressPage,
-      data = SampleData.sponsoringEmployerAddress,
+      expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
+          IsSponsoringEmployerIndividualPage.toString -> false,
+          SponsoringEmployerAddressPage.toString -> Json.toJson(SampleData.sponsoringEmployerAddress)
+        )
+      ),
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
       requestValuesInvalid = valuesInvalid,
-      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
-    )
+      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation))
   }
 }

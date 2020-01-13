@@ -23,7 +23,7 @@ import forms.chargeC.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeC.ChargeCDetails
 import models.{GenericViewModel, NormalMode}
-import pages.chargeC.ChargeCDetailsPage
+import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -67,15 +67,20 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
     )
 
-    behave like controllerWithPOST(
+    behave like controllerWithPOSTWithJson(
       httpPath = chargeDetailsPostRoute,
       page = ChargeCDetailsPage,
-      data = SampleData.chargeCDetails,
+      expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails,
+          IsSponsoringEmployerIndividualPage.toString -> false,
+          ChargeCDetailsPage.toString -> Json.toJson(SampleData.chargeCDetails)
+        )
+      ),
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
       requestValuesInvalid = valuesInvalid,
-      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
-    )
+      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation))
   }
 }

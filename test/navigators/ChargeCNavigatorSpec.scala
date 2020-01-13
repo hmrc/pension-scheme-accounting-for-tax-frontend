@@ -73,24 +73,34 @@ object ChargeCNavigatorSpec {
   private val srn = "test-srn"
 
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
-    IsSponsoringEmployerIndividualPage.toString -> false
+    "chargeCDetails" -> Json.obj(
+      IsSponsoringEmployerIndividualPage.toString -> false
+    )
   ))
 
   private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
-    IsSponsoringEmployerIndividualPage.toString -> true
+    "chargeCDetails" -> Json.obj(
+      IsSponsoringEmployerIndividualPage.toString -> true
+    )
   ))
 
   private val sponsoringEmployerIsOrganisationWithOrganisationDetails = UserAnswers(Json.obj(
-    IsSponsoringEmployerIndividualPage.toString -> false,
-    SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails
+    "chargeCDetails" -> Json.obj(
+      IsSponsoringEmployerIndividualPage.toString -> false,
+      SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails
+    )
   ))
 
   private val sponsoringEmployerIsIndividualWithIndividualDetails = UserAnswers(Json.obj(
-    IsSponsoringEmployerIndividualPage.toString -> true,
-    SponsoringIndividualDetailsPage.toString -> SampleData.sponsoringIndividualDetails
+    "chargeCDetails" -> Json.obj(
+      IsSponsoringEmployerIndividualPage.toString -> true,
+      SponsoringIndividualDetailsPage.toString -> SampleData.sponsoringIndividualDetails
+    )
   ))
 
   private val sponsoringEmployerAddress = UserAnswers(Json.obj(
-    SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
+    "chargeCDetails" -> Json.obj(
+      SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
+    )
   ))
 }
