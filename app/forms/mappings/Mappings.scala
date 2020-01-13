@@ -19,7 +19,6 @@ package forms.mappings
 import java.time.LocalDate
 
 import models.Enumerable
-import models.chargeA.TotalAmtOfTaxDue
 import play.api.data.FieldMapping
 import play.api.data.Forms.of
 
@@ -34,16 +33,6 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
     of(stringFormatter(errorKey))
 
-  protected def totalAmtOfTaxDue(totalAmtOfTaxDue: TotalAmtOfTaxDue, errorKeys: (String, String, String)): FieldMapping[TotalAmtOfTaxDue] =
-    totalAmtOfTaxDue.lowerRate.map {
-      bigDec => bigDec
-    }
-
-  protected def optionBigDecimal(optBigDec: Option[BigDecimal], errorKeys: (String, String, String)): FieldMapping[BigDecimal] =
-    optBigDec.map {
-      _ =>
-        bigDecimal2DP(errorKeys._1, errorKeys._2, errorKeys._3)
-    }
   protected def int(requiredKey: String = "error.required",
                     wholeNumberKey: String = "error.wholeNumber",
                     nonNumericKey: String = "error.nonNumeric",
@@ -62,6 +51,13 @@ trait Mappings extends Formatters with Constraints with Transforms {
                               decimalKey: String = "error.decimal"
                              ): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
+
+  protected def optionalBigDecimal2DP(field: String,
+                                      requiredKey: String = "error.required",
+                                      invalidKey: String = "error.invalid",
+                                      decimalKey: String = "error.decimal"
+                                     ): FieldMapping[Option[BigDecimal]] =
+    of(optionalBigDecimal2DPFormatter(field, requiredKey, invalidKey, decimalKey))
 
   protected def bigDecimalTotal(itemsToTotal: String*): FieldMapping[BigDecimal] =
     of(bigDecimalTotalFormatter(itemsToTotal: _*))

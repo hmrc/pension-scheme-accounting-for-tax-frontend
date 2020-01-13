@@ -18,7 +18,6 @@ package forms.mappings
 
 import java.time.LocalDate
 
-import models.chargeA.TotalAmtOfTaxDue
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import uk.gov.hmrc.domain.Nino
 
@@ -48,6 +47,20 @@ trait Constraints {
         }
     }
 
+  protected def minimumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
+    Constraint {
+      case Some(input) =>
+        import ev._
+
+        if (input >= minimum) {
+          Valid
+        } else {
+          Invalid(errorKey, minimum)
+        }
+      case None =>
+        Invalid(errorKey, minimum)
+    }
+
   protected def maximumValue[A](maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
@@ -59,6 +72,20 @@ trait Constraints {
         } else {
           Invalid(errorKey, maximum)
         }
+    }
+
+  protected def maximumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
+    Constraint {
+      case Some(input) =>
+        import ev._
+
+        if (input <= minimum) {
+          Valid
+        } else {
+          Invalid(errorKey, minimum)
+        }
+      case None =>
+        Invalid(errorKey, minimum)
     }
 
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
@@ -153,17 +180,5 @@ trait Constraints {
     Constraint {
       case crn if crn.matches(regexCrn) => Valid
       case _ => Invalid(invalidKey)
-    }
-
-  def totalAmtTaxConstraint(errorKeys: (String, String, String)): Constraint[TotalAmtOfTaxDue] =
-    Constraint {
-      case amounts if amounts.lowerRate.isEmpty && amounts.higherRate.isEmpty =>
-        Invalid(errorKeys._1)
-      case amounts if amounts.lowerRate.contains(BigDecimal(0.00)) && amounts.higherRate.contains(BigDecimal(0.00)) =>
-        Invalid(errorKeys._2)
-      case amounts if (amounts.lowerRate.isEmpty && amounts.higherRate.contains(BigDecimal(0.00))) || (amounts.lowerRate.contains(BigDecimal(0.00)) && amounts.higherRate.isEmpty) =>
-        Invalid(errorKeys._3)
-      case _ =>
-        Valid
     }
 }

@@ -24,7 +24,7 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  val errorKeys: (String, String, String) = (
+  val errorKeys: (String, String, String) = Tuple3(
     "Both None", "Both 0.00", "One None, One 0.00"
   )
 
@@ -37,25 +37,24 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         min = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 0)),
         max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))
       ),
-      "totalAmtOfTaxDue" -> totalAmtOfTaxDue(errorKeys).verifying(
-        totalAmtTaxConstraint(errorKeys)
+      "totalAmtOfTaxDueAtLowerRate" -> optionalBigDecimal2DP(
+        field = "totalAmtOfTaxDueAtHigherRate",
+        requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
+        invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
+        decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
+      ).verifying(
+        maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
+        minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
       ),
-//      "totalAmtOfTaxDueAtLowerRate" -> bigDecimal2DP(
-//        requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
-//        invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
-//        decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
-//      ).verifying(
-//        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
-//        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
-//      ),
-//      "totalAmtOfTaxDueAtHigherRate" -> bigDecimal2DP(
-//        requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
-//        invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
-//        decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
-//      ).verifying(
-//        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
-//        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
-//      ),
+      "totalAmtOfTaxDueAtHigherRate" -> optionalBigDecimal2DP(
+        field = "totalAmtOfTaxDueAtLowerRate",
+        requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
+        invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
+        decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
+      ).verifying(
+        maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
+        minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
+      ),
       "totalAmount" -> bigDecimalTotal("totalAmtOfTaxDueAtLowerRate", "totalAmtOfTaxDueAtHigherRate")
     )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

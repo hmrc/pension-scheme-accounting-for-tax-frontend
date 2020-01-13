@@ -143,7 +143,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDue.lowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -158,7 +158,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     answer =>
       Row(
         key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDue.higherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
