@@ -16,24 +16,14 @@
 
 package controllers.chargeC
 
-import base.SpecBase
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, CheckYourAnswersPage}
+import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers._
-import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
-
-import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
@@ -44,6 +34,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def ua = SampleData.userAnswersWithSchemeName
     .set(ChargeCDetailsPage, SampleData.chargeCDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage, true).toOption.get
+    .set(SponsoringIndividualDetailsPage, SampleData.sponsoringIndividualDetails).toOption.get
+    .set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
 
