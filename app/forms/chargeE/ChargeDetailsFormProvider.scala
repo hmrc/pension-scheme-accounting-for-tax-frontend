@@ -32,7 +32,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         invalidKey = "chargeAmount.error.invalid",
         decimalKey = "chargeAmount.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "chargeAmount.error.maximum"),
+        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmount.error.maximum"),
         minimumValue[BigDecimal](BigDecimal("0.00"), "chargeAmount.error.invalid")
       ),
       "dateNoticeReceived" -> localDate(

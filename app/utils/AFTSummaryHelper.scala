@@ -56,8 +56,8 @@ class AFTSummaryHelper{
       ),
       SummaryDetails(
         chargeType = ChargeTypeOverseasTransfer,
-        totalAmount = BigDecimal(0),
-        href = routes.IndexController.onPageLoad()
+        totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+        href = chargeG.routes.AddMembersController.onPageLoad(srn)
       ),
       SummaryDetails(
         chargeType = ChargeTypeShortService,
@@ -91,7 +91,7 @@ class AFTSummaryHelper{
 
     val totalRow: Row = Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"£${summaryData.map(_.totalAmount).sum}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"£${formatBigDecimalAsString(summaryData.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = Nil
     )
 

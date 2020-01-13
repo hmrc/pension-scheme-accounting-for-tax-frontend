@@ -17,6 +17,7 @@
 package forms.mappings
 
 trait Transforms {
+
   protected def noTransform(value: String): String = value
 
   protected def noSpaceWithUpperCaseTransform(value: String): String =
