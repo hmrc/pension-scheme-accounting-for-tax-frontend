@@ -29,7 +29,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
 
-        <form action="{{ submitUrl }}" method="post">
+        <form action="{{ submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
