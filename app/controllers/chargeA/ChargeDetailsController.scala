@@ -90,12 +90,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
-          value => {
+          value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
             } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
-          }
         )
       }
   }

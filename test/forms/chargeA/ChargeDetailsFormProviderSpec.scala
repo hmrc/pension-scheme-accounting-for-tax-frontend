@@ -18,9 +18,8 @@ package forms.chargeA
 
 import java.text.DecimalFormat
 
-import data.SampleData
+import data.SampleData._
 import forms.behaviours._
-import models.chargeA.ChargeDetails
 import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with IntFieldBehaviours {
@@ -30,8 +29,6 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   private val totalNumberOfMembersKey = "numberOfMembers"
   private val totalAmtOfTaxDueAtLowerRateKey = "totalAmtOfTaxDueAtLowerRate"
   private val totalAmtOfTaxDueAtHigherRateKey = "totalAmtOfTaxDueAtHigherRate"
-  private val totalAmtKey = "totalAmount"
-
   private val messageKeyNumberOfMembersKey = "chargeA.numberOfMembers"
   private val messageKeyAmountTaxDueLowerRateKey = "chargeA.totalAmtOfTaxDueAtLowerRate"
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
@@ -106,12 +103,12 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   "totalAmount" must {
     "must bind correctly calculated total to form" in {
       val resultForm = form.bind(Map(
-        totalNumberOfMembersKey -> SampleData.chargeAChargeDetails.numberOfMembers.toString,
-        totalAmtOfTaxDueAtLowerRateKey -> decimalFormat.format(SampleData.chargeAChargeDetails.totalAmtOfTaxDueAtLowerRate),
-        totalAmtOfTaxDueAtHigherRateKey -> decimalFormat.format(SampleData.chargeAChargeDetails.totalAmtOfTaxDueAtHigherRate)
+        totalNumberOfMembersKey -> chargeAChargeDetails.numberOfMembers.toString,
+        totalAmtOfTaxDueAtLowerRateKey -> decimalFormat.format(chargeAChargeDetails.totalAmtOfTaxDueAtLowerRate.get),
+        totalAmtOfTaxDueAtHigherRateKey -> decimalFormat.format(chargeAChargeDetails.totalAmtOfTaxDueAtHigherRate.get)
       ))
 
-      resultForm.value mustEqual Some(SampleData.chargeAChargeDetails)
+      resultForm.value mustEqual Some(chargeAChargeDetails)
     }
   }
 }

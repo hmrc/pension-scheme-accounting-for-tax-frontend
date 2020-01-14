@@ -248,11 +248,12 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
-        val total = itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
-          Try(BigDecimal(data.getOrElse(next, "0"))).toOption.fold(BigDecimal(0))(_ + acc)
-        }
+        val total =
+          itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
+            Try(BigDecimal(data.getOrElse(next, "0")))
+              .getOrElse(BigDecimal(0.00)) + acc
+          }
         Right(total)
       }
 
