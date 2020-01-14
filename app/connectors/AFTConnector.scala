@@ -19,7 +19,7 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.UserAnswers
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, JsValue}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -31,5 +31,11 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
     val url = config.aftFileReturn
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
+  }
+
+  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    val url = config.getAftDetails
+    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    http.GET[JsValue](url)(implicitly, aftHc, implicitly)
   }
 }

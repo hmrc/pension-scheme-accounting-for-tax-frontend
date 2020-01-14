@@ -35,6 +35,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return"
+  private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
 
   "fileAFTReturn" must {
 
@@ -99,6 +100,77 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
       recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data))) map {
         _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  "getAFTDetails" must {
+    val data = Json.obj(fields = "Id" -> "value")
+    val startDate = "2020-01-01"
+    val aftVersion = "1"
+
+    "return userAnswers when the backend has returned OK with UserAnswers Json" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            ok(Json.stringify(UserAnswers(data).data))
+          )
+      )
+
+      connector.getAFTDetails(pstr, startDate, aftVersion) map { response =>
+        response mustBe data
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {connector.getAFTDetails(pstr, startDate, aftVersion)} map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+
+    "return NOT FOUND when the backend has returned NotFoundException" in {
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            notFound()
+          )
+      )
+
+      recoverToExceptionIf[NotFoundException] { connector.getAFTDetails(pstr, startDate, aftVersion)} map { response =>
+        response.responseCode mustEqual Status.NOT_FOUND
+      }
+    }
+
+    "return Upstream5xxResponse when the backend has returned Internal Server Error" in {
+      val data = Json.obj(fields = "Id" -> "value")
+      server.stubFor(
+        get(urlEqualTo(getAftDetailsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            serverError()
+          )
+      )
+
+      recoverToExceptionIf[Upstream5xxResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
+        response.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
   }
