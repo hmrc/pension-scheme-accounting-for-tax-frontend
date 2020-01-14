@@ -40,7 +40,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = s"$qropsTransferDateKey.required.two",
         requiredKey    = s"$qropsTransferDateKey.required"
       ).verifying(
-        minDate(LocalDate.of(2020, 4, 1), dateErrorMsg),
+        minDate(LocalDate.of(2020, 1, 1), dateErrorMsg),
         maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg),
         futureDate(s"$qropsTransferDateKey.future"),
         yearHas4Digits(s"$qropsTransferDateKey.invalid")
