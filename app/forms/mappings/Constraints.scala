@@ -58,7 +58,7 @@ trait Constraints {
           Invalid(errorKey, minimum)
         }
       case None =>
-        Invalid(errorKey, minimum)
+        Valid
     }
 
   protected def maximumValue[A](maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
@@ -85,7 +85,7 @@ trait Constraints {
           Invalid(errorKey, minimum)
         }
       case None =>
-        Invalid(errorKey, minimum)
+        Valid
     }
 
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =

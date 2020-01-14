@@ -154,30 +154,40 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, value.toString)
     }
 
-  private[mappings] def optionalBigDecimal2DPFormatter(formField: String,
-                                                       requiredKey: String,
-                                                       invalidKey: String,
-                                                       decimalKey: String,
-                                                       args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] = {
+  private def empty(field: Option[String]): Boolean =
+    field.isEmpty | field.get.matches("""^-?( )*$""")
+
+  private[mappings] def conditionalBigDecimal2DPFormatter(keyB: String,
+                                                          requiredKeyA: String,
+                                                          requiredKeyB: String,
+                                                          invalidKeyA: String,
+                                                          invalidKeyB: String,
+                                                          decimalKeyA: String,
+                                                          decimalKeyB: String,
+                                                          args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] = {
 
     new Formatter[Option[BigDecimal]] {
-      private val baseFormatter: Formatter[String] = stringFormatter(requiredKey)
+      private val baseFormatter: Formatter[String] = stringFormatter(requiredKeyA)
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[BigDecimal]] = {
-        val formFields: (Option[String], Option[String]) = (data.get(key), data.get(formField))
-        println(s"\n\n\nDATA\n$data\n\n\n")
+        val keyA: String = key
 
-        if (formFields._1.isEmpty && formFields._2.isEmpty | formFields._1.get == "" && formFields._2.get == "") {
-          Left(Seq(FormError(key, requiredKey, args), FormError(formField, requiredKey, args)))
-        } else if (formFields._1.isDefined && formFields._1.get != "") {
-          validate2DP(formFields._1.get, key, invalidKey, decimalKey, args)
+        val formFields: (Option[String], Option[String]) = (data.get(keyA), data.get(keyB))
+
+        if (empty(formFields._1) && empty(formFields._2)) {
+          Left(Seq(FormError(keyA, requiredKeyA, args), FormError(keyB, requiredKeyB, args)))
         } else {
-          validate2DP(formFields._2.get, formField, invalidKey, decimalKey, args)
+          validate2DP(formFields._1.get, keyA, invalidKeyA, decimalKeyA, args)
         }
       }
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
-        baseFormatter.unbind(key, decimalFormat.format(value.get))
+        value match {
+          case Some(str) =>
+            baseFormatter.unbind(key, decimalFormat.format(str))
+          case _ =>
+            Map.empty
+        }
     }
   }
 
@@ -185,21 +195,25 @@ trait Formatters extends Transforms with Constraints {
                   key: String,
                   invalidKey: String,
                   decimalKey: String,
-                  args: Seq[String] = Seq.empty): Either[Seq[FormError], Some[BigDecimal]] = {
+                  args: Seq[String] = Seq.empty): Either[Seq[FormError], Option[BigDecimal]] = {
 
     val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
     val decimalRegexp = """^-?(\d*\.\d{2})$"""
+    val emptyRegexp = """^-?( )*$"""
 
-    val s = data.replace(",", "")
-    if (!s.matches(numericRegexp))
-      Left(Seq(FormError(key, invalidKey, args)))
-    else if (!s.matches(decimalRegexp))
-      Left(Seq(FormError(key, decimalKey, args)))
-    else
-      Try(Some(BigDecimal(s))) match {
-        case Success(x) => Right(x)
-        case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
-      }
+    data.replace(",", "") match {
+      case s if s.matches(emptyRegexp) =>
+        Right(None)
+      case s if !s.matches(numericRegexp) =>
+        Left(Seq(FormError(key, invalidKey, args)))
+      case s if !s.matches(decimalRegexp) =>
+        Left(Seq(FormError(key, decimalKey, args)))
+      case s =>
+        Try(Some(BigDecimal(s))) match {
+          case Success(x) => Right(x)
+          case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+        }
+    }
   }
 
   private[mappings] def bigDecimal2DPFormatter(requiredKey: String,

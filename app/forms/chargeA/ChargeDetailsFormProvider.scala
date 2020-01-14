@@ -38,19 +38,25 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))
       ),
       "totalAmtOfTaxDueAtLowerRate" -> optionalBigDecimal2DP(
-        field = "totalAmtOfTaxDueAtHigherRate",
-        requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
-        invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
-        decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
+        otherKey = "totalAmtOfTaxDueAtHigherRate",
+        requiredKeyA = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
+        requiredKeyB = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
+        invalidKeyA = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
+        invalidKeyB = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
+        decimalKeyA = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal",
+        decimalKeyB = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
       ).verifying(
         maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
         minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
       ),
       "totalAmtOfTaxDueAtHigherRate" -> optionalBigDecimal2DP(
-        field = "totalAmtOfTaxDueAtLowerRate",
-        requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
-        invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
-        decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
+        otherKey = "totalAmtOfTaxDueAtLowerRate",
+        requiredKeyA = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
+        requiredKeyB = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
+        invalidKeyA = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
+        invalidKeyB = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
+        decimalKeyA = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal",
+        decimalKeyB = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
       ).verifying(
         maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
         minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
