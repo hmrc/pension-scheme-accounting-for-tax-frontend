@@ -34,7 +34,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMin(
       form = form,
       key = qropsDateKey,
-      min = LocalDate.of(2020, 4, 1),
+      min = LocalDate.of(2020, 1, 1),
       formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
