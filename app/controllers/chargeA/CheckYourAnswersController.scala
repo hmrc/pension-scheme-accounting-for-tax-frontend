@@ -29,8 +29,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
@@ -68,10 +66,11 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         )
 
         renderer.render(
-          "chargeA/check-your-answers.njk",
+          "check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel
+            "viewModel" -> viewModel,
+            "chargeName" -> "chargeA"
           )
         ).map(Ok(_))
       }
