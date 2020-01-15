@@ -24,7 +24,7 @@ import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers, chargeA}
+import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers, chargeA, chargeG}
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -52,14 +52,12 @@ object SampleData {
     ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
   val schemeDetails: SchemeDetails =
     SchemeDetails(schemeName, pstr)
-  val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
-  val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
-  val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
-  val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
-  val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
-  val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
-  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
+  val chargeAmounts: ChargeAmounts =
+    ChargeAmounts(chargeAmount1, chargeAmount2)
+  val chargeAmounts2: ChargeAmounts = 
+    ChargeAmounts(chargeAmount1, chargeAmount2)
+  val chargeGDetails: chargeG.ChargeDetails =
+    models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
