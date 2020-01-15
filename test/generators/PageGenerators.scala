@@ -24,6 +24,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryChargeGDetailsPage: Arbitrary[pages.chargeG.ChargeDetailsPage.type] =
+    Arbitrary(pages.chargeG.ChargeDetailsPage)
+
   implicit lazy val arbitrarySponsoringIndividualDetailsPage: Arbitrary[SponsoringIndividualDetailsPage.type] =
     Arbitrary(SponsoringIndividualDetailsPage)
 

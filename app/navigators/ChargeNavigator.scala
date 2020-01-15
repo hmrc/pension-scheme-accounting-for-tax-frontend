@@ -24,11 +24,13 @@ import pages.{AFTSummaryPage, ChargeTypePage, Page}
 import play.api.mvc.Call
 import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
+import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
   def nextIndexChargeD(ua: UserAnswers, srn: String): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn).size
+  def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
+  def nextIndexChargeG(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
@@ -49,6 +51,8 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
       case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn) == 0 => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeLifetimeAllowance) => controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeD(ua, srn))
+      case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua, srn) == 0 => controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn)
+      case Some(ChargeType.ChargeTypeOverseasTransfer) => controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeG(ua, srn))
       case _ => sessionExpiredPage
     }
 

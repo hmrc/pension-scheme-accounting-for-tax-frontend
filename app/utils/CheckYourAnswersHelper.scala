@@ -24,6 +24,8 @@ import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
+import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage => ChargeGDetailsPage, MemberDetailsPage => ChargeGMemberDetailsPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
@@ -32,6 +34,36 @@ import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
+
+  def chargeGDate(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeG.chargeDetails.qropsTransferDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.qropsTransferDate.format(dateFormatter))),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsTransferDate.visuallyHidden.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def chargeGQROPSReferenceNumber(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
+    answer =>
+      Row(
+        key     = Key(msg"chargeG.chargeDetails.GQROPSReferenceNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Literal(answer.qropsReferenceNumber)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsReferenceNumber.visuallyHidden.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
 
   def sponsoringIndividualDetails: Option[Row] = userAnswers.get(SponsoringIndividualDetailsPage) map {
     answer =>
@@ -207,7 +239,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -218,7 +250,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -236,7 +268,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"chargeE.cya.taxYear.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(YearRange.getLabel(answer), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(YearRange.getLabel(answer), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -255,7 +287,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -266,7 +298,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"chargeEDetails.dateNoticeReceived.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -277,7 +309,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"chargeE.cya.mandatoryPayment.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(yesOrNo(answer.isPaymentMandatory), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(yesOrNo(answer.isPaymentMandatory), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -294,7 +326,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -305,7 +337,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -323,7 +355,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 
         Row(
           key = Key(msg"chargeDDetails.dateOfEvent.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.dateOfEvent.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(answer.dateOfEvent.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -334,7 +366,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent)}"), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent)}"), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -345,12 +377,108 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent)}"), classes = Seq("govuk-!-width-one-quarter")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent)}"), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
               visuallyHiddenText = Some(msg"taxAt55Percent.visuallyHidden.label")
+            )
+          )
+        )
+      )
+  }
+
+  def chargeGMemberDetails(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeGMemberDetailsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"dob.cya.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.dob.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"dob.cya.label".withArgs(answer.fullName))
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
+            )
+          )
+        )
+      )
+  }
+
+  def chargeGDetails(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeGDetailsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"chargeG.chargeDetails.qropsReferenceNumber.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.qropsReferenceNumber), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"chargeG.chargeDetails.qropsTransferDate.label", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(answer.qropsTransferDate.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeGDetails.qropsTransferDate.visuallyHidden.label")
+            )
+          )
+        )
+      )
+  }
+
+  def chargeGAmounts(index: Int): Option[Seq[Row]] = userAnswers.get(ChargeAmountsPage(index)) map {
+    answer =>
+      Seq(
+        Row(
+          key = Key(msg"chargeG.chargeAmount.transferred", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeG.chargeAmount.transferred.visuallyHidden.label")
+            )
+          )
+        ),
+        Row(
+          key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
+            "")),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeG.chargeAmount.taxDue.visuallyHidden.label")
             )
           )
         )

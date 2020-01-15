@@ -31,6 +31,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
+  private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
   private def addAnotherChargeYes: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, true).toOption
   private def addAnotherChargeNo: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, false).toOption
 
@@ -46,6 +47,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeDeRegistration)),
         row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeLifetimeAllowance)),
         row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeDMemberExists),
+        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeGMemberExists),
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn), addAnotherChargeYes),
         row(AFTSummaryPage)(Call("GET", frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn)), addAnotherChargeNo)
       )

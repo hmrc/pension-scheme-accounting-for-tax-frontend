@@ -86,7 +86,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     behave like controllerWithGETSavedData(
       httpPath = memberDetailsRouteGetRoute,
       page = MemberDetailsPage(0),
-      data = SampleData.memberDetailsG,
+      data = SampleData.memberGDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
