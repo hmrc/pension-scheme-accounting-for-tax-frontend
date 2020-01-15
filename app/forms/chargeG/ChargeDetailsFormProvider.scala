@@ -33,7 +33,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
     Form(mapping(
       "qropsReferenceNumber" -> text(
         errorKey = s"$qropsReferenceNumberKey.required"
-      ).verifying(regexp("""^Q[0-9]{6}""", s"$qropsReferenceNumberKey.valid")),
+      ).transform(noSpaceWithUpperCaseTransform, noTransform)
+        .verifying(regexp("""^Q[0-9]{6}""", s"$qropsReferenceNumberKey.valid")),
       "qropsTransferDate" -> localDate(
         invalidKey     = s"$qropsTransferDateKey.invalid",
         allRequiredKey = s"$qropsTransferDateKey.required.all",
