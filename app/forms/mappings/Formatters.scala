@@ -174,11 +174,10 @@ trait Formatters extends Transforms with Constraints {
 
         val formFields: (Option[String], Option[String]) = (data.get(keyA), data.get(keyB))
 
-        if (empty(formFields._1) && empty(formFields._2)) {
+        if (empty(formFields._1) && empty(formFields._2))
           Left(Seq(FormError(keyA, requiredKeyA, args), FormError(keyB, requiredKeyB, args)))
-        } else {
+        else
           validate2DP(formFields._1.get, keyA, invalidKeyA, decimalKeyA, args)
-        }
       }
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
@@ -251,8 +250,7 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
         val total =
           itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
-            Try(BigDecimal(data.getOrElse(next, "0")))
-              .getOrElse(BigDecimal(0.00)) + acc
+            Try(BigDecimal(data.getOrElse(next, "0"))).getOrElse(BigDecimal(0.00)) + acc
           }
         Right(total)
       }

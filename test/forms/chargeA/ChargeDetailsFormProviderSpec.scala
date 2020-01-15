@@ -18,9 +18,9 @@ package forms.chargeA
 
 import java.text.DecimalFormat
 
-import data.SampleData._
 import forms.behaviours._
-import play.api.data.FormError
+import models.chargeA.ChargeDetails
+import play.api.data.{Form, FormError}
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with IntFieldBehaviours {
 
@@ -33,82 +33,123 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   private val messageKeyAmountTaxDueLowerRateKey = "chargeA.totalAmtOfTaxDueAtLowerRate"
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
 
-  private val decimalFormat = new DecimalFormat("0.00")
+  def chargeADetails(members: String = "12", lowerTax: String = "1.00", higherTax: String = "1.00") =
+    Map(
+      totalNumberOfMembersKey -> members,
+      totalAmtOfTaxDueAtLowerRateKey -> lowerTax,
+      totalAmtOfTaxDueAtHigherRateKey -> higherTax
+    )
 
   "numberOfMembers" must {
 
-    behave like intField(
-      form = form,
-      fieldName = totalNumberOfMembersKey,
-      nonNumericError = FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.nonNumeric")
-    )
+    "must not bind non-numeric numbers" in {
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric: String =>
+          val result = form.bind(chargeADetails(members = nonNumeric))
+          result.errors mustEqual Seq(FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.nonNumeric"))
+      }
+    }
 
-    behave like intFieldWithRange(
-      form = form,
-      fieldName = totalNumberOfMembersKey,
-      minimum = 0,
-      maximum = 999999,
-      expectedError = FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.maximum")
-    )
+    "must not bind ints outside the range 0 to 999999" in {
+      forAll(intsOutsideRange(0, 999999) -> "intOutsideRange") {
+        number: Int =>
+          val result = form.bind(chargeADetails(members = number.toString))
+          result.errors.head.key mustEqual totalNumberOfMembersKey
+      }
+    }
   }
 
   "totalAmtOfTaxDueAtLowerRate" must {
 
-    behave like bigDecimalField(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtLowerRateKey,
-      nonNumericError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.invalid"),
-      decimalsError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.decimal")
-    )
+    "must not bind non-numeric numbers" in {
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric: String =>
+          val result = form.bind(chargeADetails(lowerTax = nonNumeric))
+          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.invalid"))
+      }
+    }
 
-    behave like bigDecimalFieldWithMinimum(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtLowerRateKey,
-      minimum = BigDecimal("0.00"),
-      expectedError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.minimum")
-    )
+    "must not bind decimals that are not 2 dp" in {
+      forAll(decimals -> "decimal") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(lowerTax = decimal))
+          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.decimal"))
+      }
+    }
 
-    behave like longBigDecimal(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtLowerRateKey,
-      length = 11,
-      expectedError = FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.maximum")
-    )
+    "must not bind decimals below 0.00" in {
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(lowerTax = decimal))
+          result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
+          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueLowerRateKey.error.minimum"
+      }
+    }
+
+    "must not bind decimals longer than 11 characters" in {
+      forAll(longDecimalString(11) -> "decimalAboveMax") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(lowerTax = decimal))
+          result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
+          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueLowerRateKey.error.maximum"
+      }
+    }
   }
 
   "totalAmtOfTaxDueAtHigherRate" must {
 
-    behave like bigDecimalField(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtHigherRateKey,
-      nonNumericError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.invalid"),
-      decimalsError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.decimal")
-    )
+    "must not bind non-numeric numbers" in {
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric: String =>
+          val result = form.bind(chargeADetails(higherTax = nonNumeric))
+          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.invalid"))
+      }
+    }
 
-    behave like bigDecimalFieldWithMinimum(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtHigherRateKey,
-      minimum = BigDecimal("0.00"),
-      expectedError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.minimum")
-    )
+    "must not bind decimals that are not 2 dp" in {
+      forAll(decimals -> "decimal") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(higherTax = decimal))
+          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.decimal"))
+      }
+    }
 
-    behave like longBigDecimal(
-      form = form,
-      fieldName = totalAmtOfTaxDueAtHigherRateKey,
-      length = 11,
-      expectedError = FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.maximum")
-    )
+    "must not bind decimals below 0.00" in {
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(higherTax = decimal))
+          result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
+          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueHigherRateKey.error.minimum"
+      }
+    }
+
+    "must not bind decimals longer than 11 characters" in {
+      forAll(longDecimalString(11) -> "decimalAboveMax") {
+        decimal: String =>
+          val result = form.bind(chargeADetails(higherTax = decimal))
+          result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
+          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueHigherRateKey.error.maximum"
+      }
+    }
   }
 
   "totalAmount" must {
-    "must bind correctly calculated total to form" in {
-      val resultForm = form.bind(Map(
-        totalNumberOfMembersKey -> chargeAChargeDetails.numberOfMembers.toString,
-        totalAmtOfTaxDueAtLowerRateKey -> decimalFormat.format(chargeAChargeDetails.totalAmtOfTaxDueAtLowerRate.get),
-        totalAmtOfTaxDueAtHigherRateKey -> decimalFormat.format(chargeAChargeDetails.totalAmtOfTaxDueAtHigherRate.get)
-      ))
+    "must bind correctly calculated total to form when both rates of tax are present" in {
+      val resultForm: Form[ChargeDetails] = form.bind(chargeADetails(lowerTax = "3.00", higherTax = "3.00"))
 
-      resultForm.value mustEqual Some(chargeAChargeDetails)
+      resultForm.value.get.totalAmount mustEqual BigDecimal(6.00)
+    }
+
+    "must bind correctly calculated total to form when only lower rate of tax present" in {
+      val resultForm: Form[ChargeDetails] = form.bind(chargeADetails(lowerTax = "3.00", higherTax = ""))
+
+      resultForm.value.get.totalAmount mustEqual BigDecimal(3.00)
+    }
+
+    "must bind correctly calculated total to form when only higher rate of tax present" in {
+      val resultForm: Form[ChargeDetails] = form.bind(chargeADetails(lowerTax = "", higherTax = "3.00"))
+
+      resultForm.value.get.totalAmount mustEqual BigDecimal(3.00)
     }
   }
 }
