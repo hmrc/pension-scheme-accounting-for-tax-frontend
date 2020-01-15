@@ -54,7 +54,7 @@ object SampleData {
     SchemeDetails(schemeName, pstr)
   val chargeAmounts: ChargeAmounts =
     ChargeAmounts(chargeAmount1, chargeAmount2)
-  val chargeAmounts2: ChargeAmounts = 
+  val chargeAmounts2: ChargeAmounts =
     ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeGDetails: chargeG.ChargeDetails =
     models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))

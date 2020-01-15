@@ -250,7 +250,12 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
         val total =
           itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
-            Try(BigDecimal(data.getOrElse(next, "0"))).getOrElse(BigDecimal(0.00)) + acc
+            data.get(next) match {
+              case Some(str) =>
+                Try(BigDecimal(str)).getOrElse(BigDecimal(0.00)) + acc
+              case None =>
+                BigDecimal(0.00) + acc
+            }
           }
         Right(total)
       }
