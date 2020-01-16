@@ -19,12 +19,11 @@ package data
 import java.time.LocalDate
 
 import models.chargeB.ChargeBDetails
-import models.chargeC.{SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
-import models.chargeF.ChargeDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers, chargeA, chargeG}
+import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -42,22 +41,15 @@ object SampleData {
   val dummyCall: Call = Call("GET", "/foo")
   val chargeAmount1 = BigDecimal(33.44)
   val chargeAmount2 = BigDecimal(50.00)
-  val chargeFChargeDetails: ChargeDetails =
-    models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val chargeAChargeDetails: chargeA.ChargeDetails =
-    models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
-  val chargeEDetails: ChargeEDetails =
-    ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
-  val chargeDDetails: ChargeDDetails =
-    ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
-  val schemeDetails: SchemeDetails =
-    SchemeDetails(schemeName, pstr)
-  val chargeAmounts: ChargeAmounts =
-    ChargeAmounts(chargeAmount1, chargeAmount2)
-  val chargeAmounts2: ChargeAmounts =
-    ChargeAmounts(chargeAmount1, chargeAmount2)
-  val chargeGDetails: chargeG.ChargeDetails =
-    models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
+  val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
+  val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
+  val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
+  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
+  val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
+  val chargeCDetails = ChargeCDetails(paymentDate = LocalDate.of(2019, 4, 3),amountTaxDue = BigDecimal(33.44))
+  val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
+  val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
+  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)

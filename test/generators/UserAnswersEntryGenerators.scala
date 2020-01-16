@@ -17,10 +17,11 @@
 package generators
 
 import models._
+import models.chargeC.ChargeCDetails
 import org.scalacheck.Arbitrary
 import org.scalacheck.Arbitrary.arbitrary
 import pages._
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC._
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import pages.chargeF.ChargeDetailsPage
 import play.api.libs.json.{JsValue, Json}

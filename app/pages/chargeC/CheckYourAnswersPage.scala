@@ -16,13 +16,6 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.Page
 
-case object SponsoringIndividualDetailsPage extends QuestionPage[SponsoringIndividualDetails] {
-
-  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
-
-  override def toString: String = "sponsoringIndividualDetails"
-}
+case object CheckYourAnswersPage extends Page

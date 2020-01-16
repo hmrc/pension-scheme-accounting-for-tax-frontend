@@ -18,9 +18,9 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import models.{NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhatYouWillNeedPage}
+import pages.chargeC._
 import play.api.mvc.Call
 import controllers.chargeC.routes._
 
@@ -37,10 +37,35 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
         SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn)
       case SponsoringOrganisationDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
       case SponsoringIndividualDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
+      case SponsoringEmployerAddressPage => ChargeDetailsController.onPageLoad(NormalMode, srn)
+      case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
+      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
     }
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.routes.IndexController.onPageLoad()
+    case IsSponsoringEmployerIndividualPage => editRoutesForIsSponsoringEmployerIndividualPage(ua, srn)
+    case SponsoringOrganisationDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
+    case SponsoringIndividualDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
+    case SponsoringEmployerAddressPage => CheckYourAnswersController.onPageLoad(srn)
+    case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
+    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn)
   }
+
+  private def editRoutesForIsSponsoringEmployerIndividualPage(ua:UserAnswers, srn: String):Call = {
+    (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SponsoringOrganisationDetailsPage)) match {
+      case (Some(false), _, None) => SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn)
+      case (Some(false), _, _) => CheckYourAnswersController.onPageLoad(srn)
+      case (Some(true), None, _) => SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn)
+      case _ => CheckYourAnswersController.onPageLoad(srn)
+    }
+  }
+
+  private def editRoutesForSponsoringEmployerPages(ua:UserAnswers, srn: String):Call = {
+    ua.get(SponsoringEmployerAddressPage) match {
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn)
+      case _ => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)
+    }
+  }
+
 }

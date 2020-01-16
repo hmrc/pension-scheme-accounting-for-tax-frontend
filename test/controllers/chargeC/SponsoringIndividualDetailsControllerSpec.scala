@@ -66,14 +66,18 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
       jsonToPassToTemplate = jsonToPassToTemplate
     )
 
-    behave like controllerWithPOST(
+    behave like controllerWithPOSTWithJson(
       httpPath = postRoute,
       page = SponsoringIndividualDetailsPage,
-      data = SampleData.sponsoringIndividualDetails,
+      expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          SponsoringIndividualDetailsPage.toString -> Json.toJson(SampleData.sponsoringIndividualDetails)
+        )
+      ),
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
-    )
+      requestValuesInvalid = valuesInvalid)
+
   }
 }
