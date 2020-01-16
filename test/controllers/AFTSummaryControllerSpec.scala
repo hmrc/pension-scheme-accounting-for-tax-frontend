@@ -92,10 +92,8 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   "AFTSummary Controller" must {
 
-    behave like controllerWithGETNeverFilledForm(
+    behave like controllerWithGETNeverFilledFormNoSessionExpiredTest(
       httpPath = aftSummaryGetRoute,
-      page = AFTSummaryPage,
-      data = true,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate

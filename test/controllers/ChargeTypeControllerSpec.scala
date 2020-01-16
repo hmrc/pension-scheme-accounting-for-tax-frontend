@@ -65,7 +65,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   private val mockSchemeService = mock[SchemeService]
 
-  "ChargeDetails Controller" must {
+  "ChargeType Controller" must {
 
     "return OK and the correct view for a GET" in {
       val application = new GuiceApplicationBuilder()
@@ -98,7 +98,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
       val application = new GuiceApplicationBuilder()
         .overrides(
-          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
+          modules(Some(ua)) ++ Seq[GuiceableModule](
             bind[SchemeService].toInstance(mockSchemeService)
           ): _*
         ).build()
@@ -115,9 +115,6 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual template
-
-      println( "\n>>ACT:" + jsonCaptor.getValue)
-      println( "\n>>EXP:" + jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
 

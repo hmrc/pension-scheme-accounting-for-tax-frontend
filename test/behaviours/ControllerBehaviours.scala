@@ -59,6 +59,25 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                                           form: Form[A],
                                           templateToBeRendered: String,
                                           jsonToPassToTemplate: Form[A] => JsObject)(implicit writes: Writes[A]): Unit = {
+
+    controllerWithGETNeverFilledFormNoSessionExpiredTest(httpPath, form, templateToBeRendered, jsonToPassToTemplate)
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
+  }
+
+  def controllerWithGETNeverFilledFormNoSessionExpiredTest[A](httpPath: => String,
+                                                              form: Form[A],
+                                                              templateToBeRendered: String,
+                                                              jsonToPassToTemplate: Form[A] => JsObject)(implicit writes: Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -76,19 +95,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
       application.stop()
     }
-
-    "redirect to Session Expired page for a GET when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val result = route(application, httpGETRequest(httpPath)).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
-    }
   }
-
 
   //scalastyle:off method.length
   def controllerWithGETNoSavedData(httpPath: => String,
@@ -125,7 +132,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
                                     templateToBeRendered: String,
                                     jsonToPassToTemplate: Form[A] => JsObject,
                                     userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
-                          )(implicit writes: Writes[A]): Unit = {
+                                   )(implicit writes: Writes[A]): Unit = {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = userAnswers).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
