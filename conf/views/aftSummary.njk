@@ -9,7 +9,7 @@
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
 
 {% block pageTitle %}
-  {{ title(messages("aft.summary.title"), form.errors) }}
+  {{ title(messages("aft.summary.title", viewModel.schemeName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}

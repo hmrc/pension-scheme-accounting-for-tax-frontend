@@ -286,13 +286,14 @@ totalTaxDue.error.maximum = The total amount of tax due must be £9999999999.99 
 totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
 totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
+chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
 chargeF = De-registration charge
 chargeE = Annual allowance charge
 chargeD = Lifetime allowance charge
 chargeG = Overseas transfer charge
 
-memberDetails.title = Member’s details
+memberDetails.title = Member’s details - {0}
 memberDetails.heading = Member’s details
 memberDetails.firstName = First name
 memberDetails.lastName = Last name
@@ -397,7 +398,7 @@ chargeType.radio.overseasTransfer = Overseas transfer charge
 chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 
-aft.summary.title = Summary of charges for the scheme
+aft.summary.title = Summary of charges for {0}
 aft.summary.heading = Summary of charges for {0}
 aft.summary.radio.question = Do you want to add another charge?
 aft.summary.annualAllowance.row = Annual allowance charges
@@ -417,7 +418,7 @@ aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits ch
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
 
-chargeG.chargeDetails.title = Overseas transfer charge details
+chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number
 chargeG.chargeDetails.qropsReferenceNumber.error.required = Enter a QROPS reference number

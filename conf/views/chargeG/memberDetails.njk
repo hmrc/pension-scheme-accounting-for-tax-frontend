@@ -8,7 +8,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("memberDetails.title"), form.errors) }}
+  {{ title(messages("memberDetails.title", messages(chargeName).toLowerCase()), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
