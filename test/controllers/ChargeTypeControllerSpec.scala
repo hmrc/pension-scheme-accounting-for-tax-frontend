@@ -75,7 +75,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
           ): _*
         ).build()
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
 
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -103,7 +103,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
           ): _*
         ).build()
 
-      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

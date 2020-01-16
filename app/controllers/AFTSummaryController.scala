@@ -57,7 +57,7 @@ class AFTSummaryController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId).flatMap{ schemeDetails =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
         aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", "1").flatMap { aftDetails =>
           val updateUA = UserAnswers(aftDetails.as[JsObject])
             .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)

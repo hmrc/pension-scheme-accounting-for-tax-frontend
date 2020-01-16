@@ -53,7 +53,7 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId).flatMap{ schemeDetails =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
         val ua = requestUA
           .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
           .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)

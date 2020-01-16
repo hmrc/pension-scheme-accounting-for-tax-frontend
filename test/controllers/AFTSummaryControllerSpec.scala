@@ -17,7 +17,7 @@
 package controllers
 
 import behaviours.ControllerBehaviours
-import connectors.{AFTConnector, SchemeDetailsConnector}
+import connectors.AFTConnector
 import data.SampleData
 import forms.AFTSummaryFormProvider
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers}
@@ -74,7 +74,7 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   override def beforeEach: Unit = {
     Mockito.reset(mockSchemeService, mockAftConnector)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     super.beforeEach()
   }
