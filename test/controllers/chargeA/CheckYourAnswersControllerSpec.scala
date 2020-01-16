@@ -21,22 +21,20 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import org.scalatest.{OptionValues, TryValues}
-import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour with OptionValues with TryValues {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
-
   private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn).url
 
   private def ua: UserAnswers = userAnswersWithSchemeName
-    .set(ChargeDetailsPage, chargeAChargeDetails).success.value
+    .set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
   private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn)
 
