@@ -46,7 +46,6 @@ class ChargeTypeController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      schemeDetailsConnector: SchemeDetailsConnector,
                                       schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
@@ -63,7 +62,7 @@ class ChargeTypeController @Inject()(
           .set(PSTRQuery, pstr).toOption.getOrElse(requestUA)
 
         userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-          val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
+          val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
 
           val json = Json.obj(
             fields = "form" -> preparedForm,

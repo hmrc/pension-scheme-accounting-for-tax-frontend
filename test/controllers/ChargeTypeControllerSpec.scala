@@ -22,9 +22,9 @@ import data.SampleData
 import forms.ChargeTypeFormProvider
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.ChargeTypePage
 import play.api.data.Form
@@ -38,6 +38,8 @@ import scala.concurrent.Future
 
 class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
 
+
+
   private val template = "chargeType.njk"
 
   private def form = new ChargeTypeFormProvider()()
@@ -45,8 +47,6 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   private def chargeTypeGetRoute: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
 
   private def chargeTypePostRoute: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
-
-  private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
@@ -65,6 +65,8 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       schemeName = SampleData.schemeName)
   )
 
+  private val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+
   "ChargeDetails Controller" must {
 
     "return OK and the correct view for a GET" in {
@@ -74,7 +76,10 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
             bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
           ): _*
         ).build()
+
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -92,15 +97,17 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      reset(mockSchemeDetailsConnector)
       val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
       val application = new GuiceApplicationBuilder()
         .overrides(
-          modules(Some(ua)) ++ Seq[GuiceableModule](
+          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
             bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
           ): _*
         ).build()
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SampleData.schemeDetails))
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -111,6 +118,9 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual template
+
+      println( "\n>>ACT:" + jsonCaptor.getValue)
+      println( "\n>>EXP:" + jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
 

@@ -17,23 +17,38 @@
 package controllers
 
 import behaviours.ControllerBehaviours
-import controllers.base.ControllerSpecBase
+import connectors.{AFTConnector, SchemeDetailsConnector}
 import data.SampleData
 import forms.AFTSummaryFormProvider
-import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify}
-import pages.AFTSummaryPage
+import org.mockito.Mockito
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.data.Form
+import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers.{redirectLocation, route, status}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits{
+
+  private val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+
+  override protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
+    new GuiceApplicationBuilder()
+      .overrides(
+        modules(userAnswers) ++ Seq[GuiceableModule](
+          bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
+          bind[AFTConnector].toInstance(mockAftConnector)
+        ): _*
+      )
 
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
@@ -47,6 +62,22 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("xyz"))
 
   private val summaryHelper = new AFTSummaryHelper
+
+  private val schemeName = "scheme"
+  private val schemePSTR = "pstr"
+
+  private val uaGetAFTDetails = UserAnswers()
+  private val uaGetAFTDetailsPlusSchemeDetails = uaGetAFTDetails
+    .set(SchemeNameQuery, schemeName).toOption.getOrElse(uaGetAFTDetails)
+    .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
+
+  override def beforeEach: Unit = {
+    Mockito.reset(mockSchemeDetailsConnector, mockAftConnector)
+    when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
+    super.beforeEach()
+  }
+
 
   private val jsonToPassToTemplate: Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
