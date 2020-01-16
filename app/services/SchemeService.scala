@@ -18,8 +18,7 @@ package services
 
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
-import models.UserAnswers
-import pages.{PSTRQuery, SchemeNameQuery}
+import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,10 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchemeService @Inject()(
                                schemeDetailsConnector: SchemeDetailsConnector
                              ){
-  def retrieveSchemeDetails(psaId:String, srn:String, internalId: String, ua:UserAnswers)(implicit hc:HeaderCarrier, ec:ExecutionContext): Future[UserAnswers] = {
-    schemeDetailsConnector.getSchemeDetails(psaId, schemeIdType = "srn", srn).map { schemeDetails =>
-      ua.set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(ua)
-        .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(ua)
+  def retrieveSchemeDetails(psaId:String, srn:String, internalId: String)(block: (String,String) => Future[Result])(implicit hc:HeaderCarrier, ec:ExecutionContext): Future[Result] = {
+    schemeDetailsConnector.getSchemeDetails(psaId, schemeIdType = "srn", srn).flatMap { schemeDetails =>
+      block(schemeDetails.schemeName, schemeDetails.pstr)
     }
   }
 }

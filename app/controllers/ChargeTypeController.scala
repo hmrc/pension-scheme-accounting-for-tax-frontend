@@ -55,14 +55,15 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      val ua = requestUA
-        .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
-        .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId) { (schemeName, pstr) =>
+        val ua = requestUA
+          .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
+          .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
+          .set(SchemeNameQuery, schemeName).toOption.getOrElse(requestUA)
+          .set(PSTRQuery, pstr).toOption.getOrElse(requestUA)
 
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId, ua).flatMap { updatedUA =>
-        val schemeName = updatedUA.get(SchemeNameQuery).getOrElse("")
-        userAnswersCacheConnector.save(request.internalId, updatedUA.data).flatMap { _ =>
-          val preparedForm = updatedUA.get(ChargeTypePage).fold(form)(form.fill)
+        userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+          val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
 
           val json = Json.obj(
             fields = "form" -> preparedForm,

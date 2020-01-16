@@ -56,25 +56,17 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      println("\nLLL")
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId, request.userAnswers.getOrElse(UserAnswers())).flatMap { updatedUA =>
-        val schemeName = updatedUA.get(SchemeNameQuery).getOrElse("")
-        val pstr = updatedUA.get(PSTRQuery).getOrElse("")
+      val requestUA = request.userAnswers.getOrElse(UserAnswers())
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId) { (schemeName, pstr) =>
+        aftConnector.getAFTDetails(pstr, "2020-04-01", "1").flatMap { aftDetails =>
+          val updateUA = UserAnswers(aftDetails.as[JsObject])
+            .set(SchemeNameQuery, schemeName).toOption.getOrElse(requestUA)
+            .set(PSTRQuery, pstr).toOption.getOrElse(requestUA)
 
-        println("\n>>" + schemeName)
-
-        println("\n>>>1")
-        aftConnector.getAFTDetails(updatedUA.get(PSTRQuery).getOrElse(""), "2020-04-01", "1").flatMap { aftDetails =>
-          println("\n>>>2")
-          val newUA = UserAnswers(aftDetails.as[JsObject])
-
-          val new2 = newUA.set(SchemeNameQuery, schemeName).toOption.getOrElse(newUA)
-            .set(PSTRQuery, pstr).toOption.getOrElse(newUA)
-
-          userAnswersCacheConnector.save(request.internalId, new2.data).flatMap { _ =>
+          userAnswersCacheConnector.save(request.internalId, updateUA.data).flatMap { _ =>
             val json = Json.obj(
               "form" -> form,
-              "list" -> aftSummaryHelper.summaryListData(new2, srn),
+              "list" -> aftSummaryHelper.summaryListData(updateUA, srn),
               "viewModel" -> viewModel(mode, srn, schemeName),
               "radios" -> Radios.yesNo(form("value"))
             )
