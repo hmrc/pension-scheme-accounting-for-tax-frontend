@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
@@ -62,27 +62,27 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     )
   }
 
-//  "CheckYourAnswers Controller with both rates of tax set" must {
-//    behave like controllerWithOnClick(
-//      httpPath = httpOnClickRoute,
-//      page = CheckYourAnswersPage,
-//      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).get
-//    )
-//  }
-//
-//  "CheckYourAnswers Controller with no lower rate of tax set" must {
-//    behave like controllerWithOnClick(
-//      httpPath = httpOnClickRoute,
-//      page = CheckYourAnswersPage,
-//      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
-//    )
-//  }
-//
-//  "CheckYourAnswers Controller with no higher rate of tax set" must {
-//    behave like controllerWithOnClick(
-//      httpPath = httpOnClickRoute,
-//      page = CheckYourAnswersPage,
-//      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
-//    )
-//  }
+  "CheckYourAnswers Controller with both rates of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).get
+    )
+  }
+
+  "CheckYourAnswers Controller with no lower rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
+    )
+  }
+
+  "CheckYourAnswers Controller with no higher rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
+    )
+  }
 }

@@ -16,6 +16,7 @@
 
 package behaviours
 
+import config.FrontendAppConfig
 import connectors.AFTConnector
 import data.SampleData
 import models.UserAnswers
@@ -26,7 +27,7 @@ import org.scalatest.BeforeAndAfterEach
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.Writes
+import play.api.libs.json.{Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 
 import scala.concurrent.Future
@@ -34,12 +35,18 @@ import scala.concurrent.Future
 trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfterEach {
   val mockAftConnector: AFTConnector = mock[AFTConnector]
 
-  override def beforeEach: Unit = Mockito.reset(mockAftConnector)
+  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+
+  override def beforeEach: Unit = Mockito.reset(mockAftConnector, mockAppConfig)
 
   def controllerWithOnClick[A](httpPath: => String, page: Page, userAnswers: UserAnswers = SampleData.userAnswersWithSchemeName)
                               (implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(SampleData.dummyCall.url)
+
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -47,7 +54,8 @@ trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfter
       val application = new GuiceApplicationBuilder()
         .overrides(
           modules(Some(userAnswers)) ++ Seq[GuiceableModule](
-            bind[AFTConnector].toInstance(mockAftConnector)
+            bind[AFTConnector].toInstance(mockAftConnector),
+            bind[FrontendAppConfig].toInstance(mockAppConfig)
           ): _*
         ).build()
 
