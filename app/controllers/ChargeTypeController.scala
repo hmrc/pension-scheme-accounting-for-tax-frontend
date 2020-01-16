@@ -29,6 +29,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -45,36 +46,31 @@ class ChargeTypeController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      schemeDetailsConnector: SchemeDetailsConnector
+                                      schemeDetailsConnector: SchemeDetailsConnector,
+                                      schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
+      val requestUA = request.userAnswers.getOrElse(UserAnswers())
+      val ua = requestUA
+        .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
+        .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
 
-      val ua = request.userAnswers.getOrElse(UserAnswers())
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId, ua).flatMap { updatedUA =>
+        val schemeName = updatedUA.get(SchemeNameQuery).getOrElse("")
+        userAnswersCacheConnector.save(request.internalId, updatedUA.data).flatMap { _ =>
+          val preparedForm = updatedUA.get(ChargeTypePage).fold(form)(form.fill)
 
-      schemeDetailsConnector.getSchemeDetails(request.psaId.id, schemeIdType = "srn", srn).flatMap { schemeDetails =>
+          val json = Json.obj(
+            fields = "form" -> preparedForm,
+            "radios" -> ChargeType.radios(preparedForm),
+            "viewModel" -> viewModel(schemeName, mode, srn)
+          )
 
-        Future.fromTry(ua.set(SchemeNameQuery, schemeDetails.schemeName).
-          flatMap(_.set(PSTRQuery, schemeDetails.pstr)).flatMap(
-          _.set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).flatMap(
-            _.set(AFTStatusQuery, value = "Compiled"))
-        )).flatMap { answers =>
-
-          userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
-
-            val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
-
-            val json = Json.obj(
-              fields = "form" -> preparedForm,
-              "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-            )
-
-            renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          }
+          renderer.render(template = "chargeType.njk", json).map(Ok(_))
         }
       }
   }
