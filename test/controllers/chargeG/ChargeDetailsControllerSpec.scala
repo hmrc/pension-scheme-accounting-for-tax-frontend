@@ -40,7 +40,6 @@ import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
 
-  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val formProvider = new ChargeDetailsFormProvider()
 
   private def form: Form[ChargeDetails] = formProvider("The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020")

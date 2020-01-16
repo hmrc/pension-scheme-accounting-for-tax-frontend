@@ -20,14 +20,14 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import data.SampleData
 import models.UserAnswers
-import org.mockito.{Matchers, Mockito}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 
 import scala.concurrent.Future
@@ -35,9 +35,40 @@ import scala.concurrent.Future
 trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfterEach {
   val mockAftConnector: AFTConnector = mock[AFTConnector]
 
-  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+  override def beforeEach: Unit = Mockito.reset(mockAftConnector)
 
-  override def beforeEach: Unit = Mockito.reset(mockAftConnector, mockAppConfig)
+  def cyaController(httpPath: => String,
+                    page: Page,
+                    templateToBeRendered: String,
+                    jsonToPassToTemplate: JsObject,
+                    userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)): Unit = {
+    "return OK and the correct view for a GET" in {
+
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(SampleData.dummyCall.url)
+
+      val application = applicationBuilder(userAnswers = userAnswers)
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig)
+        )
+        .build()
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
+  }
 
   def controllerWithOnClick[A](httpPath: => String, page: Page, userAnswers: UserAnswers = SampleData.userAnswersWithSchemeName)
                               (implicit writes: Writes[A]): Unit = {

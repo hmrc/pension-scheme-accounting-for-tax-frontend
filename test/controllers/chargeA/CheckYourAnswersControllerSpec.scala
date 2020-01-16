@@ -53,9 +53,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   )
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGETNoSavedData(
+    behave like cyaController(
       httpPath = httpGETRoute,
-      page = WhatYouWillNeedPage,
+      page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
       userAnswers = Some(ua)

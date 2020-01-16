@@ -39,7 +39,6 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
   def onwardRoute = Call("GET", "/foo")
 
