@@ -66,7 +66,8 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "date" -> DateInput.localDate(preparedForm("dob"))
+          "date" -> DateInput.localDate(preparedForm("dob")),
+          "chargeName" -> "chargeG"
         )
 
         renderer.render("chargeG/memberDetails.njk", json).map(Ok(_))

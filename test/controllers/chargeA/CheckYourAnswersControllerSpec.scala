@@ -29,7 +29,7 @@ import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour with OptionValues with TryValues {
 
-  private val templateToBeRendered = "chargeA/check-your-answers.njk"
+  private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
 

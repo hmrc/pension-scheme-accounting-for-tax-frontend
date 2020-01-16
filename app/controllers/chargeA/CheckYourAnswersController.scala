@@ -64,10 +64,11 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         )
 
         renderer.render(
-          "chargeA/check-your-answers.njk",
+          "check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel
+            "viewModel" -> viewModel,
+            "chargeName" -> "chargeA"
           )
         ).map(Ok(_))
       }
