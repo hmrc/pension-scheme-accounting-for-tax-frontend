@@ -32,15 +32,73 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)
 
           result.value.value mustEqual date
       }
+    }
+  }
+
+  def dateFieldInvalid(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind dates with invalid day" in {
+      val genInt = intsAboveValue(31)
+      forAll(genInt -> "invalid") { i =>
+        val data = Map(
+          s"$key.day" -> i.toString,
+          s"$key.month" -> "12",
+          s"$key.year" -> "2000"
+        )
+
+        val result = form.bind(data)
+
+        result.errors must contain(formError)
+      }
+    }
+
+    s"must fail to bind dates with invalid month" in {
+      val genInt = intsAboveValue(12)
+      forAll(genInt -> "invalid") { i =>
+        val data = Map(
+          s"$key.day" -> "1",
+          s"$key.month" -> i.toString,
+          s"$key.year" -> "2000"
+        )
+
+        val result = form.bind(data)
+
+        result.errors must contain(formError)
+      }
+    }
+  }
+
+  def dateFieldDayMonthMissing(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind a date with two date components missing" in {
+      val data = Map(
+        s"$key.year" -> "2000"
+      )
+
+      val result = form.bind(data)
+
+      result.errors must contain(formError)
+    }
+  }
+
+  def dateFieldYearNot4Digits(form: Form[_], key: String, formError: FormError): Unit = {
+    s"must fail to bind a date where year less than 4 digits" in {
+      val data = Map(
+        s"$key.day" -> "20",
+        s"$key.month" -> "12",
+        s"$key.year" -> "200"
+      )
+
+      val result = form.bind(data)
+
+      result.errors must contain(formError)
     }
   }
 
@@ -54,9 +112,9 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)
@@ -76,9 +134,9 @@ trait DateBehaviours extends FieldBehaviours {
         date =>
 
           val data = Map(
-            s"$key.day"   -> date.getDayOfMonth.toString,
+            s"$key.day" -> date.getDayOfMonth.toString,
             s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year"  -> date.getYear.toString
+            s"$key.year" -> date.getYear.toString
           )
 
           val result = form.bind(data)

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package models.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import java.time.LocalDate
 
-case object SponsoringIndividualDetailsPage extends QuestionPage[SponsoringIndividualDetails] {
+import play.api.libs.json.{Format, Json}
 
-  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
+case class ChargeCDetails(paymentDate: LocalDate, amountTaxDue: BigDecimal)
 
-  override def toString: String = "sponsoringIndividualDetails"
+
+object ChargeCDetails {
+  implicit lazy val formats: Format[ChargeCDetails] =
+    Json.format[ChargeCDetails]
 }
