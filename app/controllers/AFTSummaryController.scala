@@ -57,17 +57,17 @@ class AFTSummaryController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId) { (schemeName, pstr) =>
-        aftConnector.getAFTDetails(pstr, "2020-04-01", "1").flatMap { aftDetails =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId).flatMap{ schemeDetails =>
+        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", "1").flatMap { aftDetails =>
           val updateUA = UserAnswers(aftDetails.as[JsObject])
-            .set(SchemeNameQuery, schemeName).toOption.getOrElse(requestUA)
-            .set(PSTRQuery, pstr).toOption.getOrElse(requestUA)
+            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
+            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
           userAnswersCacheConnector.save(request.internalId, updateUA.data).flatMap { _ =>
             val json = Json.obj(
               "form" -> form,
               "list" -> aftSummaryHelper.summaryListData(updateUA, srn),
-              "viewModel" -> viewModel(mode, srn, schemeName),
+              "viewModel" -> viewModel(mode, srn, schemeDetails.schemeName),
               "radios" -> Radios.yesNo(form("value"))
             )
 

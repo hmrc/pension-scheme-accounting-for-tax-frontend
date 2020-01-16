@@ -30,6 +30,7 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 
@@ -37,7 +38,7 @@ import scala.concurrent.Future
 
 class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits{
 
-  private val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+  private val mockSchemeService = mock[SchemeService]
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
@@ -45,7 +46,7 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
     new GuiceApplicationBuilder()
       .overrides(
         modules(userAnswers) ++ Seq[GuiceableModule](
-          bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
+          bind[SchemeService].toInstance(mockSchemeService),
           bind[AFTConnector].toInstance(mockAftConnector)
         ): _*
       )
@@ -72,8 +73,8 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
     .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
 
   override def beforeEach: Unit = {
-    Mockito.reset(mockSchemeDetailsConnector, mockAftConnector)
-    when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    Mockito.reset(mockSchemeService, mockAftConnector)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     super.beforeEach()
   }

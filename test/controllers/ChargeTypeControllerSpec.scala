@@ -17,12 +17,11 @@
 package controllers
 
 import behaviours.ControllerBehaviours
-import connectors.SchemeDetailsConnector
 import data.SampleData
 import forms.ChargeTypeFormProvider
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -33,12 +32,11 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
+import services.SchemeService
 
 import scala.concurrent.Future
 
 class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
-
-
 
   private val template = "chargeType.njk"
 
@@ -65,7 +63,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       schemeName = SampleData.schemeName)
   )
 
-  private val mockSchemeDetailsConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+  private val mockSchemeService = mock[SchemeService]
 
   "ChargeDetails Controller" must {
 
@@ -73,11 +71,11 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val application = new GuiceApplicationBuilder()
         .overrides(
           modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
-            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
+            bind[SchemeService].toInstance(mockSchemeService)
           ): _*
         ).build()
 
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
 
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -101,12 +99,11 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val application = new GuiceApplicationBuilder()
         .overrides(
           modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
-            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
+            bind[SchemeService].toInstance(mockSchemeService)
           ): _*
         ).build()
 
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SampleData.schemeDetails))
+      when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

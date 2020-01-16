@@ -17,7 +17,6 @@
 package controllers
 
 import config.FrontendAppConfig
-import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
@@ -54,12 +53,12 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId) { (schemeName, pstr) =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn, request.internalId).flatMap{ schemeDetails =>
         val ua = requestUA
           .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
           .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
-          .set(SchemeNameQuery, schemeName).toOption.getOrElse(requestUA)
-          .set(PSTRQuery, pstr).toOption.getOrElse(requestUA)
+          .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
+          .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
         userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
           val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
@@ -67,7 +66,7 @@ class ChargeTypeController @Inject()(
           val json = Json.obj(
             fields = "form" -> preparedForm,
             "radios" -> ChargeType.radios(preparedForm),
-            "viewModel" -> viewModel(schemeName, mode, srn)
+            "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
           )
 
           renderer.render(template = "chargeType.njk", json).map(Ok(_))
