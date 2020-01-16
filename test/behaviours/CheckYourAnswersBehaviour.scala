@@ -18,9 +18,11 @@ package behaviours
 
 import connectors.AFTConnector
 import data.SampleData
-import org.mockito.Matchers
+import models.UserAnswers
+import org.mockito.{Matchers, Mockito}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.scalatest.BeforeAndAfterEach
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -29,20 +31,26 @@ import play.api.test.Helpers.{redirectLocation, route, status, _}
 
 import scala.concurrent.Future
 
-trait CheckYourAnswersBehaviour extends ControllerBehaviours {
+trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfterEach {
   val mockAftConnector: AFTConnector = mock[AFTConnector]
-  def controllerWithOnClick[A](httpPath: => String,
-                            page: Page)(implicit writes: Writes[A]): Unit = {
+
+  override def beforeEach: Unit = Mockito.reset(mockAftConnector)
+
+  def controllerWithOnClick[A](httpPath: => String, page: Page, userAnswers: UserAnswers = SampleData.userAnswersWithSchemeName)
+                              (implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+
       val application = new GuiceApplicationBuilder()
         .overrides(
-          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
+          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
             bind[AFTConnector].toInstance(mockAftConnector)
           ): _*
         ).build()
+
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
@@ -60,7 +68,9 @@ trait CheckYourAnswersBehaviour extends ControllerBehaviours {
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
+
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
       application.stop()
     }
   }

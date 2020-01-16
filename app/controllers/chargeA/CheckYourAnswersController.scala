@@ -29,12 +29,10 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
@@ -49,16 +47,14 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndChargeADetails(ChargeDetailsPage) { (schemeName, chargeDetails) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
-
-        val total = request.userAnswers.get(ChargeDetailsPage).map( _.totalAmount).getOrElse(BigDecimal(0))
 
         val answers: Seq[SummaryList.Row] = Seq(
           helper.chargeAMembers.get,
           helper.chargeAAmountLowerRate.get,
           helper.chargeAAmountHigherRate.get,
-          helper.total(total)
+          helper.total(chargeDetails.totalAmount)
         )
 
         val viewModel = GenericViewModel(
@@ -79,10 +75,17 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrievePSTR { pstr =>
-        aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
-        }
+      DataRetrievals.retrievePSTRAndChargeADetails(ChargeDetailsPage) { (pstr, chargeA) =>
+
+        val updatedChargeA = chargeA.copy(
+          totalAmtOfTaxDueAtLowerRate = Option(chargeA.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
+          totalAmtOfTaxDueAtHigherRate = Option(chargeA.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
+        )
+
+        for {
+          updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeA))
+          _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
+        } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
       }
   }
 }
