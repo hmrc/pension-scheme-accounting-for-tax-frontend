@@ -88,7 +88,8 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
-              "date" -> DateInput.localDate(formWithErrors("dob"))
+              "date" -> DateInput.localDate(formWithErrors("dob")),
+              "chargeName" -> "chargeG"
             )
 
             renderer.render("chargeG/memberDetails.njk", json).map(BadRequest(_))
