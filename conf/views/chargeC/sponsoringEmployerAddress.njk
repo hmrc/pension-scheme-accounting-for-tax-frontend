@@ -43,7 +43,8 @@
             name: "line1",
             value: form.line1.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line1.error
+            errorMessage: form.line1.error,
+            attributes: {autocomplete: "none"}
           }) }}
 
           {{ govukInput({
@@ -56,7 +57,8 @@
             name: "line2",
             value: form.line2.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line2.error
+            errorMessage: form.line2.error,
+            attributes: {autocomplete: "none"}
           }) }}
 
           {{ govukInput({
@@ -69,7 +71,8 @@
             name: "line3",
             value: form.line3.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line3.error
+            errorMessage: form.line3.error,
+            attributes: {autocomplete: "none"}
           }) }}
 
           {{ govukInput({
@@ -82,7 +85,8 @@
             name: "line4",
             value: form.line4.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line4.error
+            errorMessage: form.line4.error,
+            attributes: {autocomplete: "none"}
           }) }}
 
           <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-input--width-20">
@@ -114,7 +118,8 @@
             name: "postcode",
             value: form.postcode.value,
             classes: "govuk-input--width-10",
-            errorMessage: form.postcode.error
+            errorMessage: form.postcode.error,
+            attributes: {autocomplete: "none"}
           }) }}
 
           {{ govukButton({
