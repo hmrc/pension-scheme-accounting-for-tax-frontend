@@ -52,6 +52,12 @@ trait Mappings extends Formatters with Constraints with Transforms {
                              ): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
+  protected def optionBigDecimal2DP(requiredKey: String = "error.required",
+                                    invalidKey: String = "error.invalid",
+                                    decimalKey: String = "error.decimal"
+                                   ): FieldMapping[Option[BigDecimal]] =
+    of(optionBigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
+
   protected def conditionalBigDecimal2DP(otherKey: String,
                                          requiredKeyA: String = "error.required",
                                          requiredKeyB: String = "error.required",

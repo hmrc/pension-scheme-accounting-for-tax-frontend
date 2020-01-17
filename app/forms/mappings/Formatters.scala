@@ -245,6 +245,36 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, decimalFormat.format(value))
     }
 
+  private[mappings] def optionBigDecimal2DPFormatter(requiredKey: String,
+                                                     invalidKey: String,
+                                                     decimalKey: String,
+                                                     args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] =
+    new Formatter[Option[BigDecimal]] {
+      val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
+      val decimalRegexp = """^-?(\d*\.\d{2})$"""
+
+      private val baseFormatter = stringFormatter(requiredKey)
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[BigDecimal]] =
+        baseFormatter
+          .bind(key, data)
+          .right.map(_.replace(",", ""))
+          .right.flatMap { s =>
+          if (!s.matches(numericRegexp))
+            Left(Seq(FormError(key, invalidKey, args)))
+          else if (!s.matches(decimalRegexp))
+            Left(Seq(FormError(key, decimalKey, args)))
+          else
+            Try(Option(BigDecimal(s))) match {
+              case Success(x) => Right(x)
+              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+            }
+        }
+
+      override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
+        baseFormatter.unbind(key, decimalFormat.format(value.get))
+    }
+
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {

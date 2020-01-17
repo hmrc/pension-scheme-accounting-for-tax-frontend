@@ -505,7 +505,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent)}"), classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -516,7 +516,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent)}"), classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
