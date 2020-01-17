@@ -21,15 +21,15 @@ import data.SampleData
 import forms.ChargeTypeFormProvider
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
-import pages.ChargeTypePage
+import pages.{ChargeTypePage, QuestionPage}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
 import services.SchemeService
@@ -69,7 +69,6 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "ChargeType Controller" must {
-
     "return OK and the correct view for a GET" in {
       val application = new GuiceApplicationBuilder()
         .overrides(
@@ -124,15 +123,49 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       application.stop()
     }
 
-//    behave like controllerWithPOST(
-//      httpPath = httpPathPOST,
-//      page = ChargeTypePage,
-//      data = ChargeTypeAnnualAllowance,
-//      form = form,
-//      templateToBeRendered = template,
-//      requestValuesValid = valuesValid,
-//      requestValuesInvalid = valuesInvalid,
-//      userAnswers
-//    )
+//    "Save data to user answers and redirect to next page when valid data is submitted" in {
+//
+//      val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(implicitly))
+//
+//      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+//
+//      val application = applicationBuilder(userAnswers = userAnswers).build()
+//
+//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+//
+//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+//
+//      status(result) mustEqual SEE_OTHER
+//
+//      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+//
+//      jsonCaptor.getValue must containJson(expectedJson)
+//
+//      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+//
+//      application.stop()
+//    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
 }

@@ -23,15 +23,14 @@ import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status}
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-import play.api.test.Helpers._
+import play.api.test.Helpers.{route, status, _}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeA/chargeDetails.njk"

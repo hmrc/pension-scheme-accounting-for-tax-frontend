@@ -30,8 +30,7 @@ import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
-import play.api.test.Helpers._
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeD/chargeDetails.njk"
