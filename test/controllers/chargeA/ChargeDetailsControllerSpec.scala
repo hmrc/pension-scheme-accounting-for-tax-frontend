@@ -31,8 +31,8 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
-  private def chargeDetailsGetRoute: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def chargeDetailsPostRoute: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
   private val valuesValid: Map[String, Seq[String]] = Map(
     "numberOfMembers" -> Seq("44"),
     "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
@@ -55,7 +55,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "ChargeDetails Controller" must {
     behave like controllerWithGETSavedData(
-      httpPath = chargeDetailsGetRoute,
+      httpPath = httpPathGET,
       page = ChargeDetailsPage,
       data = SampleData.chargeAChargeDetails,
       form = form,
@@ -64,7 +64,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
     behave like controllerWithPOST(
-      httpPath = chargeDetailsPostRoute,
+      httpPath = httpPathPOST,
       page = ChargeDetailsPage,
       data = SampleData.chargeAChargeDetails,
       form = form,

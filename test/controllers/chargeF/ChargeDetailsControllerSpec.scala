@@ -32,8 +32,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
   private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
-  private def chargeDetailsGetRoute: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def chargeDetailsPostRoute: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
@@ -60,7 +60,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "ChargeDetails Controller" must {
     behave like controllerWithGETSavedData(
-      httpPath = chargeDetailsGetRoute,
+      httpPath = httpPathGET,
       page = ChargeDetailsPage,
       data = SampleData.chargeFChargeDetails,
       form = form,
@@ -69,7 +69,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
     behave like controllerWithPOST(
-      httpPath = chargeDetailsPostRoute,
+      httpPath = httpPathPOST,
       page = ChargeDetailsPage,
       data = SampleData.chargeFChargeDetails,
       form = form,

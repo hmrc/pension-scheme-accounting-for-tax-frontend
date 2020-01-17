@@ -42,9 +42,9 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def chargeTypeGetRoute: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
 
-  private def chargeTypePostRoute: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
@@ -81,7 +81,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -108,7 +108,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -122,7 +122,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
     }
 
     behave like controllerWithPOST(
-      httpPath = chargeTypePostRoute,
+      httpPath = httpPathPOST,
       page = ChargeTypePage,
       data = ChargeTypeAnnualAllowance,
       form = form,

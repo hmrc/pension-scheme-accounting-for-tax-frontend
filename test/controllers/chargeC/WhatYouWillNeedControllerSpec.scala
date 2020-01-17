@@ -27,7 +27,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeC/whatYouWillNeed.njk"
-  private def httpGETRoute: String = controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
   private val jsonToPassToTemplate = Json.obj(
     "viewModel" -> GenericViewModel(
@@ -38,7 +38,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
 
   "whatYouWillNeed Controller" must {
     behave like controllerWithGETNoSavedData(
-      httpPath = httpGETRoute,
+      httpPath = httpPathGET,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate

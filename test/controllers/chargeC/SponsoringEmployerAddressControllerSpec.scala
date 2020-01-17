@@ -34,8 +34,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
   private val templateToBeRendered = "chargeC/sponsoringEmployerAddress.njk"
   private val form = new SponsoringEmployerAddressFormProvider()()
-  private def getRoute: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, SampleData.srn).url
-  private def postRoute: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
@@ -67,7 +67,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
   "SponsoringEmployerAddress Controller with individual sponsor" must {
     behave like controllerWithGETSavedData(
-      httpPath = getRoute,
+      httpPath = httpPathGET,
       page = SponsoringEmployerAddressPage,
       data = SampleData.sponsoringEmployerAddress,
       form = form,
@@ -79,7 +79,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
   "SponsoringEmployerAddress Controller with organisation sponsor" must {
     behave like controllerWithGETSavedData(
-      httpPath = getRoute,
+      httpPath = httpPathGET,
       page = SponsoringEmployerAddressPage,
       data = SampleData.sponsoringEmployerAddress,
       form = form,
@@ -89,7 +89,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     )
 
     behave like controllerWithPOSTWithJson(
-      httpPath = postRoute,
+      httpPath = httpPathPOST,
       page = SponsoringEmployerAddressPage,
       expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(

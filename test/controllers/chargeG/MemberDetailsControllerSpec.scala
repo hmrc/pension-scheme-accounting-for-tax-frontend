@@ -33,9 +33,9 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val formProvider = new MemberDetailsFormProvider()
   val form: Form[MemberDetails] = formProvider()
 
-  lazy val memberDetailsRouteGetRoute: String =
+  lazy val httpPathGET: String =
     controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
-  lazy val memberDetailsRoutePostRoute: String =
+  lazy val httpPathPOST: String =
     controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
@@ -84,7 +84,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "MemberDetails Controller" must {
     behave like controllerWithGETSavedData(
-      httpPath = memberDetailsRouteGetRoute,
+      httpPath = httpPathGET,
       page = MemberDetailsPage(0),
       data = SampleData.memberGDetails,
       form = form,
@@ -93,7 +93,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
     behave like controllerWithPOSTWithJson(
-      httpPath = memberDetailsRoutePostRoute,
+      httpPath = httpPathPOST,
       page = MemberDetailsPage(0),
       expectedJson = expectedJson,
       form = form,

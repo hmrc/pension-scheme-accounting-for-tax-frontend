@@ -54,9 +54,9 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def aftSummaryGetRoute: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn).url
 
-  private def aftSummaryPostRoute: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -93,14 +93,14 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   "AFTSummary Controller" must {
 
     behave like controllerWithGETNeverFilledFormNoSessionExpiredTest(
-      httpPath = aftSummaryGetRoute,
+      httpPath = httpPathGET,
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate
     )
 
     behave like controllerWithPOST(
-      httpPath = aftSummaryPostRoute,
+      httpPath = httpPathPOST,
       page = AFTSummaryPage,
       data = true,
       form = form,

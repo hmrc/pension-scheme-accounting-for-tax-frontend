@@ -48,15 +48,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   private def onwardRoute: Call = Call("GET", "/foo")
 
-  private def chargeDetailsRoute: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 0).url
+  private def httpPathGET: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 0).url
 
-  private def chargeDetailsSubmitRoute: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, 0).url
+  private def httpPathPOST: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, 0).url
 
   private def getRequest: FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(GET, chargeDetailsRoute)
+    FakeRequest(GET, httpPathGET)
 
   private def postRequest: FakeRequest[AnyContentAsFormUrlEncoded] =
-    FakeRequest(POST, chargeDetailsSubmitRoute)
+    FakeRequest(POST, httpPathPOST)
       .withFormUrlEncodedBody(
         "qropsReferenceNumber" -> chargeGDetails.qropsReferenceNumber,
         "qropsTransferDate.day" -> chargeGDetails.qropsTransferDate.getDayOfMonth.toString,
@@ -65,7 +65,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       )
 
   private def viewModel: GenericViewModel = GenericViewModel(
-    submitUrl = chargeDetailsSubmitRoute,
+    submitUrl = httpPathPOST,
     returnUrl = onwardRoute.url,
     schemeName = schemeName
   )
@@ -179,7 +179,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
         )
         .build()
 
-      val request = FakeRequest(POST, chargeDetailsSubmitRoute).withFormUrlEncodedBody(("value", "invalid value"))
+      val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm = form.bind(Map("value" -> "invalid value"))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

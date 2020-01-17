@@ -29,7 +29,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
   private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(SampleData.srn).url
 
   private def ua = SampleData.userAnswersWithSchemeName
@@ -46,7 +46,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   "CheckYourAnswers Controller" must {
     behave like controllerWithGETNoSavedData(
-      httpPath = httpGETRoute,
+      httpPath = httpPathGET,
       page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,

@@ -33,8 +33,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
   private val templateToBeRendered = "chargeC/sponsoringIndividualDetails.njk"
   private val form = new SponsoringIndividualDetailsFormProvider()()
-  private def getRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def postRoute: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "firstName" -> Seq("First"),
@@ -58,7 +58,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
 
   "SponsoringIndividualDetails Controller" must {
     behave like controllerWithGETSavedData(
-      httpPath = getRoute,
+      httpPath = httpPathGET,
       page = SponsoringIndividualDetailsPage,
       data = SampleData.sponsoringIndividualDetails,
       form = form,
@@ -67,7 +67,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     )
 
     behave like controllerWithPOSTWithJson(
-      httpPath = postRoute,
+      httpPath = httpPathPOST,
       page = SponsoringIndividualDetailsPage,
       expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(

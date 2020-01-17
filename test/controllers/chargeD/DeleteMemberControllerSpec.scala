@@ -50,11 +50,11 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val formProvider = new DeleteMemberFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
-  private def deleteMemberRoute(): String = routes.DeleteMemberController.onPageLoad(srn, 0).url
-  private def deleteMemberSubmitRoute(): String = routes.DeleteMemberController.onSubmit(srn, 0).url
+  private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, 0).url
+  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, 0).url
 
   private val viewModel = GenericViewModel(
-    submitUrl = deleteMemberSubmitRoute(),
+    submitUrl = httpPathPOST,
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
@@ -76,7 +76,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(GET, deleteMemberRoute())
+      val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -113,7 +113,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         .build()
 
       val request =
-        FakeRequest(POST, deleteMemberRoute())
+        FakeRequest(POST, httpPathGET)
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -141,7 +141,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(POST, deleteMemberRoute()).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -168,7 +168,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, deleteMemberRoute())
+      val request = FakeRequest(GET, httpPathGET)
 
       val result = route(application, request).value
 
@@ -184,7 +184,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       val application = applicationBuilder(userAnswers = None).build()
 
       val request =
-        FakeRequest(POST, deleteMemberRoute())
+        FakeRequest(POST, httpPathGET)
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

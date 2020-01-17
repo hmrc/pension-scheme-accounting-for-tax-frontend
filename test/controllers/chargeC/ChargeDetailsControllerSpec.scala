@@ -31,8 +31,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
-  private def chargeDetailsGetRoute: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def chargeDetailsPostRoute: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "paymentDate.day" -> Seq("3"),
@@ -58,7 +58,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   "ChargeDetails Controller" must {
     behave like controllerWithGETSavedData(
-      httpPath = chargeDetailsGetRoute,
+      httpPath = httpPathGET,
       page = ChargeCDetailsPage,
       data = SampleData.chargeCDetails,
       form = form,
@@ -68,7 +68,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
     behave like controllerWithPOSTWithJson(
-      httpPath = chargeDetailsPostRoute,
+      httpPath = httpPathPOST,
       page = ChargeCDetailsPage,
       expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(

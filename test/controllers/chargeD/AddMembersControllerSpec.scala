@@ -34,8 +34,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeD/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
-  private def membersGetRoute: String = controllers.chargeD.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def membersPostRoute: String = controllers.chargeD.routes.AddMembersController.onSubmit(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeD.routes.AddMembersController.onPageLoad(SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeD.routes.AddMembersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -105,7 +105,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(membersGetRoute)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -121,7 +121,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a GET when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpGETRequest(membersGetRoute)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -137,7 +137,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(membersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -152,7 +152,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 
-      val result = route(application, httpPOSTRequest(membersPostRoute, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -164,7 +164,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "redirect to Session Expired page for a POST when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpPOSTRequest(membersPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

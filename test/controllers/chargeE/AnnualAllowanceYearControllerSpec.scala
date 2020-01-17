@@ -57,9 +57,9 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
 
   private def form = new YearRangeFormProvider()()
 
-  private def annualAllowanceYearGetRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
+  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
 
-  private def annualAllowanceYearPostRoute: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
+  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   "AnnualAllowanceYear Controller" must {
 
@@ -74,7 +74,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, annualAllowanceYearGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -100,7 +100,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, annualAllowanceYearGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -124,7 +124,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
     )
 
     behave like controllerWithPOSTWithJson(
-      httpPath = annualAllowanceYearPostRoute,
+      httpPath = httpPathPOST,
       page = AnnualAllowanceYearPage(0),
       expectedJson = expectedJson,
       form = form,
