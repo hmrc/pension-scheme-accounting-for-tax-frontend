@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeA.ChargeDetails
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -45,6 +45,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
   )
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
@@ -60,7 +62,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       data = SampleData.chargeAChargeDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers
     )
 
     behave like controllerWithPOST(
@@ -70,7 +73,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }

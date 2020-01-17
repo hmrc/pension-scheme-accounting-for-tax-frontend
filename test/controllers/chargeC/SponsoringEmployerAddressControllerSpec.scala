@@ -23,7 +23,7 @@ import data.SampleData.sponsoringOrganisationDetails
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
@@ -65,6 +65,9 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "sponsorName" -> sponsorName
   )
 
+  private val userAnswersIndividual: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndIndividual)
+  private val userAnswersOrganisation: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
+
   "SponsoringEmployerAddress Controller with individual sponsor" must {
     behave like controllerWithGETSavedData(
       httpPath = httpPathGET,
@@ -73,7 +76,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = "First Last"),
-      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndIndividual)
+      userAnswers = userAnswersIndividual
     )
   }
 
@@ -85,7 +88,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       form = form,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = SampleData.companyName),
-      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
+      userAnswers = userAnswersOrganisation
     )
 
     behave like controllerWithPOSTWithJson(
@@ -102,6 +105,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
       requestValuesInvalid = valuesInvalid,
-      userAnswers = Some(SampleData.userAnswersWithSchemeNameAndOrganisation))
+      userAnswers = userAnswersOrganisation
+    )
   }
 }

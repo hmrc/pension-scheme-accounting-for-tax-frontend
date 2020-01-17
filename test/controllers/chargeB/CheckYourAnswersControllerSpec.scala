@@ -20,6 +20,7 @@ import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
+import models.UserAnswers
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -40,6 +41,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> helper.chargeBDetails.get
   )
+
+  private val userAnswers: Option[UserAnswers] = Some(ua)
 
   "CheckYourAnswers Controller" must {
     behave like controllerWithGETNoSavedData(

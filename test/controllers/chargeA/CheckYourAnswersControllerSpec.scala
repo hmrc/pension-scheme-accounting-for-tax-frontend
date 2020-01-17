@@ -20,12 +20,10 @@ import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import models.GenericViewModel
+import models.{GenericViewModel, UserAnswers}
 import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
@@ -50,6 +48,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName))
+
+  private val userAnswers: Option[UserAnswers] = Some(ua)
 
   "CheckYourAnswers Controller" must {
     behave like controllerWithGETNoSavedData(

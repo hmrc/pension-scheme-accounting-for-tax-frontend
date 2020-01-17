@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringOrganisationDetails
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
@@ -54,6 +54,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       schemeName = SampleData.schemeName)
   )
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "SponsoringOrganisationDetails Controller" must {
     behave like controllerWithGETSavedData(
       httpPath = httpPathGET,
@@ -61,7 +63,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       data = SampleData.sponsoringOrganisationDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers
     )
     behave like controllerWithPOSTWithJson(
       httpPath = httpPathPOST,
@@ -74,6 +77,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid)
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
+    )
   }
 }

@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeB.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeB.ChargeBDetails
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -52,6 +52,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       schemeName = SampleData.schemeName)
   )
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "ChargeDetails Controller" must {
     behave like controllerWithGETSavedData(
       httpPath = httpPathGET,
@@ -59,7 +61,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       data = SampleData.chargeBDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers
     )
 
     behave like controllerWithPOST(
@@ -69,7 +72,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }

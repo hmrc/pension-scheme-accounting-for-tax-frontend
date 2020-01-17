@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeG.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.MemberDetails
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import pages.chargeG.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -82,6 +82,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "nino" -> Seq("***")
   )
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "MemberDetails Controller" must {
     behave like controllerWithGETSavedData(
       httpPath = httpPathGET,
@@ -89,7 +91,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       data = SampleData.memberGDetails,
       form = form,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers
     )
 
     behave like controllerWithPOSTWithJson(
@@ -99,7 +102,8 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }

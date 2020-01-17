@@ -20,7 +20,7 @@ import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import models.GenericViewModel
+import models.{GenericViewModel, UserAnswers}
 import pages.chargeC.WhatYouWillNeedPage
 import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -36,12 +36,15 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       schemeName = SampleData.schemeName)
   )
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "whatYouWillNeed Controller" must {
     behave like controllerWithGETNoSavedData(
       httpPath = httpPathGET,
       page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers
     )
   }
 }

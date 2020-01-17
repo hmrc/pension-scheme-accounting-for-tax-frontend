@@ -20,7 +20,7 @@ import behaviours.ControllerBehaviours
 import data.SampleData
 import forms.ChargeTypeFormProvider
 import models.ChargeType.ChargeTypeAnnualAllowance
-import models.{ChargeType, Enumerable, GenericViewModel, NormalMode}
+import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -64,6 +64,8 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   )
 
   private val mockSchemeService = mock[SchemeService]
+
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "ChargeType Controller" must {
 
@@ -128,7 +130,8 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       form = form,
       templateToBeRendered = template,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }

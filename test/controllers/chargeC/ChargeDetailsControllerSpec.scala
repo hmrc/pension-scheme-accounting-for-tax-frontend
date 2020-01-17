@@ -22,7 +22,7 @@ import data.SampleData
 import forms.chargeC.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeC.ChargeCDetails
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -55,6 +55,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
+
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
 
   "ChargeDetails Controller" must {
     behave like controllerWithGETSavedData(

@@ -21,7 +21,7 @@ import connectors.SchemeDetailsConnector
 import data.SampleData
 import forms.YearRangeFormProvider
 import models.YearRange.CurrentYear
-import models.{Enumerable, GenericViewModel, NormalMode, YearRange}
+import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -60,6 +60,8 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
   private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
 
   private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
+
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AnnualAllowanceYear Controller" must {
 
@@ -130,7 +132,8 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
       form = form,
       templateToBeRendered = template,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }

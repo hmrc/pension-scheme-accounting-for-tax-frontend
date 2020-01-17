@@ -22,14 +22,15 @@ import data.SampleData
 import forms.AFTSummaryFormProvider
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito
-import org.mockito.Mockito.when
+import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
@@ -90,14 +91,26 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  "AFTSummary Controller" must {
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
-    behave like controllerWithGETNeverFilledFormNoSessionExpiredTest(
-      httpPath = httpPathGET,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
-    )
+  "AFTSummary Controller" must {
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+
+      application.stop()
+    }
 
     behave like controllerWithPOST(
       httpPath = httpPathPOST,
@@ -106,7 +119,8 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       form = form,
       templateToBeRendered = templateToBeRendered,
       requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
+      requestValuesInvalid = valuesInvalid,
+      userAnswers
     )
   }
 }
