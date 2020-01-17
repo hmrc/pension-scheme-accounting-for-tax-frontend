@@ -98,7 +98,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
   }
 
   //scalastyle:off method.length
-  def controllerWithGETNoSavedData(httpPath: => String,
+  def controllerWithGETNoSavedData(httpPathGET: => String,
                                    page: Page,
                                    templateToBeRendered: String,
                                    jsonToPassToTemplate: JsObject,
@@ -110,7 +110,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val result = route(application, httpGETRequest(httpPath)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -125,7 +125,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
   }
 
   //scalastyle:off method.length
-  def controllerWithGETSavedData[A](httpPath: => String,
+  def controllerWithGETSavedData[A](httpPathGET: => String,
                                     page: QuestionPage[A],
                                     data: A,
                                     form: Form[A],
@@ -138,7 +138,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPath)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -158,7 +158,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPath)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -174,7 +174,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     "redirect to Session Expired page for a GET when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpGETRequest(httpPath)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -183,13 +183,13 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
   }
 
-  def controllerWithPOSTWithJson[A](httpPath: => String,
+  def controllerWithPOSTWithJson[A](httpPathPOST: => String,
                                     page: QuestionPage[A],
                                     expectedJson: JsObject,
                                     form: Form[A],
                                     templateToBeRendered: String,
-                                    requestValuesValid: Map[String, Seq[String]],
-                                    requestValuesInvalid: Map[String, Seq[String]],
+                                    valuesValid: Map[String, Seq[String]],
+                                    valuesInvalid: Map[String, Seq[String]],
                                     userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
                                    )(implicit writes: Writes[A]): Unit = {
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -200,7 +200,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -216,7 +216,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = userAnswers).build()
 
-      val result = route(application, httpPOSTRequest(httpPath, requestValuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -228,7 +228,7 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     "redirect to Session Expired page for a POST when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpPOSTRequest(httpPath, requestValuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -236,24 +236,24 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     }
   }
 
-  def controllerWithPOST[A](httpPath: => String,
+  def controllerWithPOST[A](httpPathPOST: => String,
                             page: QuestionPage[A],
                             data: A,
                             form: Form[A],
                             templateToBeRendered: String,
-                            requestValuesValid: Map[String, Seq[String]],
-                            requestValuesInvalid: Map[String, Seq[String]],
+                            valuesValid: Map[String, Seq[String]],
+                            valuesInvalid: Map[String, Seq[String]],
                             userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
                            )(implicit writes: Writes[A]): Unit = {
 
     controllerWithPOSTWithJson(
-      httpPath,
+      httpPathPOST,
       page,
       Json.obj(page.toString -> Json.toJson(data)),
       form,
       templateToBeRendered,
-      requestValuesValid,
-      requestValuesInvalid,
+      valuesValid,
+      valuesInvalid,
       userAnswers)
   }
 

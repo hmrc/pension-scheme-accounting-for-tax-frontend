@@ -24,6 +24,9 @@ import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, NormalMode, UserAnswers}
+import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
@@ -70,43 +73,157 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private val userAnswersOrganisation: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
 
   "SponsoringEmployerAddress Controller with individual sponsor" must {
-    behave like controllerWithGETSavedData(
-      httpPath = httpPathGET,
-      page = SponsoringEmployerAddressPage,
-      data = SampleData.sponsoringEmployerAddress,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = "First Last"),
-      userAnswers = userAnswersIndividual
-    )
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswersIndividual).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last").apply(form))
+
+      application.stop()
+    }
+
+    "return OK and the correct view for a GET when the question has previously been answered" in {
+      val ua = userAnswersIndividual.map(_.set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress)).get.toOption.get
+
+      val application = applicationBuilder(userAnswers = Some(ua)).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last")(form.fill(SampleData.sponsoringEmployerAddress)))
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
   }
 
   "SponsoringEmployerAddress Controller with organisation sponsor" must {
-    behave like controllerWithGETSavedData(
-      httpPath = httpPathGET,
-      page = SponsoringEmployerAddressPage,
-      data = SampleData.sponsoringEmployerAddress,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate(sponsorName = SampleData.companyName),
-      userAnswers = userAnswersOrganisation
-    )
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswersOrganisation).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-    behave like controllerWithPOSTWithJson(
-      httpPath = httpPathPOST,
-      page = SponsoringEmployerAddressPage,
-      expectedJson = Json.obj(
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = SampleData.companyName).apply(form))
+
+      application.stop()
+    }
+
+    "return OK and the correct view for a GET when the question has previously been answered" in {
+      val ua = userAnswersOrganisation.map(_.set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress)).get.toOption.get
+
+      val application = applicationBuilder(userAnswers = Some(ua)).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = SampleData.companyName)(form.fill(SampleData.sponsoringEmployerAddress)))
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
           IsSponsoringEmployerIndividualPage.toString -> false,
           SponsoringEmployerAddressPage.toString -> Json.toJson(SampleData.sponsoringEmployerAddress)
         )
-      ),
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid,
-      userAnswers = userAnswersOrganisation
-    )
+      )
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswersOrganisation).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswersOrganisation).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
+
+
   }
 }

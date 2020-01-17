@@ -22,7 +22,7 @@ import data.SampleData
 import forms.AFTSummaryFormProvider
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
@@ -113,15 +113,47 @@ class AFTSummaryControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       application.stop()
     }
 
-    behave like controllerWithPOST(
-      httpPath = httpPathPOST,
-      page = AFTSummaryPage,
-      data = true,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid,
-      userAnswers
-    )
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(Json.obj(AFTSummaryPage.toString -> Json.toJson(true)))
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
 }

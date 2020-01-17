@@ -124,15 +124,15 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       application.stop()
     }
 
-    behave like controllerWithPOST(
-      httpPath = httpPathPOST,
-      page = ChargeTypePage,
-      data = ChargeTypeAnnualAllowance,
-      form = form,
-      templateToBeRendered = template,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid,
-      userAnswers
-    )
+//    behave like controllerWithPOST(
+//      httpPath = httpPathPOST,
+//      page = ChargeTypePage,
+//      data = ChargeTypeAnnualAllowance,
+//      form = form,
+//      templateToBeRendered = template,
+//      requestValuesValid = valuesValid,
+//      requestValuesInvalid = valuesInvalid,
+//      userAnswers
+//    )
   }
 }

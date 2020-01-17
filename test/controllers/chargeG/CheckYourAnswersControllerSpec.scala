@@ -21,6 +21,9 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.UserAnswers
+import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -53,13 +56,25 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private val userAnswers: Option[UserAnswers] = Some(ua)
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGETNoSavedData(
-      httpPath = httpPathGET,
-      page = CheckYourAnswersPage,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = Some(ua)
-    )
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(CheckYourAnswersPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,

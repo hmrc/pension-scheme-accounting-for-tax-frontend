@@ -22,7 +22,7 @@ import data.SampleData
 import forms.YearRangeFormProvider
 import models.YearRange.CurrentYear
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
@@ -116,25 +116,58 @@ class AnnualAllowanceYearControllerSpec extends ControllerBehaviours with Before
       application.stop()
     }
 
-    val expectedJson = Json.obj(
-      "chargeEDetails" -> Json.obj(
-        AnnualAllowanceMembersQuery.toString -> Json.arr(
-          Json.obj(
-            AnnualAllowanceYearPage.toString -> Json.toJson(CurrentYear.toString)
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      val expectedJson = Json.obj(
+        "chargeEDetails" -> Json.obj(
+          AnnualAllowanceMembersQuery.toString -> Json.arr(
+            Json.obj(
+              AnnualAllowanceYearPage.toString -> Json.toJson(CurrentYear.toString)
+            )
           )
         )
       )
-    )
 
-    behave like controllerWithPOSTWithJson(
-      httpPath = httpPathPOST,
-      page = AnnualAllowanceYearPage(0),
-      expectedJson = expectedJson,
-      form = form,
-      templateToBeRendered = template,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid,
-      userAnswers
-    )
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
 }
