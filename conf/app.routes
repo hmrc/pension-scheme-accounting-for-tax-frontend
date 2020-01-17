@@ -2,6 +2,8 @@
 
 GET         /                                                                                                            controllers.IndexController.onPageLoad
 
+GET         /sign-out                                                                                                    controllers.SignOutController.signOut
+
 GET         /assets/*file                                                                                                controllers.Assets.versioned(path="/public", file: Asset)
 
 GET         /language/:lang                                                                                              controllers.LanguageSwitchController.switchToLanguage(lang: String)

@@ -17,6 +17,7 @@ site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - managing pension schemes - GOV.UK
 site.view = View
 site.remove = Remove
+site.signOut = Sign out
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
