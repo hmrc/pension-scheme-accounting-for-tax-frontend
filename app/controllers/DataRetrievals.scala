@@ -19,6 +19,7 @@ package controllers
 import models.MemberDetails
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
+import pages.chargeA.ChargeDetailsPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
@@ -44,9 +45,9 @@ object DataRetrievals {
     }
   }
 
-  def retrievePSTRAndChargeADetails(chargeDetailsPage: QuestionPage[models.chargeA.ChargeDetails])(block: (String, ChargeDetails) => Future[Result])
+  def retrievePSTRAndChargeADetails(block: (String, ChargeDetails) => Future[Result])
                                    (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(PSTRQuery), request.userAnswers.get(chargeDetailsPage)) match {
+    (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
       case (Some(pstr), Some(chargeDetails)) => block(pstr, chargeDetails)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
@@ -68,15 +69,16 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndChargeADetails(chargeDetailsPage: QuestionPage[models.chargeA.ChargeDetails])(block: (String, ChargeDetails) => Future[Result])
+  def retrieveSchemeAndChargeADetails(block: (String, ChargeDetails) => Future[Result])
                                      (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(chargeDetailsPage)) match {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
       case (Some(schemeName), Some(chargeDetails)) => block(schemeName, chargeDetails)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndSponsoringEmployer(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndSponsoringEmployer(block: (String, String) => Future[Result])
+                                         (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringOrganisationDetailsPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SchemeNameQuery)) match {
       case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)

@@ -31,10 +31,10 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private val templateToBeRendered = "check-your-answers.njk"
 
   private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
+
   private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn).url
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
-    .set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
   private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn)
 
@@ -49,16 +49,16 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
-    )
+    ),
+    "chargeName" -> "chargeA"
   )
 
   "CheckYourAnswers Controller" must {
     behave like cyaController(
       httpPath = httpGETRoute,
-      page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = Some(ua)
+      userAnswers = ua
     )
   }
 
@@ -66,7 +66,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
       page = CheckYourAnswersPage,
-      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).get
+      userAnswers = ua
     )
   }
 
@@ -74,7 +74,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
       page = CheckYourAnswersPage,
-      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
     )
   }
 
@@ -82,7 +82,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
       page = CheckYourAnswersPage,
-      userAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
     )
   }
 }

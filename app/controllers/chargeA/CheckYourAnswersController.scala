@@ -47,27 +47,23 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndChargeADetails(ChargeDetailsPage) { (schemeName, chargeDetails) =>
+      DataRetrievals.retrieveSchemeAndChargeADetails { (schemeName, chargeDetails) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeAMembers.get,
-          helper.chargeAAmountLowerRate.get,
-          helper.chargeAAmountHigherRate.get,
-          helper.total(chargeDetails.totalAmount)
-        )
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName
-        )
-
         renderer.render(
-          "check-your-answers.njk",
-          Json.obj(
-            "list" -> answers,
-            "viewModel" -> viewModel,
+          template = "check-your-answers.njk",
+          ctx = Json.obj(
+            "list" -> Seq(
+              helper.chargeAMembers.get,
+              helper.chargeAAmountLowerRate.get,
+              helper.chargeAAmountHigherRate.get,
+              helper.total(chargeDetails.totalAmount)
+            ),
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName
+            ),
             "chargeName" -> "chargeA"
           )
         ).map(Ok(_))
@@ -76,15 +72,15 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrievePSTRAndChargeADetails(ChargeDetailsPage) { (pstr, chargeA) =>
+      DataRetrievals.retrievePSTRAndChargeADetails { (pstr, chargeDetails) =>
 
-        val updatedChargeA = chargeA.copy(
-          totalAmtOfTaxDueAtLowerRate = Option(chargeA.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
-          totalAmtOfTaxDueAtHigherRate = Option(chargeA.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
+        val updatedChargeDetails = chargeDetails.copy(
+          totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
+          totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
         )
 
         for {
-          updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeA))
+          updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
           _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
         } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
       }
