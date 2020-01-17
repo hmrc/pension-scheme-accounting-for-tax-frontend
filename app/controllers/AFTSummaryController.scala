@@ -17,17 +17,19 @@
 package controllers
 
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode}
+import models.{GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.AFTSummaryPage
+import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
@@ -45,22 +47,33 @@ class AFTSummaryController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      aftSummaryHelper: AFTSummaryHelper
+                                      aftSummaryHelper: AFTSummaryHelper,
+                                      aftConnector: AFTConnector,
+                                      schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        val json = Json.obj(
-          "form" -> form,
-          "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
-          "viewModel" -> viewModel(mode, srn, schemeName),
-          "radios" -> Radios.yesNo(form("value"))
-        )
+      val requestUA = request.userAnswers.getOrElse(UserAnswers())
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
+        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", "1").flatMap { aftDetails =>
+          val updateUA = UserAnswers(aftDetails.as[JsObject])
+            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
+            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
-        renderer.render("aftSummary.njk", json).map(Ok(_))
+          userAnswersCacheConnector.save(request.internalId, updateUA.data).flatMap { _ =>
+            val json = Json.obj(
+              "form" -> form,
+              "list" -> aftSummaryHelper.summaryListData(updateUA, srn),
+              "viewModel" -> viewModel(mode, srn, schemeDetails.schemeName),
+              "radios" -> Radios.yesNo(form("value"))
+            )
+
+            renderer.render("aftSummary.njk", json).map(Ok(_))
+          }
+        }
       }
   }
 
