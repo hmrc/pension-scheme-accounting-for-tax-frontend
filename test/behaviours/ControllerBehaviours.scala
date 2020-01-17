@@ -20,11 +20,7 @@ import controllers.base.ControllerSpecBase
 import matchers.JsonMatchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
-import play.api.http.HeaderNames
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
-import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
