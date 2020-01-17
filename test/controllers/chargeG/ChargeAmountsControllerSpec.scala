@@ -31,6 +31,7 @@ import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.api.test.Helpers._
 
 class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"

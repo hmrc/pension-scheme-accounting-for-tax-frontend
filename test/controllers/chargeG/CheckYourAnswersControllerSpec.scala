@@ -25,6 +25,7 @@ import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
+import play.api.test.Helpers._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 

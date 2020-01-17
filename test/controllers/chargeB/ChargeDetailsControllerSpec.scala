@@ -27,6 +27,7 @@ import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.api.test.Helpers._
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeB/chargeDetails.njk"

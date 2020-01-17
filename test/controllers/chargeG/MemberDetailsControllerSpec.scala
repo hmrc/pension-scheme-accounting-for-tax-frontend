@@ -27,6 +27,7 @@ import pages.chargeG.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import play.api.test.Helpers._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   val templateToBeRendered = "chargeG/memberDetails.njk"

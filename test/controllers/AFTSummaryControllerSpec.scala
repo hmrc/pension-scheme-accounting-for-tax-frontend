@@ -34,6 +34,7 @@ import play.api.test.Helpers.{route, status, _}
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
+import play.api.test.Helpers._
 
 import scala.concurrent.Future
 

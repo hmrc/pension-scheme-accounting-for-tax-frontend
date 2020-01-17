@@ -26,6 +26,7 @@ import pages.chargeE.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.api.test.Helpers._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   val templateToBeRendered = "memberDetails.njk"

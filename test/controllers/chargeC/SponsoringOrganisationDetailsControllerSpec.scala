@@ -29,6 +29,7 @@ import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddr
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.api.test.Helpers._
 
 class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
   private val templateToBeRendered = "chargeC/sponsoringOrganisationDetails.njk"

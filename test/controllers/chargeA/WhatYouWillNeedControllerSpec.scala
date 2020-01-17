@@ -20,9 +20,13 @@ import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import models.GenericViewModel
+import models.{GenericViewModel, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers.{route, status, _}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
@@ -35,12 +39,27 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName))
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "whatYouWillNeed Controller" must {
-    behave like controllerWithGETNoSavedData(
-      httpPath = httpPathGET,
-      page = WhatYouWillNeedPage,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
-    )
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
   }
 }

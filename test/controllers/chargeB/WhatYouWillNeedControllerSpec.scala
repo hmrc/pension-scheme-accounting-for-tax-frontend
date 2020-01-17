@@ -24,6 +24,7 @@ import models.UserAnswers
 import pages.chargeB.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.api.test.Helpers._
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
   private val templateToBeRendered = "chargeB/whatYouWillNeed.njk"
