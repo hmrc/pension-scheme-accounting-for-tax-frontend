@@ -36,14 +36,4 @@ trait ControllerBehaviours extends ControllerSpecBase with NunjucksSupport with 
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
-
-  protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
-
-  def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
-    FakeRequest
-      .apply(
-        method = POST,
-        uri = path,
-        headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
-        body = AnyContentAsFormUrlEncoded(values))
 }
