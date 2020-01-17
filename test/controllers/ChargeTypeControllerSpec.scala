@@ -123,28 +123,28 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       application.stop()
     }
 
-//    "Save data to user answers and redirect to next page when valid data is submitted" in {
-//
-//      val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(implicitly))
-//
-//      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
-//
-//      val application = applicationBuilder(userAnswers = userAnswers).build()
-//
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-//
-//      jsonCaptor.getValue must containJson(expectedJson)
-//
-//      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-//
-//      application.stop()
-//    }
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
 
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = userAnswers).build()
