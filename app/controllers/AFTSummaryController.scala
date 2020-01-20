@@ -63,14 +63,14 @@ class AFTSummaryController @Inject()(
           case Some(version) =>
             aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version).map { aftDetails =>
               UserAnswers(aftDetails.as[JsObject])
-                .successfulSet(VersionQuery, version)
+                .setOrException(VersionQuery, version)
             }
         }
 
         futureUAWithAFTDetails.flatMap { ua =>
           val uaUpdatedWithSchemeDetails = ua
-            .successfulSet(SchemeNameQuery, schemeDetails.schemeName)
-            .successfulSet(PSTRQuery, schemeDetails.pstr)
+            .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+            .setOrException(PSTRQuery, schemeDetails.pstr)
           userAnswersCacheConnector.save(request.internalId, uaUpdatedWithSchemeDetails.data).flatMap { _ =>
             val json = Json.obj(
               "form" -> form,

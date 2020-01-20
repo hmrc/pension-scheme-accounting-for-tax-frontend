@@ -59,7 +59,7 @@ final case class UserAnswers(
     }
   }
 
-  def successfulSet[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): UserAnswers = {
+  def setOrException[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): UserAnswers = {
     set(page, value) match {
       case Success(ua) => ua
       case Failure(ex) => throw ex
