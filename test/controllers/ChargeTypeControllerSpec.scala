@@ -16,28 +16,30 @@
 
 package controllers
 
-import behaviours.ControllerBehaviours
+import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.ChargeTypeFormProvider
+import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
-import pages.{ChargeTypePage, QuestionPage}
+import pages.ChargeTypePage
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json, Writes}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
+import play.twirl.api.Html
 import services.SchemeService
-import play.api.test.Helpers._
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
+class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
 
   private val template = "chargeType.njk"
 
@@ -65,6 +67,12 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
   )
 
   private val mockSchemeService = mock[SchemeService]
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 

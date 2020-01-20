@@ -16,25 +16,25 @@
 
 package controllers.chargeE
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.test.Helpers._
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
-import play.api.test.Helpers._
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
   private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
@@ -66,6 +66,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "radios" -> Radios.yesNo(form("isPaymentMandatory")),
     "memberName" -> "first last"
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberDetails).get
   val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), SampleData.chargeEDetails).get.data

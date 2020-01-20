@@ -16,7 +16,6 @@
 
 package controllers.chargeC
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.sponsoringOrganisationDetails
@@ -24,18 +23,21 @@ import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import play.api.test.Helpers._
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues with ControllerBehaviours {
+import scala.concurrent.Future
+
+class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val templateToBeRendered = "chargeC/sponsoringEmployerAddress.njk"
   private val form = new SponsoringEmployerAddressFormProvider()()
   private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, SampleData.srn).url
@@ -68,6 +70,12 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       schemeName = SampleData.schemeName),
     "sponsorName" -> sponsorName
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)

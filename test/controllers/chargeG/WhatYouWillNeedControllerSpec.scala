@@ -16,20 +16,22 @@
 
 package controllers.chargeG
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeG.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import play.api.test.Helpers._
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeG/whatYouWillNeed.njk"
   private def httpPathGET: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
@@ -39,6 +41,12 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 

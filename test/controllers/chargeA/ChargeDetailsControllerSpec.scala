@@ -16,7 +16,6 @@
 
 package controllers.chargeA
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeA.ChargeDetailsFormProvider
@@ -30,9 +29,12 @@ import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
   private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
@@ -58,6 +60,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

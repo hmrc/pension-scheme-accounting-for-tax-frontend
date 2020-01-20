@@ -16,22 +16,23 @@
 
 package controllers.chargeA
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status}
+import play.api.test.Helpers.{route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
-import play.api.test.Helpers._
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
@@ -53,6 +54,12 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName))
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(ua)
 

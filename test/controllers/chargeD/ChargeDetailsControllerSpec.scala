@@ -16,7 +16,6 @@
 
 package controllers.chargeD
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeD.ChargeDetailsFormProvider
@@ -30,9 +29,12 @@ import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeD/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
   private def httpPathGET: String = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
@@ -64,6 +66,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "date" -> DateInput.localDate(form("dateOfEvent")),
     "memberName" -> "first last"
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberDetails).get
   val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), SampleData.chargeDDetails).get.data

@@ -16,22 +16,24 @@
 
 package controllers.chargeE
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeE.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 import play.api.test.Helpers._
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers  {
   val templateToBeRendered = "memberDetails.njk"
   val formProvider = new MemberDetailsFormProvider()
   val form: Form[MemberDetails] = formProvider()
@@ -76,6 +78,12 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "lastName" -> Seq("***"),
     "nino" -> Seq("***")
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 

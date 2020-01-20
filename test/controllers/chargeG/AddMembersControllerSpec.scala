@@ -16,12 +16,11 @@
 
 package controllers.chargeG
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AddMembersFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, YearRange}
+import models.GenericViewModel
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -29,10 +28,12 @@ import pages.chargeG._
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import play.api.test.Helpers._
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeG/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
   private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(SampleData.srn).url
@@ -91,6 +92,12 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "quarterEnd" -> "30 June 2020",
     "table" -> table
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private def ua = SampleData.userAnswersWithSchemeName
     .set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get

@@ -16,23 +16,25 @@
 
 package controllers.chargeF
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import play.api.test.Helpers._
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
   private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
@@ -61,6 +63,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       schemeName = SampleData.schemeName),
     "date" -> DateInput.localDate(form("deregistrationDate"))
   )
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 

@@ -17,19 +17,28 @@
 package behaviours
 
 import connectors.AFTConnector
+import controllers.base.ControllerSpecBase
 import data.SampleData
+import matchers.JsonMatchers
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.Writes
+import play.api.libs.json.{Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-trait CheckYourAnswersBehaviour extends ControllerBehaviours {
+trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
   val mockAftConnector: AFTConnector = mock[AFTConnector]
   def controllerWithOnClick[A](httpPath: => String,
                             page: Page)(implicit writes: Writes[A]): Unit = {

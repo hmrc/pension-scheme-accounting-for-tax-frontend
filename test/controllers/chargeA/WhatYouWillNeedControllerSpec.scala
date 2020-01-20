@@ -16,7 +16,6 @@
 
 package controllers.chargeA
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
@@ -27,9 +26,12 @@ import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeA.WhatYouWillNeedPage
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
   private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
@@ -38,6 +40,12 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       submitUrl = "",
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName))
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
