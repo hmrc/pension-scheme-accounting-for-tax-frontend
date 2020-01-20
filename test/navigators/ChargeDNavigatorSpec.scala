@@ -41,8 +41,9 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None), addMembersNo),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), optionUAWithVersion),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), optionUAWithAddMembersNoAndVersion),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), Some(uaWithVersion)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
 
       )
@@ -69,5 +70,10 @@ object ChargeDNavigatorSpec {
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
   private val version = "1"
-  private val optionUAWithVersion = addMembersNo.flatMap(_.set(VersionQuery, version).toOption)
+  private val optionUAWithAddMembersNoAndVersion = addMembersNo.flatMap(_.set(VersionQuery, version).toOption)
+  private val uaWithVersion = UserAnswers(
+    Json.obj(
+      VersionQuery.toString -> version
+    )
+  )
 }

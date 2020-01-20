@@ -20,10 +20,9 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
 import models.{NormalMode, UserAnswers}
-import pages.{Page, VersionQuery}
 import pages.chargeE._
+import pages.{Page, VersionQuery}
 import play.api.mvc.Call
-import controllers.chargeE.routes._
 import services.ChargeEService._
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
