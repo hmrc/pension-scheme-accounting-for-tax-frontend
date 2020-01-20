@@ -16,14 +16,15 @@
 
 package controllers
 
-import behaviours.ControllerBehaviours
+import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.ChargeTypeFormProvider
+import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
-import models.{ChargeType, Enumerable, GenericViewModel, NormalMode}
-import org.mockito.ArgumentCaptor
+import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.ChargeTypePage
 import play.api.data.Form
@@ -32,19 +33,21 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
+import play.twirl.api.Html
 import services.SchemeService
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterEach with Enumerable.Implicits {
+class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
 
   private val template = "chargeType.njk"
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def chargeTypeGetRoute: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
 
-  private def chargeTypePostRoute: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
@@ -65,8 +68,15 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
 
   private val mockSchemeService = mock[SchemeService]
 
-  "ChargeType Controller" must {
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
+  "ChargeType Controller" must {
     "return OK and the correct view for a GET" in {
       val application = new GuiceApplicationBuilder()
         .overrides(
@@ -81,7 +91,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -108,7 +118,7 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, FakeRequest(GET, chargeTypeGetRoute)).value
+      val result = route(application, FakeRequest(GET, httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -121,14 +131,49 @@ class ChargeTypeControllerSpec extends ControllerBehaviours with BeforeAndAfterE
       application.stop()
     }
 
-    behave like controllerWithPOST(
-      httpPath = chargeTypePostRoute,
-      page = ChargeTypePage,
-      data = ChargeTypeAnnualAllowance,
-      form = form,
-      templateToBeRendered = template,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
-    )
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
 }

@@ -35,6 +35,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
@@ -45,11 +46,11 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
   val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   val form = formProvider()
 
-  private def isSponsoringEmployerIndividualRoute = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn).url
-  private def isSponsoringEmployerIndividualSubmitRoute = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn).url
+  private def httpPathGET = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn).url
+  private def httpPathPOST = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn).url
 
   private def viewModel = GenericViewModel(
-    submitUrl = isSponsoringEmployerIndividualSubmitRoute,
+    submitUrl = httpPathPOST,
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
@@ -66,7 +67,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(GET, isSponsoringEmployerIndividualRoute)
+      val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -98,7 +99,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(GET, isSponsoringEmployerIndividualRoute)
+      val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -134,7 +135,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         .build()
 
       val request =
-        FakeRequest(POST, isSponsoringEmployerIndividualRoute)
+        FakeRequest(POST, httpPathGET)
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
@@ -156,7 +157,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
         .build()
-      val request = FakeRequest(POST, isSponsoringEmployerIndividualRoute).withFormUrlEncodedBody(("value", ""))
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -183,7 +184,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, isSponsoringEmployerIndividualRoute)
+      val request = FakeRequest(GET, httpPathGET)
 
       val result = route(application, request).value
 
@@ -199,7 +200,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       val application = applicationBuilder(userAnswers = None).build()
 
       val request =
-        FakeRequest(POST, isSponsoringEmployerIndividualRoute)
+        FakeRequest(POST, httpPathGET)
       .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value

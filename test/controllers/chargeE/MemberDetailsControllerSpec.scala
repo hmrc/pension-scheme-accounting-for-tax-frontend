@@ -16,25 +16,31 @@
 
 package controllers.chargeE
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, MemberDetails, NormalMode}
+import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeE.MemberDetailsPage
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers._
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers  {
   val templateToBeRendered = "memberDetails.njk"
   val formProvider = new MemberDetailsFormProvider()
   val form: Form[MemberDetails] = formProvider()
 
-  lazy val memberDetailsRouteGetRoute: String =
+  lazy val httpPathGET: String =
     controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
-  lazy val memberDetailsRoutePostRoute: String =
+  lazy val httpPathPOST: String =
     controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
@@ -73,24 +79,105 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "nino" -> Seq("***")
   )
 
-  "MemberDetails Controller" must {
-    behave like controllerWithGETSavedData(
-      httpPath = memberDetailsRouteGetRoute,
-      page = MemberDetailsPage(0),
-      data = SampleData.memberDetails,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
-    )
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
-    behave like controllerWithPOSTWithJson(
-      httpPath = memberDetailsRoutePostRoute,
-      page = MemberDetailsPage(0),
-      expectedJson = expectedJson,
-      form = form,
-      templateToBeRendered = templateToBeRendered,
-      requestValuesValid = valuesValid,
-      requestValuesInvalid = valuesInvalid
-    )
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
+  "MemberDetails Controller" must {
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+
+      application.stop()
+    }
+
+    "return OK and the correct view for a GET when the question has previously been answered" in {
+      val ua = userAnswers.map(_.set(MemberDetailsPage(0), SampleData.memberDetails)).get.toOption.get
+
+      val application = applicationBuilder(userAnswers = Some(ua)).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(SampleData.memberDetails)))
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      application.stop()
+    }
+
+    "return a BAD REQUEST when invalid data is submitted" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      val application = applicationBuilder(userAnswers = None).build()
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      application.stop()
+    }
   }
 }

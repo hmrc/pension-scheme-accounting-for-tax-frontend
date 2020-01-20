@@ -18,26 +18,31 @@ package behaviours
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import data.SampleData
+import controllers.base.ControllerSpecBase
 import data.SampleData._
+import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
-import org.scalatest.BeforeAndAfterEach
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfterEach {
+trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  override def beforeEach: Unit = {
+    super.beforeEach
+    Mockito.reset(mockAftConnector)
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
   val mockAftConnector: AFTConnector = mock[AFTConnector]
-
-  override def beforeEach: Unit = Mockito.reset(mockAftConnector)
 
   def cyaController(httpPath: => String,
                     templateToBeRendered: String,

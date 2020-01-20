@@ -25,8 +25,12 @@ import navigators.CompoundNavigator
 import org.mockito.Mockito
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
+import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.test.Helpers.{GET, POST}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
@@ -55,4 +59,14 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
       .overrides(
         modules(userAnswers): _*
       )
+
+  protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
+
+  protected def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
+    FakeRequest
+      .apply(
+        method = POST,
+        uri = path,
+        headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+        body = AnyContentAsFormUrlEncoded(values))
 }
