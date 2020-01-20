@@ -75,4 +75,29 @@ trait StringFieldBehaviours extends FieldBehaviours {
       }
     }
   }
+
+  def qrOps(form: Form[_],
+           fieldName: String,
+           requiredKey: String,
+           invalidKey: String): Unit = {
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+
+    "successfully bind when valid QROPS is provided" in {
+      val res = form.bind(Map(fieldName -> "Q123123")).apply(fieldName)
+      res.value.get mustEqual "Q123123"
+    }
+
+    Seq("A123789", "ABCDEF3", "1122334").foreach { qrops =>
+      s"fail to bind when QROPS $qrops is invalid" in {
+        val result = form.bind(Map(fieldName -> qrops)).apply(fieldName)
+        result.errors.head.key mustBe fieldName
+        result.errors.head.message mustBe invalidKey
+      }
+    }
+  }
 }

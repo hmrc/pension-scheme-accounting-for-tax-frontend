@@ -42,9 +42,9 @@ trait Formatters extends Transforms with Constraints {
       Map(key -> value.getOrElse(""))
   }
 
-  private[mappings] def optionalPostcodeFormatter(requiredKey:String,
-                                                  invalidKey:String,
-                                                  countryFieldName:String): Formatter[Option[String]] = new Formatter[Option[String]] {
+  private[mappings] def optionalPostcodeFormatter(requiredKey: String,
+                                                  invalidKey: String,
+                                                  countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
 
       val isPostcodeRequired = data.get(countryFieldName).contains("GB")
@@ -154,6 +154,67 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, value.toString)
     }
 
+  private def empty(field: Option[String]): Boolean =
+    field.isEmpty | field.get.matches("""^-?( )*$""")
+
+  private[mappings] def conditionalBigDecimal2DPFormatter(keyB: String,
+                                                          requiredKeyA: String,
+                                                          requiredKeyB: String,
+                                                          invalidKeyA: String,
+                                                          invalidKeyB: String,
+                                                          decimalKeyA: String,
+                                                          decimalKeyB: String,
+                                                          args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] = {
+
+    new Formatter[Option[BigDecimal]] {
+      private val baseFormatter: Formatter[String] = stringFormatter(requiredKeyA)
+
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[BigDecimal]] = {
+        val keyA: String = key
+
+        val formFields: (Option[String], Option[String]) = (data.get(keyA), data.get(keyB))
+
+        if (empty(formFields._1) && empty(formFields._2))
+          Left(Seq(FormError(keyA, requiredKeyA, args), FormError(keyB, requiredKeyB, args)))
+        else
+          validate2DP(formFields._1.get, keyA, invalidKeyA, decimalKeyA, args)
+      }
+
+      override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
+        value match {
+          case Some(str) =>
+            baseFormatter.unbind(key, decimalFormat.format(str))
+          case _ =>
+            Map.empty
+        }
+    }
+  }
+
+  def validate2DP(data: String,
+                  key: String,
+                  invalidKey: String,
+                  decimalKey: String,
+                  args: Seq[String] = Seq.empty): Either[Seq[FormError], Option[BigDecimal]] = {
+
+    val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
+    val decimalRegexp = """^-?(\d*\.\d{2})$"""
+    val emptyRegexp = """^-?( )*$"""
+
+    data.replace(",", "") match {
+      case s if s.matches(emptyRegexp) =>
+        Right(None)
+      case s if !s.matches(numericRegexp) =>
+        Left(Seq(FormError(key, invalidKey, args)))
+      case s if !s.matches(decimalRegexp) =>
+        Left(Seq(FormError(key, decimalKey, args)))
+      case s =>
+        Try(Some(BigDecimal(s))) match {
+          case Success(x) => Right(x)
+          case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+        }
+    }
+  }
+
   private[mappings] def bigDecimal2DPFormatter(requiredKey: String,
                                                invalidKey: String,
                                                decimalKey: String,
@@ -186,11 +247,16 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] = {
-        val total = itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
-          Try(BigDecimal(data.getOrElse(next, "0"))).toOption.fold(BigDecimal(0))(_ + acc)
-        }
+        val total =
+          itemsToTotal.foldLeft[BigDecimal](BigDecimal(0)) { (acc, next) =>
+            data.get(next) match {
+              case Some(str) =>
+                Try(BigDecimal(str)).getOrElse(BigDecimal(0.00)) + acc
+              case None =>
+                acc
+            }
+          }
         Right(total)
       }
 

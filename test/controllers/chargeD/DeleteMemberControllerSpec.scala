@@ -42,7 +42,6 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private def onwardRoute = Call("GET", "/foo")
 

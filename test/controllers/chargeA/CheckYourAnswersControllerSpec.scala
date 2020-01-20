@@ -16,32 +16,27 @@
 
 package controllers.chargeA
 
+import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.Future
-
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpPathGET: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
 
-  private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption.get
+  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn).url
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private def ua: UserAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
+
+  private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
@@ -51,37 +46,43 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName))
-
-  override def beforeEach: Unit = {
-    super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-  }
-
-  private val userAnswers: Option[UserAnswers] = Some(ua)
+      submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    ),
+    "chargeName" -> "chargeA"
+  )
 
   "CheckYourAnswers Controller" must {
-    "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers = ua
+    )
+  }
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+  "CheckYourAnswers Controller with both rates of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
+  }
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+  "CheckYourAnswers Controller with no lower rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
+    )
+  }
 
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
-    }
+  "CheckYourAnswers Controller with no higher rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
+    )
   }
 }

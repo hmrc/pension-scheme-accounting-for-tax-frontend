@@ -21,23 +21,19 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
 import models.UserAnswers
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
 import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
-import play.api.test.Helpers._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpPathGET: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
   private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(SampleData.srn).url
 
-  private def ua = SampleData.userAnswersWithSchemeName
+  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
     .set(ChargeDetailsPage, SampleData.chargeFChargeDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
@@ -48,28 +44,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.chargeFAmount.get
     ))
 
-  private val userAnswers: Option[UserAnswers] = Some(ua)
-
   "CheckYourAnswers Controller" must {
-    "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      when(mockCompoundNavigator.nextPage(Matchers.eq(CheckYourAnswersPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
-    }
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate,
+      userAnswers = ua
+    )
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,

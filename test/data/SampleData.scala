@@ -20,16 +20,11 @@ import java.time.LocalDate
 
 import models.chargeB.ChargeBDetails
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
-import models.chargeG.{MemberDetails => MemberDetailsG}
-import models.chargeC.{SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
-import pages.QuarterPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
-import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
@@ -43,41 +38,48 @@ object SampleData {
   val schemeName = "Big Scheme"
   val companyName = "Big Company"
   val crn = "AB121212"
-  val dummyCall = Call("GET", "/foo")
+  val dummyCall: Call = Call("GET", "/foo")
   val chargeAmount1 = BigDecimal(33.44)
   val chargeAmount2 = BigDecimal(50.00)
   val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, chargeAmount1, BigDecimal(34.34), BigDecimal(67.78))
+  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
   val chargeCDetails = ChargeCDetails(paymentDate = LocalDate.of(2019, 4, 3),amountTaxDue = BigDecimal(33.44))
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
-  val sponsoringOrganisationDetails = SponsoringOrganisationDetails(name = companyName, crn = crn)
-  val sponsoringIndividualDetails = SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
+  val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
+    SponsoringOrganisationDetails(name = companyName, crn = crn)
+  val sponsoringIndividualDetails: SponsoringIndividualDetails =
+    SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
-  val sponsoringEmployerAddress = SponsoringEmployerAddress(
-    line1 = "line1",
-    line2 = "line2",
-    line3 = Some("line3"),
-    line4 = Some("line4"),
-    country = "UK",
-    postcode = Some("ZZ1 1ZZ")
-  )
+  val sponsoringEmployerAddress: SponsoringEmployerAddress =
+    SponsoringEmployerAddress(
+      line1 = "line1",
+      line2 = "line2",
+      line3 = Some("line3"),
+      line4 = Some("line4"),
+      country = "UK",
+      postcode = Some("ZZ1 1ZZ")
+    )
 
-  def userAnswersWithSchemeName = UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr,
-    QuarterPage.toString -> Quarter("2020-04-01", "2020-06-30")))
+  def userAnswersWithSchemeName: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
+      "pstr" -> pstr,
+      "quarter" -> Quarter("2020-04-01", "2020-06-30"))
+    )
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringOrganisationDetailsPage,sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage,false).toOption.get
+    .set(SponsoringOrganisationDetailsPage, sponsoringOrganisationDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage, false).toOption.get
 
   def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringIndividualDetailsPage,sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage,true).toOption.get
+    .set(SponsoringIndividualDetailsPage, sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage, true).toOption.get
 
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)

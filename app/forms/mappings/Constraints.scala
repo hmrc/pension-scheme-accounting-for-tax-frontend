@@ -47,6 +47,20 @@ trait Constraints {
         }
     }
 
+  protected def minimumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
+    Constraint {
+      case Some(input) =>
+        import ev._
+
+        if (input >= minimum) {
+          Valid
+        } else {
+          Invalid(errorKey, minimum)
+        }
+      case None =>
+        Valid
+    }
+
   protected def maximumValue[A](maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {
       input =>
@@ -58,6 +72,20 @@ trait Constraints {
         } else {
           Invalid(errorKey, maximum)
         }
+    }
+
+  protected def maximumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
+    Constraint {
+      case Some(input) =>
+        import ev._
+
+        if (input <= minimum) {
+          Valid
+        } else {
+          Invalid(errorKey, minimum)
+        }
+      case None =>
+        Valid
     }
 
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
@@ -122,12 +150,11 @@ trait Constraints {
         Valid
     }
 
-  protected def futureDate(invalidKey: String): Constraint[LocalDate] = {
+  protected def futureDate(invalidKey: String): Constraint[LocalDate] =
     Constraint {
       case date if date.isAfter(LocalDate.now()) => Invalid(invalidKey)
       case _ => Valid
     }
-  }
 
   protected def yearHas4Digits(errorKey: String): Constraint[LocalDate] =
     Constraint {
@@ -143,17 +170,15 @@ trait Constraints {
         Invalid(errorKey)
     }
 
-  protected def validNino(invalidKey: String): Constraint[String] = {
+  protected def validNino(invalidKey: String): Constraint[String] =
     Constraint {
       case nino if Nino.isValid(nino) => Valid
       case _ => Invalid(invalidKey)
     }
-  }
 
-  protected def validCrn(invalidKey: String): Constraint[String] = {
+  protected def validCrn(invalidKey: String): Constraint[String] =
     Constraint {
       case crn if crn.matches(regexCrn) => Valid
       case _ => Invalid(invalidKey)
     }
-  }
 }

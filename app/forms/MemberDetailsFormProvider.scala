@@ -33,7 +33,8 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
         .verifying(maxLength(35, "memberDetails.error.lastName.length"))
         .verifying(regexp(nameRegex, "memberDetails.error.lastName.invalid")),
       "nino" -> text("memberDetails.error.nino.required")
-        .verifying(validNino("memberDetails.error.nino.invalid"))
+        .transform(noSpaceWithUpperCaseTransform, noTransform).
+        verifying(validNino("memberDetails.error.nino.invalid"))
     )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
   )
 }
