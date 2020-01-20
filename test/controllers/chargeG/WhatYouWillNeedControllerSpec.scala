@@ -16,18 +16,24 @@
 
 package controllers.chargeG
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import models.GenericViewModel
+import models.{GenericViewModel, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeG.WhatYouWillNeedPage
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers._
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeG/whatYouWillNeed.njk"
-  private def httpGETRoute: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
   private val jsonToPassToTemplate = Json.obj(
     "viewModel" -> GenericViewModel(
@@ -36,12 +42,32 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       schemeName = SampleData.schemeName)
   )
 
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
+
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
   "whatYouWillNeed Controller" must {
-    behave like controllerWithGETNoSavedData(
-      httpPath = httpGETRoute,
-      page = WhatYouWillNeedPage,
-      templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate
-    )
+    "return OK and the correct view for a GET" in {
+      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
   }
 }

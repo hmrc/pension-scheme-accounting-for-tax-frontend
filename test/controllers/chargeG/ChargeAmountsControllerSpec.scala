@@ -16,7 +16,6 @@
 
 package controllers.chargeG
 
-import behaviours.ControllerBehaviours
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeG.ChargeAmountsFormProvider
@@ -30,13 +29,16 @@ import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+import scala.concurrent.Future
+
+class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"
   private val form = new ChargeAmountsFormProvider()("first last")
-  private def chargeAmountsGetRoute: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, SampleData.srn, 0).url
-  private def chargeAmountsPostRoute: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, SampleData.srn, 0).url
+  private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, SampleData.srn, 0).url
+  private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, SampleData.srn, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "amountTransferred" -> Seq("33.44"),
@@ -57,6 +59,12 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "memberName" -> "first last"
   )
 
+  override def beforeEach: Unit = {
+    super.beforeEach
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
+
   val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberGDetails).get
   val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), SampleData.chargeAmounts).get.data
 
@@ -66,7 +74,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(chargeAmountsGetRoute)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -86,7 +94,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(chargeAmountsGetRoute)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -102,7 +110,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "redirect to Session Expired page for a GET when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpGETRequest(chargeAmountsGetRoute)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -118,7 +126,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpPOSTRequest(chargeAmountsPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
@@ -133,7 +141,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "return a BAD REQUEST when invalid data is submitted" in {
       val application = applicationBuilder(userAnswers = Some(validData)).build()
 
-      val result = route(application, httpPOSTRequest(chargeAmountsPostRoute, valuesInvalid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -145,7 +153,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "redirect to Session Expired page for a POST when there is no data" in {
       val application = applicationBuilder(userAnswers = None).build()
 
-      val result = route(application, httpPOSTRequest(chargeAmountsPostRoute, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
