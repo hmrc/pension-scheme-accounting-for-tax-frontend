@@ -19,17 +19,17 @@ package controllers.chargeA
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
+import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,42 +47,48 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndChargeADetails { (schemeName, chargeDetails) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
+        case (Some(schemeName), Some(chargeDetails)) =>
+          val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        renderer.render(
-          template = "check-your-answers.njk",
-          ctx = Json.obj(
-            "list" -> Seq(
-              helper.chargeAMembers.get,
-              helper.chargeAAmountLowerRate.get,
-              helper.chargeAAmountHigherRate.get,
-              helper.total(chargeDetails.totalAmount)
-            ),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName
-            ),
-            "chargeName" -> "chargeA"
-          )
-        ).map(Ok(_))
+          renderer.render(
+            template = "check-your-answers.njk",
+            ctx = Json.obj(
+              "list" -> Seq(
+                helper.chargeAMembers.get,
+                helper.chargeAAmountLowerRate.get,
+                helper.chargeAAmountHigherRate.get,
+                helper.total(chargeDetails.totalAmount)
+              ),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              ),
+              "chargeName" -> "chargeA"
+            )
+          ).map(Ok(_))
+        case _ =>
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 
   def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrievePSTRAndChargeADetails { (pstr, chargeDetails) =>
+      (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
+        case (Some(pstr), Some(chargeDetails)) =>
 
-        val updatedChargeDetails = chargeDetails.copy(
-          totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
-          totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
-        )
+          val updatedChargeDetails = chargeDetails.copy(
+            totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
+            totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
+          )
 
-        for {
-          updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
-          _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
-        } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
+          for {
+            updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
+            _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
+          } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
+        case _ =>
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 }

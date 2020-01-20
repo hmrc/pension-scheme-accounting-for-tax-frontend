@@ -33,7 +33,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
   private val messageKeyAmountTaxDueLowerRateKey = "chargeA.totalAmtOfTaxDueAtLowerRate"
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
 
-  def chargeADetails(
+  private def chargeADetails(
                       members: String = "12",
                       lowerTax: String = "1.00",
                       higherTax: String = "1.00"
