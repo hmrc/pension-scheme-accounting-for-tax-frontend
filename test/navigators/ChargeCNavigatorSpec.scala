@@ -20,7 +20,7 @@ import controllers.chargeC.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.Page
+import pages.{Page, VersionQuery}
 import pages.chargeC._
 import play.api.libs.json.Json
 import play.api.mvc.Call
@@ -41,7 +41,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
         row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None))
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), Some(uaWithVersion))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -103,4 +104,11 @@ object ChargeCNavigatorSpec {
       SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
     )
   ))
+
+  private val version = "1"
+  private val uaWithVersion = UserAnswers(
+    Json.obj(
+      VersionQuery.toString -> version
+    )
+  )
 }

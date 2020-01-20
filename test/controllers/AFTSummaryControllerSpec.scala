@@ -39,7 +39,7 @@ import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits{
+class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
 
   private val mockSchemeService = mock[SchemeService]
 
@@ -57,7 +57,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGET: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, None).url
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, None).url
+
+  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, Some(SampleData.version)).url
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, None).url
 
@@ -87,11 +89,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
 
-  private val jsonToPassToTemplate: Form[Boolean] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, None).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, version).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
@@ -100,12 +102,12 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET where no version is present in the request" in {
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+      val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
 
       status(result) mustEqual OK
 
@@ -113,7 +115,36 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
+
+      application.stop()
+    }
+
+    "return OK and the correct view for a GET where a version is present in the request" in {
+      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+
+      val pstrCaptor = ArgumentCaptor.forClass(classOf[String])
+      val startDateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val versionCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGETVersion)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(SampleData.version)).apply(form))
+
+      verify(mockAftConnector, times(1)).getAFTDetails(pstrCaptor.capture(), startDateCaptor.capture, versionCaptor.capture)(any(), any())
+
+      pstrCaptor.getValue mustEqual SampleData.pstr
+      startDateCaptor.getValue mustEqual "2020-04-01"
+      versionCaptor.getValue mustEqual SampleData.version
 
       application.stop()
     }

@@ -26,7 +26,7 @@ import models.{GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery, VersionQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsNull, JsObject, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
@@ -57,31 +57,31 @@ class AFTSummaryController @Inject()(
   def onPageLoad(mode: Mode, srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
-
-        val retrievedAFTDetails = optionVersion match {
-          case None => Future.successful(Json.obj())
-          case Some(version) => aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        val futureUAWithAFTDetails = optionVersion match {
+          case None => Future.successful(requestUA)
+          case Some(version) =>
+            aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version).map { aftDetails =>
+              UserAnswers(aftDetails.as[JsObject])
+                .successfulSet(VersionQuery, version)
+            }
         }
 
-        retrievedAFTDetails.flatMap { aftDetails =>
-          val updateUA = UserAnswers(aftDetails.as[JsObject])
-            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
-            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
-
-          val ua = optionVersion.flatMap(version => updateUA.set(VersionQuery, version).toOption).getOrElse(requestUA)
-
-          userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+        futureUAWithAFTDetails.flatMap { ua =>
+          val uaUpdatedWithSchemeDetails = ua
+            .successfulSet(SchemeNameQuery, schemeDetails.schemeName)
+            .successfulSet(PSTRQuery, schemeDetails.pstr)
+          userAnswersCacheConnector.save(request.internalId, uaUpdatedWithSchemeDetails.data).flatMap { _ =>
             val json = Json.obj(
               "form" -> form,
-              "list" -> aftSummaryHelper.summaryListData(ua, srn),
+              "list" -> aftSummaryHelper.summaryListData(uaUpdatedWithSchemeDetails, srn),
               "viewModel" -> viewModel(mode, srn, schemeDetails.schemeName, optionVersion),
               "radios" -> Radios.yesNo(form("value"))
             )
 
             renderer.render("aftSummary.njk", json).map(Ok(_))
           }
+
         }
       }
   }

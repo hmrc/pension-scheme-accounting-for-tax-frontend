@@ -20,18 +20,15 @@ import controllers.chargeG.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.Page
 import pages.chargeG._
+import pages.{Page, VersionQuery}
 import play.api.mvc.Call
 
 class ChargeGNavigatorSpec extends NavigatorBehaviour {
 
-  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-  private val srn = "test-srn"
-  private val index = 0
-  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
-  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
+  import ChargeGNavigatorSpec._
 
+  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -43,6 +40,7 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None), addMembersNo),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), optionUAWithVersion),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeGMember))
       )
@@ -62,4 +60,13 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
   }
 
+}
+
+object ChargeGNavigatorSpec {
+  private val srn = "test-srn"
+  private val index = 0
+  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
+  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
+  private val version = "1"
+  private val optionUAWithVersion = addMembersNo.flatMap(_.set(VersionQuery, version).toOption)
 }
