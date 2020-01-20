@@ -21,19 +21,18 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import models.{GenericViewModel, NormalMode}
+import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeC.CheckYourAnswersPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -46,29 +45,33 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        helper.chargeCDetails match {
-          case items if items.isEmpty => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          case items => renderer.render("check-your-answers.njk",
-            Json.obj(
-              "list" -> items,
-              "viewModel" -> viewModel,
-              "chargeName" -> "chargeC"
-            )).map(Ok(_))
-        }
+        val answers: Seq[SummaryList.Row] = Seq(
+          Seq(helper.chargeCIsSponsoringEmployerIndividual(index).get),
+          helper.chargeCEmployerDetails(index),
+          Seq(helper.chargeCAddress(index).get),
+          helper.chargeCChargeDetails(index).get
+        ).flatten
+
+        renderer.render("check-your-answers.njk",
+          Json.obj(
+            "list" -> answers,
+            "viewModel" -> viewModel,
+            "chargeName" -> "chargeC"
+          )).map(Ok(_))
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>

@@ -16,15 +16,13 @@
 
 package pages.chargeC
 
-import models.chargeC.ChargeCDetails
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class ChargeCDetailsPage(index: Int) extends QuestionPage[ChargeCDetails] {
+case object AddEmployersPage extends QuestionPage[Boolean] {
 
-  override def path: JsPath = SponsoringEmployersQuery(index).path \ ChargeCDetailsPage.toString
+  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
+
+  override def toString: String = "addEmployers"
 }
 
-object ChargeCDetailsPage {
-  override lazy val toString: String = "chargeDetails"
-}

@@ -805,3 +805,5 @@ chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the sp
 
 chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
 chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number
+
+chargeC.addEmployers.error = Select yes if you want to add another authorised surplus payments charge

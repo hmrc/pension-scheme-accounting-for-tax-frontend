@@ -17,9 +17,7 @@
 package controllers
 
 import models.MemberDetails
-import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import pages.chargeA.ChargeDetailsPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
@@ -61,10 +59,11 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndSponsoringEmployer(block: (String, String) => Future[Result])
+  def retrieveSchemeAndSponsoringEmployer(index: Int)(block: (String, String) => Future[Result])
                                          (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
-    (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringOrganisationDetailsPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SchemeNameQuery)) match {
+    (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringOrganisationDetailsPage(index)),
+      ua.get(SponsoringIndividualDetailsPage(index)), ua.get(SchemeNameQuery)) match {
       case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
       case (Some(true), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

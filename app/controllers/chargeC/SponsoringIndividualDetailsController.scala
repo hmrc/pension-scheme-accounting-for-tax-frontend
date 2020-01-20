@@ -22,7 +22,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode}
+import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringIndividualDetailsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -48,16 +48,16 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val preparedForm = request.userAnswers.get(SponsoringIndividualDetailsPage) match {
+        val preparedForm = request.userAnswers.get(SponsoringIndividualDetailsPage(index)) match {
           case None => form
           case Some(value) => form.fill(value)
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn).url,
+          submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -70,14 +70,14 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn).url,
+              submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -90,9 +90,9 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringIndividualDetailsPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringIndividualDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringIndividualDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(SponsoringIndividualDetailsPage(index), mode, updatedAnswers, srn))
         )
       }
   }

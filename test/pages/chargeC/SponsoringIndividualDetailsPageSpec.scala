@@ -16,7 +16,7 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
+import models.MemberDetails
 import pages.behaviours.PageBehaviours
 
 
@@ -24,10 +24,10 @@ class SponsoringIndividualDetailsPageSpec extends PageBehaviours {
 
   "SponsoringIndividualDetailsPage" - {
 
-    beRetrievable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+    beRetrievable[MemberDetails](SponsoringIndividualDetailsPage)
 
-    beSettable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+    beSettable[MemberDetails](SponsoringIndividualDetailsPage)
 
-    beRemovable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
+    beRemovable[MemberDetails](SponsoringIndividualDetailsPage)
   }
 }

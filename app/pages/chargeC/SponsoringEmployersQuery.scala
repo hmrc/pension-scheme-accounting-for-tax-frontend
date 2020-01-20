@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package pages.chargeC
 
-import play.api.libs.json.{Format, Json}
+import pages.Page
+import play.api.libs.json.JsPath
 
-case class SponsoringIndividualDetails(firstName:String, lastName:String, nino:String) {
-  def fullName = s"$firstName $lastName"
+case class SponsoringEmployersQuery(index: Int) extends Page  {
+  def path: JsPath = JsPath \ "chargeCDetails" \ SponsoringEmployersQuery.toString \ index
+}
+
+object SponsoringEmployersQuery {
+  override def toString: String = "employers"
 }
 
 
-object SponsoringIndividualDetails {
-  implicit lazy val formats: Format[SponsoringIndividualDetails] =
-    Json.format[SponsoringIndividualDetails]
-}

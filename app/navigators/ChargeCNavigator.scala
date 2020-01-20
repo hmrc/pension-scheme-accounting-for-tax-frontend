@@ -23,48 +23,51 @@ import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
 import controllers.chargeC.routes._
+import services.ChargeCService.getSponsoringEmployersIncludingDeleted
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    lazy val optionIsSponsoringEmployerIndividual:Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage)
+  def nextIndex(ua: UserAnswers, srn: String): Int = getSponsoringEmployersIncludingDeleted(ua, srn).size
 
-    {
-      case WhatYouWillNeedPage => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)
-      case IsSponsoringEmployerIndividualPage if optionIsSponsoringEmployerIndividual.contains(false) =>
-        SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn)
-      case IsSponsoringEmployerIndividualPage if optionIsSponsoringEmployerIndividual.contains(true) =>
-        SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn)
-      case SponsoringOrganisationDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
-      case SponsoringIndividualDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
-      case SponsoringEmployerAddressPage => ChargeDetailsController.onPageLoad(NormalMode, srn)
-      case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
+  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+
+      case WhatYouWillNeedPage => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
+      case IsSponsoringEmployerIndividualPage(index) if optionIsSponsoringEmployerIndividual(index, ua).contains(false) =>
+        SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, index)
+      case IsSponsoringEmployerIndividualPage(index) if optionIsSponsoringEmployerIndividual(index, ua).contains(true) =>
+        SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, index)
+      case SponsoringOrganisationDetailsPage(index) => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
+      case SponsoringIndividualDetailsPage(index) => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
+      case SponsoringEmployerAddressPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
+      case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
       case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
-    }
+
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case IsSponsoringEmployerIndividualPage => editRoutesForIsSponsoringEmployerIndividualPage(ua, srn)
-    case SponsoringOrganisationDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
-    case SponsoringIndividualDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
-    case SponsoringEmployerAddressPage => CheckYourAnswersController.onPageLoad(srn)
-    case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
+    case IsSponsoringEmployerIndividualPage(index) => editRoutesForIsSponsoringEmployerIndividualPage(index, ua, srn)
+    case SponsoringOrganisationDetailsPage(index) => editRoutesForSponsoringEmployerPages(index, ua, srn)
+    case SponsoringIndividualDetailsPage(index) => editRoutesForSponsoringEmployerPages(index, ua, srn)
+    case SponsoringEmployerAddressPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
+    case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn)
   }
 
-  private def editRoutesForIsSponsoringEmployerIndividualPage(ua:UserAnswers, srn: String):Call = {
-    (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SponsoringOrganisationDetailsPage)) match {
-      case (Some(false), _, None) => SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn)
-      case (Some(false), _, _) => CheckYourAnswersController.onPageLoad(srn)
-      case (Some(true), None, _) => SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn)
-      case _ => CheckYourAnswersController.onPageLoad(srn)
+  private def optionIsSponsoringEmployerIndividual(index: Int, ua: UserAnswers):Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage(index))
+
+  private def editRoutesForIsSponsoringEmployerIndividualPage(index: Int, ua:UserAnswers, srn: String):Call = {
+    (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringIndividualDetailsPage(index)), ua.get(SponsoringOrganisationDetailsPage(index))) match {
+      case (Some(false), _, None) => SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index)
+      case (Some(false), _, _) => CheckYourAnswersController.onPageLoad(srn, index)
+      case (Some(true), None, _) => SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index)
+      case _ => CheckYourAnswersController.onPageLoad(srn, index)
     }
   }
 
-  private def editRoutesForSponsoringEmployerPages(ua:UserAnswers, srn: String):Call = {
-    ua.get(SponsoringEmployerAddressPage) match {
-      case Some(_) => CheckYourAnswersController.onPageLoad(srn)
-      case _ => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)
+  private def editRoutesForSponsoringEmployerPages(index: Int, ua:UserAnswers, srn: String):Call = {
+    ua.get(SponsoringEmployerAddressPage(index)) match {
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, index)
+      case _ => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)
     }
   }
 

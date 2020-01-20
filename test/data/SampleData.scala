@@ -19,7 +19,7 @@ package data
 import java.time.LocalDate
 
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
@@ -53,8 +53,8 @@ object SampleData {
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
-  val sponsoringIndividualDetails: SponsoringIndividualDetails =
-    SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
+  val sponsoringIndividualDetails: MemberDetails =
+    MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(

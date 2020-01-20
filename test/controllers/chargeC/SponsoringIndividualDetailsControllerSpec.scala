@@ -20,8 +20,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
-import models.chargeC.SponsoringIndividualDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -54,7 +53,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     "nino" -> Seq("CS121212C")
   )
 
-  private val jsonToPassToTemplate:Form[SponsoringIndividualDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate:Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url,
