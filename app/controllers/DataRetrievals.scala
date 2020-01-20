@@ -45,14 +45,6 @@ object DataRetrievals {
     }
   }
 
-  def retrievePSTRAndChargeADetails(block: (String, ChargeDetails) => Future[Result])
-                                   (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
-      case (Some(pstr), Some(chargeDetails)) => block(pstr, chargeDetails)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
   def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result])
                              (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
@@ -65,14 +57,6 @@ object DataRetrievals {
                                     (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
-  def retrieveSchemeAndChargeADetails(block: (String, ChargeDetails) => Future[Result])
-                                     (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
-      case (Some(schemeName), Some(chargeDetails)) => block(schemeName, chargeDetails)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

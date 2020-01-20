@@ -254,7 +254,7 @@ trait Formatters extends Transforms with Constraints {
               case Some(str) =>
                 Try(BigDecimal(str)).getOrElse(BigDecimal(0.00)) + acc
               case None =>
-                BigDecimal(0.00) + acc
+                acc
             }
           }
         Right(total)
