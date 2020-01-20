@@ -20,6 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
@@ -78,7 +79,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>
 
-          val updatedChargeDetails = chargeDetails.copy(
+          val updatedChargeDetails: ChargeDetails = chargeDetails.copy(
             totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
             totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
           )

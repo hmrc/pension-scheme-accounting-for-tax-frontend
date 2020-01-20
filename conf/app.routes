@@ -132,30 +132,30 @@ POST        /:srn/new-return/overseas-transfer-charge/:index/members-details    
 GET         /:srn/new-return/change/overseas-transfer-charge/:index/members-details                                      controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/change/overseas-transfer-charge/:index/members-details                                      controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
-GET        /:srn/new-return/authorised-surplus-payments-charge/charge-details                  controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST       /:srn/new-return/authorised-surplus-payments-charge/charge-details                  controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET        /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                        controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST       /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                        controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/authorised-surplus-payments-charge/charge-details                                           controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/authorised-surplus-payments-charge/charge-details                                           controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET         /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                                    controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST        /:srn/new-return/authorised-surplus-payments-charge/change/charge-details                                    controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/check-your-answers                 controllers.chargeC.CheckYourAnswersController.onPageLoad(srn: String)
-GET         /:srn/new-return/authorised-surplus-payments-charge/on-click-check-your-answers        controllers.chargeC.CheckYourAnswersController.onClick(srn: String)
+GET         /:srn/new-return/authorised-surplus-payments-charge/check-your-answers                                       controllers.chargeC.CheckYourAnswersController.onPageLoad(srn: String)
+GET         /:srn/new-return/authorised-surplus-payments-charge/on-click-check-your-answers                              controllers.chargeC.CheckYourAnswersController.onClick(srn: String)
 
 GET         /:srn/new-return/overseas-transfer-charge/:index/charge-details                                              controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
 POST        /:srn/new-return/overseas-transfer-charge/:index/charge-details                                              controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
 GET         /:srn/new-return/overseas-transfer-charge/:index/change/charge-details                                       controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
 POST        /:srn/new-return/overseas-transfer-charge/:index/change/charge-details                                       controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                            controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                            controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/change/overseas-transfer-charge/:index/charge-amounts                     controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/change/overseas-transfer-charge/:index/charge-amounts                     controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                                              controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
+POST        /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                                              controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
+GET         /:srn/new-return/change/overseas-transfer-charge/:index/charge-amounts                                       controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
+POST        /:srn/new-return/change/overseas-transfer-charge/:index/charge-amounts                                       controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
-GET        /:srn/new-return/overseas-transfer-charge/list-of-charges                     controllers.chargeG.AddMembersController.onPageLoad(srn: String)
-POST       /:srn/new-return/overseas-transfer-charge/list-of-charges                     controllers.chargeG.AddMembersController.onSubmit(srn: String)
+GET         /:srn/new-return/overseas-transfer-charge/list-of-charges                                                    controllers.chargeG.AddMembersController.onPageLoad(srn: String)
+POST        /:srn/new-return/overseas-transfer-charge/list-of-charges                                                    controllers.chargeG.AddMembersController.onSubmit(srn: String)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/check-your-answers                 controllers.chargeG.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
+GET         /:srn/new-return/overseas-transfer-charge/:index/check-your-answers                                          controllers.chargeG.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
 
-GET        /:srn/new-return/overseas-transfer-charge/:index/on-click-check-your-answers          controllers.chargeG.CheckYourAnswersController.onClick(srn: String, index: Index)
+GET         /:srn/new-return/overseas-transfer-charge/:index/on-click-check-your-answers                                 controllers.chargeG.CheckYourAnswersController.onClick(srn: String, index: Index)
 
-GET        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                        controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
-POST       /:srn/new-return/overseas-transfer-charge/:index/remove-charge                        controllers.chargeG.DeleteMemberController.onSubmit(srn: String, index: Index)
+GET         /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
+POST        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, index: Index)

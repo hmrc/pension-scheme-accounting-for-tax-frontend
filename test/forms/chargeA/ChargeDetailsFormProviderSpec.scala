@@ -16,8 +16,6 @@
 
 package forms.chargeA
 
-import java.text.DecimalFormat
-
 import forms.behaviours._
 import models.chargeA.ChargeDetails
 import play.api.data.{Form, FormError}

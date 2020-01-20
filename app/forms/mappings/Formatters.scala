@@ -154,7 +154,7 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, value.toString)
     }
 
-  private def empty(field: Option[String]): Boolean =
+  def empty(field: Option[String]): Boolean =
     field.isEmpty | field.get.matches("""^-?( )*$""")
 
   private[mappings] def conditionalBigDecimal2DPFormatter(keyB: String,
@@ -273,14 +273,12 @@ trait Formatters extends Transforms with Constraints {
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
         value match {
-          case Some(str) => {
-            println(s"\n\nvalue formatter\n$key\n\n")
+          case Some(str) =>
             baseFormatter.unbind(key, decimalFormat.format(str))
-          }
           case _ =>
             Map.empty
+          }
         }
-    }
 
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
