@@ -49,23 +49,23 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
         taxAt55PercentIsEmpty,
         optionBigDecimal2DP(
-          requiredKey = messages("amountTaxDue.error.required", "25"),
-          invalidKey = messages("amountTaxDue.error.invalid", "25"),
-          decimalKey = messages("amountTaxDue.error.decimal", "25")
+          requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
+          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("amountTaxDue.error.maximum", "25")),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("amountTaxDue.error.invalid", "25"))
+          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
+          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "25"))
         )
       ),
       "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
         taxAt25PercentIsEmpty,
         optionBigDecimal2DP(
-          requiredKey = messages("amountTaxDue.error.required", "55"),
-          invalidKey = messages("amountTaxDue.error.invalid", "55"),
-          decimalKey = messages("amountTaxDue.error.decimal", "55")
+          requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
+          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("amountTaxDue.error.maximum", "25")),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("amountTaxDue.error.invalid", "25"))
+          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
+          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "55"))
         )
       )
     )(ChargeDDetails.apply)(ChargeDDetails.unapply))

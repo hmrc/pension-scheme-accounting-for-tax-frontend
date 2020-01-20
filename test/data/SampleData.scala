@@ -47,7 +47,7 @@ object SampleData {
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
   val chargeCDetails = ChargeCDetails(paymentDate = LocalDate.of(2019, 4, 3),amountTaxDue = BigDecimal(33.44))
-  val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), chargeAmount1, chargeAmount2)
+  val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
 
