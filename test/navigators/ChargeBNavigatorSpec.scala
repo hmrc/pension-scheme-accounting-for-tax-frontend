@@ -36,8 +36,8 @@ class ChargeBNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeBDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(NormalMode, srn, None)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), Some(uaWithVersion))
+        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, None)),
+        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

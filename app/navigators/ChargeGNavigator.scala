@@ -31,7 +31,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, ua.get(VersionQuery))
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, ua.get(VersionQuery))
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -42,7 +42,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
     case DeleteMemberPage if getOverseasTransferMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
-    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, ua.get(VersionQuery))
+    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(srn, ua.get(VersionQuery))
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

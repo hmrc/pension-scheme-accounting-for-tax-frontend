@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, UserAnswers}
+import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery, VersionQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,7 +54,7 @@ class AFTSummaryController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
@@ -75,7 +75,7 @@ class AFTSummaryController @Inject()(
             val json = Json.obj(
               "form" -> form,
               "list" -> aftSummaryHelper.summaryListData(uaUpdatedWithSchemeDetails, srn),
-              "viewModel" -> viewModel(mode, srn, schemeDetails.schemeName, optionVersion),
+              "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
               "radios" -> Radios.yesNo(form("value"))
             )
 
@@ -86,7 +86,7 @@ class AFTSummaryController @Inject()(
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
@@ -95,7 +95,7 @@ class AFTSummaryController @Inject()(
             val json = Json.obj(
               "form" -> formWithErrors,
               "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
-              "viewModel" -> viewModel(mode, srn, schemeName, optionVersion),
+              "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
               "radios" -> Radios.yesNo(formWithErrors("value"))
             )
 
@@ -105,14 +105,14 @@ class AFTSummaryController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AFTSummaryPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AFTSummaryPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
         )
       }
   }
 
   def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(mode, srn, version).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName)
   }

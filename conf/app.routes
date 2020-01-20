@@ -73,16 +73,10 @@ POST        /:srn/new-return/annual-allowance-charge/list-of-charges            
 GET         /:srn/new-return/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, index: Index)
 POST        /:srn/new-return/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, index: Index)
 
-GET         /:srn/new-return/summary                                                                                     controllers.AFTSummaryController.onPageLoad(mode: Mode = NormalMode, srn: String, version: Option[String] = None)
-POST        /:srn/new-return/summary                                                                                     controllers.AFTSummaryController.onSubmit(mode: Mode = NormalMode, srn: String, version: Option[String] = None)
-GET         /:srn/new-return/change/summary                                                                              controllers.AFTSummaryController.onPageLoad(mode: Mode = CheckMode, srn: String, version: Option[String] = None)
-POST        /:srn/new-return/change/summary                                                                              controllers.AFTSummaryController.onSubmit(mode: Mode = CheckMode, srn: String, version: Option[String] = None)
-
-GET         /:srn/new-return/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(mode: Mode = NormalMode, srn: String, version: Option[String])
-POST        /:srn/new-return/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(mode: Mode = NormalMode, srn: String, version: Option[String])
-GET         /:srn/new-return/:version/change/summary                                                                     controllers.AFTSummaryController.onPageLoad(mode: Mode = CheckMode, srn: String, version: Option[String])
-POST        /:srn/new-return/:version/change/summary                                                                     controllers.AFTSummaryController.onSubmit(mode: Mode = CheckMode, srn: String, version: Option[String])
-
+GET         /:srn/new-return/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, version: Option[String] = None)
+POST        /:srn/new-return/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, version: Option[String] = None)
+GET         /:srn/new-return/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, version: Option[String])
+POST        /:srn/new-return/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, version: Option[String])
 
 GET         /:srn/new-return/authorised-surplus-payments-charge/what-you-will-need                                       controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String)
 

@@ -40,10 +40,10 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None), addMembersNo),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), optionUAWithAddMembersNoAndVersion),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None)),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), Some(uaWithVersion)),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None), addMembersNo),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), optionUAWithAddMembersNoAndVersion),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
 
       )

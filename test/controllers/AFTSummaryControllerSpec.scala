@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers}
+import models.{Enumerable, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
@@ -57,11 +57,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, None).url
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, None).url
 
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, Some(SampleData.version)).url
+  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, Some(SampleData.version)).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -93,7 +93,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "form" -> form,
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, version).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))

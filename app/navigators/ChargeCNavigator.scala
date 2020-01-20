@@ -39,7 +39,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case SponsoringIndividualDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
       case SponsoringEmployerAddressPage => ChargeDetailsController.onPageLoad(NormalMode, srn)
       case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
-      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, ua.get(VersionQuery))
+      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, ua.get(VersionQuery))
     }
   }
 
@@ -49,7 +49,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case SponsoringIndividualDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
     case SponsoringEmployerAddressPage => CheckYourAnswersController.onPageLoad(srn)
     case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn, ua.get(VersionQuery))
   }
 
   private def editRoutesForIsSponsoringEmployerIndividualPage(ua:UserAnswers, srn: String):Call = {

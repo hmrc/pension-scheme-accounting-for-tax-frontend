@@ -41,8 +41,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
         row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, None)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, Some(version)), Some(uaWithVersion))
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -61,8 +61,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerAddress)),
         row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)),
         row(SponsoringEmployerAddressPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn, None))
+        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
       )
 
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
