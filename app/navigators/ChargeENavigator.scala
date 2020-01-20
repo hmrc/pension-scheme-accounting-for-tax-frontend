@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
 import models.{NormalMode, UserAnswers}
-import pages.Page
+import pages.{Page, VersionQuery}
 import pages.chargeE._
 import play.api.mvc.Call
 import controllers.chargeE.routes._
@@ -32,7 +32,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, ua.get(VersionQuery))
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -43,7 +43,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
     case DeleteMemberPage if getAnnualAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
-    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn, ua.get(VersionQuery))
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
