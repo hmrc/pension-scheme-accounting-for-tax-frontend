@@ -17,6 +17,7 @@
 package controllers.base
 
 import base.SpecBase
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import models.UserAnswers
@@ -33,6 +34,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   override def beforeEach: Unit = Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
+  protected val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]

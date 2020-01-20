@@ -16,40 +16,93 @@
 
 package behaviours
 
+import config.FrontendAppConfig
 import connectors.AFTConnector
 import data.SampleData
-import org.mockito.Matchers
+import data.SampleData._
+import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.scalatest.BeforeAndAfterEach
 import pages.Page
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.Writes
+import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-trait CheckYourAnswersBehaviour extends ControllerBehaviours {
+trait CheckYourAnswersBehaviour extends ControllerBehaviours with BeforeAndAfterEach {
   val mockAftConnector: AFTConnector = mock[AFTConnector]
-  def controllerWithOnClick[A](httpPath: => String,
-                            page: Page)(implicit writes: Writes[A]): Unit = {
 
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(SampleData.dummyCall)
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+  override def beforeEach: Unit = Mockito.reset(mockAftConnector)
+
+  def cyaController(httpPath: => String,
+                    templateToBeRendered: String,
+                    jsonToPassToTemplate: JsObject,
+                    userAnswers: UserAnswers = userAnswersWithSchemeName): Unit = {
+
+    "return OK and the correct view for a GET" in {
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
       val application = new GuiceApplicationBuilder()
         .overrides(
-          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
-            bind[AFTConnector].toInstance(mockAftConnector)
+          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
+            bind[FrontendAppConfig].toInstance(mockAppConfig)
           ): _*
         ).build()
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+
+      application.stop()
+    }
+  }
+
+  def controllerWithOnClick[A](httpPath: => String,
+                               page: Page,
+                               userAnswers: UserAnswers = userAnswersWithSchemeName)
+                              (implicit writes: Writes[A]): Unit = {
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(dummyCall)
+
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+
+      val application = new GuiceApplicationBuilder()
+        .overrides(
+          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
+            bind[AFTConnector].toInstance(mockAftConnector),
+            bind[FrontendAppConfig].toInstance(mockAppConfig)
+          ): _*
+        ).build()
+
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
 
       verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
 
       application.stop()
     }
@@ -60,7 +113,9 @@ trait CheckYourAnswersBehaviour extends ControllerBehaviours {
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
+
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
       application.stop()
     }
   }

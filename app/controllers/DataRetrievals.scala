@@ -17,12 +17,11 @@
 package controllers
 
 import models.MemberDetails
+import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
+import pages.chargeA.ChargeDetailsPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.{PSTRQuery, Page, QuestionPage, SchemeNameQuery}
-import play.api.libs.json.Reads
+import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -62,7 +61,8 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndSponsoringEmployer(block: (String,String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndSponsoringEmployer(block: (String, String) => Future[Result])
+                                         (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(IsSponsoringEmployerIndividualPage), ua.get(SponsoringOrganisationDetailsPage), ua.get(SponsoringIndividualDetailsPage), ua.get(SchemeNameQuery)) match {
       case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)

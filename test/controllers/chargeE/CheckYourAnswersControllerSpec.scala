@@ -20,7 +20,7 @@ import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
-import models.YearRange
+import models.{UserAnswers, YearRange}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -33,7 +33,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url
   private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(SampleData.srn, 0).url
 
-  private def ua = SampleData.userAnswersWithSchemeName
+  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(AnnualAllowanceYearPage(0), YearRange.CurrentYear).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
@@ -50,12 +50,11 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   )
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGETNoSavedData(
+    behave like cyaController(
       httpPath = httpGETRoute,
-      page = CheckYourAnswersPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = Some(ua)
+      userAnswers = ua
     )
 
     behave like controllerWithOnClick(

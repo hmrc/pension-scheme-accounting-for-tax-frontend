@@ -27,7 +27,6 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeG.ChargeDetailsPage
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -41,7 +40,6 @@ import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
 
-  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val formProvider = new ChargeDetailsFormProvider()
 
   private def form: Form[ChargeDetails] = formProvider("The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020")

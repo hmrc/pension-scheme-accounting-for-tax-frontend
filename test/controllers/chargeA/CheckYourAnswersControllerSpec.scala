@@ -16,28 +16,27 @@
 
 package controllers.chargeA
 
-import behaviours.ControllerBehaviours
+import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
-import models.GenericViewModel
-import pages.chargeA.{ChargeDetailsPage, WhatYouWillNeedPage}
+import models.{GenericViewModel, UserAnswers}
+import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.CheckYourAnswersHelper
 
-class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with ControllerBehaviours {
+class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
 
-  private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption.get
+  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn).url
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private def ua: UserAnswers = userAnswersWithSchemeName.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
+
+  private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
@@ -47,17 +46,43 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.CheckYourAnswersController.onClick(SampleData.srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName))
+      submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    ),
+    "chargeName" -> "chargeA"
+  )
 
   "CheckYourAnswers Controller" must {
-    behave like controllerWithGETNoSavedData(
+    behave like cyaController(
       httpPath = httpGETRoute,
-      page = WhatYouWillNeedPage,
       templateToBeRendered = templateToBeRendered,
       jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = Some(ua)
+      userAnswers = ua
+    )
+  }
+
+  "CheckYourAnswers Controller with both rates of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua
+    )
+  }
+
+  "CheckYourAnswers Controller with no lower rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtLowerRate = None)).get
+    )
+  }
+
+  "CheckYourAnswers Controller with no higher rate of tax set" must {
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = ua.set(ChargeDetailsPage, chargeAChargeDetails.copy(totalAmtOfTaxDueAtHigherRate = None)).get
     )
   }
 }

@@ -27,7 +27,7 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
 
-  protected def optionalPostcode(requiredKey:String, invalidKey:String, countryFieldName:String): FieldMapping[Option[String]] =
+  protected def optionalPostcode(requiredKey: String, invalidKey: String, countryFieldName: String): FieldMapping[Option[String]] =
     of(optionalPostcodeFormatter(requiredKey, invalidKey, countryFieldName))
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
@@ -36,8 +36,8 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def int(requiredKey: String = "error.required",
                     wholeNumberKey: String = "error.wholeNumber",
                     nonNumericKey: String = "error.nonNumeric",
-                    min:Option[(String,Int)] = None,
-                    max:Option[(String,Int)] = None
+                    min: Option[(String, Int)] = None,
+                    max: Option[(String, Int)] = None
                    ): FieldMapping[Int] =
     of(intFormatter(requiredKey, wholeNumberKey, nonNumericKey, min, max))
 
@@ -47,12 +47,23 @@ trait Mappings extends Formatters with Constraints with Transforms {
     of(bigDecimalFormatter(requiredKey, invalidKey))
 
   protected def bigDecimal2DP(requiredKey: String = "error.required",
-                           invalidKey: String = "error.invalid",
-                           decimalKey: String = "error.decimal"
-                          ): FieldMapping[BigDecimal] =
+                              invalidKey: String = "error.invalid",
+                              decimalKey: String = "error.decimal"
+                             ): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
-  protected def bigDecimalTotal(itemsToTotal: String*): FieldMapping[BigDecimal] = of(bigDecimalTotalFormatter(itemsToTotal: _*))
+  protected def conditionalBigDecimal2DP(otherKey: String,
+                                         requiredKeyA: String = "error.required",
+                                         requiredKeyB: String = "error.required",
+                                         invalidKeyA: String = "error.invalid",
+                                         invalidKeyB: String = "error.invalid",
+                                         decimalKeyA: String = "error.decimal",
+                                         decimalKeyB: String = "error.decimal"
+                                        ): FieldMapping[Option[BigDecimal]] =
+    of(conditionalBigDecimal2DPFormatter(otherKey, requiredKeyA, requiredKeyB, invalidKeyA, invalidKeyB, decimalKeyA, decimalKeyB))
+
+  protected def bigDecimalTotal(itemsToTotal: String*): FieldMapping[BigDecimal] =
+    of(bigDecimalTotalFormatter(itemsToTotal: _*))
 
   protected def boolean(requiredKey: String = "error.required",
                         invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
