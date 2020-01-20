@@ -88,7 +88,6 @@ class AFTSummaryController @Inject()(
 
   def onSubmit(mode: Mode, srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      val version = optionVersion.getOrElse("1")
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
