@@ -272,7 +272,14 @@ trait Formatters extends Transforms with Constraints {
         }
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
-        baseFormatter.unbind(key, decimalFormat.format(value.get))
+        value match {
+          case Some(str) => {
+            println(s"\n\nvalue formatter\n$key\n\n")
+            baseFormatter.unbind(key, decimalFormat.format(str))
+          }
+          case _ =>
+            Map.empty
+        }
     }
 
   private[mappings] def bigDecimalTotalFormatter(itemsToTotal: String*): Formatter[BigDecimal] =

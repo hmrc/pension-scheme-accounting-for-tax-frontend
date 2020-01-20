@@ -26,8 +26,16 @@ import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
-  val taxAt25PercentIsEmpty: Condition = p => p.get("taxAt25Percent").isEmpty && p("taxAt25Percent").matches("""^-?( )*$""")
-  val taxAt55PercentIsEmpty: Condition = p => p.get("taxAt55Percent").isEmpty && p("taxAt55Percent").matches("""^-?( )*$""")
+  val taxAt25PercentIsEmpty: Condition =
+    p => {
+      println(s"\n\ntaxAt25Percent\n$p\n\n")
+      p.get("taxAt25Percent").isEmpty | p("taxAt25Percent").matches("""^-?( )*$""")
+    }
+  val taxAt55PercentIsEmpty: Condition =
+    p => {
+      println(s"\n\ntaxAt55Percent\n$p\n\n")
+      p.get("taxAt55Percent").isEmpty | p("taxAt55Percent").matches("""^-?( )*$""")
+    }
   implicit val ignoredParam: Option[BigDecimal] = None
 
   def apply()(implicit messages: Messages): Form[ChargeDDetails] =

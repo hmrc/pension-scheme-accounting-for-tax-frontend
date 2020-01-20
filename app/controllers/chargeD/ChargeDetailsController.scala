@@ -50,6 +50,13 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def form(implicit messages: Messages): Form[ChargeDDetails] = formProvider()
 
+  def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
+    GenericViewModel(
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    )
+
   def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
@@ -59,14 +66,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None => form
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel,
+          "viewModel" -> viewModel(mode, srn, index, schemeName),
           "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
           "memberName" -> memberName
         )
@@ -81,14 +83,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         form.bindFromRequest().fold(
           formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel,
+              "viewModel" -> viewModel(mode, srn, index, schemeName),
               "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
               "memberName" -> memberName
             )
