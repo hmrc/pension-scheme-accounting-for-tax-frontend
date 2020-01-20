@@ -17,7 +17,6 @@
 package controllers
 
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AFTSummaryFormProvider
@@ -58,9 +57,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGET: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.AFTSummaryController.onPageLoad(NormalMode, SampleData.srn, None).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -92,7 +91,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "form" -> form,
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(NormalMode, SampleData.srn, None).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
