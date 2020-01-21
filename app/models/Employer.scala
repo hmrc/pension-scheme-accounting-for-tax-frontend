@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package models
 
-import models.chargeC.SponsoringEmployerAddress
-import pages.behaviours.PageBehaviours
+import play.api.libs.json.{Format, Json}
 
+import scala.language.implicitConversions
 
-class SponsoringEmployerAddressPageSpec extends PageBehaviours {
+case class Employer(index: Int, name: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"employer-$index"
 
-  "SponsoringEmployerAddressPage" - {
+    def removeLinkId = s"$id-remove"
 
-    beRetrievable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
+    def viewLinkId = s"$id-view"
 
-    beSettable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
-
-    beRemovable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
-  }
 }
+
+object Employer {
+    implicit lazy val formats: Format[Employer] =
+        Json.format[Employer]
+}
+

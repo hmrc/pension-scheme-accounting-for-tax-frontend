@@ -806,4 +806,12 @@ chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the sp
 chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
 chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number
 
+chargeC.addEmployers.title = Authorised surplus payments charges for {0} to {1}
+chargeC.addEmployers.heading = Authorised surplus payments charges for {0} to {1}
+chargeC.addEmployers.label = Do you want to add another authorised surplus payments charge?
+chargeC.addEmployers.visuallyHidden = {0}’s authorised surplus payments charge
 chargeC.addEmployers.error = Select yes if you want to add another authorised surplus payments charge
+
+addEmployers.employer.header = Sponsoring employer
+addEmployers.amount.header = Total
+

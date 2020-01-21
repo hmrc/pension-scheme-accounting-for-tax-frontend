@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.chargeG
+package controllers.chargeC
 
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -24,7 +24,7 @@ import models.GenericViewModel
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
-import pages.chargeG._
+import pages.chargeC._
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
@@ -33,11 +33,11 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val templateToBeRendered = "chargeG/addMembers.njk"
-  private val form = new AddMembersFormProvider()("chargeG.addMembers.error")
-  private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(SampleData.srn).url
+class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val templateToBeRendered = "chargeC/addEmployers.njk"
+  private val form = new AddMembersFormProvider()("chargeC.addEmployers.error")
+  private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(SampleData.srn).url
+  private def httpPathPOST: String = controllers.chargeC.routes.AddEmployersController.onSubmit(SampleData.srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -50,31 +50,27 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(
-      Json.obj("text" -> "Member", "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "National Insurance number", "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "Tax due", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "Sponsoring employer", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "Total", "classes" -> cssQuarterWidth),
       Json.obj("text" -> ""),
       Json.obj("text" -> "")
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "First Last","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "Big Company","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> "<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> ""),
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> "£100.00","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "£66.88","classes" -> cssQuarterWidth),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
@@ -84,7 +80,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(SampleData.srn).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value")),
@@ -100,14 +96,16 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   }
 
   private def ua = SampleData.userAnswersWithSchemeName
-    .set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
-    .set(MemberDetailsPage(1), SampleData.memberGDetails2).toOption.get
-    .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
-    .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
+    .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
+    .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
+    .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
-  val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
+  val expectedJson: JsObject = ua.set(AddEmployersPage, true).get.data
 
-  "AddMembers Controller" must {
+  "AddEmployers Controller" must {
     "return OK and the correct view for a GET" in {
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -139,7 +137,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddMembersPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 

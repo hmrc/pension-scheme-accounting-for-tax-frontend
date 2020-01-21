@@ -28,14 +28,13 @@ import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
-import pages.chargeG.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.ChargeCService.{mapToTable, getSponsoringEmployers}
+import services.ChargeCService.{getSponsoringEmployers, mapToTable}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -53,7 +52,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form: Form[Boolean] = formProvider("addEmployers.error")
+  def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
@@ -86,7 +85,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
           },
           value => {
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(AddEmployersPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
             } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn))
           }

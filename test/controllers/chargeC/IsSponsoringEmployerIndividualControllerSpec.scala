@@ -35,26 +35,25 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
 class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
   def onwardRoute = Call("GET", "/foo")
-
+  private val index = 0
   val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   val form = formProvider()
 
-  private def httpPathGET = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn).url
-  private def httpPathPOST = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn).url
+  private def httpPathGET = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index).url
+  private def httpPathPOST = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, index).url
 
   private def viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
   returnUrl = onwardRoute.url,
   schemeName = schemeName)
 
-  private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage, true).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage(index), true).success.value
 
   "IsSponsoringEmployerIndividual Controller" must {
 

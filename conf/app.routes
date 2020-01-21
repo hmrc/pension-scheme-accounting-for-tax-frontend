@@ -127,6 +127,9 @@ GET         /:srn/new-return/authorised-surplus-payments-charge/:index/on-click-
 GET         /:srn/new-return/authorised-surplus-payments-charge/list-of-charges                  controllers.chargeC.AddEmployersController.onPageLoad(srn: String)
 POST        /:srn/new-return/authorised-surplus-payments-charge/list-of-charges                  controllers.chargeC.AddEmployersController.onSubmit(srn: String)
 
+GET        /:srn/new-return/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onPageLoad(srn: String, index: Index)
+POST       /:srn/new-return/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onSubmit(srn: String, index: Index)
+
 GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need                                                 controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/overseas-transfer-charge/:index/members-details                                             controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)

@@ -27,20 +27,20 @@ import play.api.mvc.Call
 
 class ChargeCNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-
+  private val index = 0
   import ChargeCNavigatorSpec._
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn)),
-        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsOrganisation)),
-        row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn), Some(sponsoringEmployerIsIndividual)),
-        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
-        row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)),
-        row(SponsoringEmployerAddressPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
-        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index)),
+        row(IsSponsoringEmployerIndividualPage(index))(SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, index), Some(sponsoringEmployerIsOrganisation)),
+        row(IsSponsoringEmployerIndividualPage(index))(SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, index), Some(sponsoringEmployerIsIndividual)),
+        row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)),
+        row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)),
+        row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
+        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn))
       )
 
@@ -51,16 +51,16 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(IsSponsoringEmployerIndividualPage)(SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn), Some(sponsoringEmployerIsOrganisation)),
-        row(IsSponsoringEmployerIndividualPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerIsOrganisationWithOrganisationDetails)),
-        row(IsSponsoringEmployerIndividualPage)(SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn), Some(sponsoringEmployerIsIndividual)),
-        row(IsSponsoringEmployerIndividualPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerIsIndividualWithIndividualDetails)),
-        row(SponsoringOrganisationDetailsPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerAddress)),
-        row(SponsoringOrganisationDetailsPage)(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)),
-        row(SponsoringIndividualDetailsPage)(CheckYourAnswersController.onPageLoad(srn), Some(sponsoringEmployerAddress)),
-        row(SponsoringIndividualDetailsPage)(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn)),
-        row(SponsoringEmployerAddressPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(ChargeCDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
+        row(IsSponsoringEmployerIndividualPage(index))(SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index), Some(sponsoringEmployerIsOrganisation)),
+        row(IsSponsoringEmployerIndividualPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerIsOrganisationWithOrganisationDetails)),
+        row(IsSponsoringEmployerIndividualPage(index))(SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index), Some(sponsoringEmployerIsIndividual)),
+        row(IsSponsoringEmployerIndividualPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerIsIndividualWithIndividualDetails)),
+        row(SponsoringOrganisationDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerAddress)),
+        row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)),
+        row(SponsoringIndividualDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerAddress)),
+        row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)),
+        row(SponsoringEmployerAddressPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
+        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn))
       )
 
@@ -74,33 +74,43 @@ object ChargeCNavigatorSpec {
 
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
       IsSponsoringEmployerIndividualPage.toString -> false
+      ))
     )
   ))
 
   private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
       IsSponsoringEmployerIndividualPage.toString -> true
+      ))
     )
   ))
 
   private val sponsoringEmployerIsOrganisationWithOrganisationDetails = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
       IsSponsoringEmployerIndividualPage.toString -> false,
       SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails
+      ))
     )
   ))
 
   private val sponsoringEmployerIsIndividualWithIndividualDetails = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
       IsSponsoringEmployerIndividualPage.toString -> true,
       SponsoringIndividualDetailsPage.toString -> SampleData.sponsoringIndividualDetails
+      ))
     )
   ))
 
   private val sponsoringEmployerAddress = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
       SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
+      ))
     )
   ))
 }

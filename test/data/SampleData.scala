@@ -74,12 +74,12 @@ object SampleData {
     )
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringOrganisationDetailsPage, sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage, false).toOption.get
+    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
 
   def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringIndividualDetailsPage, sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage, true).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
 
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)

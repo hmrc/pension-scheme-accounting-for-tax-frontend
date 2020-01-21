@@ -60,7 +60,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       case _ => Seq.empty
     }
 
-  private def getEmployerName(index: Int) =
+  private def getEmployerName(index: Int): String =
     (userAnswers.get(IsSponsoringEmployerIndividualPage(index)),
       userAnswers.get(SponsoringIndividualDetailsPage(index)),
       userAnswers.get(SponsoringOrganisationDetailsPage(index))
