@@ -33,7 +33,7 @@ class AFTSummaryHelper{
 
   def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[Row] = {
 
-    val summaryData: Seq[SummaryDetails] = Seq(
+    val summaryDataUK: Seq[SummaryDetails] = Seq(
       SummaryDetails(
         chargeType = ChargeTypeAnnualAllowance,
         totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
@@ -55,11 +55,6 @@ class AFTSummaryHelper{
         href = chargeD.routes.AddMembersController.onPageLoad(srn)
       ),
       SummaryDetails(
-        chargeType = ChargeTypeOverseasTransfer,
-        totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeG.routes.AddMembersController.onPageLoad(srn)
-      ),
-      SummaryDetails(
         chargeType = ChargeTypeShortService,
         totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
         href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
@@ -71,7 +66,15 @@ class AFTSummaryHelper{
       )
     )
 
-    val summaryRows: Seq[SummaryList.Row] = summaryData.map { data =>
+    val summaryDataNonUK: Seq[SummaryDetails] = Seq(
+            SummaryDetails(
+              chargeType = ChargeTypeOverseasTransfer,
+              totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+              href = chargeG.routes.AddMembersController.onPageLoad(srn)
+            )
+    )
+
+    val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"£${formatBigDecimalAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
@@ -89,12 +92,31 @@ class AFTSummaryHelper{
       )
     }
 
-    val totalRow: Row = Row(
-      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"£${formatBigDecimalAsString(summaryData.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
-      actions = Nil
-    )
 
-    summaryRows :+ totalRow
+    val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
+      Row(
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"£${formatBigDecimalAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        actions = if (data.totalAmount > BigDecimal(0)) {
+          List(
+            Action(
+              content = msg"site.view",
+              href = data.href.url,
+              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            )
+          )
+        } else {
+          Nil
+        }
+      )
+    }
+
+    val totalRow: Seq[SummaryList.Row] = Seq(Row(
+      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
+      value = Value(Literal(s"£${formatBigDecimalAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
+      actions = Nil
+    ))
+
+    summaryRowsUK ++ totalRow ++ summaryRowsNonUK
   }
 }
