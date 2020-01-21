@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ viewModel.submitUrl }}" method="post">
+        <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
