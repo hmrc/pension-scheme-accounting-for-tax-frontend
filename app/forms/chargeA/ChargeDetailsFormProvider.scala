@@ -25,9 +25,9 @@ import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
-  private def condition(field: String): Condition =
+  private def otherFieldEmptyOrBothFieldsNonEmpty(otherField: String): Condition =
     map =>
-      map(field).isEmpty | (map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate").nonEmpty)
+      map(otherField).isEmpty | (map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate").nonEmpty)
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
@@ -41,7 +41,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))
       ),
       "totalAmtOfTaxDueAtLowerRate" -> onlyIf[Option[BigDecimal]](
-        condition("totalAmtOfTaxDueAtHigherRate"),
+        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "totalAmtOfTaxDueAtHigherRate"),
         optionBigDecimal2DP(
           requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
@@ -52,7 +52,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         )
       ),
       "totalAmtOfTaxDueAtHigherRate" -> onlyIf[Option[BigDecimal]](
-        condition("totalAmtOfTaxDueAtLowerRate"),
+        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "totalAmtOfTaxDueAtLowerRate"),
         optionBigDecimal2DP(
           requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",

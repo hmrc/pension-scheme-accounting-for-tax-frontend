@@ -50,7 +50,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def form(implicit messages: Messages): Form[ChargeDDetails] = formProvider()
 
-  def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
