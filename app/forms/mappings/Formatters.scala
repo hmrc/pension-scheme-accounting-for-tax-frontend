@@ -27,60 +27,66 @@ import scala.util.{Failure, Success, Try}
 
 trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
-  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
+  private[mappings] val postcodeRegexp = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
+  private[mappings] val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
+  private[mappings] val decimalRegexp = """^-?(\d*\.\d*)$"""
+  private[mappings] val decimal2DPRegexp = """^-?(\d*\.\d{2})$"""
 
-  private[mappings] val optionalStringFormatter: Formatter[Option[String]] = new Formatter[Option[String]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
-      Right(
-        data
-          .get(key)
-          .map(standardiseText)
-          .filter(_.lengthCompare(0) > 0)
-      )
+  private[mappings] val optionalStringFormatter: Formatter[Option[String]] =
+    new Formatter[Option[String]] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
+        Right(
+          data
+            .get(key)
+            .map(standardiseText)
+            .filter(_.lengthCompare(0) > 0)
+        )
 
-    override def unbind(key: String, value: Option[String]): Map[String, String] =
-      Map(key -> value.getOrElse(""))
-  }
+      override def unbind(key: String, value: Option[String]): Map[String, String] =
+        Map(key -> value.getOrElse(""))
+    }
 
   private[mappings] def optionalPostcodeFormatter(requiredKey: String,
                                                   invalidKey: String,
-                                                  countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+                                                  countryFieldName: String): Formatter[Option[String]] =
+    new Formatter[Option[String]] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
 
-      val isPostcodeRequired = data.get(countryFieldName).contains("GB")
+        val isPostcodeRequired = data.get(countryFieldName).contains("GB")
 
-      data.get(key) match {
-        case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
-        case None | Some("") => Right(None)
-        case Some(postcode) =>
-          if (minimiseSpace(postcode.trim.toUpperCase).matches(regexPostcode)) {
-            Right(
-              data
-                .get(key)
-                .map(standardiseText)
-                .filter(_.lengthCompare(0) > 0)
-            )
-          } else {
-            Left(Seq(FormError(key, invalidKey)))
-          }
+        data.get(key) match {
+          case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
+          case None | Some("") => Right(None)
+          case Some(postcode) =>
+            if (minimiseSpace(postcode.trim.toUpperCase).matches(postcodeRegexp)) {
+              Right(
+                data
+                  .get(key)
+                  .map(standardiseText)
+                  .filter(_.lengthCompare(0) > 0)
+              )
+            } else {
+              Left(Seq(FormError(key, invalidKey)))
+            }
+        }
       }
+
+      override def unbind(key: String, value: Option[String]): Map[String, String] =
+        Map(key -> value.getOrElse(""))
     }
 
-    override def unbind(key: String, value: Option[String]): Map[String, String] =
-      Map(key -> value.getOrElse(""))
-  }
+  private[mappings] def stringFormatter(errorKey: String): Formatter[String] =
+    new Formatter[String] {
 
-  private[mappings] def stringFormatter(errorKey: String): Formatter[String] = new Formatter[String] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
+        data.get(key) match {
+          case None | Some("") => Left(Seq(FormError(key, errorKey)))
+          case Some(s) => Right(s)
+        }
 
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
-      data.get(key) match {
-        case None | Some("") => Left(Seq(FormError(key, errorKey)))
-        case Some(s) => Right(s)
-      }
-
-    override def unbind(key: String, value: String): Map[String, String] =
-      Map(key -> value)
-  }
+      override def unbind(key: String, value: String): Map[String, String] =
+        Map(key -> value)
+    }
 
   private[mappings] def booleanFormatter(requiredKey: String, invalidKey: String): Formatter[Boolean] =
     new Formatter[Boolean] {
@@ -106,8 +112,6 @@ trait Formatters extends Transforms with Constraints {
                                      max: Option[(String, Int)] = None,
                                      args: Seq[String] = Seq.empty): Formatter[Int] =
     new Formatter[Int] {
-
-      val decimalRegexp = """^-?(\d*\.\d*)$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
@@ -159,8 +163,6 @@ trait Formatters extends Transforms with Constraints {
                                                decimalKey: String,
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-      val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
-      val decimalRegexp = """^-?(\d*\.\d{2})$"""
 
       private val baseFormatter = stringFormatter(requiredKey)
 
@@ -170,9 +172,9 @@ trait Formatters extends Transforms with Constraints {
           .right.map(_.replace(",", "").replace(" ", ""))
           .right.flatMap {
           case s if !s.matches(numericRegexp) =>
-          Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimalRegexp) =>
-          Left(Seq(FormError(key, decimalKey, args)))
+            Left(Seq(FormError(key, invalidKey, args)))
+          case s if !s.matches(decimal2DPRegexp) =>
+            Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(BigDecimal(s)) match {
               case Success(x) => Right(x)
@@ -189,8 +191,6 @@ trait Formatters extends Transforms with Constraints {
                                                      decimalKey: String,
                                                      args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] =
     new Formatter[Option[BigDecimal]] {
-      val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
-      val decimalRegexp = """^-?(\d*\.\d{2})$"""
 
       private val baseFormatter: Formatter[String] = stringFormatter(requiredKey)
 
@@ -203,7 +203,7 @@ trait Formatters extends Transforms with Constraints {
             Right(None)
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimalRegexp) =>
+          case s if !s.matches(decimal2DPRegexp) =>
             Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(Option(BigDecimal(s))) match {
@@ -239,7 +239,8 @@ trait Formatters extends Transforms with Constraints {
       override def unbind(key: String, value: BigDecimal): Map[String, String] = Map(key -> decimalFormat.format(value))
     }
 
-  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)(implicit ev: Enumerable[A]): Formatter[A] =
+  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)
+                                              (implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
 
       private val baseFormatter = stringFormatter(requiredKey)
