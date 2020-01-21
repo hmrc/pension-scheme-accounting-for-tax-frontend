@@ -27,7 +27,7 @@ sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
 
-  private val minEndYear = "2019"
+  private val earliestAllowableEndTaxYear = "2019"
 
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
   case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
@@ -79,7 +79,7 @@ object YearRange extends Enumerable.Implicits {
         Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
         Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
         Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
-      ).filter(_.value >= minEndYear)
+      ).filter(_.value >= earliestAllowableEndTaxYear)
     Radios(field, items)
   }
 
