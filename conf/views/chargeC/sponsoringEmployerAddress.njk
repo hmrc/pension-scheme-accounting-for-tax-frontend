@@ -29,7 +29,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeC.sponsoringEmployerAddress.heading', sponsorName)}}</h1>
 
-        <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
+        <form action="{{ viewModel.submitUrl }}" method="post" autoComplete="off">
 
           {{ csrf() | safe }}
 
@@ -43,8 +43,7 @@
             name: "line1",
             value: form.line1.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line1.error,
-            attributes: {autocomplete: "none"}
+            errorMessage: form.line1.error
           }) }}
 
           {{ govukInput({
@@ -57,8 +56,7 @@
             name: "line2",
             value: form.line2.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line2.error,
-            attributes: {autocomplete: "none"}
+            errorMessage: form.line2.error
           }) }}
 
           {{ govukInput({
@@ -71,8 +69,7 @@
             name: "line3",
             value: form.line3.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line3.error,
-            attributes: {autocomplete: "none"}
+            errorMessage: form.line3.error
           }) }}
 
           {{ govukInput({
@@ -85,8 +82,7 @@
             name: "line4",
             value: form.line4.value,
             classes: "govuk-input--width-20",
-            errorMessage: form.line4.error,
-            attributes: {autocomplete: "none"}
+            errorMessage: form.line4.error
           }) }}
 
           <div class="govuk-form-group autocomplete-wrapper govuk-body govuk-input--width-20">
@@ -118,8 +114,7 @@
             name: "postcode",
             value: form.postcode.value,
             classes: "govuk-input--width-10",
-            errorMessage: form.postcode.error,
-            attributes: {autocomplete: "none"}
+            errorMessage: form.postcode.error
           }) }}
 
           {{ govukButton({
