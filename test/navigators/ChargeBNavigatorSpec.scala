@@ -17,15 +17,14 @@
 package navigators
 
 import controllers.chargeB.routes.{ChargeDetailsController, CheckYourAnswersController}
+import controllers.routes.AFTSummaryController
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
-import controllers.routes.AFTSummaryController
 import play.api.mvc.Call
 
 class ChargeBNavigatorSpec extends NavigatorBehaviour {
-
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
 
@@ -35,7 +34,7 @@ class ChargeBNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeBDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(NormalMode, srn))
+        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, None))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -52,3 +51,5 @@ class ChargeBNavigatorSpec extends NavigatorBehaviour {
   }
 
 }
+
+
