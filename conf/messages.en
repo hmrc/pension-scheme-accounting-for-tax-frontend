@@ -815,3 +815,6 @@ chargeC.addEmployers.error = Select yes if you want to add another authorised su
 addEmployers.employer.header = Sponsoring employer
 addEmployers.amount.header = Total
 
+deleteEmployer.chargeC.title = Are you sure you want to remove the authorised surplus payments charge for {0}?
+deleteEmployer.chargeC.heading = Are you sure you want to remove the authorised surplus payments charge for {0}?
+deleteEmployer.chargeC.error.required = Select yes if you want to remove the authorised surplus payments charge for {0}

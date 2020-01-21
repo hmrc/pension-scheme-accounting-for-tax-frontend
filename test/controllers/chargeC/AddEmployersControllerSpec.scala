@@ -46,24 +46,25 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
+  private val cssHalfWidth = "govuk-!-width-one-half"
 
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(
-      Json.obj("text" -> "Sponsoring employer", "classes" -> cssQuarterWidth),
+      Json.obj("text" -> "Sponsoring employer", "classes" -> cssHalfWidth),
       Json.obj("text" -> "Total", "classes" -> cssQuarterWidth),
       Json.obj("text" -> ""),
       Json.obj("text" -> "")
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "First Last","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "First Last","classes" -> cssHalfWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Big Company","classes" -> cssQuarterWidth),
+        Json.obj("text" -> "Big Company","classes" -> cssHalfWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
         Json.obj("html" -> "<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
