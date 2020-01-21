@@ -50,6 +50,7 @@ object SampleData {
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
+  val version = "1"
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)

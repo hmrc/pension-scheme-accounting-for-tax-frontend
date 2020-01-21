@@ -18,11 +18,11 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
+import controllers.chargeC.routes._
 import models.{CheckMode, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
-import controllers.chargeC.routes._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
@@ -39,7 +39,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case SponsoringIndividualDetailsPage => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn)
       case SponsoringEmployerAddressPage => ChargeDetailsController.onPageLoad(NormalMode, srn)
       case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
-      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
     }
   }
 
@@ -49,7 +49,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case SponsoringIndividualDetailsPage => editRoutesForSponsoringEmployerPages(ua, srn)
     case SponsoringEmployerAddressPage => CheckYourAnswersController.onPageLoad(srn)
     case ChargeCDetailsPage => CheckYourAnswersController.onPageLoad(srn)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn)
   }
 
   private def editRoutesForIsSponsoringEmployerIndividualPage(ua:UserAnswers, srn: String):Call = {
