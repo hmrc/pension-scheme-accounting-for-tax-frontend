@@ -448,10 +448,10 @@ chargeD.whatYouWillNeed.li3 = the date of the benefit crystallisation event givi
 chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
 
-amountTaxDue.error.required = Enter the amount of tax due at {0}%
-amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
-amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
-amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
+chargeD.amountTaxDue.error.required = Enter the amount of tax due at {0}%
+chargeD.amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
+chargeD.amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
+chargeD.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
@@ -778,7 +778,7 @@ chargeC.paymentDate.error.future = The date the authorised surplus payment was m
 chargeC.amountTaxDue.error.required = Enter the amount of tax due at 35%
 chargeC.amountTaxDue.error.invalid = The amount of tax due at 35% must be an amount of money, like 123.45 or 156.00
 chargeC.amountTaxDue.error.decimal = The amount of tax due at 35% must include pence, like 123.45 or 156.00
-amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
+chargeC.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 chargeC.paymentDate.label = Date authorised surplus payment was made
 chargeC.amountTaxDue.label = Amount of tax due at 35%

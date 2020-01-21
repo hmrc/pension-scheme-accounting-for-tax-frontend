@@ -17,9 +17,7 @@
 package controllers
 
 import models.MemberDetails
-import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import pages.chargeA.ChargeDetailsPage
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
 import play.api.mvc.Results.Redirect

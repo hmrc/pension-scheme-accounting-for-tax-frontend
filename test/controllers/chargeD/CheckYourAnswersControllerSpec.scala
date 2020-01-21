@@ -18,7 +18,7 @@ package controllers.chargeD
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
@@ -30,18 +30,18 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url
-  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(SampleData.srn, 0).url
+  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, 0).url
+  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, 0).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(MemberDetailsPage(0), memberDetails).toOption.get
+    .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
   private val rows = Seq(
     helper.chargeDMemberDetails(0).get,
     helper.chargeDDetails(0).get,
-    Seq(helper.total(SampleData.chargeAmount1 + SampleData.chargeAmount2))
+    Seq(helper.total(chargeAmount1 + chargeAmount2))
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
@@ -56,9 +56,28 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       userAnswers = ua
     )
 
-    behave like controllerWithOnClick(
-      httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
-    )
+    "CheckYourAnswers Controller with both rates of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua
+      )
+    }
+
+    "CheckYourAnswers Controller with no 25% rate of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt25Percent = None)).get
+      )
+    }
+
+    "CheckYourAnswers Controller with no 55% rate of tax set" must {
+      behave like controllerWithOnClick(
+        httpPath = httpOnClickRoute,
+        page = CheckYourAnswersPage,
+        userAnswers = ua.set(ChargeDetailsPage(0), chargeDDetails.copy(taxAt55Percent = None)).get
+      )
+    }
   }
 }
