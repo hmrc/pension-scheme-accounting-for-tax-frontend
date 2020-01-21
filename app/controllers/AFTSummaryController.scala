@@ -22,7 +22,8 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
+import models.requests.OptionalDataRequest
+import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -56,32 +57,23 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val futureUAWithAFTDetails = optionVersion match {
-          case None => Future.successful(requestUA)
-          case Some(version) =>
-            aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
-              .map( aftDetails => UserAnswers(aftDetails.as[JsObject]))
-        }
-
-        futureUAWithAFTDetails.flatMap { ua =>
-          val uaUpdatedWithSchemeDetails = ua
-            .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-            .setOrException(PSTRQuery, schemeDetails.pstr)
-          userAnswersCacheConnector.save(request.internalId, uaUpdatedWithSchemeDetails.data).flatMap { _ =>
-            val json = Json.obj(
-              "form" -> form,
-              "list" -> aftSummaryHelper.summaryListData(uaUpdatedWithSchemeDetails, srn),
-              "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-              "radios" -> Radios.yesNo(form("value"))
-            )
-
-            renderer.render("aftSummary.njk", json).map(Ok(_))
-          }
-
-        }
+      val futureJsonForTemplate = for {
+        schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+        userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
+        userAnswersAfterSave <- userAnswersCacheConnector
+          .save(request.internalId, addSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails).data)
+      } yield {
+        Json.obj(
+          "form" -> form,
+          "list" -> aftSummaryHelper.summaryListData(UserAnswers(userAnswersAfterSave.as[JsObject]), srn),
+          "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
+          "radios" -> Radios.yesNo(form("value"))
+        )
       }
+
+      futureJsonForTemplate
+        .flatMap(json => renderer.render("aftSummary.njk", json))
+        .map(Ok(_))
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -89,7 +81,6 @@ class AFTSummaryController @Inject()(
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
-
             val json = Json.obj(
               "form" -> formWithErrors,
               "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
@@ -114,4 +105,16 @@ class AFTSummaryController @Inject()(
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName)
   }
+
+  private def retrieveUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
+    optionVersion match {
+      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
+      case Some(version) =>
+        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
+    }
+
+  private def addSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails): UserAnswers =
+    userAnswers.setOrException(SchemeNameQuery, schemeDetails.schemeName).setOrException(PSTRQuery, schemeDetails.pstr)
 }

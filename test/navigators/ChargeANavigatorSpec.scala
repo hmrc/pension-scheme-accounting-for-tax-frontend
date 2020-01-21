@@ -39,7 +39,7 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
-p
+
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
