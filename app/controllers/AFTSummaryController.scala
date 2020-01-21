@@ -57,7 +57,7 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val futureJsonForTemplate = for {
+      val futureJsonToPassToTemplate = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
         userAnswersAfterSave <- userAnswersCacheConnector
@@ -71,8 +71,8 @@ class AFTSummaryController @Inject()(
         )
       }
 
-      futureJsonForTemplate
-        .flatMap(json => renderer.render("aftSummary.njk", json))
+      futureJsonToPassToTemplate
+        .flatMap(renderer.render("aftSummary.njk", _))
         .map(Ok(_))
   }
 
