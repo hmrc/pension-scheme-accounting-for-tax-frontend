@@ -20,9 +20,8 @@ import controllers.chargeD.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
+import pages.Page
 import pages.chargeD._
-import pages.{Page, VersionQuery}
-import play.api.libs.json.Json
 import play.api.mvc.Call
 
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
@@ -41,9 +40,7 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None), addMembersNo),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), optionUAWithAddMembersNoAndVersion),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None)),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
 
       )
@@ -69,11 +66,4 @@ object ChargeDNavigatorSpec {
   private val index = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
-  private val version = "1"
-  private val optionUAWithAddMembersNoAndVersion = addMembersNo.flatMap(_.set(VersionQuery, version).toOption)
-  private val uaWithVersion = UserAnswers(
-    Json.obj(
-      VersionQuery.toString -> version
-    )
-  )
 }

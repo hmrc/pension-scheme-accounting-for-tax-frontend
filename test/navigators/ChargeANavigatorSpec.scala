@@ -16,13 +16,12 @@
 
 package navigators
 
+import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{Page, VersionQuery}
+import pages.Page
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
-import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
-import play.api.libs.json.Json
 
 class ChargeANavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
@@ -35,13 +34,12 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion))
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
   }
-
+p
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
@@ -56,12 +54,4 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
 
 object ChargeANavigatorSpec {
   private val srn = "test-srn"
-
-  private val version = "1"
-  private val uaWithVersion = UserAnswers(
-    Json.obj(
-      VersionQuery.toString -> version
-    )
-  )
 }
-

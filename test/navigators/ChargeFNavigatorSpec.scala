@@ -16,14 +16,14 @@
 
 package navigators
 
-import models.{CheckMode, NormalMode, UserAnswers}
-import org.scalatest.prop.TableFor3
-import pages.{Page, VersionQuery}
-import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
-import play.api.mvc.Call
 import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
 import controllers.routes.AFTSummaryController
+import models.{CheckMode, NormalMode, UserAnswers}
+import org.scalatest.prop.TableFor3
+import pages.Page
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.libs.json.Json
+import play.api.mvc.Call
 
 class ChargeFNavigatorSpec extends NavigatorBehaviour {
   import ChargeFNavigatorSpec._
@@ -36,8 +36,7 @@ class ChargeFNavigatorSpec extends NavigatorBehaviour {
         ("Id", "UserAnswers", "Next Page"),
         row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, None)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, Some(version)), Some(uaWithVersion))
+        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, None))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -57,10 +56,4 @@ class ChargeFNavigatorSpec extends NavigatorBehaviour {
 
 object ChargeFNavigatorSpec {
   private val srn = "test-srn"
-  private val version = "1"
-  private val uaWithVersion = UserAnswers(
-    Json.obj(
-      VersionQuery.toString -> version
-    )
-  )
 }

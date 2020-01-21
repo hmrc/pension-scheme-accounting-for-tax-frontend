@@ -24,7 +24,7 @@ import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery, VersionQuery}
+import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -61,10 +61,8 @@ class AFTSummaryController @Inject()(
         val futureUAWithAFTDetails = optionVersion match {
           case None => Future.successful(requestUA)
           case Some(version) =>
-            aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version).map { aftDetails =>
-              UserAnswers(aftDetails.as[JsObject])
-                .setOrException(VersionQuery, version)
-            }
+            aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+              .map( aftDetails => UserAnswers(aftDetails.as[JsObject]))
         }
 
         futureUAWithAFTDetails.flatMap { ua =>
