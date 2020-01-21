@@ -154,9 +154,6 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, value.toString)
     }
 
-//  def empty(field: Option[String]): Boolean =
-//    field.isEmpty | field.get.matches("""^-?( )*$""")
-
   private[mappings] def bigDecimal2DPFormatter(requiredKey: String,
                                                invalidKey: String,
                                                decimalKey: String,
