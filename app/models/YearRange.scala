@@ -68,17 +68,16 @@ object YearRange extends Enumerable.Implicits {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(getLabel(CurrentYear), CurrentYear.toString),
-      Radios.Radio(getLabel(CurrentYearMinusOne), CurrentYearMinusOne.toString),
-      Radios.Radio(getLabel(CurrentYearMinusTwo), CurrentYearMinusTwo.toString),
-      Radios.Radio(getLabel(CurrentYearMinusThree), CurrentYearMinusThree.toString),
-      Radios.Radio(getLabel(CurrentYearMinusFour), CurrentYearMinusFour.toString),
-      Radios.Radio(getLabel(CurrentYearMinusFive), CurrentYearMinusFive.toString),
-      Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
-      Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
-      Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
-    )
-
+        Radios.Radio(getLabel(CurrentYear), CurrentYear.toString),
+        Radios.Radio(getLabel(CurrentYearMinusOne), CurrentYearMinusOne.toString),
+        Radios.Radio(getLabel(CurrentYearMinusTwo), CurrentYearMinusTwo.toString),
+        Radios.Radio(getLabel(CurrentYearMinusThree), CurrentYearMinusThree.toString),
+        Radios.Radio(getLabel(CurrentYearMinusFour), CurrentYearMinusFour.toString),
+        Radios.Radio(getLabel(CurrentYearMinusFive), CurrentYearMinusFive.toString),
+        Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
+        Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
+        Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
+      ).filter(_.value.toInt >= 2019)
     Radios(field, items)
   }
 
