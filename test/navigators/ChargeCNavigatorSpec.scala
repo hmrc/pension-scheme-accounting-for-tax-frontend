@@ -41,11 +41,11 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)),
         row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn)),
         row(AddEmployersPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index), addEmployersYes),
         row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addEmployersNo),
         row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
-        row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn), Some(SampleData.chargeGMember))
+        row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn), Some(SampleData.chargeCEmployer))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -64,8 +64,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerAddress)),
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)),
         row(SponsoringEmployerAddressPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn))
+        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
       )
 
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
