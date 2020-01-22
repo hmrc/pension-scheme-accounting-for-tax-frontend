@@ -42,7 +42,7 @@ object YearRange extends Enumerable.Implicits {
   case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
   case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
-  val values: Seq[YearRange] =
+  def values: Seq[YearRange] =
     nextTaxYearIfSelectable ++
     Seq(
       CurrentYear,
@@ -73,5 +73,5 @@ object YearRange extends Enumerable.Implicits {
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
     Radios(form("value"), values.map( yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
-  implicit val enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
+  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
