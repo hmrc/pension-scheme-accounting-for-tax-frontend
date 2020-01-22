@@ -22,8 +22,10 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
+import pages.{PSTRQuery, SchemeNameQuery}
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -76,15 +78,26 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getLifetimeAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
-        for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
-        } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
-        }
+      (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
+        case (Some(pstr), Some(chargeDetails)) =>
+
+          val totalAmount: BigDecimal = getLifetimeAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
+
+          val updatedChargeDetails: ChargeDDetails = chargeDetails.copy(
+            taxAt25Percent = Option(chargeDetails.taxAt25Percent.getOrElse(BigDecimal(0.00))),
+            taxAt55Percent = Option(chargeDetails.taxAt55Percent.getOrElse(BigDecimal(0.00)))
+          )
+
+          for {
+            ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
+            ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
+            _ <- userAnswersCacheConnector.save(request.internalId, ua2.data)
+            _ <- aftConnector.fileAFTReturn(pstr, ua2)
+          } yield {
+            Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+          }
+        case _ =>
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 }

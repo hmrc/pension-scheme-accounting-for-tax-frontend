@@ -23,7 +23,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ submitUrl }}" method="post">
+        <form action="{{ submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 

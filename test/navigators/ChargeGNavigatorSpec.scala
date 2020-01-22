@@ -26,12 +26,9 @@ import play.api.mvc.Call
 
 class ChargeGNavigatorSpec extends NavigatorBehaviour {
 
-  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
-  private val srn = "test-srn"
-  private val index = 0
-  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
-  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
+  import ChargeGNavigatorSpec._
 
+  private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -42,8 +39,8 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(ChargeAmountsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None), addMembersNo),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None)),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeGMember))
       )
 
@@ -62,4 +59,11 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
     behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
   }
 
+}
+
+object ChargeGNavigatorSpec {
+  private val srn = "test-srn"
+  private val index = 0
+  private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
+  private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
 }

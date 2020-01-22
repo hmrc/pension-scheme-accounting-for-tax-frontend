@@ -22,7 +22,8 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, UserAnswers}
+import models.requests.OptionalDataRequest
+import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,39 +55,36 @@ class AFTSummaryController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", "1").flatMap { aftDetails =>
-          val updateUA = UserAnswers(aftDetails.as[JsObject])
-            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
-            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
-
-          userAnswersCacheConnector.save(request.internalId, updateUA.data).flatMap { _ =>
-            val json = Json.obj(
-              "form" -> form,
-              "list" -> aftSummaryHelper.summaryListData(updateUA, srn),
-              "viewModel" -> viewModel(mode, srn, schemeDetails.schemeName),
-              "radios" -> Radios.yesNo(form("value"))
-            )
-
-            renderer.render("aftSummary.njk", json).map(Ok(_))
-          }
-        }
+      val futureJsonToPassToTemplate = for {
+        schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+        userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
+        userAnswersAfterSave <- userAnswersCacheConnector
+          .save(request.internalId, addSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails).data)
+      } yield {
+        Json.obj(
+          "form" -> form,
+          "list" -> aftSummaryHelper.summaryListData(UserAnswers(userAnswersAfterSave.as[JsObject]), srn),
+          "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
+          "radios" -> Radios.yesNo(form("value"))
+        )
       }
+
+      futureJsonToPassToTemplate
+        .flatMap(renderer.render("aftSummary.njk", _))
+        .map(Ok(_))
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
-
             val json = Json.obj(
               "form" -> formWithErrors,
               "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
-              "viewModel" -> viewModel(mode, srn, schemeName),
+              "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
               "radios" -> Radios.yesNo(formWithErrors("value"))
             )
 
@@ -96,15 +94,27 @@ class AFTSummaryController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AFTSummaryPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AFTSummaryPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
         )
       }
   }
 
-  def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel = {
+  def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(mode, srn).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName)
   }
+
+  private def retrieveUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
+    optionVersion match {
+      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
+      case Some(version) =>
+        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
+    }
+
+  private def addSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails): UserAnswers =
+    userAnswers.setOrException(SchemeNameQuery, schemeDetails.schemeName).setOrException(PSTRQuery, schemeDetails.pstr)
 }
