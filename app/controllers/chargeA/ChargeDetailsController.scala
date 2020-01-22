@@ -26,7 +26,7 @@ import models.chargeA.ChargeDetails
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages.chargeA.ChargeDetailsPage
-import play.api.data.{Form, FormError}
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

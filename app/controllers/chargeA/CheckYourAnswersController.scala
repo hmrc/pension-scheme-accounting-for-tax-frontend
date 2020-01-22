@@ -19,6 +19,7 @@ package controllers.chargeA
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
@@ -36,6 +37,7 @@ import utils.CheckYourAnswersHelper
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
+                                           userAnswersCacheConnector: UserAnswersCacheConnector,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
@@ -86,6 +88,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
           for {
             updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
+            _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
             _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
           } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
         case _ =>
