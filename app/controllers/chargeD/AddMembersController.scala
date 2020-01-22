@@ -50,11 +50,12 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      val controllerComponents: MessagesControllerComponents,
                                      config: FrontendAppConfig,
                                      renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   def form: Form[Boolean] = formProvider("chargeD.addMembers.error")
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -71,47 +72,47 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-        form.bindFromRequest().fold(
-          formWithErrors => {
-            (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-              case (Some(schemeName), Some(quarter)) =>
+      form.bindFromRequest().fold(
+        formWithErrors => {
+          (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+            case (Some(schemeName), Some(quarter)) =>
 
-                renderer.render(
-                  template = "chargeD/addMembers.njk",
-                  getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+              renderer.render(
+                template = "chargeD/addMembers.njk",
+                getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
 
-              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-            }
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn))
+            case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
-        )
-      }
+        },
+        value => {
+          for {
+            updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
+            _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+          } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn))
+        }
+      )
+  }
 
   private def getJson(srn: String, form: Form[_], schemeName: String, quarter: Quarter
                      )(implicit request: DataRequest[AnyContent]): JsObject = {
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.AddMembersController.onSubmit(srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+    val viewModel = GenericViewModel(
+      submitUrl = routes.AddMembersController.onSubmit(srn).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName)
 
-        val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
+    val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
 
-        Json.obj(
-          "form" -> form,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(form("value")),
-          "quarterStart" -> getFormattedDate(quarter.startDate),
-          "quarterEnd" -> getFormattedDate(quarter.endDate),
-          "table" -> Json.toJson(mapToTable(members))
-        )
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> viewModel,
+      "radios" -> Radios.yesNo(form("value")),
+      "quarterStart" -> getFormattedDate(quarter.startDate),
+      "quarterEnd" -> getFormattedDate(quarter.endDate),
+      "table" -> Json.toJson(mapToTable(members))
+    )
 
 
-    }
+  }
 
 }

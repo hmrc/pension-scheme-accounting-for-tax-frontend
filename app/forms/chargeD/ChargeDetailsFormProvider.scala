@@ -16,14 +16,21 @@
 
 package forms.chargeD
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.{Constraints, Formatters, Mappings}
 import javax.inject.Inject
 import models.chargeD.ChargeDDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
+import uk.gov.voa.play.form.Condition
+import uk.gov.voa.play.form.ConditionalMappings._
 
-class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
+class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
+  private def otherFieldEmptyOrBothFieldsNonEmpty(otherField: String): Condition =
+    map =>
+      map(otherField).isEmpty | (map("taxAt25Percent").nonEmpty && map("taxAt55Percent").nonEmpty)
+
+  implicit private val ignoredParam: Option[BigDecimal] = None
 
   def apply()(implicit messages: Messages): Form[ChargeDDetails] =
     Form(mapping(
@@ -36,21 +43,27 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         futureDate("dateOfEvent.error.future"),
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
-      "taxAt25Percent" -> bigDecimal2DP(
-        requiredKey = messages("amountTaxDue.error.required", "25"),
-        invalidKey = messages("amountTaxDue.error.invalid", "25"),
-        decimalKey = messages("amountTaxDue.error.decimal", "25")
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), messages("amountTaxDue.error.maximum", "25")),
-        minimumValue[BigDecimal](BigDecimal("0.00"), messages("amountTaxDue.error.invalid", "25"))
+      "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
+        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "taxAt55Percent"),
+        optionBigDecimal2DP(
+          requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
+          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
+        ).verifying(
+          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
+          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "25"))
+        )
       ),
-      "taxAt55Percent" ->  bigDecimal2DP(
-        requiredKey = messages("amountTaxDue.error.required", "55"),
-        invalidKey = messages("amountTaxDue.error.invalid", "55"),
-        decimalKey = messages("amountTaxDue.error.decimal", "55")
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), messages("amountTaxDue.error.maximum", "55")),
-        minimumValue[BigDecimal](BigDecimal("0.00"), messages("amountTaxDue.error.invalid", "55"))
+      "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
+        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "taxAt25Percent"),
+        optionBigDecimal2DP(
+          requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
+          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
+        ).verifying(
+          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
+          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "55"))
+        )
       )
     )(ChargeDDetails.apply)(ChargeDDetails.unapply))
 }
