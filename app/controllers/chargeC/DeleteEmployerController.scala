@@ -121,6 +121,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
         ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
       case (Some(false), _, Some(orgDetails)) =>
         ua.set(SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true))
+      case _ => Try(ua)
     }
 
   def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getSponsoringEmployers(ua, srn).map(_.amount).sum
