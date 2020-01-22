@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.Year
+import java.time.{LocalDate, Month, Year}
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -29,6 +29,7 @@ object YearRange extends Enumerable.Implicits {
 
   private val earliestAllowableEndTaxYear = "2019"
 
+  case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
   case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
   case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
@@ -39,17 +40,19 @@ object YearRange extends Enumerable.Implicits {
   case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
   case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
-  val values: Seq[YearRange] = Seq(
-    CurrentYear,
-    CurrentYearMinusOne,
-    CurrentYearMinusTwo,
-    CurrentYearMinusThree,
-    CurrentYearMinusFour,
-    CurrentYearMinusFive,
-    CurrentYearMinusSix,
-    CurrentYearMinusSeven,
-    CurrentYearMinusEight
-  )
+  val values: Seq[YearRange] =
+    Seq(
+      CurrentYear,
+      CurrentYearMinusOne,
+      CurrentYearMinusTwo,
+      CurrentYearMinusThree,
+      CurrentYearMinusFour,
+      CurrentYearMinusFive,
+      CurrentYearMinusSix,
+      CurrentYearMinusSeven,
+      CurrentYearMinusEight
+    ).filter(_.toString >= earliestAllowableEndTaxYear) ++ (if (LocalDate.now.getMonthValue >= 4) Seq(CurrentYearPlusOne) else Seq.empty)
+
 
   def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal =
     yearRange match {
@@ -65,21 +68,14 @@ object YearRange extends Enumerable.Implicits {
     }
 
   def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
+  def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
-
     val field = form("value")
-    val items = Seq(
-        Radios.Radio(getLabel(CurrentYear), CurrentYear.toString),
-        Radios.Radio(getLabel(CurrentYearMinusOne), CurrentYearMinusOne.toString),
-        Radios.Radio(getLabel(CurrentYearMinusTwo), CurrentYearMinusTwo.toString),
-        Radios.Radio(getLabel(CurrentYearMinusThree), CurrentYearMinusThree.toString),
-        Radios.Radio(getLabel(CurrentYearMinusFour), CurrentYearMinusFour.toString),
-        Radios.Radio(getLabel(CurrentYearMinusFive), CurrentYearMinusFive.toString),
-        Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
-        Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
-        Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
-      ).filter(_.value >= earliestAllowableEndTaxYear)
+    val items =
+      values.map { yy =>
+        Radios.Radio(getLabel(yy), values.toString)
+      }
     Radios(field, items)
   }
 
