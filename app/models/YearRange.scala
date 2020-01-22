@@ -26,8 +26,9 @@ import uk.gov.hmrc.viewmodels._
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
-
   private val earliestAllowableEndTaxYear = "2019"
+  private def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
+  private def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
 
   case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
@@ -41,6 +42,7 @@ object YearRange extends Enumerable.Implicits {
   case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
   val values: Seq[YearRange] =
+    (if (LocalDate.now.getMonthValue > Month.MARCH.getValue) Seq(CurrentYearPlusOne) else Seq.empty) ++
     Seq(
       CurrentYear,
       CurrentYearMinusOne,
@@ -51,11 +53,11 @@ object YearRange extends Enumerable.Implicits {
       CurrentYearMinusSix,
       CurrentYearMinusSeven,
       CurrentYearMinusEight
-    ).filter(_.toString >= earliestAllowableEndTaxYear) ++ (if (LocalDate.now.getMonthValue >= 4) Seq(CurrentYearPlusOne) else Seq.empty)
-
+    ).filter(_.toString >= earliestAllowableEndTaxYear)
 
   def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal =
     yearRange match {
+      case CurrentYearPlusOne => Literal(msg"yearRangeRadio".withArgs(Year.now.getValue.toString, yearPlus(1)).resolve)
       case CurrentYear => Literal(msg"yearRangeRadio".withArgs(yearMinus(1), Year.now.getValue.toString).resolve)
       case CurrentYearMinusOne => Literal(msg"yearRangeRadio".withArgs(yearMinus(2), yearMinus(1)).resolve)
       case CurrentYearMinusTwo => Literal(msg"yearRangeRadio".withArgs(yearMinus(3), yearMinus(2)).resolve)
@@ -67,18 +69,8 @@ object YearRange extends Enumerable.Implicits {
       case CurrentYearMinusEight => Literal(msg"yearRangeRadio".withArgs(yearMinus(9), yearMinus(8)).resolve)
     }
 
-  def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
-  def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
+  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
+    Radios(form("value"), values.map( yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
-    val field = form("value")
-    val items =
-      values.map { yy =>
-        Radios.Radio(getLabel(yy), values.toString)
-      }
-    Radios(field, items)
-  }
-
-  implicit val enumerable: Enumerable[YearRange] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+  implicit val enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
