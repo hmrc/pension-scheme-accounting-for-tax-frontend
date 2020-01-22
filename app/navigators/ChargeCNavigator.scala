@@ -18,7 +18,6 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import controllers.chargeC.routes._
 import models.{CheckMode, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC._
