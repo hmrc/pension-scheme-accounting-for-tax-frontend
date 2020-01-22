@@ -24,7 +24,8 @@
     serviceName: messages("site.service_name"),
     serviceUrl: "/pension-scheme-accounting-for-tax-frontend",
     containerClasses: "govuk-width-container",
-    assetsPath: "/assets"
+    assetsPath: "/assets",
+    navigation: [{ href: routes.controllers.SignOutController.signOut().url, text: messages("site.signOut") }]
   }) }}
 {% endblock %}
 

@@ -31,7 +31,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addEmployers(ua: UserAnswers, srn: String): Call = ua.get(AddEmployersPage) match {
     case Some(true) => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -48,7 +48,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case CheckYourAnswersPage => AddEmployersController.onPageLoad(srn)
       case AddEmployersPage => addEmployers(ua, srn)
       case DeleteEmployerPage if getSponsoringEmployers(ua, srn).nonEmpty => AddEmployersController.onPageLoad(srn)
-      case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+      case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
 
   }
 

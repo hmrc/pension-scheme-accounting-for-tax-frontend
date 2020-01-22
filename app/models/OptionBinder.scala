@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package models.chargeD
+package models
 
-import java.time.LocalDate
+import play.api.mvc._
 
-import play.api.libs.json.{Format, Json}
+object OptionBinder {
 
-case class ChargeDDetails(
-                           dateOfEvent: LocalDate,
-                           taxAt25Percent: Option[BigDecimal],
-                           taxAt55Percent: Option[BigDecimal]
-                         ){
+  implicit def optionBindable[T: PathBindable]: PathBindable[Option[T]] = new PathBindable[Option[T]] {
+    def bind(key: String, value: String): Either[String, Option[T]] =
+      implicitly[PathBindable[T]].
+        bind(key, value).
+        fold(
+          left => Left(left),
+          right => Right(Some(right))
+        )
 
-  def total: BigDecimal = taxAt25Percent.getOrElse(BigDecimal(0.00)) + taxAt55Percent.getOrElse(BigDecimal(0.00))
-}
-
-object ChargeDDetails {
-  implicit lazy val formats: Format[ChargeDDetails] =
-    Json.format[ChargeDDetails]
+    def unbind(key: String, value: Option[T]): String = value map (_.toString) getOrElse ""
+  }
 }

@@ -43,8 +43,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn)),
         row(AddEmployersPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index), addEmployersYes),
-        row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addEmployersNo),
-        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None), addEmployersNo),
+        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None)),
         row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn), Some(SampleData.chargeCEmployer))
       )
 

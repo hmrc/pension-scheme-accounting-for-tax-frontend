@@ -17,6 +17,7 @@
 package forms.chargeD
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import base.SpecBase
 import forms.behaviours._
@@ -24,71 +25,118 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider()()
-  val dateKey = "dateOfEvent"
-  val tax25PercentKey = "taxAt25Percent"
-  val tax55PercentKey = "taxAt55Percent"
+  private val form = new ChargeDetailsFormProvider()()
+  private val dateKey = "dateOfEvent"
+  private val tax25PercentKey = "taxAt25Percent"
+  private val tax55PercentKey = "taxAt55Percent"
+  private val maxDate = LocalDate.now()
+
+  private def chargeDetails(
+                             date: LocalDate = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse("2020-01-01")),
+                             tax25: String = "1.00",
+                             tax55: String = "1.00"
+                           ): Map[String, String] = {
+
+    Map(
+      s"$dateKey.day" -> date.getDayOfMonth.toString,
+      s"$dateKey.month" -> date.getMonthValue.toString,
+      s"$dateKey.year" -> date.getYear.toString,
+      tax25PercentKey -> tax25,
+      tax55PercentKey -> tax55
+    )
+  }
 
   "dateOfEvent" must {
+    s"fail to bind a date greater than ${maxDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
+      val generator = datesBetween(maxDate.plusDays(1), maxDate.plusYears(10))
 
-   behave like dateFieldWithMax(
-      form = form,
-      key = dateKey,
-      max = LocalDate.now(),
-      formError = FormError(dateKey, s"$dateKey.error.future")
-    )
+      forAll(generator -> "invalid dates") {
+        date =>
 
-    behave like mandatoryDateField(
-      form = form,
-      key = dateKey,
-      requiredAllKey = s"$dateKey.error.required")
+          val result = form.bind(chargeDetails(date = date))
+
+          result.errors must contain(FormError(dateKey, s"$dateKey.error.future"))
+      }
+    }
+
+    "fail to bind empty date" in {
+      val result = form.bind(Map(dateKey -> "", tax25PercentKey -> "1.00", tax55PercentKey -> "1.00"))
+
+      result.errors must contain(FormError(dateKey, s"$dateKey.error.required"))
+    }
   }
 
   "taxAt25Percent" must {
 
-    behave like bigDecimalField(
-      form = form,
-      fieldName = tax25PercentKey,
-      nonNumericError = FormError(tax25PercentKey, messages("amountTaxDue.error.invalid", "25")),
-      decimalsError = FormError(tax25PercentKey, messages("amountTaxDue.error.decimal", "25"))
-    )
+    "must not bind non-numeric numbers" in {
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric: String =>
+          val result = form.bind(chargeDetails(tax25 = nonNumeric))
+          result.errors mustEqual Seq(FormError(tax25PercentKey, messages("chargeD.amountTaxDue.error.invalid", "25")))
+      }
+    }
 
-    behave like bigDecimalFieldWithMinimum(
-      form = form,
-      fieldName = tax25PercentKey,
-      minimum = BigDecimal("0.00"),
-      expectedError = FormError(tax25PercentKey, messages("amountTaxDue.error.invalid", "25"))
-    )
+    "must not bind decimals that are not 2 dp" in {
+      forAll(decimals -> "decimal") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax25 = decimal))
+          result.errors mustEqual Seq(FormError(tax25PercentKey, messages("chargeD.amountTaxDue.error.decimal", "25")))
+      }
+    }
 
-    behave like longBigDecimal(
-      form = form,
-      fieldName = tax25PercentKey,
-      length = 12,
-      expectedError = FormError(tax25PercentKey, messages("amountTaxDue.error.maximum", "25"))
-    )
+    "must not bind decimals below 0.00" in {
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax25 = decimal))
+          result.errors.head.key mustEqual tax25PercentKey
+          result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.invalid", "25")
+      }
+    }
+
+    "must not bind decimals longer than 11 characters" in {
+      forAll(longDecimalString(11) -> "decimalAboveMax") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax25 = decimal))
+          result.errors.head.key mustEqual tax25PercentKey
+          result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.maximum", "25")
+      }
+    }
   }
 
   "taxAt55Percent" must {
 
-    behave like bigDecimalField(
-      form = form,
-      fieldName = tax55PercentKey,
-      nonNumericError = FormError(tax55PercentKey, messages("amountTaxDue.error.invalid", "55")),
-      decimalsError = FormError(tax55PercentKey, messages("amountTaxDue.error.decimal", "55"))
-    )
+    "must not bind non-numeric numbers" in {
+      forAll(nonNumerics -> "nonNumeric") {
+        nonNumeric: String =>
+          val result = form.bind(chargeDetails(tax55 = nonNumeric))
+          result.errors mustEqual Seq(FormError(tax55PercentKey, messages("chargeD.amountTaxDue.error.invalid", "55")))
+      }
+    }
 
-    behave like bigDecimalFieldWithMinimum(
-      form = form,
-      fieldName = tax55PercentKey,
-      minimum = BigDecimal("0.00"),
-      expectedError = FormError(tax55PercentKey, messages("amountTaxDue.error.invalid", "55"))
-    )
+    "must not bind decimals that are not 2 dp" in {
+      forAll(decimals -> "decimal") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax55 = decimal))
+          result.errors mustEqual Seq(FormError(tax55PercentKey, messages("chargeD.amountTaxDue.error.decimal", "55")))
+      }
+    }
 
-    behave like longBigDecimal(
-      form = form,
-      fieldName = tax55PercentKey,
-      length = 12,
-      expectedError = FormError(tax55PercentKey, messages("amountTaxDue.error.maximum", "55"))
-    )
+    "must not bind decimals below 0.00" in {
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax55 = decimal))
+          result.errors.head.key mustEqual tax55PercentKey
+          result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.invalid", "55")
+      }
+    }
+
+    "must not bind decimals longer than 11 characters" in {
+      forAll(longDecimalString(11) -> "decimalAboveMax") {
+        decimal: String =>
+          val result = form.bind(chargeDetails(tax55 = decimal))
+          result.errors.head.key mustEqual tax55PercentKey
+          result.errors.head.message mustEqual messages("chargeD.amountTaxDue.error.maximum", "55")
+      }
+    }
   }
 }

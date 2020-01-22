@@ -18,12 +18,10 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import controllers.chargeD.routes._
-import controllers.chargeD.routes.MemberDetailsController
+import controllers.chargeD.routes.{MemberDetailsController, _}
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeD._
-import pages.chargeD.AddMembersPage
+import pages.chargeD.{AddMembersPage, _}
 import play.api.mvc.Call
 import services.ChargeDService._
 
@@ -33,7 +31,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addMembers(ua: UserAnswers, srn: String): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -43,7 +41,7 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
     case DeleteMemberPage if getLifetimeAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
-    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
