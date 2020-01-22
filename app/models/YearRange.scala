@@ -31,16 +31,16 @@ object YearRange extends Enumerable.Implicits {
   private def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
   private def nextTaxYearIfSelectable:Seq[YearRange] = if (LocalDate.now.getMonthValue > 3) Seq(CurrentYearPlusOne) else Seq.empty
 
-  case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
+  private case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
-  case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
-  case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
-  case object CurrentYearMinusThree extends WithName(yearMinus(3)) with YearRange
-  case object CurrentYearMinusFour extends WithName(yearMinus(4)) with YearRange
-  case object CurrentYearMinusFive extends WithName(yearMinus(5)) with YearRange
-  case object CurrentYearMinusSix extends WithName(yearMinus(6)) with YearRange
-  case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
-  case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
+  private case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
+  private case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
+  private case object CurrentYearMinusThree extends WithName(yearMinus(3)) with YearRange
+  private case object CurrentYearMinusFour extends WithName(yearMinus(4)) with YearRange
+  private case object CurrentYearMinusFive extends WithName(yearMinus(5)) with YearRange
+  private case object CurrentYearMinusSix extends WithName(yearMinus(6)) with YearRange
+  private case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
+  private case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
   def values: Seq[YearRange] =
     nextTaxYearIfSelectable ++
