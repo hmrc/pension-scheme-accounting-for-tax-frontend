@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{LocalDate, Month, Year}
+import java.time.{LocalDate, Year}
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -29,6 +29,7 @@ object YearRange extends Enumerable.Implicits {
   private val earliestAllowableEndTaxYear = "2019"
   private def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
   private def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
+  private def nextTaxYearIfSelectable:Seq[YearRange] = if (LocalDate.now.getMonthValue > 3) Seq(CurrentYearPlusOne) else Seq.empty
 
   case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
@@ -42,7 +43,7 @@ object YearRange extends Enumerable.Implicits {
   case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
   val values: Seq[YearRange] =
-    (if (LocalDate.now.getMonthValue > Month.MARCH.getValue) Seq(CurrentYearPlusOne) else Seq.empty) ++
+    nextTaxYearIfSelectable ++
     Seq(
       CurrentYear,
       CurrentYearMinusOne,
