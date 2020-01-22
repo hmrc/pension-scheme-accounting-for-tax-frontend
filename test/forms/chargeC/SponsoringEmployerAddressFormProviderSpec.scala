@@ -25,8 +25,8 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   val form = new SponsoringEmployerAddressFormProvider()()
 
   "line1" must {
-    val requiredKey = "chargeC.sponsoringEmployerAddress.line1.error.required"
-    val lengthKey = "chargeC.sponsoringEmployerAddress.line1.error.length"
+    val requiredKey = "address.line1.error.required"
+    val lengthKey = "address.line1.error.length"
     val fieldName = "line1"
 
     behave like fieldThatBindsValidData(
@@ -50,8 +50,8 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   }
 
   "line2" must {
-    val requiredKey = "chargeC.sponsoringEmployerAddress.line2.error.required"
-    val lengthKey = "chargeC.sponsoringEmployerAddress.line2.error.length"
+    val requiredKey = "address.line2.error.required"
+    val lengthKey = "address.line2.error.length"
     val fieldName = "line2"
 
     behave like fieldThatBindsValidData(
@@ -75,7 +75,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   }
 
   "line3" must {
-    val lengthKey = "chargeC.sponsoringEmployerAddress.line3.error.length"
+    val lengthKey = "address.line3.error.length"
     val fieldName = "line3"
 
     behave like fieldThatBindsValidData(
@@ -93,7 +93,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   }
 
   "line4" must {
-    val lengthKey = "chargeC.sponsoringEmployerAddress.line4.error.length"
+    val lengthKey = "address.line4.error.length"
     val fieldName = "line4"
 
     behave like fieldThatBindsValidData(
@@ -112,7 +112,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
 
 
   "country" must {
-    val requiredKey = "chargeC.sponsoringEmployerAddress.country.error.required"
+    val requiredKey = "address.country.error.required"
     val fieldName = "country"
 
     behave like fieldThatBindsValidData(
@@ -129,7 +129,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   }
 
   "postcode" must {
-    val requiredKey = "chargeC.sponsoringEmployerAddress.postcode.error.required"
+    val requiredKey = "address.postcode.error.required"
     val fieldName = "postcode"
     "must not bind when key is not present at all when country is GB" in {
       val result = form.bind(Map("country" -> "GB")).apply(fieldName)

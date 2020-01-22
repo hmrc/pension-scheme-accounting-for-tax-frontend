@@ -19,11 +19,12 @@ package controllers.chargeC
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeC.CheckYourAnswersPage
+import pages.chargeC.{CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -31,8 +32,9 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
+import services.ChargeCService._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -40,6 +42,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            getData: DataRetrievalAction,
                                            requireData: DataRequiredAction,
                                            aftConnector: AFTConnector,
+                                           userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer
@@ -74,7 +77,12 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>
+        val totalAmount = getSponsoringEmployers(request.userAnswers, srn).map(_.amount).sum
+        for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
+          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+          _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+        } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
         }
       }

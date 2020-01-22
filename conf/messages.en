@@ -245,15 +245,16 @@ chargeC.sponsoringEmployerAddress.line4.title = Address line 4 (optional)
 chargeC.sponsoringEmployerAddress.country.title = Country
 chargeC.sponsoringEmployerAddress.postcode.title = Postcode (if UK)
 
-chargeC.sponsoringEmployerAddress.line1.error.required = Enter the first line of {0}’s address
-chargeC.sponsoringEmployerAddress.line1.error.length = Address line 1 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line2.error.required = Enter the second line of {0}’s address
-chargeC.sponsoringEmployerAddress.line2.error.length = Address line 2 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line3.error.length = Address line 3 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line4.error.length = Address line 4 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
-chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
-chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
+address.line1.error.required = Enter the first line of {0}’s address
+address.line1.error.length = Address line 1 must be 35 characters or fewer
+address.line2.error.required = Enter the second line of {0}’s address
+address.line2.error.length = Address line 2 must be 35 characters or fewer
+address.line3.error.length = Address line 3 must be 35 characters or fewer
+address.line4.error.length = Address line 4 must be 35 characters or fewer
+address.country.error.required = Enter {0}’s country
+address.postcode.error.required = Enter {0}’s postcode
+address.postcode.error.invalid = Enter a real postcode
+address.postcode.error.length = Enter postcode length less than 10
 
 chargeC.sponsoringIndividualDetails.title = Sponsoring individual’s details
 chargeC.sponsoringIndividualDetails.heading = Sponsoring individual’s details

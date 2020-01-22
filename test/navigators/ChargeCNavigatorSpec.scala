@@ -41,7 +41,11 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)),
         row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn))
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(AddEmployersPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index), addEmployersYes),
+        row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn), addEmployersNo),
+        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)),
+        row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn), Some(SampleData.chargeGMember))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
@@ -71,6 +75,10 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
 object ChargeCNavigatorSpec {
 
   private val srn = "test-srn"
+
+
+  private val addEmployersYes = UserAnswers().set(AddEmployersPage, true).toOption
+  private val addEmployersNo = UserAnswers().set(AddEmployersPage, false).toOption
 
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(

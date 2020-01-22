@@ -27,7 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalFormat = new DecimalFormat("0.00")
-  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
+
 
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] = new Formatter[Option[String]] {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
@@ -44,25 +44,22 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def optionalPostcodeFormatter(requiredKey: String,
                                                   invalidKey: String,
+                                                  nonUkLengthKey: String,
                                                   countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
+
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val postCode = postCodeDataTransform(data.get(key))
+      val country = countryDataTransform(data.get(countryFieldName))
+      val maxLengthNonUKPostCode = 10
 
-      val isPostcodeRequired = data.get(countryFieldName).contains("GB")
-
-      data.get(key) match {
-        case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
-        case None | Some("") => Right(None)
-        case Some(postcode) =>
-          if (minimiseSpace(postcode.trim.toUpperCase).matches(regexPostcode)) {
-            Right(
-              data
-                .get(key)
-                .map(standardiseText)
-                .filter(_.lengthCompare(0) > 0)
-            )
-          } else {
-            Left(Seq(FormError(key, invalidKey)))
-          }
+      (postCode, country) match {
+        case (Some(zip), Some("GB")) if zip.matches(regexPostcode) => Right(Some(postCodeValidTransform(zip)))
+        case (Some(_), Some("GB")) => Left(Seq(FormError(key, invalidKey)))
+        case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostCode => Right(Some(zip))
+        case (Some(_), Some(_)) => Left(Seq(FormError(key, nonUkLengthKey)))
+        case (Some(zip), None) => Right(Some(zip))
+        case (None, Some("GB")) => Left(Seq(FormError(key, requiredKey)))
+        case _ => Right(None)
       }
     }
 

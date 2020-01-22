@@ -23,11 +23,16 @@ import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
 import controllers.chargeC.routes._
-import services.ChargeCService.getSponsoringEmployersIncludingDeleted
+import services.ChargeCService._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String): Int = getSponsoringEmployersIncludingDeleted(ua, srn).size
+
+  def addEmployers(ua: UserAnswers, srn: String): Call = ua.get(AddEmployersPage) match {
+    case Some(true) => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
+    case _ => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+  }
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
 
@@ -40,7 +45,10 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       case SponsoringIndividualDetailsPage(index) => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
       case SponsoringEmployerAddressPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
       case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
-      case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
+      case CheckYourAnswersPage => AddEmployersController.onPageLoad(srn)
+      case AddEmployersPage => addEmployers(ua, srn)
+      case DeleteEmployerPage if getSponsoringEmployers(ua, srn).nonEmpty => AddEmployersController.onPageLoad(srn)
+      case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(NormalMode, srn)
 
   }
 
@@ -50,7 +58,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case SponsoringIndividualDetailsPage(index) => editRoutesForSponsoringEmployerPages(index, ua, srn)
     case SponsoringEmployerAddressPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
     case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(CheckMode, srn)
   }
 
   private def optionIsSponsoringEmployerIndividual(index: Int, ua: UserAnswers):Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage(index))
