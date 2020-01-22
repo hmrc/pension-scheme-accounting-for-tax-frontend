@@ -88,8 +88,8 @@ trait StringFieldBehaviours extends FieldBehaviours {
     )
 
     "successfully bind when valid QROPS is provided" in {
-      val res = form.bind(Map(fieldName -> "Q123123")).apply(fieldName)
-      res.value.get mustEqual "Q123123"
+      val res = form.bind(Map(fieldName -> "123123")).apply(fieldName)
+      res.value.get mustEqual "123123"
     }
 
     Seq("A123789", "ABCDEF3", "1122334").foreach { qrops =>

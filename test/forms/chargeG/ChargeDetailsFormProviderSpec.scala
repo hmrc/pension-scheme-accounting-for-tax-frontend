@@ -75,13 +75,13 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     "successfully bind when valid QROPS with spaces is provided" in {
       val date = LocalDate.of(2020,1,1)
       val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
-        qropsRefKey -> " q 1 2 3 1 2 3 ",
+        qropsRefKey -> " 1 2 3 1 2 3 ",
         s"$qropsDateKey.day"   -> date.getDayOfMonth.toString,
         s"$qropsDateKey.month" -> date.getMonthValue.toString,
         s"$qropsDateKey.year"  -> date.getYear.toString
       )
       )
-      res.get mustEqual ChargeDetails("Q123123", date)
+      res.get mustEqual ChargeDetails("123123", date)
     }
   }
 }
