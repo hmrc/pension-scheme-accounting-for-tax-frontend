@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.Year
+import java.time.{LocalDate, Year}
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -26,31 +26,39 @@ import uk.gov.hmrc.viewmodels._
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
+  private val earliestAllowableEndTaxYear = "2019"
+  private def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
+  private def yearPlus(noOfYears: Int): String = (Year.now.getValue+noOfYears).toString
+  private def nextTaxYearIfSelectable:Seq[YearRange] = if (LocalDate.now.getMonthValue > 3) Seq(CurrentYearPlusOne) else Seq.empty
 
+  private case object CurrentYearPlusOne extends WithName(yearPlus(1)) with YearRange
   case object CurrentYear extends WithName(Year.now.getValue.toString) with YearRange
-  case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
-  case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
-  case object CurrentYearMinusThree extends WithName(yearMinus(3)) with YearRange
-  case object CurrentYearMinusFour extends WithName(yearMinus(4)) with YearRange
-  case object CurrentYearMinusFive extends WithName(yearMinus(5)) with YearRange
-  case object CurrentYearMinusSix extends WithName(yearMinus(6)) with YearRange
-  case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
-  case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
+  private case object CurrentYearMinusOne extends WithName(yearMinus(1)) with YearRange
+  private case object CurrentYearMinusTwo extends WithName(yearMinus(2)) with YearRange
+  private case object CurrentYearMinusThree extends WithName(yearMinus(3)) with YearRange
+  private case object CurrentYearMinusFour extends WithName(yearMinus(4)) with YearRange
+  private case object CurrentYearMinusFive extends WithName(yearMinus(5)) with YearRange
+  private case object CurrentYearMinusSix extends WithName(yearMinus(6)) with YearRange
+  private case object CurrentYearMinusSeven extends WithName(yearMinus(7)) with YearRange
+  private case object CurrentYearMinusEight extends WithName(yearMinus(8)) with YearRange
 
-  val values: Seq[YearRange] = Seq(
-    CurrentYear,
-    CurrentYearMinusOne,
-    CurrentYearMinusTwo,
-    CurrentYearMinusThree,
-    CurrentYearMinusFour,
-    CurrentYearMinusFive,
-    CurrentYearMinusSix,
-    CurrentYearMinusSeven,
-    CurrentYearMinusEight
-  )
+  def values: Seq[YearRange] =
+    nextTaxYearIfSelectable ++
+    Seq(
+      CurrentYear,
+      CurrentYearMinusOne,
+      CurrentYearMinusTwo,
+      CurrentYearMinusThree,
+      CurrentYearMinusFour,
+      CurrentYearMinusFive,
+      CurrentYearMinusSix,
+      CurrentYearMinusSeven,
+      CurrentYearMinusEight
+    ).filter(_.toString >= earliestAllowableEndTaxYear)
 
   def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal =
     yearRange match {
+      case CurrentYearPlusOne => Literal(msg"yearRangeRadio".withArgs(Year.now.getValue.toString, yearPlus(1)).resolve)
       case CurrentYear => Literal(msg"yearRangeRadio".withArgs(yearMinus(1), Year.now.getValue.toString).resolve)
       case CurrentYearMinusOne => Literal(msg"yearRangeRadio".withArgs(yearMinus(2), yearMinus(1)).resolve)
       case CurrentYearMinusTwo => Literal(msg"yearRangeRadio".withArgs(yearMinus(3), yearMinus(2)).resolve)
@@ -62,26 +70,8 @@ object YearRange extends Enumerable.Implicits {
       case CurrentYearMinusEight => Literal(msg"yearRangeRadio".withArgs(yearMinus(9), yearMinus(8)).resolve)
     }
 
-  def yearMinus(noOfYears: Int): String = (Year.now.getValue-noOfYears).toString
+  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
+    Radios(form("value"), values.map( yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
-
-    val field = form("value")
-    val items = Seq(
-      Radios.Radio(getLabel(CurrentYear), CurrentYear.toString),
-      Radios.Radio(getLabel(CurrentYearMinusOne), CurrentYearMinusOne.toString),
-      Radios.Radio(getLabel(CurrentYearMinusTwo), CurrentYearMinusTwo.toString),
-      Radios.Radio(getLabel(CurrentYearMinusThree), CurrentYearMinusThree.toString),
-      Radios.Radio(getLabel(CurrentYearMinusFour), CurrentYearMinusFour.toString),
-      Radios.Radio(getLabel(CurrentYearMinusFive), CurrentYearMinusFive.toString),
-      Radios.Radio(getLabel(CurrentYearMinusSix), CurrentYearMinusSix.toString),
-      Radios.Radio(getLabel(CurrentYearMinusSeven), CurrentYearMinusSeven.toString),
-      Radios.Radio(getLabel(CurrentYearMinusEight), CurrentYearMinusEight.toString)
-    )
-
-    Radios(field, items)
-  }
-
-  implicit val enumerable: Enumerable[YearRange] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
