@@ -17,9 +17,10 @@
 package forms.chargeC
 
 import forms.behaviours.StringFieldBehaviours
+import forms.mappings.Constraints
 import play.api.data.FormError
 
-class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
+class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours with Constraints {
   val addressLineMaxLength = 35
 
   val form = new SponsoringEmployerAddressFormProvider()()
@@ -27,6 +28,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   "line1" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.line1.error.required"
     val lengthKey = "chargeC.sponsoringEmployerAddress.line1.error.length"
+    val invalidKey = "chargeC.sponsoringEmployerAddress.line1.error.invalid"
     val fieldName = "line1"
 
     behave like fieldThatBindsValidData(
@@ -42,6 +44,13 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
       lengthError = FormError(fieldName, lengthKey, Seq(addressLineMaxLength))
     )
 
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("{address line 1}", "addre%$£ invalid"),
+      invalidError = FormError(fieldName, invalidKey, Seq(addressLineRegex))
+    )
+
     behave like mandatoryField(
       form,
       fieldName,
@@ -52,6 +61,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
   "line2" must {
     val requiredKey = "chargeC.sponsoringEmployerAddress.line2.error.required"
     val lengthKey = "chargeC.sponsoringEmployerAddress.line2.error.length"
+    val invalidKey = "chargeC.sponsoringEmployerAddress.line2.error.invalid"
     val fieldName = "line2"
 
     behave like fieldThatBindsValidData(
@@ -67,6 +77,13 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
       lengthError = FormError(fieldName, lengthKey, Seq(addressLineMaxLength))
     )
 
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("{address line 1}", "addre%$£ invalid"),
+      invalidError = FormError(fieldName, invalidKey, Seq(addressLineRegex))
+    )
+
     behave like mandatoryField(
       form,
       fieldName,
@@ -76,6 +93,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
 
   "line3" must {
     val lengthKey = "chargeC.sponsoringEmployerAddress.line3.error.length"
+    val invalidKey = "chargeC.sponsoringEmployerAddress.line3.error.invalid"
     val fieldName = "line3"
 
     behave like fieldThatBindsValidData(
@@ -90,10 +108,18 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
       maxLength = addressLineMaxLength,
       lengthError = FormError(fieldName, lengthKey, Seq(addressLineMaxLength))
     )
+
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("{address line 1}", "addre@~ invalid"),
+      invalidError = FormError(fieldName, invalidKey, Seq(addressLineRegex))
+    )
   }
 
   "line4" must {
     val lengthKey = "chargeC.sponsoringEmployerAddress.line4.error.length"
+    val invalidKey = "chargeC.sponsoringEmployerAddress.line4.error.invalid"
     val fieldName = "line4"
 
     behave like fieldThatBindsValidData(
@@ -107,6 +133,13 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours {
       fieldName,
       maxLength = addressLineMaxLength,
       lengthError = FormError(fieldName, lengthKey, Seq(addressLineMaxLength))
+    )
+
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("@address line 1@", "addre*£! invalid"),
+      invalidError = FormError(fieldName, invalidKey, Seq(addressLineRegex))
     )
   }
 

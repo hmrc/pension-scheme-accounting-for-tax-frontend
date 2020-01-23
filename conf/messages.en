@@ -248,10 +248,14 @@ chargeC.sponsoringEmployerAddress.postcode.title = Postcode (if UK)
 
 chargeC.sponsoringEmployerAddress.line1.error.required = Enter the first line of {0}’s address
 chargeC.sponsoringEmployerAddress.line1.error.length = Address line 1 must be 35 characters or fewer
+chargeC.sponsoringEmployerAddress.line1.error.invalid = Address line 1 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and backslashes
 chargeC.sponsoringEmployerAddress.line2.error.required = Enter the second line of {0}’s address
 chargeC.sponsoringEmployerAddress.line2.error.length = Address line 2 must be 35 characters or fewer
+chargeC.sponsoringEmployerAddress.line2.error.invalid = Address line 2 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and backslashes
 chargeC.sponsoringEmployerAddress.line3.error.length = Address line 3 must be 35 characters or fewer
+chargeC.sponsoringEmployerAddress.line3.error.invalid = Address line 3 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and backslashes
 chargeC.sponsoringEmployerAddress.line4.error.length = Address line 4 must be 35 characters or fewer
+chargeC.sponsoringEmployerAddress.line4.error.invalid = Address line 4 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and backslashes
 chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
 chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
 chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
