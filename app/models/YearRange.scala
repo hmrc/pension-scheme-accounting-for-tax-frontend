@@ -28,17 +28,6 @@ sealed trait YearRange {
   def label: Text.Message
 }
 
-case class DynamicYearRange(startYear: String) extends YearRange {
-  override def toString: String = startYear
-  override def label: Text.Message = msg"yearRangeRadio".withArgs(toString, (toString.toInt + 1).toString)
-}
-
-object DynamicYearRange {
-  implicit val writes: Writes[DynamicYearRange] = new Writes[DynamicYearRange] {
-    def writes(yr: DynamicYearRange): JsValue = JsString(yr.toString)
-  }
-}
-
 object YearRange extends Enumerable.Implicits {
   def currentYear = new DynamicYearRange(Year.now.toString)
 
@@ -59,3 +48,16 @@ object YearRange extends Enumerable.Implicits {
 
   implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
+
+case class DynamicYearRange(startYear: String) extends YearRange {
+  override def toString: String = startYear
+  override def label: Text.Message = msg"yearRangeRadio".withArgs(toString, (toString.toInt + 1).toString)
+}
+
+object DynamicYearRange {
+  implicit val writes: Writes[DynamicYearRange] = new Writes[DynamicYearRange] {
+    def writes(yr: DynamicYearRange): JsValue = JsString(yr.toString)
+  }
+}
+
+
