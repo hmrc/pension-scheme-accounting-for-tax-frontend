@@ -24,7 +24,10 @@
         }) }}
       {% endif %}
 
-      <h1 class="govuk-heading-xl">{{messages('aft.summary.heading', viewModel.schemeName)}}</h1>
+      <h1 class="govuk-heading-xl">
+        <span class="govuk-caption-xl">{{ viewModel.schemeName }}</span>
+        {{ messages('aft.summary.heading', startDate,endDate) }}
+      </h1>
 
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
