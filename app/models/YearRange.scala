@@ -33,13 +33,13 @@ object YearRange extends Enumerable.Implicits {
 
   def values: Seq[DynamicYearRange] = {
     val maxYear = if (LocalDate.now.getMonthValue > 3) Year.now.getValue + 1 else Year.now.getValue
-    (2019 to maxYear).reverse.map( year => DynamicYearRange(year.toString) )
+    (2019 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
   }
 
   def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal = {
     values.find(_.toString == yearRange.toString) match {
       case Some(yr) => Literal(yr.label.resolve)
-      case _ => throw new RuntimeException("Unknown year range: " + yearRange.toString )
+      case _ => throw new RuntimeException("Unknown year range: " + yearRange.toString)
     }
   }
 
@@ -51,6 +51,7 @@ object YearRange extends Enumerable.Implicits {
 
 case class DynamicYearRange(startYear: String) extends YearRange {
   override def toString: String = startYear
+
   override def label: Text.Message = msg"yearRangeRadio".withArgs(toString, (toString.toInt + 1).toString)
 }
 
