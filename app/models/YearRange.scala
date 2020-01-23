@@ -28,7 +28,7 @@ sealed trait YearRange {
   def label: Text.Message
 }
 
-class DynamicYearRange(startYear: => String) extends YearRange {
+case class DynamicYearRange(startYear: String) extends YearRange {
   override def toString: String = startYear
   override def label: Text.Message = msg"yearRangeRadio".withArgs(toString, (toString.toInt + 1).toString)
 }
@@ -44,7 +44,7 @@ object YearRange extends Enumerable.Implicits {
 
   def values: Seq[DynamicYearRange] = {
     val maxYear = if (LocalDate.now.getMonthValue > 3) Year.now.getValue + 1 else Year.now.getValue
-    (2019 to maxYear).reverse.map( year => new DynamicYearRange(year.toString) )
+    (2019 to maxYear).reverse.map( year => DynamicYearRange(year.toString) )
   }
 
   def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal = {
