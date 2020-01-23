@@ -21,7 +21,6 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.YearRange.CurrentYear
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -44,7 +43,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private val template = "chargeE/annualAllowanceYear.njk"
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq(CurrentYear.toString)
+    "value" -> Seq(YearRange.currentYear.toString)
   )
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
@@ -100,7 +99,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
-      val ua = SampleData.userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), CurrentYear).get
+      val ua = SampleData.userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
       val application = new GuiceApplicationBuilder()
         .overrides(
           modules(Some(ua)) ++ Seq[GuiceableModule](
@@ -119,7 +118,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       templateCaptor.getValue mustEqual template
 
-      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(CurrentYear)))
+      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange.currentYear)))
 
       application.stop()
     }
@@ -131,7 +130,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         "chargeEDetails" -> Json.obj(
           AnnualAllowanceMembersQuery.toString -> Json.arr(
             Json.obj(
-              AnnualAllowanceYearPage.toString -> Json.toJson(CurrentYear.toString)
+              AnnualAllowanceYearPage.toString -> Json.toJson(YearRange.currentYear.toString)
             )
           )
         )
