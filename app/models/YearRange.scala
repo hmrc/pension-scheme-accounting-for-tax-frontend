@@ -24,9 +24,7 @@ import play.api.libs.json._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-sealed trait YearRange {
-  def label: Text.Message
-}
+sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
   def currentYear = new DynamicYearRange(Year.now.toString)
@@ -36,11 +34,9 @@ object YearRange extends Enumerable.Implicits {
     (2018 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
   }
 
-  def getLabel(yearRange: YearRange)(implicit messages: Messages): Literal = {
-    values.find(_.toString == yearRange.toString) match {
-      case Some(yr) => Literal(yr.label.resolve)
-      case _ => throw new RuntimeException("Unknown year range: " + yearRange.toString)
-    }
+  def getLabel(yr: YearRange)(implicit messages: Messages): Literal = {
+    val startYear = yr.toString
+    Literal(msg"yearRangeRadio".withArgs(startYear, (startYear.toInt + 1).toString).resolve)
   }
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
@@ -51,8 +47,6 @@ object YearRange extends Enumerable.Implicits {
 
 case class DynamicYearRange(startYear: String) extends YearRange {
   override def toString: String = startYear
-
-  override def label: Text.Message = msg"yearRangeRadio".withArgs(toString, (toString.toInt + 1).toString)
 }
 
 object DynamicYearRange {
@@ -60,5 +54,3 @@ object DynamicYearRange {
     def writes(yr: DynamicYearRange): JsValue = JsString(yr.toString)
   }
 }
-
-
