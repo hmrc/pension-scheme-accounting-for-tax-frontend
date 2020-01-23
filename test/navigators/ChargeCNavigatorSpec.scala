@@ -56,14 +56,13 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(IsSponsoringEmployerIndividualPage(index))(SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index), Some(sponsoringEmployerIsOrganisation)),
-        row(IsSponsoringEmployerIndividualPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerIsOrganisationWithOrganisationDetails)),
         row(IsSponsoringEmployerIndividualPage(index))(SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index), Some(sponsoringEmployerIsIndividual)),
-        row(IsSponsoringEmployerIndividualPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerIsIndividualWithIndividualDetails)),
         row(SponsoringOrganisationDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerAddress)),
         row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)),
         row(SponsoringIndividualDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(sponsoringEmployerAddress)),
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)),
-        row(SponsoringEmployerAddressPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
+        row(SponsoringEmployerAddressPage(index))(CheckYourAnswersController.onPageLoad(srn, index), Some(chargeCDetails)),
+        row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(CheckMode, srn, index)),
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
       )
 
@@ -117,6 +116,14 @@ object ChargeCNavigatorSpec {
     "chargeCDetails" -> Json.obj(
       "employers" -> Json.arr(Json.obj(
       SponsoringEmployerAddressPage.toString -> SampleData.sponsoringEmployerAddress
+      ))
+    )
+  ))
+
+  private val chargeCDetails = UserAnswers(Json.obj(
+    "chargeCDetails" -> Json.obj(
+      "employers" -> Json.arr(Json.obj(
+        ChargeCDetailsPage.toString -> SampleData.chargeCDetails
       ))
     )
   ))

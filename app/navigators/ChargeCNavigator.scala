@@ -34,47 +34,77 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
   }
 
+  //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
+    case WhatYouWillNeedPage =>
+      IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
 
-      case WhatYouWillNeedPage => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, nextIndex(ua, srn))
-      case IsSponsoringEmployerIndividualPage(index) if optionIsSponsoringEmployerIndividual(index, ua).contains(false) =>
-        SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, index)
-      case IsSponsoringEmployerIndividualPage(index) if optionIsSponsoringEmployerIndividual(index, ua).contains(true) =>
-        SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, index)
-      case SponsoringOrganisationDetailsPage(index) => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
-      case SponsoringIndividualDetailsPage(index) => SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
-      case SponsoringEmployerAddressPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, index)
-      case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
-      case CheckYourAnswersPage => AddEmployersController.onPageLoad(srn)
-      case AddEmployersPage => addEmployers(ua, srn)
-      case DeleteEmployerPage if getSponsoringEmployers(ua, srn).nonEmpty => AddEmployersController.onPageLoad(srn)
-      case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
+    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+      SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, index)
 
+    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+      SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, index)
+
+    case SponsoringOrganisationDetailsPage(index) =>
+      SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
+
+    case SponsoringIndividualDetailsPage(index) =>
+      SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index)
+
+    case SponsoringEmployerAddressPage(index) =>
+      ChargeDetailsController.onPageLoad(NormalMode, srn, index)
+
+    case ChargeCDetailsPage(index) =>
+      CheckYourAnswersController.onPageLoad(srn, index)
+
+    case CheckYourAnswersPage =>
+      AddEmployersController.onPageLoad(srn)
+
+    case AddEmployersPage =>
+      addEmployers(ua, srn)
+
+    case DeleteEmployerPage if getSponsoringEmployers(ua, srn).nonEmpty =>
+      AddEmployersController.onPageLoad(srn)
+
+    case DeleteEmployerPage =>
+      controllers.routes.AFTSummaryController.onPageLoad(srn, None)
   }
+
+  //scalastyle:on cyclomatic.complexity
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case IsSponsoringEmployerIndividualPage(index) => editRoutesForIsSponsoringEmployerIndividualPage(index, ua, srn)
-    case SponsoringOrganisationDetailsPage(index) => editRoutesForSponsoringEmployerPages(index, ua, srn)
-    case SponsoringIndividualDetailsPage(index) => editRoutesForSponsoringEmployerPages(index, ua, srn)
-    case SponsoringEmployerAddressPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
-    case ChargeCDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, index)
+    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+      SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index)
+
+    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+      SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index)
+
+    case SponsoringOrganisationDetailsPage(index) =>
+      editRoutesForSponsoringEmployerPages(index, ua, srn)
+
+    case SponsoringIndividualDetailsPage(index) =>
+      editRoutesForSponsoringEmployerPages(index, ua, srn)
+
+    case SponsoringEmployerAddressPage(index) =>
+      editRoutesForSponsoringEmployerAddress(index, ua, srn)
+
+    case ChargeCDetailsPage(index) =>
+      CheckYourAnswersController.onPageLoad(srn, index)
   }
 
-  private def optionIsSponsoringEmployerIndividual(index: Int, ua: UserAnswers):Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage(index))
+  private def isIndividualOrOrg(index: Int, ua: UserAnswers): Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage(index))
 
-  private def editRoutesForIsSponsoringEmployerIndividualPage(index: Int, ua:UserAnswers, srn: String):Call = {
-    (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringIndividualDetailsPage(index)), ua.get(SponsoringOrganisationDetailsPage(index))) match {
-      case (Some(false), _, None) => SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index)
-      case (Some(false), _, _) => CheckYourAnswersController.onPageLoad(srn, index)
-      case (Some(true), None, _) => SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index)
-      case _ => CheckYourAnswersController.onPageLoad(srn, index)
-    }
-  }
-
-  private def editRoutesForSponsoringEmployerPages(index: Int, ua:UserAnswers, srn: String):Call = {
+  private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {
       case Some(_) => CheckYourAnswersController.onPageLoad(srn, index)
       case _ => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index)
+    }
+  }
+
+  private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: String): Call = {
+    ua.get(ChargeCDetailsPage(index)) match {
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, index)
+      case _ => ChargeDetailsController.onPageLoad(CheckMode, srn, index)
     }
   }
 

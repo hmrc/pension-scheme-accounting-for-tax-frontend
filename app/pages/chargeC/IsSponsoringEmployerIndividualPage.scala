@@ -31,11 +31,13 @@ case class IsSponsoringEmployerIndividualPage(index: Int) extends QuestionPage[B
       case Some(true) if userAnswers.get(SponsoringOrganisationDetailsPage(index)).isDefined =>
         userAnswers
           .remove(SponsoringOrganisationDetailsPage(index)).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage(index)).toOption
+          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .remove(ChargeCDetailsPage(index)).toOption
       case Some(false) if userAnswers.get(SponsoringIndividualDetailsPage(index)).isDefined =>
         userAnswers
           .remove(SponsoringIndividualDetailsPage(index)).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage(index)).toOption
+          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .remove(ChargeCDetailsPage(index)).toOption
       case _ => None
     }
     super.cleanup(value, tidyResult.getOrElse(userAnswers))
