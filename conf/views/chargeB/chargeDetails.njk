@@ -6,6 +6,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
+{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
 
 {% block pageTitle %}
   {{ title(messages("chargeB.chargeDetails.title"), form.errors) }}
@@ -43,7 +44,7 @@
             errorMessage: form.numberOfDeceased.error
           }) }}
 
-          {{ govukInput({
+          {{ hmrcInputCurrency({
             id: "amountTaxDue",
             label: {
               text: messages('chargeB.chargeDetails.amount.label'),
