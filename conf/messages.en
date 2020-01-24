@@ -398,7 +398,7 @@ chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 
 aft.summary.title = Summary of charges for {0}
-aft.summary.heading = Summary of charges for {0}
+aft.summary.heading = AFT return for {0} to {1}
 aft.summary.radio.question = Do you want to add another charge?
 aft.summary.annualAllowance.row = Annual allowance charges
 aft.summary.annualAllowance.visuallyHidden.row = annual allowance charges

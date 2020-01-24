@@ -16,6 +16,9 @@
 
 package controllers
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -25,9 +28,10 @@ import javax.inject.Inject
 import models.requests.OptionalDataRequest
 import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
+import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
@@ -54,6 +58,10 @@ class AFTSummaryController @Inject()(
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
+  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
@@ -63,17 +71,25 @@ class AFTSummaryController @Inject()(
         userAnswersAfterSave <- userAnswersCacheConnector
           .save(request.internalId, addSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails).data)
       } yield {
-        Json.obj(
-          "form" -> form,
-          "list" -> aftSummaryHelper.summaryListData(UserAnswers(userAnswersAfterSave.as[JsObject]), srn),
-          "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-          "radios" -> Radios.yesNo(form("value"))
-        )
+        val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
+        ua.get(QuarterPage).map { quarter =>
+          Json.obj(
+            "form" -> form,
+            "list" -> aftSummaryHelper.summaryListData(ua, srn),
+            "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
+            "radios" -> Radios.yesNo(form("value")),
+            "startDate" -> getFormattedStartDate(quarter.startDate),
+            "endDate" -> getFormattedEndDate(quarter.endDate)
+          )
+        }
       }
 
       futureJsonToPassToTemplate
-        .flatMap(renderer.render("aftSummary.njk", _))
-        .map(Ok(_))
+        .flatMap{
+          case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          case Some(json) => renderer.render("aftSummary.njk", json).map(Ok(_))
+        }
+
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
