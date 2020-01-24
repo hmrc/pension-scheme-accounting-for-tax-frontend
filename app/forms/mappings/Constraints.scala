@@ -24,6 +24,7 @@ import uk.gov.hmrc.domain.Nino
 trait Constraints {
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
   private val regexCrn = "^[A-Za-z0-9 -]{7,8}$"
+  val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
@@ -181,4 +182,13 @@ trait Constraints {
       case crn if crn.matches(regexCrn) => Valid
       case _ => Invalid(invalidKey)
     }
+
+  protected def validAddressLine(invalidKey: String): Constraint[String] = regexp(addressLineRegex, invalidKey)
+  protected def optionalValidAddressLine(invalidKey: String): Constraint[Option[String]] = Constraint {
+    case Some(str) if str.matches(addressLineRegex) =>
+      Valid
+    case None => Valid
+    case _ =>
+      Invalid(invalidKey, addressLineRegex)
+  }
 }
