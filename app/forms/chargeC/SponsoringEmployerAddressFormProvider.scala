@@ -24,21 +24,44 @@ import play.api.data.Forms.mapping
 
 class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
 
+  private val addressLineMaxLength = 35
+
   def apply(): Form[SponsoringEmployerAddress] =
     Form(
       mapping(
-        "line1" -> text("chargeC.sponsoringEmployerAddress.line1.error.required")
-        .verifying(maxLength(35, "chargeC.sponsoringEmployerAddress.line1.error.length")),
-        "line2" -> text("chargeC.sponsoringEmployerAddress.line2.error.required")
-          .verifying(maxLength(35, "chargeC.sponsoringEmployerAddress.line2.error.length")),
+        "line1" -> text(errorKey = "address.line1.error.required")
+          .verifying(
+            firstError(
+              maxLength(addressLineMaxLength, errorKey = "address.line1.error.length"),
+              validAddressLine(invalidKey = "address.line1.error.invalid")
+            )
+          ),
+        "line2" -> text(errorKey = "address.line2.error.required")
+          .verifying(
+            firstError(
+              maxLength(addressLineMaxLength, errorKey = "address.line2.error.length"),
+              validAddressLine(invalidKey = "address.line2.error.invalid")
+            )
+          ),
         "line3" -> optionalText()
-          .verifying(optionalMaxLength(35, "chargeC.sponsoringEmployerAddress.line3.error.length")),
+          .verifying(
+            firstError(
+              optionalMaxLength(addressLineMaxLength, errorKey = "address.line3.error.length"),
+              optionalValidAddressLine(invalidKey = "address.line3.error.invalid")
+            )
+          ),
         "line4" -> optionalText()
-          .verifying(optionalMaxLength(35, "chargeC.sponsoringEmployerAddress.line4.error.length")),
-        "country" -> text("chargeC.sponsoringEmployerAddress.country.error.required"),
+          .verifying(
+            firstError(
+              optionalMaxLength(addressLineMaxLength, errorKey = "address.line4.error.length"),
+              optionalValidAddressLine(invalidKey = "address.line4.error.invalid")
+            )
+          ),
+        "country" -> text(errorKey = "address.country.error.required"),
         "postcode" -> optionalPostcode(
-          requiredKey = "chargeC.sponsoringEmployerAddress.postcode.error.required",
-          invalidKey = "chargeC.sponsoringEmployerAddress.postcode.error.invalid",
+          requiredKey = "address.postcode.error.required",
+          invalidKey = "address.postcode.error.invalid",
+          nonUkLengthKey = "address.postcode.error.length",
           countryFieldName = "country"
         )
       )

@@ -19,7 +19,7 @@ package generators
 import java.time.{Instant, LocalDate, ZoneOffset}
 
 import models._
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeF.ChargeDetails
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
@@ -58,15 +58,6 @@ trait ModelGenerators {
         name <- arbitrary[String]
         crn <- arbitrary[String]
       } yield SponsoringOrganisationDetails(name,crn)
-    }
-
-  implicit lazy val arbitrarySponsoringIndividualDetails: Arbitrary[SponsoringIndividualDetails] =
-    Arbitrary {
-      for {
-        firstName <- arbitrary[String]
-        lastName <- arbitrary[String]
-        nino <- arbitrary[String]
-      } yield SponsoringIndividualDetails(firstName, lastName, nino)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =

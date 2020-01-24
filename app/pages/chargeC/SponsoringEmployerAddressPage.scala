@@ -20,9 +20,11 @@ import models.chargeC.SponsoringEmployerAddress
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object SponsoringEmployerAddressPage extends QuestionPage[SponsoringEmployerAddress] {
+case class SponsoringEmployerAddressPage(index: Int) extends QuestionPage[SponsoringEmployerAddress] {
 
-  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
+  override def path: JsPath = SponsoringEmployersQuery(index).path \ SponsoringEmployerAddressPage.toString
+}
 
-  override def toString: String = "sponsoringEmployerAddress"
+object SponsoringEmployerAddressPage {
+  override lazy val toString: String = "sponsoringEmployerAddress"
 }

@@ -35,7 +35,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(AnnualAllowanceYearPage(0), YearRange.CurrentYear).toOption.get
+    .set(AnnualAllowanceYearPage(0), YearRange.currentYear).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)

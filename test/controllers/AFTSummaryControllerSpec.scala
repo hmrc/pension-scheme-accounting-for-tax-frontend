@@ -21,12 +21,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, UserAnswers}
+import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatest.BeforeAndAfterEach
-import pages.{AFTSummaryPage, PSTRQuery, SchemeNameQuery}
+import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
@@ -72,7 +72,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val schemeName = "scheme"
   private val schemePSTR = "pstr"
 
-  private val uaGetAFTDetails = UserAnswers()
+  private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01","2000-05-31")).toOption.get
   private val uaGetAFTDetailsPlusSchemeDetails = uaGetAFTDetails
     .set(SchemeNameQuery, schemeName).toOption.getOrElse(uaGetAFTDetails)
     .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
@@ -81,7 +81,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   override def beforeEach: Unit = {
     super.beforeEach()
     Mockito.reset(mockSchemeService, mockAftConnector, mockUserAnswersCacheConnector, mockRenderer)
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))

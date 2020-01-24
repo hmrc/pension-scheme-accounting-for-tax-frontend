@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package audit
 
-import generators.ModelGenerators
-import models.chargeC.ChargeCDetails
-import pages.behaviours.PageBehaviours
+trait AuditEvent {
+  def auditType: String
 
-class ChargeCDetailsPageSpec extends PageBehaviours  {
-  "ChargeCDetailsPage" - {
-
-    beRetrievable[ChargeCDetails](ChargeCDetailsPage)
-
-    beSettable[ChargeCDetails](ChargeCDetailsPage)
-
-    beRemovable[ChargeCDetails](ChargeCDetailsPage)
-  }
+  def details: Map[String, String]
 }

@@ -29,20 +29,25 @@ import utils.CheckYourAnswersHelper
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
-
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(SampleData.srn).url
+  private val index = 0
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, index).url
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(SampleData.srn, index).url
 
   private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(ChargeCDetailsPage, SampleData.chargeCDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage, true).toOption.get
-    .set(SponsoringIndividualDetailsPage, SampleData.sponsoringIndividualDetails).toOption.get
-    .set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress).toOption.get
+    .set(ChargeCDetailsPage(index), SampleData.chargeCDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
+    .set(SponsoringIndividualDetailsPage(index), SampleData.sponsoringIndividualDetails).toOption.get
+    .set(SponsoringEmployerAddressPage(index), SampleData.sponsoringEmployerAddress).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
-
+  private val answers = Seq(
+    Seq(helper.chargeCIsSponsoringEmployerIndividual(index).get),
+    helper.chargeCEmployerDetails(index),
+    Seq(helper.chargeCAddress(index).get),
+    helper.chargeCChargeDetails(index).get
+  ).flatten
   private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> helper.chargeCDetails
+    "list" -> Json.toJson(answers)
   )
 
   "CheckYourAnswers Controller" must {
