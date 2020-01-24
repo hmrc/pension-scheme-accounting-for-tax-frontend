@@ -102,8 +102,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private def ua = SampleData.userAnswersWithSchemeName
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(AnnualAllowanceYearPage(0), YearRange.CurrentYear).toOption.get
-    .set(AnnualAllowanceYearPage(1), YearRange.CurrentYear).toOption.get
+    .set(AnnualAllowanceYearPage(0), YearRange.currentYear).toOption.get
+    .set(AnnualAllowanceYearPage(1), YearRange.currentYear).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
     .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get

@@ -68,7 +68,6 @@ trait PageBehaviours extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
             forAll(gen) {
               case (page, savedValue, userAnswers) =>
-
                 userAnswers.get(page).value mustEqual savedValue
             }
           }
