@@ -19,7 +19,7 @@ package forms.mappings
 import java.time.LocalDate
 
 import models.Enumerable
-import play.api.data.FieldMapping
+import play.api.data.{FieldMapping, FormError, Mapping}
 import play.api.data.Forms.of
 
 trait Mappings extends Formatters with Constraints with Transforms {
@@ -27,8 +27,8 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
 
-  protected def optionalPostcode(requiredKey: String, invalidKey: String, countryFieldName: String): FieldMapping[Option[String]] =
-    of(optionalPostcodeFormatter(requiredKey, invalidKey, countryFieldName))
+  protected def optionalPostcode(requiredKey: String, invalidKey: String, nonUkLengthKey: String, countryFieldName: String): FieldMapping[Option[String]] =
+    of(optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName))
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
     of(stringFormatter(errorKey))

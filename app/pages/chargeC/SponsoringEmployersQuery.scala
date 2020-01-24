@@ -16,18 +16,15 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
-import pages.behaviours.PageBehaviours
+import pages.Page
+import play.api.libs.json.JsPath
 
-
-class SponsoringIndividualDetailsPageSpec extends PageBehaviours {
-
-  "SponsoringIndividualDetailsPage" - {
-
-    beRetrievable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beSettable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beRemovable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-  }
+case class SponsoringEmployersQuery(index: Int) extends Page  {
+  def path: JsPath = JsPath \ "chargeCDetails" \ SponsoringEmployersQuery.toString \ index
 }
+
+object SponsoringEmployersQuery {
+  override def toString: String = "employers"
+}
+
+
