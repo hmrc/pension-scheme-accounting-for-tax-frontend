@@ -22,9 +22,11 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.ChargeDetailsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode}
+import models.chargeC.ChargeCDetails
+import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -46,18 +48,18 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form = formProvider()
+  val form: Form[ChargeCDetails] = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(ChargeCDetailsPage) match {
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
           case Some(value) => form.fill(value)
           case None => form
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -72,14 +74,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer { (schemeName, sponsorName) =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -94,9 +96,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeCDetailsPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeCDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeCDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn))
         )
       }
   }

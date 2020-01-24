@@ -16,17 +16,13 @@
 
 package pages.chargeC
 
-import generators.ModelGenerators
-import models.chargeC.ChargeCDetails
-import pages.behaviours.PageBehaviours
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class ChargeCDetailsPageSpec extends PageBehaviours  {
-  "ChargeCDetailsPage" - {
+case object AddEmployersPage extends QuestionPage[Boolean] {
 
-    beRetrievable[ChargeCDetails](ChargeCDetailsPage)
+  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
 
-    beSettable[ChargeCDetails](ChargeCDetailsPage)
-
-    beRemovable[ChargeCDetails](ChargeCDetailsPage)
-  }
+  override def toString: String = "addEmployers"
 }
+

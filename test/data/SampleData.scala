@@ -19,12 +19,12 @@ package data
 import java.time.LocalDate
 
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringIndividualDetails, SponsoringOrganisationDetails}
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
@@ -54,8 +54,8 @@ object SampleData {
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
-  val sponsoringIndividualDetails: SponsoringIndividualDetails =
-    SponsoringIndividualDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
+  val sponsoringIndividualDetails: MemberDetails =
+    MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(
@@ -75,12 +75,12 @@ object SampleData {
     )
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringOrganisationDetailsPage, sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage, false).toOption.get
+    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
 
   def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeName
-    .set(SponsoringIndividualDetailsPage, sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage, true).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
 
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
@@ -90,6 +90,9 @@ object SampleData {
   val memberGDetails2: MemberDetailsG = MemberDetailsG("Joe", "Bloggs", LocalDate.now(), "AB123456C")
   val memberDetailsDeleted: MemberDetails = MemberDetails("Jill", "Bloggs", "AB123456C", isDeleted = true)
   val memberGDetailsDeleted: MemberDetailsG = MemberDetailsG("Jill", "Bloggs", LocalDate.now(), "AB123456C", isDeleted = true)
+
+  val chargeCEmployer = userAnswersWithSchemeNameAndIndividual
+    .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeName
     .set(MemberDetailsPage(0), memberDetails).toOption.get

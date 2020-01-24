@@ -16,16 +16,13 @@
 
 package pages.chargeC
 
-import pages.behaviours.PageBehaviours
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class IsSponsoringEmployerIndividualPageSpec extends PageBehaviours {
+case object TotalChargeAmountPage extends QuestionPage[BigDecimal] {
 
-  "IsSponsoringEmployerIndividualPage" - {
+  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
 
-    beRetrievable[Boolean](IsSponsoringEmployerIndividualPage)
-
-    beSettable[Boolean](IsSponsoringEmployerIndividualPage)
-
-    beRemovable[Boolean](IsSponsoringEmployerIndividualPage)
-  }
+  override def toString: String = "totalChargeAmount"
 }
+
