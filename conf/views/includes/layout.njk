@@ -1,5 +1,6 @@
 {% extends "govuk/template.njk" %}
 {% from "govuk/components/back-link/macro.njk" import govukBackLink %}
+{% from "hmrc/components/header/macro.njk"     import hmrcHeader %}
 
 {%- set assetPath = "/assets/lib/govuk-frontend/govuk/assets" -%}
 {%- set htmlLang = request.language -%}
@@ -19,13 +20,13 @@
 {% endblock %}
 
 {% block header %}
-  {{ govukHeader({
+  {{ hmrcHeader({
     homepageUrl: "/pension-scheme-accounting-for-tax-frontend",
     serviceName: messages("site.service_name"),
     serviceUrl: "/pension-scheme-accounting-for-tax-frontend",
     containerClasses: "govuk-width-container",
     assetsPath: "/assets",
-    navigation: [{ href: routes.controllers.SignOutController.signOut().url, text: messages("site.signOut") }]
+    signOutHref: routes.controllers.SignOutController.signOut().url
   }) }}
 {% endblock %}
 
