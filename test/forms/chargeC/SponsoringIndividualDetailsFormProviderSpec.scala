@@ -17,7 +17,7 @@
 package forms.chargeC
 
 import forms.behaviours.StringFieldBehaviours
-import models.chargeC.SponsoringIndividualDetails
+import models.MemberDetails
 import play.api.data.FormError
 
 class SponsoringIndividualDetailsFormProviderSpec extends StringFieldBehaviours {
@@ -88,7 +88,7 @@ class SponsoringIndividualDetailsFormProviderSpec extends StringFieldBehaviours 
     "successfully bind when valid NINO with spaces is provided" in {
       val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
         "nino" -> " a b 0 2 0 2 0 2 a "))
-      res.get mustEqual SponsoringIndividualDetails("Jane", "Doe", "AB020202A")
+      res.get mustEqual MemberDetails("Jane", "Doe", "AB020202A")
     }
   }
 }

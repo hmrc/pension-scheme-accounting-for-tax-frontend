@@ -246,15 +246,20 @@ chargeC.sponsoringEmployerAddress.line4.title = Address line 4 (optional)
 chargeC.sponsoringEmployerAddress.country.title = Country
 chargeC.sponsoringEmployerAddress.postcode.title = Postcode (if UK)
 
-chargeC.sponsoringEmployerAddress.line1.error.required = Enter the first line of {0}’s address
-chargeC.sponsoringEmployerAddress.line1.error.length = Address line 1 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line2.error.required = Enter the second line of {0}’s address
-chargeC.sponsoringEmployerAddress.line2.error.length = Address line 2 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line3.error.length = Address line 3 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.line4.error.length = Address line 4 must be 35 characters or fewer
-chargeC.sponsoringEmployerAddress.country.error.required = Enter {0}’s country
-chargeC.sponsoringEmployerAddress.postcode.error.required = Enter {0}’s postcode
-chargeC.sponsoringEmployerAddress.postcode.error.invalid = Enter a real postcode
+address.line1.error.required = Enter the first line of {0}’s address
+address.line1.error.length = Address line 1 must be 35 characters or fewer
+address.line1.error.invalid = Address line 1 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
+address.line2.error.required = Enter the second line of {0}’s address
+address.line2.error.length = Address line 2 must be 35 characters or fewer
+address.line2.error.invalid = Address line 2 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
+address.line3.error.length = Address line 3 must be 35 characters or fewer
+address.line3.error.invalid = Address line 3 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
+address.line4.error.length = Address line 4 must be 35 characters or fewer
+address.line4.error.invalid = Address line 4 must only include letters, numbers, spaces, hyphens, commas, full stops, ampersands, apostrophes and forward slashes
+address.country.error.required = Enter {0}’s country
+address.postcode.error.required = Enter {0}’s postcode
+address.postcode.error.invalid = Enter a real postcode
+address.postcode.error.length = Enter postcode length less than 10
 
 chargeC.sponsoringIndividualDetails.title = Sponsoring individual’s details
 chargeC.sponsoringIndividualDetails.heading = Sponsoring individual’s details
@@ -397,7 +402,7 @@ chargeType.radio.shortService = Short service refund lump sum charge
 chargeType.radio.lumpSumDeath = Special lump sum death benefits charge
 
 aft.summary.title = Summary of charges for {0}
-aft.summary.heading = Summary of charges for {0}
+aft.summary.heading = AFT return for {0} to {1}
 aft.summary.radio.question = Do you want to add another charge?
 aft.summary.annualAllowance.row = Annual allowance charges
 aft.summary.annualAllowance.visuallyHidden.row = annual allowance charges
@@ -806,3 +811,16 @@ chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the sp
 
 chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
 chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number
+
+chargeC.addEmployers.title = Authorised surplus payments charges for {0} to {1}
+chargeC.addEmployers.heading = Authorised surplus payments charges for {0} to {1}
+chargeC.addEmployers.label = Do you want to add another authorised surplus payments charge?
+chargeC.addEmployers.visuallyHidden = {0}’s authorised surplus payments charge
+chargeC.addEmployers.error = Select yes if you want to add another authorised surplus payments charge
+
+addEmployers.employer.header = Sponsoring employer
+addEmployers.amount.header = Total
+
+deleteEmployer.chargeC.title = Are you sure you want to remove the authorised surplus payments charge for {0}?
+deleteEmployer.chargeC.heading = Are you sure you want to remove the authorised surplus payments charge for {0}?
+deleteEmployer.chargeC.error.required = Select yes if you want to remove the authorised surplus payments charge for {0}

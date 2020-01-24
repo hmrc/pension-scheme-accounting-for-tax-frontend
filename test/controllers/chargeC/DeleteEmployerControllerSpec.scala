@@ -17,17 +17,20 @@
 package controllers.chargeC
 
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
+import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.IsSponsoringEmployerIndividualPage
+import pages.PSTRQuery
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, TotalChargeAmountPage}
+import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
@@ -38,30 +41,42 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private def onwardRoute = Call("GET", "/foo")
 
-  def onwardRoute = Call("GET", "/foo")
-  private val index = 0
-  val formProvider = new IsSponsoringEmployerIndividualFormProvider()
-  val form = formProvider()
+  private val employerNameIndividual = "First Last"
+  private val employerNameOrg = "Big Company"
+  private val formProvider = new DeleteMemberFormProvider()
+  private val form: Form[Boolean] = formProvider(messages("deleteEmployer.chargeC.error.required", employerNameIndividual))
 
-  private def httpPathGET = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index).url
-  private def httpPathPOST = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, index).url
+  private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, 0).url
+  private def httpPathPOST: String = routes.DeleteEmployerController.onSubmit(srn, 0).url
 
-  private def viewModel = GenericViewModel(
+  private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-  returnUrl = onwardRoute.url,
-  schemeName = schemeName)
+    returnUrl = onwardRoute.url,
+    schemeName = schemeName)
 
-  private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage(index), true).success.value
+  private val pstr = "test pstr"
 
-  "IsSponsoringEmployerIndividual Controller" must {
 
-    "return OK and the correct view for a GET" in {
+
+  private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndIndividual
+      .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+      .set(PSTRQuery, pstr).success.value
+
+  private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndOrganisation
+    .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+    .set(PSTRQuery, pstr).success.value
+
+  "DeleteEmployer Controller" must {
+
+    "return OK and the correct view for a GET on deleting an individual" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(answersIndividual))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -79,21 +94,21 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       val expectedJson = Json.obj(
         "form"   -> form,
         "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value"))
+        "radios" -> Radios.yesNo(form("value")),
+        "employerName" -> employerNameIndividual
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
-
+      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
     }
 
-    "populate the view correctly on a GET when the question has previously been answered" in {
+    "return OK and the correct view for a GET on deleting an organisation" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(answers))
+      val application = applicationBuilder(userAnswers = Some(answersOrg))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -108,40 +123,77 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val filledForm = form.bind(Map("value" -> "true"))
-
       val expectedJson = Json.obj(
-        "form"   -> filledForm,
+        "form"   -> form,
         "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(filledForm("value"))
+        "radios" -> Radios.yesNo(form("value")),
+        "employerName" -> employerNameOrg
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
     }
 
-    "redirect to the next page when valid data is submitted" in {
+    "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted individual marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(answersIndividual))
         .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
+          bind[FrontendAppConfig].toInstance(mockAppConfig),
+          bind[AFTConnector].toInstance(mockAftConnector)
         )
         .build()
 
       val request =
         FakeRequest(POST, httpPathGET)
-      .withFormUrlEncodedBody(("value", "true"))
+          .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual onwardRoute.url
+
+      val expectedUA =  answersIndividual.set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true)).toOption.get
+        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+
+      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
+
+      application.stop()
+    }
+
+    "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+
+      val application = applicationBuilder(userAnswers = Some(answersOrg))
+        .overrides(
+          bind[FrontendAppConfig].toInstance(mockAppConfig),
+          bind[AFTConnector].toInstance(mockAftConnector)
+        )
+        .build()
+
+      val request =
+        FakeRequest(POST, httpPathGET)
+          .withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual onwardRoute.url
+
+      val expectedUA =  answersOrg.set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true)).toOption.get
+        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+
+      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
 
       application.stop()
     }
@@ -150,8 +202,9 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
+      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndIndividual))
         .overrides(
           bind[FrontendAppConfig].toInstance(mockAppConfig)
         )
@@ -173,7 +226,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -200,7 +253,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
       val request =
         FakeRequest(POST, httpPathGET)
-      .withFormUrlEncodedBody(("value", "true"))
+          .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 

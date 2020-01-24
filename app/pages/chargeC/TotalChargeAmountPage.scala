@@ -16,18 +16,13 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringIndividualDetails
-import pages.behaviours.PageBehaviours
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
+case object TotalChargeAmountPage extends QuestionPage[BigDecimal] {
 
-class SponsoringIndividualDetailsPageSpec extends PageBehaviours {
+  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
 
-  "SponsoringIndividualDetailsPage" - {
-
-    beRetrievable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beSettable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-
-    beRemovable[SponsoringIndividualDetails](SponsoringIndividualDetailsPage)
-  }
+  override def toString: String = "totalChargeAmount"
 }
+

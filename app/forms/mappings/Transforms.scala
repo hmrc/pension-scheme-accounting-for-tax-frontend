@@ -18,6 +18,8 @@ package forms.mappings
 
 trait Transforms {
 
+  val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
+
   protected def noTransform(value: String): String = value
 
   protected def noSpaceWithUpperCaseTransform(value: String): String =
@@ -38,5 +40,30 @@ trait Transforms {
 
   protected def standardiseText(s: String): String =
     s.replaceAll("""\s{1,}""", " ").trim
+
+  protected def postCodeDataTransform(value: Option[String]): Option[String] = {
+    value.map(postCodeTransform).filter(_.nonEmpty)
+  }
+
+  private[mappings] def postCodeTransform(value: String): String = {
+    minimiseSpace(value.trim.toUpperCase)
+  }
+
+  private[mappings] def postCodeValidTransform(value: String): String = {
+    if (value.matches(regexPostcode)) {
+      if (value.contains(" ")) {
+        value
+      } else {
+        value.substring(0, value.length - 3) + " " + value.substring(value.length - 3, value.length)
+      }
+    }
+    else {
+      value
+    }
+  }
+
+  protected def countryDataTransform(value: Option[String]): Option[String] = {
+    value.map(s => strip(s).toUpperCase()).filter(_.nonEmpty)
+  }
 
 }

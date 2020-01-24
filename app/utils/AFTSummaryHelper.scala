@@ -41,8 +41,8 @@ class AFTSummaryHelper{
       ),
       SummaryDetails(
         chargeType = ChargeTypeAuthSurplus,
-        totalAmount = BigDecimal(0),
-        href = routes.IndexController.onPageLoad()
+        totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+        href = chargeC.routes.AddEmployersController.onPageLoad(srn)
       ),
       SummaryDetails(
         chargeType = ChargeTypeDeRegistration,

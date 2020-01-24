@@ -39,8 +39,9 @@ import scala.concurrent.Future
 class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val templateToBeRendered = "chargeC/sponsoringOrganisationDetails.njk"
   private val form = new SponsoringOrganisationDetailsFormProvider()()
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private val index = 0
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, SampleData.srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "name" -> Seq("Big Company"),
@@ -55,7 +56,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   private val jsonToPassToTemplate:Form[SponsoringOrganisationDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn, index).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
@@ -88,7 +89,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(SponsoringOrganisationDetailsPage, SampleData.sponsoringOrganisationDetails)).get.toOption.get
+      val ua = userAnswers.map(_.set(SponsoringOrganisationDetailsPage(index), SampleData.sponsoringOrganisationDetails)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -122,11 +123,14 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(Json.obj(
           SponsoringOrganisationDetailsPage.toString -> Json.toJson(SampleData.sponsoringOrganisationDetails)
+          )
+          )
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = userAnswers).build()
 

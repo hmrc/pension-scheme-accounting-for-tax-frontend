@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package models
 
 import play.api.libs.json.{Format, Json}
 
-case class SponsoringIndividualDetails(firstName:String, lastName:String, nino:String) {
-  def fullName = s"$firstName $lastName"
+import scala.language.implicitConversions
+
+case class Employer(index: Int, name: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"employer-$index"
+
+    def removeLinkId = s"$id-remove"
+
+    def viewLinkId = s"$id-view"
+
 }
 
-
-object SponsoringIndividualDetails {
-  implicit lazy val formats: Format[SponsoringIndividualDetails] =
-    Json.format[SponsoringIndividualDetails]
+object Employer {
+    implicit lazy val formats: Format[Employer] =
+        Json.format[Employer]
 }
+

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package audit
 
-import pages.behaviours.PageBehaviours
+case class StartAFTAuditEvent(
+                               psaIdentifier: String,
+                               pstr: String
+                             ) extends AuditEvent {
+  override def auditType: String = "AftStart"
 
-class IsSponsoringEmployerIndividualPageSpec extends PageBehaviours {
-
-  "IsSponsoringEmployerIndividualPage" - {
-
-    beRetrievable[Boolean](IsSponsoringEmployerIndividualPage)
-
-    beSettable[Boolean](IsSponsoringEmployerIndividualPage)
-
-    beRemovable[Boolean](IsSponsoringEmployerIndividualPage)
+  override def details: Map[String, String] = {
+    Map(
+      "psaIdentifier" -> psaIdentifier,
+      "pstr" -> pstr
+    )
   }
 }
