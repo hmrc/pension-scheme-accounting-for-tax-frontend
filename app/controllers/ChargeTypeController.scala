@@ -16,6 +16,7 @@
 
 package controllers
 
+import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -45,7 +46,8 @@ class ChargeTypeController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      schemeService: SchemeService
+                                      schemeService: SchemeService,
+                                      auditService: AuditService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
@@ -53,7 +55,7 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap{ schemeDetails =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val ua = requestUA
           .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
           .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
@@ -61,6 +63,8 @@ class ChargeTypeController @Inject()(
           .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
         userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+          auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+
           val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
 
           val json = Json.obj(
