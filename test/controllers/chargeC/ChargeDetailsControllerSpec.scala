@@ -37,8 +37,9 @@ import scala.concurrent.Future
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
-  private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private val index = 0
+  private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "paymentDate.day" -> Seq("3"),
@@ -57,7 +58,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate:Form[ChargeCDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, index).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
@@ -91,7 +92,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(ChargeCDetailsPage, SampleData.chargeCDetails)).get.toOption.get
+      val ua = userAnswers.map(_.set(ChargeCDetailsPage(index), SampleData.chargeCDetails)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -125,13 +126,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(Json.obj(
           SponsoringOrganisationDetailsPage.toString -> SampleData.sponsoringOrganisationDetails,
           IsSponsoringEmployerIndividualPage.toString -> false,
           ChargeCDetailsPage.toString -> Json.toJson(SampleData.chargeCDetails)
+            )
+          )
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = userAnswers).build()
 

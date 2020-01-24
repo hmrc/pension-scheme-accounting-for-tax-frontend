@@ -16,18 +16,12 @@
 
 package pages.chargeC
 
-import models.chargeC.SponsoringEmployerAddress
-import pages.behaviours.PageBehaviours
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
+case object DeleteEmployerPage extends QuestionPage[Boolean] {
 
-class SponsoringEmployerAddressPageSpec extends PageBehaviours {
+  override def path: JsPath = JsPath \ toString
 
-  "SponsoringEmployerAddressPage" - {
-
-    beRetrievable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
-
-    beSettable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
-
-    beRemovable[SponsoringEmployerAddress](SponsoringEmployerAddressPage)
-  }
+  override def toString: String = "deleteEmployer"
 }

@@ -20,8 +20,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeC.SponsoringIndividualDetailsFormProvider
 import matchers.JsonMatchers
-import models.chargeC.SponsoringIndividualDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -39,8 +38,9 @@ import scala.concurrent.Future
 class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val templateToBeRendered = "chargeC/sponsoringIndividualDetails.njk"
   private val form = new SponsoringIndividualDetailsFormProvider()()
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url
+  private val index = 0
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, SampleData.srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "firstName" -> Seq("First"),
@@ -54,10 +54,10 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     "nino" -> Seq("CS121212C")
   )
 
-  private val jsonToPassToTemplate:Form[SponsoringIndividualDetails]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate:Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, SampleData.srn, index).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName)
   )
@@ -90,7 +90,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(SponsoringIndividualDetailsPage, SampleData.sponsoringIndividualDetails)).get.toOption.get
+      val ua = userAnswers.map(_.set(SponsoringIndividualDetailsPage(index), SampleData.sponsoringIndividualDetails)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -124,11 +124,13 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(Json.obj(
           SponsoringIndividualDetailsPage.toString -> Json.toJson(SampleData.sponsoringIndividualDetails)
-        )
+        ))
+      )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = userAnswers).build()
 

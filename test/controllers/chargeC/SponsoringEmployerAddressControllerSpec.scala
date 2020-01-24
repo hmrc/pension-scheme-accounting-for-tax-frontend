@@ -40,8 +40,9 @@ import scala.concurrent.Future
 class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val templateToBeRendered = "chargeC/sponsoringEmployerAddress.njk"
   private val form = new SponsoringEmployerAddressFormProvider()()
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn).url
+  private val index = 0
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, SampleData.srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
@@ -65,7 +66,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private def jsonToPassToTemplate(sponsorName:String):Form[SponsoringEmployerAddress]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, SampleData.srn, index).url,
       returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
       schemeName = SampleData.schemeName),
     "sponsorName" -> sponsorName
@@ -100,7 +101,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswersIndividual.map(_.set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress)).get.toOption.get
+      val ua = userAnswersIndividual.map(_.set(SponsoringEmployerAddressPage(index), SampleData.sponsoringEmployerAddress)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -151,7 +152,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswersOrganisation.map(_.set(SponsoringEmployerAddressPage, SampleData.sponsoringEmployerAddress)).get.toOption.get
+      val ua = userAnswersOrganisation.map(_.set(SponsoringEmployerAddressPage(index), SampleData.sponsoringEmployerAddress)).get.toOption.get
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -185,13 +186,16 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(Json.obj(
           SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
           IsSponsoringEmployerIndividualPage.toString -> false,
           SponsoringEmployerAddressPage.toString -> Json.toJson(SampleData.sponsoringEmployerAddress)
+          )
+          )
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val application = applicationBuilder(userAnswers = userAnswersOrganisation).build()
 

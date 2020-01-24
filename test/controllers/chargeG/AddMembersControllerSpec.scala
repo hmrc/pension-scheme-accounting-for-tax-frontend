@@ -35,7 +35,7 @@ import scala.concurrent.Future
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val templateToBeRendered = "chargeG/addMembers.njk"
-  private val form = new AddMembersFormProvider()("chargeD.addMembers.error")
+  private val form = new AddMembersFormProvider()("chargeG.addMembers.error")
   private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(SampleData.srn).url
   private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(SampleData.srn).url
 

@@ -18,13 +18,13 @@ package forms.chargeC
 
 import forms.mappings.Mappings
 import javax.inject.Inject
-import models.chargeC.SponsoringIndividualDetails
+import models.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 
 class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[SponsoringIndividualDetails] =
+  def apply(): Form[MemberDetails] =
     Form(
       mapping(
         "firstName" -> text("chargeC.sponsoringIndividualDetails.firstName.error.required")
@@ -43,6 +43,6 @@ class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
           .transform(noSpaceWithUpperCaseTransform, noTransform).
           verifying(validNino("chargeC.sponsoringIndividualDetails.nino.error.invalid"))
       )
-      (SponsoringIndividualDetails.apply)(SponsoringIndividualDetails.unapply)
+      (MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
     )
 }

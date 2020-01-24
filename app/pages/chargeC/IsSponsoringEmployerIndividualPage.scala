@@ -22,24 +22,28 @@ import play.api.libs.json.JsPath
 
 import scala.util.Try
 
-case object IsSponsoringEmployerIndividualPage extends QuestionPage[Boolean] {
+case class IsSponsoringEmployerIndividualPage(index: Int) extends QuestionPage[Boolean] {
 
-  override def path: JsPath = JsPath \ "chargeCDetails" \ toString
-
-  override def toString: String = "isSponsoringEmployerIndividual"
+  override def path: JsPath = SponsoringEmployersQuery(index).path \ IsSponsoringEmployerIndividualPage.toString
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
     val tidyResult = value match {
-      case Some(true) if userAnswers.get(SponsoringOrganisationDetailsPage).isDefined =>
+      case Some(true) if userAnswers.get(SponsoringOrganisationDetailsPage(index)).isDefined =>
         userAnswers
-          .remove(SponsoringOrganisationDetailsPage).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage).toOption
-      case Some(false) if userAnswers.get(SponsoringIndividualDetailsPage).isDefined =>
+          .remove(SponsoringOrganisationDetailsPage(index)).toOption.getOrElse(userAnswers)
+          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .remove(ChargeCDetailsPage(index)).toOption
+      case Some(false) if userAnswers.get(SponsoringIndividualDetailsPage(index)).isDefined =>
         userAnswers
-          .remove(SponsoringIndividualDetailsPage).toOption.getOrElse(userAnswers)
-          .remove(SponsoringEmployerAddressPage).toOption
+          .remove(SponsoringIndividualDetailsPage(index)).toOption.getOrElse(userAnswers)
+          .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
+          .remove(ChargeCDetailsPage(index)).toOption
       case _ => None
     }
     super.cleanup(value, tidyResult.getOrElse(userAnswers))
   }
+}
+
+object IsSponsoringEmployerIndividualPage {
+  override lazy val toString: String = "isSponsoringEmployerIndividual"
 }

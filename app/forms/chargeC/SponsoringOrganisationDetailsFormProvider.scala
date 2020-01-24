@@ -35,6 +35,6 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
           invalidKey = "chargeC.sponsoringOrganisationDetails.crn.error.invalid"
         )
       )
-      (SponsoringOrganisationDetails.apply)(SponsoringOrganisationDetails.unapply)
+      (SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
     )
 }

@@ -48,28 +48,24 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def optionalPostcodeFormatter(requiredKey: String,
                                                   invalidKey: String,
-                                                  countryFieldName: String): Formatter[Option[String]] =
-    new Formatter[Option[String]] {
-      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+                                                  nonUkLengthKey: String,
+                                                  countryFieldName: String): Formatter[Option[String]] = new Formatter[Option[String]] {
 
-        val isPostcodeRequired = data.get(countryFieldName).contains("GB")
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
+      val postCode = postCodeDataTransform(data.get(key))
+      val country = countryDataTransform(data.get(countryFieldName))
+      val maxLengthNonUKPostCode = 10
 
-        data.get(key) match {
-          case None | Some("") if isPostcodeRequired => Left(Seq(FormError(key, requiredKey)))
-          case None | Some("") => Right(None)
-          case Some(postcode) =>
-            if (minimiseSpace(postcode.trim.toUpperCase).matches(postcodeRegexp)) {
-              Right(
-                data
-                  .get(key)
-                  .map(standardiseText)
-                  .filter(_.lengthCompare(0) > 0)
-              )
-            } else {
-              Left(Seq(FormError(key, invalidKey)))
-            }
-        }
+      (postCode, country) match {
+        case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp) => Right(Some(postCodeValidTransform(zip)))
+        case (Some(_), Some("GB")) => Left(Seq(FormError(key, invalidKey)))
+        case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostCode => Right(Some(zip))
+        case (Some(_), Some(_)) => Left(Seq(FormError(key, nonUkLengthKey)))
+        case (Some(zip), None) => Right(Some(zip))
+        case (None, Some("GB")) => Left(Seq(FormError(key, requiredKey)))
+        case _ => Right(None)
       }
+    }
 
       override def unbind(key: String, value: Option[String]): Map[String, String] =
         Map(key -> value.getOrElse(""))
