@@ -6,7 +6,6 @@ site.back = Back
 site.delete = Remove
 site.edit = Change
 site.delete.hidden = Change {0}
-site.edit.hidden = Change {0}
 site.no = No
 site.yes = Yes
 site.continue = Continue
@@ -223,6 +222,7 @@ chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
 chargeC.isSponsoringEmployerIndividual.title = Is the sponsoring employer an individual?
 chargeC.isSponsoringEmployerIndividual.heading = Is the sponsoring employer an individual?
 chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel = Is the sponsoring employer an individual?
+chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel = whether the sponsoring employer is an individual
 chargeC.isSponsoringEmployerIndividual.error.required = Select yes if the sponsoring employer is an individual
 
 chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details

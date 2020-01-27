@@ -81,8 +81,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel"))
-          )
+            visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel"))
         )
       )
     }
@@ -91,29 +90,29 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     userAnswers.get(SponsoringIndividualDetailsPage(index)) map { individualDetails =>
       Seq(
         Row(
-        key = Key(msg"chargeC.sponsoringIndividualName.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${individualDetails.fullName}"),
-        actions = List(
-          Action(
-            content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel"))
+          key = Key(msg"chargeC.sponsoringIndividualName.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value = Value(lit"${individualDetails.fullName}"),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
+            )
           )
-        )
-      ),
-      Row(
-        key = Key(msg"chargeC.sponsoringIndividualNino.checkYourAnswersLabel".withArgs(individualDetails.fullName), classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"${individualDetails.nino}"),
-        actions = List(
-          Action(
-            content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel"))
+        ),
+        Row(
+          key = Key(msg"chargeC.sponsoringIndividualNino.checkYourAnswersLabel".withArgs(individualDetails.fullName), classes = Seq("govuk-!-width-one-half")),
+          value = Value(lit"${individualDetails.nino}"),
+          actions = List(
+            Action(
+              content = msg"site.edit",
+              href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
+              visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel")
+            )
           )
         )
       )
-    )
-  }
+    }
 
   def chargeCOrganisationDetails(index: Int): Option[Seq[Row]] =
     userAnswers.get(SponsoringOrganisationDetailsPage(index)) map { organisationDetails =>
@@ -125,7 +124,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
             )
           )
         ),
@@ -136,7 +135,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel".withArgs(organisationDetails.name))
             )
           )
         )
@@ -144,19 +143,19 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     }
 
   def chargeCAddress(index: Int)(implicit messages: Messages): Option[Row] =
-   userAnswers.get(SponsoringEmployerAddressPage(index)) map { addr =>
-    Row(
-      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index)), classes = Seq("govuk-!-width-one-half")),
-      value = Value(addressAnswer(addr)),
-      actions = List(
-        Action(
-          content = msg"site.edit",
-          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index).url,
-          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel"))
+    userAnswers.get(SponsoringEmployerAddressPage(index)) map { addr =>
+      Row(
+        key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index)), classes = Seq("govuk-!-width-one-half")),
+        value = Value(addressAnswer(addr)),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index)))
+          )
         )
       )
-    )
-  }
+    }
 
   def chargeCChargeDetails(index: Int): Option[Seq[Row]] =
     userAnswers.get(ChargeCDetailsPage(index)) map { chargeDetails =>
@@ -168,7 +167,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
             )
           )
         ),
@@ -179,7 +178,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
             )
           )
         )
@@ -189,13 +188,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeGDate(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
     answer =>
       Row(
-        key     = Key(msg"chargeG.chargeDetails.qropsTransferDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(Literal(answer.qropsTransferDate.format(dateFormatter))),
+        key = Key(msg"chargeG.chargeDetails.qropsTransferDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.qropsTransferDate.format(dateFormatter))),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsTransferDate.visuallyHidden.checkYourAnswersLabel"))
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"chargeG.chargeDetails.qropsTransferDate.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -204,13 +203,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
   def chargeGQROPSReferenceNumber(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
     answer =>
       Row(
-        key     = Key(msg"chargeG.chargeDetails.GQROPSReferenceNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(Literal(answer.qropsReferenceNumber)),
+        key = Key(msg"chargeG.chargeDetails.GQROPSReferenceNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.qropsReferenceNumber)),
         actions = List(
           Action(
-            content            = msg"site.edit",
-            href               = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeG.chargeDetails.qropsReferenceNumber.visuallyHidden.checkYourAnswersLabel"))
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            visuallyHiddenText = Some(msg"chargeG.chargeDetails.qropsReferenceNumber.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -225,7 +224,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -240,7 +239,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -255,8 +254,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
-            )
+            visuallyHiddenText = Some(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -271,7 +269,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -286,7 +284,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
           Action(
             content = msg"site.edit",
             href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
           )
         )
       )
@@ -307,7 +305,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
             )
           )
         ),
@@ -318,7 +316,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
             Action(
               content = msg"site.edit",
               href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel"))
+              visuallyHiddenText = Some(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
             )
           )
         )
@@ -331,7 +329,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -342,12 +340,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
               href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
-              visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"cya.nino.label".withArgs(answer.fullName)))
+              visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
             )
           )
         )
@@ -418,7 +416,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -429,7 +427,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -486,7 +484,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       Seq(
         Row(
           key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.fullName.toString),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
@@ -508,7 +506,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         ),
         Row(
           key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-          value = Value(Literal(answer.nino),classes = Seq("govuk-!-width-one-third")),
+          value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
           actions = List(
             Action(
               content = msg"site.edit",
