@@ -20,8 +20,8 @@ import controllers.chargeB.{routes => _}
 import models.{Employer, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.i18n.Messages
+import play.api.libs.json.JsArray
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsArray, JsDefined}
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
@@ -32,47 +32,29 @@ import viewmodels.Table.Cell
 object ChargeCService {
 
   def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String): Seq[Employer] = {
+    def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
+      .toOption.map(_.as[JsArray].value.length)
+      .getOrElse(0)
 
-    def getEmployerDetails(index: Int): Option[(String, Boolean)] =
-      ua.get(IsSponsoringEmployerIndividualPage(index)).flatMap { isIndividual =>
-        if (isIndividual) {
-          ua.get(SponsoringIndividualDetailsPage(index)).map { individual =>
-            (individual.fullName, individual.isDeleted)
-          }
-        } else {
-          ua.get(SponsoringOrganisationDetailsPage(index)).map { org =>
-            (org.name, org.isDeleted)
-          }
-        }
+    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(IsSponsoringEmployerIndividualPage(index)) flatMap {
+        case true => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
+        case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
       }
 
-    val employers = ua.data \ "chargeCDetails" \ "employers" match {
-      case JsDefined(JsArray(employers)) =>
-        for {
-          (_, index) <- employers.zipWithIndex
-        } yield
-          (getEmployerDetails(index), ua.get(ChargeCDetailsPage(index))) match {
-            case (Some(details), Some(chargeDetails)) =>
-
-              val (name, isDeleted) = details
-              Seq(Employer(
-                index,
-                name,
-                chargeDetails.amountTaxDue,
-                viewUrl(index, srn).url,
-                removeUrl(index, srn).url,
-                isDeleted
-              ))
-            case _ => Nil
-
-          }
-
-      case _ => Nil
-
-
+    (0 until numberOfEmployersIncludingDeleted).flatMap { index =>
+      getEmployerDetails(index).flatMap { case (name, isDeleted) =>
+        ua.get(ChargeCDetailsPage(index)).map{ chargeDetails =>
+          Employer(
+            index,
+            name,
+            chargeDetails.amountTaxDue,
+            viewUrl(index, srn).url,
+            removeUrl(index, srn).url,
+            isDeleted
+          )
+        }
+      }.toSeq
     }
-
-    employers.flatten
   }
 
   def getSponsoringEmployers(ua: UserAnswers, srn: String): Seq[Employer] =
