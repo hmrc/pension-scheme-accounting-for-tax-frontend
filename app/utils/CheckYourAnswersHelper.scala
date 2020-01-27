@@ -19,8 +19,8 @@ package utils
 import java.text.DecimalFormat
 import java.time.format.DateTimeFormatter
 
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
-import models.{CheckMode, MemberDetails, UserAnswers, YearRange}
+import models.chargeC.SponsoringEmployerAddress
+import models.{CheckMode, UserAnswers, YearRange}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
@@ -33,14 +33,16 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.CheckYourAnswersHelper._
 
+case object DataMissingException extends Exception
+
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
 
   private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
     def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
 
     def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
-      case None => ""
       case Some(l) => addrLineToHtml(l)
+      case None => ""
     }
 
     Html(
@@ -67,6 +69,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     ) match {
       case (Some(true), Some(individualDetails), _) => individualDetails.fullName
       case (Some(false), _, Some(organisationDetails)) => organisationDetails.name
+      case _ => throw DataMissingException
     }
 
   def chargeCIsSponsoringEmployerIndividual(index: Int): Option[Row] =

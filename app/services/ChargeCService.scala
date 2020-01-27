@@ -35,17 +35,18 @@ object ChargeCService {
 
     def getEmployerDetails(index: Int): Option[(String, Boolean)] =
       ua.get(IsSponsoringEmployerIndividualPage(index)).flatMap { isIndividual =>
-        if (isIndividual)
+        if (isIndividual) {
           ua.get(SponsoringIndividualDetailsPage(index)).map { individual =>
             (individual.fullName, individual.isDeleted)
           }
-        else
+        } else {
           ua.get(SponsoringOrganisationDetailsPage(index)).map { org =>
             (org.name, org.isDeleted)
           }
+        }
       }
 
-    ua.data \ "chargeCDetails" \ "employers" match {
+    val employers = ua.data \ "chargeCDetails" \ "employers" match {
       case JsDefined(JsArray(employers)) =>
         for {
           (_, index) <- employers.zipWithIndex
@@ -54,14 +55,16 @@ object ChargeCService {
             case (Some(details), Some(chargeDetails)) =>
 
               val (name, isDeleted) = details
-              Employer(
+              Seq(Employer(
                 index,
                 name,
                 chargeDetails.amountTaxDue,
                 viewUrl(index, srn).url,
                 removeUrl(index, srn).url,
                 isDeleted
-              )
+              ))
+            case _ => Nil
+
           }
 
       case _ => Nil
@@ -69,7 +72,7 @@ object ChargeCService {
 
     }
 
-
+    employers.flatten
   }
 
   def getSponsoringEmployers(ua: UserAnswers, srn: String): Seq[Employer] =
