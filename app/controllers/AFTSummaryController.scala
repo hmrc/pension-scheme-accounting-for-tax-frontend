@@ -97,14 +97,22 @@ class AFTSummaryController @Inject()(
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
-            val json = Json.obj(
-              "form" -> formWithErrors,
-              "list" -> aftSummaryHelper.summaryListData(request.userAnswers, srn),
-              "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
-              "radios" -> Radios.yesNo(formWithErrors("value"))
-            )
+            val ua = request.userAnswers
+            val optionJson = ua.get(QuarterPage).map { quarter =>
+              Json.obj(
+                "form" -> formWithErrors,
+                "list" -> aftSummaryHelper.summaryListData(ua, srn),
+                "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
+                "radios" -> Radios.yesNo(form("value")),
+                "startDate" -> getFormattedStartDate(quarter.startDate),
+                "endDate" -> getFormattedEndDate(quarter.endDate)
+              )
+            }
 
-            renderer.render("aftSummary.njk", json).map(BadRequest(_))
+            optionJson match {
+              case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+              case Some(json) => renderer.render("aftSummary.njk", json).map(BadRequest(_))
+            }
           },
           value =>
             for {
