@@ -6,7 +6,7 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
 
 {% block pageTitle %}
   {{ title(messages("chargeDDetails.title", memberName), form.errors) }}
@@ -43,7 +43,7 @@
                     items: date.items
                   }) }}
 
-          {{ govukInput({
+          {{ hmrcInputCurrency({
                       id: "taxAt25Percent",
                       label: {
                         text: messages('taxAt25Percent.label'),
@@ -57,7 +57,7 @@
                       errorMessage: form.taxAt25Percent.error
                     }) }}
 
-            {{ govukInput({
+            {{ hmrcInputCurrency({
                         id: "taxAt55Percent",
                         label: {
                           text: messages('taxAt55Percent.label'),

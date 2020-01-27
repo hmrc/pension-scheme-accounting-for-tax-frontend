@@ -6,7 +6,8 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
-{% from "govuk/components/input/macro.njk" import govukInput %}
+
+{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
 
 {% block pageTitle %}
   {{ title(messages("chargeEDetails.title", memberName), form.errors) }}
@@ -30,19 +31,20 @@
 
           {{ csrf() | safe }}
 
-          {{ govukInput({
-            id: "chargeAmount",
-            label: {
-              text: messages('chargeEDetails.chargeAmount.label'),
-              isPageHeading: false,
-              classes: "govuk-label--s"
-            },
-            name: "chargeAmount",
-            type: "text",
-            value: form.chargeAmount.value,
-            classes: "govuk-input--width-10",
-            errorMessage: form.chargeAmount.error
-          }) }}
+          {{ hmrcInputCurrency({
+                name: "chargeAmount",
+                id: "chargeAmount",
+                label: {
+                    text: messages('chargeEDetails.chargeAmount.label'),
+                    isPageHeading: false,
+                                  classes: "govuk-label--s"
+                },
+                value: form.chargeAmount.value,
+                classes: "govuk-input--width-10",
+                autocomplete: "off",
+                errorMessage: form.chargeAmount.error
+                })
+           }}
 
           {{ govukDateInput({
                     id: "dateNoticeReceived",
