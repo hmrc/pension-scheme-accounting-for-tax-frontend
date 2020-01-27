@@ -20,8 +20,8 @@ import controllers.chargeB.{routes => _}
 import models.{Employer, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.i18n.Messages
+import play.api.libs.json.JsArray
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsArray, JsDefined, JsNumber}
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
@@ -32,7 +32,6 @@ import viewmodels.Table.Cell
 object ChargeCService {
 
   def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String): Seq[Employer] = {
-
     def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
@@ -43,19 +42,18 @@ object ChargeCService {
       }
 
     (0 until numberOfEmployersIncludingDeleted).flatMap { index =>
-      (getEmployerDetails(index), ua.get(ChargeCDetailsPage(index))) match {
-        case (Some(details), Some(chargeDetails)) =>
-          val (name, isDeleted) = details
-          Seq(Employer(
+      getEmployerDetails(index).flatMap { case (name, isDeleted) =>
+        ua.get(ChargeCDetailsPage(index)).map{ chargeDetails =>
+          Employer(
             index,
             name,
             chargeDetails.amountTaxDue,
             viewUrl(index, srn).url,
             removeUrl(index, srn).url,
             isDeleted
-          ))
-        case _ => Nil
-      }
+          )
+        }
+      }.toSeq
     }
   }
 
