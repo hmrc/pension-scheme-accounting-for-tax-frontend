@@ -502,11 +502,17 @@ chargeG.chargeAmount.transferred.visuallyHidden.label = how much was transferred
 chargeG.chargeAmount.taxDue.visuallyHidden.label = the amount of tax due for this transfer into the QROPS
 
 amountTransferred.error.required = Enter the amount transferred into the QROPS for {0}
-amountTransferred.error.invalid = The amount transferred into the QROPS for dsfdf sdfs must be an amount of money, like 123.45 or 156.00
-amountTransferred.error.decimal = The amount transferred into the QROPS for dsfdf sdfs must include pence, like 123.45 or 156.00
+amountTransferred.error.invalid = The amount transferred into the QROPS for {0} must be an amount of money, like 123.45 or 156.00
+amountTransferred.error.decimal = The amount transferred into the QROPS for {0} must include pence, like 123.45 or 156.00
+amountTransferred.error.maximum = The amount transferred into the QROPS for {0} must be £9999999999.99 or less
+amountTransferred.error.minimum = The amount transferred into the QROPS for {0} must be £0.01 or more
+
 amountTaxDue.error.required = Enter the amount of tax due for this transfer into the QROPS
 amountTaxDue.error.invalid = The amount of tax due for this transfer into the QROPS must be an amount of money, like 123.45 or 156.00
 amountTaxDue.error.decimal = The amount of tax due for this transfer into the QROPS must include pence, like 123.45 or 156.00
+amountTaxDue.error.maximum = The amount of tax due for this transfer into the QROPS must be £9999999999.99 or less
+amountTaxDue.error.minimum = The amount of tax due for this transfer into the QROPS must be £0.01 or more
+
 country.AD = Andorra
 country.AE = United Arab Emirates
 country.AF = Afghanistan
