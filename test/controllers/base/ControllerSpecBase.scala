@@ -23,34 +23,39 @@ import controllers.actions.{AllowAccessActionProvider, _}
 import models.UserAnswers
 import models.requests.OptionalDataRequest
 import navigators.CompoundNavigator
+import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
 import play.api.test.Helpers.{GET, POST}
+import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import scala.concurrent.ExecutionContext.Implicits.global
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
 
+  private val fakeActionFilter = new ActionFilter[OptionalDataRequest] {
+    override protected def executionContext: ExecutionContext = global
+
+    override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
+  }
+
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-    val mockAllowAccessAction = new AllowAccessAction {
-      override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
-    }
 
-    when(mockAllowAccessActionProvider.apply(any())).thenReturn(mockAllowAccessAction)
+
+    when(mockAllowAccessActionProvider.apply(any())).thenReturn(fakeActionFilter)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
+
   protected val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
@@ -72,7 +77,9 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
-        modules(userAnswers): _*
+        modules(userAnswers) ++ Seq[GuiceableModule](
+          bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
+        ): _*
       )
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)

@@ -16,7 +16,7 @@
 
 package controllers.actions
 
-import com.google.inject.Inject
+import com.google.inject.{ImplementedBy, Inject}
 import connectors.SchemeDetailsConnector
 import handlers.ErrorHandler
 import models.requests.OptionalDataRequest
@@ -27,16 +27,18 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessAction(srn: String,
+class AllowAccessAction (
+                        srn:String,
                         pensionsSchemeConnector: SchemeDetailsConnector,
                         errorHandler: ErrorHandler
-                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
-
+                       )(implicit ec: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
 
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     checkForAssociation(request, srn)
   }
+
+  override protected def executionContext: ExecutionContext = ec
 
   private def checkForAssociation[A](request: OptionalDataRequest[A],
                                      extractedSRN: String)(implicit hc: HeaderCarrier): Future[Option[Result]] =
@@ -46,12 +48,14 @@ class AllowAccessAction(srn: String,
     }
 }
 
-class AllowAccessActionProvider @Inject()(
+@ImplementedBy(classOf[AllowAccessActionProviderImpl])
+trait AllowAccessActionProvider {
+  def apply(srn:String): ActionFilter[OptionalDataRequest]
+}
+
+class AllowAccessActionProviderImpl @Inject()(
                                            pensionsSchemeConnector: SchemeDetailsConnector,
                                            errorHandler: ErrorHandler
-                                         )(implicit ec: ExecutionContext) {
-
-  def apply(srn: String): AllowAccessAction = {
-    new AllowAccessAction(srn, pensionsSchemeConnector, errorHandler)
-  }
+                                         )(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
+  def apply(srn:String) = new AllowAccessAction(srn, pensionsSchemeConnector, errorHandler)
 }
