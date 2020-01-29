@@ -18,7 +18,7 @@ package controllers.actions
 
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
-import handlers.AFTErrorHandler
+import handlers.ErrorHandler
 import models.requests.OptionalDataRequest
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{ActionFilter, Result}
@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessAction(srn: String,
                         pensionsSchemeConnector: SchemeDetailsConnector,
-                        errorHandler: AFTErrorHandler
+                        errorHandler: ErrorHandler
                        )(implicit ec: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
 
 
@@ -50,7 +50,7 @@ class AllowAccessAction(srn: String,
 
 class AllowAccessActionProvider @Inject()(
                                            pensionsSchemeConnector: SchemeDetailsConnector,
-                                           errorHandler: AFTErrorHandler
+                                           errorHandler: ErrorHandler
                                          )(implicit ec: ExecutionContext) {
 
   def apply(srn: String): AllowAccessAction = {

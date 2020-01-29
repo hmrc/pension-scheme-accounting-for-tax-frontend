@@ -59,6 +59,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
+  lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
 
   def routeToSwitchLanguage: String => Call =

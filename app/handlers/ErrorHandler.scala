@@ -16,6 +16,7 @@
 
 package handlers
 
+import config.FrontendAppConfig
 import javax.inject.{Inject, Singleton}
 import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.http.HttpErrorHandler
@@ -34,7 +35,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ErrorHandler @Inject()(
     renderer: Renderer,
-    val messagesApi: MessagesApi
+    val messagesApi: MessagesApi,
+    config: FrontendAppConfig
 )(implicit ec: ExecutionContext) extends HttpErrorHandler with I18nSupport {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
@@ -45,7 +47,7 @@ class ErrorHandler @Inject()(
       case BAD_REQUEST =>
         renderer.render("badRequest.njk").map(BadRequest(_))
       case NOT_FOUND   =>
-        renderer.render("notFound.njk", Json.obj()).map(NotFound(_))
+        renderer.render("notFound.njk", Json.obj("yourPensionSchemesUrl" -> config.yourPensionSchemesUrl)).map(NotFound(_))
       case _           =>
         renderer.render("error.njk", Json.obj()).map {
           content =>
@@ -82,11 +84,3 @@ class ErrorHandler @Inject()(
       ex
     )
 }
-
-class AFTErrorHandler @Inject()(
-                                 renderer: Renderer,
-                                 override val messagesApi: MessagesApi
-                               )(implicit ec: ExecutionContext) extends ErrorHandler(renderer, messagesApi) {
-
-}
-
