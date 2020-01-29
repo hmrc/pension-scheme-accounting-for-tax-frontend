@@ -1,8 +1,7 @@
 {
   "country:AD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -17,8 +16,7 @@
   },
   "country:AE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -33,8 +31,7 @@
   },
   "country:AF": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -49,8 +46,7 @@
   },
   "country:AG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -63,26 +59,9 @@
       "en-GB": "Antigua and Barbuda"
     }
   },
-  "territory:AI": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Anguilla"
-    }
-  },
   "country:AL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -97,8 +76,7 @@
   },
   "country:AM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -113,8 +91,7 @@
   },
   "country:AN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -129,8 +106,7 @@
   },
   "country:AO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -143,26 +119,9 @@
       "en-GB": "Angola"
     }
   },
-  "territory:AQ": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Antarctica"
-    }
-  },
   "country:AR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -177,8 +136,7 @@
   },
   "country:AT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -193,8 +151,7 @@
   },
   "country:AU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -207,42 +164,9 @@
       "en-GB": "Australia"
     }
   },
-  "territory:AW": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aruba"
-    }
-  },
-  "territory:AX": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aland Islands"
-    }
-  },
   "country:AZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -257,8 +181,7 @@
   },
   "country:BA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -273,8 +196,7 @@
   },
   "country:BB": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -289,8 +211,7 @@
   },
   "country:BD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -305,8 +226,7 @@
   },
   "country:BE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -321,8 +241,7 @@
   },
   "country:BF": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -337,8 +256,7 @@
   },
   "country:BG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -353,8 +271,7 @@
   },
   "country:BH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -369,8 +286,7 @@
   },
   "country:BI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -385,8 +301,7 @@
   },
   "country:BJ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -399,42 +314,9 @@
       "en-GB": "Benin"
     }
   },
-  "territory:BL": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Barthelemy"
-    }
-  },
-  "territory:BM": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bermuda"
-    }
-  },
   "country:BN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -449,8 +331,7 @@
   },
   "country:BO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -463,26 +344,9 @@
       "en-GB": "Bolivia"
     }
   },
-  "territory:BQ": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bonaire, Sint Eustatius and Saba"
-    }
-  },
   "country:BR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -497,8 +361,7 @@
   },
   "country:BS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -513,8 +376,7 @@
   },
   "country:BT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -527,26 +389,9 @@
       "en-GB": "Bhutan"
     }
   },
-  "territory:BV": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bouvet Islands"
-    }
-  },
   "country:BW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -561,8 +406,7 @@
   },
   "country:BY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -577,8 +421,7 @@
   },
   "country:BZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -593,8 +436,7 @@
   },
   "country:CA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -607,26 +449,9 @@
       "en-GB": "Canada"
     }
   },
-  "territory:CC": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Cocos (Keeling) Islands"
-    }
-  },
   "country:CD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -641,8 +466,7 @@
   },
   "country:CF": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -657,8 +481,7 @@
   },
   "country:CG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -673,8 +496,7 @@
   },
   "country:CH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -689,8 +511,7 @@
   },
   "country:CI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -703,26 +524,9 @@
       "en-GB": "Cote d'Ivoire"
     }
   },
-  "territory:CK": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Cook Islands"
-    }
-  },
   "country:CL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -737,8 +541,7 @@
   },
   "country:CM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -753,8 +556,7 @@
   },
   "country:CN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -769,8 +571,7 @@
   },
   "country:CO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -785,8 +586,7 @@
   },
   "country:CR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -801,8 +601,7 @@
   },
   "country:CS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -817,8 +616,7 @@
   },
   "country:CU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -833,8 +631,7 @@
   },
   "country:CV": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -847,42 +644,9 @@
       "en-GB": "Cape Verde"
     }
   },
-  "territory:CW": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Curaçao"
-    }
-  },
-  "territory:CX": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Christmas Island"
-    }
-  },
   "country:CY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -897,8 +661,7 @@
   },
   "country:CZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -913,8 +676,7 @@
   },
   "country:DE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -929,8 +691,7 @@
   },
   "country:DJ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -945,8 +706,7 @@
   },
   "country:DK": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -961,8 +721,7 @@
   },
   "country:DM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -977,8 +736,7 @@
   },
   "country:DO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -993,8 +751,7 @@
   },
   "country:DZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1009,8 +766,7 @@
   },
   "country:EC": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1025,8 +781,7 @@
   },
   "country:EE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1041,8 +796,7 @@
   },
   "country:EG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1055,26 +809,9 @@
       "en-GB": "Egypt"
     }
   },
-  "territory:EH": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Western Sahara"
-    }
-  },
   "country:ER": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1089,8 +826,7 @@
   },
   "country:ES": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1105,8 +841,7 @@
   },
   "country:ET": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1121,8 +856,7 @@
   },
   "country:FI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1137,8 +871,7 @@
   },
   "country:FJ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1151,26 +884,9 @@
       "en-GB": "Fiji"
     }
   },
-  "territory:FK": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Falkland Islands"
-    }
-  },
   "country:FM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1183,26 +899,9 @@
       "en-GB": "Micronesia"
     }
   },
-  "territory:FO": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Faroe Islands"
-    }
-  },
   "country:FR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1217,8 +916,7 @@
   },
   "country:GA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1233,8 +931,7 @@
   },
   "country:GB": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1249,8 +946,7 @@
   },
   "country:GD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1265,8 +961,7 @@
   },
   "country:GE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1279,42 +974,9 @@
       "en-GB": "Georgia"
     }
   },
-  "territory:GF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Guiana"
-    }
-  },
-  "territory:GG": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guernsey"
-    }
-  },
   "country:GH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1327,42 +989,9 @@
       "en-GB": "Ghana"
     }
   },
-  "territory:GI": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Gibraltar"
-    }
-  },
-  "territory:GL": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Greenland"
-    }
-  },
   "country:GM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1377,8 +1006,7 @@
   },
   "country:GN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1391,26 +1019,9 @@
       "en-GB": "Guinea"
     }
   },
-  "territory:GP": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guadeloupe"
-    }
-  },
   "country:GQ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1425,8 +1036,7 @@
   },
   "country:GR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1439,26 +1049,9 @@
       "en-GB": "Greece"
     }
   },
-  "territory:GS": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "South Georgia and South Sandwich Islands"
-    }
-  },
   "country:GT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1471,26 +1064,9 @@
       "en-GB": "Guatemala"
     }
   },
-  "territory:GU": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guam"
-    }
-  },
   "country:GW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1505,8 +1081,7 @@
   },
   "country:GY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1519,42 +1094,9 @@
       "en-GB": "Guyana"
     }
   },
-  "territory:HK": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Hong Kong"
-    }
-  },
-  "territory:HM": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Heard Island and McDonald Islands"
-    }
-  },
   "country:HN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1569,8 +1111,7 @@
   },
   "country:HR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1585,8 +1126,7 @@
   },
   "country:HT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1601,8 +1141,7 @@
   },
   "country:HU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1617,8 +1156,7 @@
   },
   "country:ID": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1633,8 +1171,7 @@
   },
   "country:IE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1649,8 +1186,7 @@
   },
   "country:IL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1663,26 +1199,9 @@
       "en-GB": "Israel"
     }
   },
-  "territory:IM": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Isle of Man"
-    }
-  },
   "country:IN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1695,26 +1214,9 @@
       "en-GB": "India"
     }
   },
-  "territory:IO": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "British Indian Ocean Territory"
-    }
-  },
   "country:IQ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1729,8 +1231,7 @@
   },
   "country:IR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1745,8 +1246,7 @@
   },
   "country:IS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1761,8 +1261,7 @@
   },
   "country:IT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1775,26 +1274,9 @@
       "en-GB": "Italy"
     }
   },
-  "territory:JE": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Jersey"
-    }
-  },
   "country:JM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1809,8 +1291,7 @@
   },
   "country:JO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1825,8 +1306,7 @@
   },
   "country:JP": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1841,8 +1321,7 @@
   },
   "country:KE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1857,8 +1336,7 @@
   },
   "country:KG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1873,8 +1351,7 @@
   },
   "country:KH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1889,8 +1366,7 @@
   },
   "country:KI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1905,8 +1381,7 @@
   },
   "country:KM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1921,8 +1396,7 @@
   },
   "country:KN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1937,8 +1411,7 @@
   },
   "country:KP": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1953,8 +1426,7 @@
   },
   "country:KR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1969,8 +1441,7 @@
   },
   "country:KW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -1983,26 +1454,9 @@
       "en-GB": "Kuwait"
     }
   },
-  "territory:KY": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Cayman Islands"
-    }
-  },
   "country:KZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2017,8 +1471,7 @@
   },
   "country:LA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2033,8 +1486,7 @@
   },
   "country:LB": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2049,8 +1501,7 @@
   },
   "country:LC": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2065,8 +1516,7 @@
   },
   "country:LI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2081,8 +1531,7 @@
   },
   "country:LK": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2097,8 +1546,7 @@
   },
   "country:LR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2113,8 +1561,7 @@
   },
   "country:LS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2129,8 +1576,7 @@
   },
   "country:LT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2145,8 +1591,7 @@
   },
   "country:LU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2161,8 +1606,7 @@
   },
   "country:LV": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2177,8 +1621,7 @@
   },
   "country:LY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2193,8 +1636,7 @@
   },
   "country:MA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2209,8 +1651,7 @@
   },
   "country:MC": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2225,8 +1666,7 @@
   },
   "country:MD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2241,8 +1681,7 @@
   },
   "country:ME": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2255,26 +1694,9 @@
       "en-GB": "Montenegro"
     }
   },
-  "territory:MF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint-Martin (French part)"
-    }
-  },
   "country:MG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2289,8 +1711,7 @@
   },
   "country:MH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2305,8 +1726,7 @@
   },
   "country:MK": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2321,8 +1741,7 @@
   },
   "country:ML": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2337,8 +1756,7 @@
   },
   "country:MM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2353,8 +1771,7 @@
   },
   "country:MN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2367,58 +1784,9 @@
       "en-GB": "Mongolia"
     }
   },
-  "territory:MO": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Macau"
-    }
-  },
-  "territory:MP": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Northern Mariana Islands"
-    }
-  },
-  "territory:MQ": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Martinique"
-    }
-  },
   "country:MR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2431,26 +1799,9 @@
       "en-GB": "Mauritania"
     }
   },
-  "territory:MS": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Montserrat"
-    }
-  },
   "country:MT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2465,8 +1816,7 @@
   },
   "country:MU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2481,8 +1831,7 @@
   },
   "country:MV": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2497,8 +1846,7 @@
   },
   "country:MW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2513,8 +1861,7 @@
   },
   "country:MX": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2529,8 +1876,7 @@
   },
   "country:MY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2545,8 +1891,7 @@
   },
   "country:MZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2561,8 +1906,7 @@
   },
   "country:NA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2575,26 +1919,9 @@
       "en-GB": "Namibia"
     }
   },
-  "territory:NC": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "New Caledonia"
-    }
-  },
   "country:NE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2607,26 +1934,9 @@
       "en-GB": "Niger"
     }
   },
-  "territory:NF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Norfolk Island"
-    }
-  },
   "country:NG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2641,8 +1951,7 @@
   },
   "country:NI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2657,8 +1966,7 @@
   },
   "country:NL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2673,8 +1981,7 @@
   },
   "country:NO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2689,8 +1996,7 @@
   },
   "country:NP": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2705,8 +2011,7 @@
   },
   "country:NR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2719,26 +2024,9 @@
       "en-GB": "Nauru"
     }
   },
-  "territory:NU": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Niue"
-    }
-  },
   "country:NZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2753,8 +2041,7 @@
   },
   "country:OM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2769,8 +2056,7 @@
   },
   "country:PA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2785,8 +2071,7 @@
   },
   "country:PE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2799,26 +2084,9 @@
       "en-GB": "Peru"
     }
   },
-  "territory:PF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Polynesia"
-    }
-  },
   "country:PG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2833,8 +2101,7 @@
   },
   "country:PH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2849,8 +2116,7 @@
   },
   "country:PK": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2865,8 +2131,7 @@
   },
   "country:PL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2879,74 +2144,9 @@
       "en-GB": "Poland"
     }
   },
-  "territory:PM": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Pierre and Miquelon"
-    }
-  },
-  "territory:PN": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Pitcairn Islands"
-    }
-  },
-  "territory:PR": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Puerto Rico"
-    }
-  },
-  "territory:PS": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Palestine"
-    }
-  },
   "country:PT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2961,8 +2161,7 @@
   },
   "country:PW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2977,8 +2176,7 @@
   },
   "country:PY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -2993,8 +2191,7 @@
   },
   "country:QA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3007,26 +2204,9 @@
       "en-GB": "Qatar"
     }
   },
-  "territory:RE": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Réunion"
-    }
-  },
   "country:RO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3041,8 +2221,7 @@
   },
   "country:RS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3057,8 +2236,7 @@
   },
   "country:RU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3073,8 +2251,7 @@
   },
   "country:RW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3089,8 +2266,7 @@
   },
   "country:SA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3105,8 +2281,7 @@
   },
   "country:SB": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3121,8 +2296,7 @@
   },
   "country:SC": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3137,8 +2311,7 @@
   },
   "country:SD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3153,8 +2326,7 @@
   },
   "country:SE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3169,8 +2341,7 @@
   },
   "country:SG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3183,26 +2354,9 @@
       "en-GB": "Singapore"
     }
   },
-  "territory:SH": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Helena, Ascension and Tristan da Cunha"
-    }
-  },
   "country:SI": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3215,26 +2369,9 @@
       "en-GB": "Slovenia"
     }
   },
-  "territory:SJ": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Svalbard and Jan Mayen"
-    }
-  },
   "country:SK": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3249,8 +2386,7 @@
   },
   "country:SL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3265,8 +2401,7 @@
   },
   "country:SM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3281,8 +2416,7 @@
   },
   "country:SN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3297,8 +2431,7 @@
   },
   "country:SO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3313,8 +2446,7 @@
   },
   "country:SR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3329,8 +2461,7 @@
   },
   "country:SS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3345,8 +2476,7 @@
   },
   "country:ST": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3361,8 +2491,7 @@
   },
   "country:SV": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3375,26 +2504,9 @@
       "en-GB": "El Salvador"
     }
   },
-  "territory:SX": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Sint Maarten (Dutch part)"
-    }
-  },
   "country:SY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3409,8 +2521,7 @@
   },
   "country:SZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3423,26 +2534,9 @@
       "en-GB": "Swaziland"
     }
   },
-  "territory:TC": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Turks and Caicos Islands"
-    }
-  },
   "country:TD": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3455,26 +2549,9 @@
       "en-GB": "Chad"
     }
   },
-  "territory:TF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Southern Territories"
-    }
-  },
   "country:TG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3489,8 +2566,7 @@
   },
   "country:TH": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3505,8 +2581,7 @@
   },
   "country:TJ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3519,26 +2594,9 @@
       "en-GB": "Tajikistan"
     }
   },
-  "territory:TK": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Tokelau"
-    }
-  },
   "country:TL": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3553,8 +2611,7 @@
   },
   "country:TM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3569,8 +2626,7 @@
   },
   "country:TN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3585,8 +2641,7 @@
   },
   "country:TO": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3601,8 +2656,7 @@
   },
   "country:TR": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3617,8 +2671,7 @@
   },
   "country:TT": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3633,8 +2686,7 @@
   },
   "country:TV": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3647,26 +2699,9 @@
       "en-GB": "Tuvalu"
     }
   },
-  "territory:TW": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Taiwan"
-    }
-  },
   "country:TZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3681,8 +2716,7 @@
   },
   "country:UA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3697,8 +2731,7 @@
   },
   "country:UG": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3711,26 +2744,9 @@
       "en-GB": "Uganda"
     }
   },
-  "territory:UM": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "United States Minor Outlying Islands"
-    }
-  },
   "country:US": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3745,8 +2761,7 @@
   },
   "country:UY": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3761,8 +2776,7 @@
   },
   "country:UZ": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3777,8 +2791,7 @@
   },
   "country:VA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3793,8 +2806,7 @@
   },
   "country:VC": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3809,8 +2821,7 @@
   },
   "country:VE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3823,42 +2834,9 @@
       "en-GB": "Venezuela"
     }
   },
-  "territory:VG": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "British Virgin Islands"
-    }
-  },
-  "territory:VI": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "United States Virgin Islands"
-    }
-  },
   "country:VN": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3873,8 +2851,7 @@
   },
   "country:VU": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3887,26 +2864,9 @@
       "en-GB": "Vanuatu"
     }
   },
-  "territory:WF": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Wallis and Futuna"
-    }
-  },
   "country:WS": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3921,8 +2881,7 @@
   },
   "country:YE": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3935,26 +2894,9 @@
       "en-GB": "Yemen"
     }
   },
-  "territory:YT": {
-    "edges": {
-      "from": [
-      ]
-    },
-    "meta": {
-      "canonical": true,
-      "canonical-mask": 1,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Mayotte"
-    }
-  },
   "country:ZA": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3969,8 +2911,7 @@
   },
   "country:ZM": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -3985,8 +2926,7 @@
   },
   "country:ZW": {
     "edges": {
-      "from": [
-      ]
+      "from": []
     },
     "meta": {
       "canonical": true,
@@ -4033,125 +2973,6 @@
       "en-GB": "AE"
     }
   },
-  "nym:AE-AJ": {
-    "edges": {
-      "from": [
-        "territory:AE-AJ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-AJ"
-    }
-  },
-  "nym:AE-AZ": {
-    "edges": {
-      "from": [
-        "territory:AE-AZ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-AZ"
-    }
-  },
-  "nym:AE-DU": {
-    "edges": {
-      "from": [
-        "territory:AE-DU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-DU"
-    }
-  },
-  "nym:AE-FU": {
-    "edges": {
-      "from": [
-        "territory:AE-FU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-FU"
-    }
-  },
-  "nym:AE-RK": {
-    "edges": {
-      "from": [
-        "territory:AE-RK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-RK"
-    }
-  },
-  "nym:AE-SH": {
-    "edges": {
-      "from": [
-        "territory:AE-SH"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-SH"
-    }
-  },
-  "nym:AE-UQ": {
-    "edges": {
-      "from": [
-        "territory:AE-UQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AE-UQ"
-    }
-  },
   "nym:AF": {
     "edges": {
       "from": [
@@ -4184,23 +3005,6 @@
     "names": {
       "cy": false,
       "en-GB": "AG"
-    }
-  },
-  "nym:AI": {
-    "edges": {
-      "from": [
-        "territory:AI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AI"
     }
   },
   "nym:AL": {
@@ -4254,23 +3058,6 @@
       "en-GB": "AO"
     }
   },
-  "nym:AQ": {
-    "edges": {
-      "from": [
-        "territory:AQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AQ"
-    }
-  },
   "nym:AR": {
     "edges": {
       "from": [
@@ -4286,23 +3073,6 @@
     "names": {
       "cy": false,
       "en-GB": "AR"
-    }
-  },
-  "nym:AS": {
-    "edges": {
-      "from": [
-        "territory:AS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AS"
     }
   },
   "nym:AT": {
@@ -4339,40 +3109,6 @@
       "en-GB": "AU"
     }
   },
-  "nym:AW": {
-    "edges": {
-      "from": [
-        "territory:AW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AW"
-    }
-  },
-  "nym:AX": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "AX"
-    }
-  },
   "nym:AZ": {
     "edges": {
       "from": [
@@ -4390,23 +3126,6 @@
       "en-GB": "AZ"
     }
   },
-  "nym:Aaland": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aaland"
-    }
-  },
   "nym:Abyssinia": {
     "edges": {
       "from": [
@@ -4422,23 +3141,6 @@
     "names": {
       "cy": false,
       "en-GB": "Abyssinia"
-    }
-  },
-  "nym:Aeroes": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aeroes"
     }
   },
   "nym:Afghanestan": {
@@ -4558,23 +3260,6 @@
     "names": {
       "cy": false,
       "en-GB": "Agawec"
-    }
-  },
-  "nym:Ahvenanmaa": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Ahvenanmaa"
     }
   },
   "nym:Al itihaad al islamiya": {
@@ -4764,23 +3449,6 @@
       "en-GB": "Al-’Urdun"
     }
   },
-  "nym:Aland": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aland"
-    }
-  },
   "nym:Ameeri": {
     "edges": {
       "from": [
@@ -4883,23 +3551,6 @@
       "en-GB": "Ameria"
     }
   },
-  "nym:American Virgin Islands": {
-    "edges": {
-      "from": [
-        "territory:VI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "American Virgin Islands"
-    }
-  },
   "nym:Amerika Sāmoa": {
     "edges": {
       "from": [
@@ -4968,23 +3619,6 @@
       "en-GB": "An Rywvaneth Unys"
     }
   },
-  "nym:Anguilla": {
-    "edges": {
-      "from": [
-        "territory:AI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Anguilla"
-    }
-  },
   "nym:Anmerica": {
     "edges": {
       "from": [
@@ -5017,23 +3651,6 @@
     "names": {
       "cy": false,
       "en-GB": "Annam"
-    }
-  },
-  "nym:Antarctica": {
-    "edges": {
-      "from": [
-        "territory:AQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Antarctica"
     }
   },
   "nym:Antigua and Barbuda": {
@@ -5155,23 +3772,6 @@
       "en-GB": "Argentinia"
     }
   },
-  "nym:Aruba": {
-    "edges": {
-      "from": [
-        "territory:AW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Aruba"
-    }
-  },
   "nym:As-Sudan": {
     "edges": {
       "from": [
@@ -5187,23 +3787,6 @@
     "names": {
       "cy": false,
       "en-GB": "As-Sudan"
-    }
-  },
-  "nym:Ascension Island": {
-    "edges": {
-      "from": [
-        "territory:SH-AC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Ascension Island"
     }
   },
   "nym:Ayiti": {
@@ -5291,23 +3874,6 @@
       "en-GB": "Azərbaycan"
     }
   },
-  "nym:B.V.I.": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "B.V.I."
-    }
-  },
   "nym:BA": {
     "edges": {
       "from": [
@@ -5323,23 +3889,6 @@
     "names": {
       "cy": false,
       "en-GB": "BA"
-    }
-  },
-  "nym:BAT": {
-    "edges": {
-      "from": [
-        "territory:BAT"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "BAT"
     }
   },
   "nym:BB": {
@@ -5478,40 +4027,6 @@
       "en-GB": "BJ"
     }
   },
-  "nym:BL": {
-    "edges": {
-      "from": [
-        "territory:BL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "BL"
-    }
-  },
-  "nym:BM": {
-    "edges": {
-      "from": [
-        "territory:BM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "BM"
-    }
-  },
   "nym:BN": {
     "edges": {
       "from": [
@@ -5597,40 +4112,6 @@
       "en-GB": "BT"
     }
   },
-  "nym:BV": {
-    "edges": {
-      "from": [
-        "territory:BV"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "BV"
-    }
-  },
-  "nym:BVI": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "BVI"
-    }
-  },
   "nym:BW": {
     "edges": {
       "from": [
@@ -5680,57 +4161,6 @@
     "names": {
       "cy": false,
       "en-GB": "BZ"
-    }
-  },
-  "nym:Bailiwick of Guernsey": {
-    "edges": {
-      "from": [
-        "territory:GG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bailiwick of Guernsey"
-    }
-  },
-  "nym:Bailiwick of Jersey": {
-    "edges": {
-      "from": [
-        "territory:JE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bailiwick of Jersey"
-    }
-  },
-  "nym:Baker Island": {
-    "edges": {
-      "from": [
-        "territory:UM-81"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Baker Island"
     }
   },
   "nym:Bangla Desh": {
@@ -5918,40 +4348,6 @@
     "names": {
       "cy": false,
       "en-GB": "Belize"
-    }
-  },
-  "nym:Bermuda": {
-    "edges": {
-      "from": [
-        "territory:BM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bermuda"
-    }
-  },
-  "nym:Bermudas": {
-    "edges": {
-      "from": [
-        "territory:BM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bermudas"
     }
   },
   "nym:Bharat": {
@@ -6158,23 +4554,6 @@
       "en-GB": "Bolivia"
     }
   },
-  "nym:Bonaire": {
-    "edges": {
-      "from": [
-        "territory:BQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bonaire"
-    }
-  },
   "nym:Bosna i Hercegovina": {
     "edges": {
       "from": [
@@ -6224,23 +4603,6 @@
     "names": {
       "cy": false,
       "en-GB": "Bosnia-Herzegovina"
-    }
-  },
-  "nym:Bouvet Island": {
-    "edges": {
-      "from": [
-        "territory:BV"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Bouvet Island"
     }
   },
   "nym:Brasil": {
@@ -6326,23 +4688,6 @@
     "names": {
       "cy": false,
       "en-GB": "Britiain"
-    }
-  },
-  "nym:British Antarctic Territory": {
-    "edges": {
-      "from": [
-        "territory:BAT"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "British Antarctic Territory"
     }
   },
   "nym:British Guiana": {
@@ -6634,23 +4979,6 @@
       "en-GB": "CAR"
     }
   },
-  "nym:CC": {
-    "edges": {
-      "from": [
-        "territory:CC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "CC"
-    }
-  },
   "nym:CD": {
     "edges": {
       "from": [
@@ -6734,23 +5062,6 @@
     "names": {
       "cy": false,
       "en-GB": "CI"
-    }
-  },
-  "nym:CK": {
-    "edges": {
-      "from": [
-        "territory:CK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "CK"
     }
   },
   "nym:CL": {
@@ -6887,40 +5198,6 @@
     "names": {
       "cy": false,
       "en-GB": "CV"
-    }
-  },
-  "nym:CW": {
-    "edges": {
-      "from": [
-        "territory:CW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "CW"
-    }
-  },
-  "nym:CX": {
-    "edges": {
-      "from": [
-        "territory:CX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "CX"
     }
   },
   "nym:CY": {
@@ -7093,23 +5370,6 @@
       "en-GB": "Cathay"
     }
   },
-  "nym:Cayman Islands": {
-    "edges": {
-      "from": [
-        "territory:KY"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Cayman Islands"
-    }
-  },
   "nym:Central Africa": {
     "edges": {
       "from": [
@@ -7161,23 +5421,6 @@
       "en-GB": "Ceska"
     }
   },
-  "nym:Ceuta": {
-    "edges": {
-      "from": [
-        "territory:ES-CE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Ceuta"
-    }
-  },
   "nym:Ceylon": {
     "edges": {
       "from": [
@@ -7193,23 +5436,6 @@
     "names": {
       "cy": false,
       "en-GB": "Ceylon"
-    }
-  },
-  "nym:Chinese Taipei": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Chinese Taipei"
     }
   },
   "nym:Citta del Vaticano": {
@@ -7263,23 +5489,6 @@
       "en-GB": "Coasta Rica"
     }
   },
-  "nym:Collectivity of Saint Martin": {
-    "edges": {
-      "from": [
-        "territory:MF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Collectivity of Saint Martin"
-    }
-  },
   "nym:Commonwealth of Australia": {
     "edges": {
       "from": [
@@ -7331,40 +5540,6 @@
       "en-GB": "Commonwealth of Dominica"
     }
   },
-  "nym:Commonwealth of Puerto Rico": {
-    "edges": {
-      "from": [
-        "territory:PR"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Commonwealth of Puerto Rico"
-    }
-  },
-  "nym:Commonwealth of the Northern Mariana Islands": {
-    "edges": {
-      "from": [
-        "territory:MP"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Commonwealth of the Northern Mariana Islands"
-    }
-  },
   "nym:Comores": {
     "edges": {
       "from": [
@@ -7397,23 +5572,6 @@
     "names": {
       "cy": false,
       "en-GB": "Congo-Brazzaville"
-    }
-  },
-  "nym:Cook Islands": {
-    "edges": {
-      "from": [
-        "territory:CK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Cook Islands"
     }
   },
   "nym:Costa Rico": {
@@ -7467,23 +5625,6 @@
       "en-GB": "Cote dIvoire"
     }
   },
-  "nym:Country of Curaçao": {
-    "edges": {
-      "from": [
-        "territory:CW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Country of Curaçao"
-    }
-  },
   "nym:Crna Gora": {
     "edges": {
       "from": [
@@ -7499,40 +5640,6 @@
     "names": {
       "cy": false,
       "en-GB": "Crna Gora"
-    }
-  },
-  "nym:Curacao": {
-    "edges": {
-      "from": [
-        "territory:CW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Curacao"
-    }
-  },
-  "nym:Curaçao": {
-    "edges": {
-      "from": [
-        "territory:CW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Curaçao"
     }
   },
   "nym:Czech Republic": {
@@ -7584,23 +5691,6 @@
     "names": {
       "cy": false,
       "en-GB": "Czechoslovak Republic"
-    }
-  },
-  "nym:DD": {
-    "edges": {
-      "from": [
-        "country:DD"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "DD"
     }
   },
   "nym:DE": {
@@ -7943,23 +6033,6 @@
       "en-GB": "Druk Yul"
     }
   },
-  "nym:Ducie and Oeno Islands": {
-    "edges": {
-      "from": [
-        "territory:PN"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Ducie and Oeno Islands"
-    }
-  },
   "nym:Dutch East Indies": {
     "edges": {
       "from": [
@@ -8062,23 +6135,6 @@
       "en-GB": "EG"
     }
   },
-  "nym:EH": {
-    "edges": {
-      "from": [
-        "territory:EH"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "EH"
-    }
-  },
   "nym:ENG": {
     "edges": {
       "from": [
@@ -8130,40 +6186,6 @@
       "en-GB": "ES"
     }
   },
-  "nym:ES-CE": {
-    "edges": {
-      "from": [
-        "territory:ES-CE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "ES-CE"
-    }
-  },
-  "nym:ES-ML": {
-    "edges": {
-      "from": [
-        "territory:ES-ML"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "ES-ML"
-    }
-  },
   "nym:ET": {
     "edges": {
       "from": [
@@ -8196,23 +6218,6 @@
     "names": {
       "cy": false,
       "en-GB": "East Pakistan"
-    }
-  },
-  "nym:Eastern Samoa": {
-    "edges": {
-      "from": [
-        "territory:AS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Eastern Samoa"
     }
   },
   "nym:Eesti": {
@@ -8317,23 +6322,6 @@
       "en-GB": "Ellada"
     }
   },
-  "nym:Ellan Vannin": {
-    "edges": {
-      "from": [
-        "territory:IM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Ellan Vannin"
-    }
-  },
   "nym:Ellas": {
     "edges": {
       "from": [
@@ -8383,125 +6371,6 @@
     "names": {
       "cy": false,
       "en-GB": "Elmeɣrib"
-    }
-  },
-  "nym:Emirate of Abu Dhabi": {
-    "edges": {
-      "from": [
-        "territory:AE-AZ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Abu Dhabi"
-    }
-  },
-  "nym:Emirate of Ajman": {
-    "edges": {
-      "from": [
-        "territory:AE-AJ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Ajman"
-    }
-  },
-  "nym:Emirate of Dubai": {
-    "edges": {
-      "from": [
-        "territory:AE-DU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Dubai"
-    }
-  },
-  "nym:Emirate of Fujairah": {
-    "edges": {
-      "from": [
-        "territory:AE-FU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Fujairah"
-    }
-  },
-  "nym:Emirate of Ras al-Khaimah": {
-    "edges": {
-      "from": [
-        "territory:AE-RK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Ras al-Khaimah"
-    }
-  },
-  "nym:Emirate of Sharjah": {
-    "edges": {
-      "from": [
-        "territory:AE-SH"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Sharjah"
-    }
-  },
-  "nym:Emirate of Umm al-Quwain": {
-    "edges": {
-      "from": [
-        "territory:AE-UQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Emirate of Umm al-Quwain"
     }
   },
   "nym:England": {
@@ -8725,23 +6594,6 @@
       "en-GB": "FJ"
     }
   },
-  "nym:FK": {
-    "edges": {
-      "from": [
-        "territory:FK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "FK"
-    }
-  },
   "nym:FM": {
     "edges": {
       "from": [
@@ -8759,23 +6611,6 @@
       "en-GB": "FM"
     }
   },
-  "nym:FO": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "FO"
-    }
-  },
   "nym:FR": {
     "edges": {
       "from": [
@@ -8791,57 +6626,6 @@
     "names": {
       "cy": false,
       "en-GB": "FR"
-    }
-  },
-  "nym:Falkland Islands": {
-    "edges": {
-      "from": [
-        "territory:FK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Falkland Islands"
-    }
-  },
-  "nym:Faroe Islands": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Faroe Islands"
-    }
-  },
-  "nym:Faroes": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Faroes"
     }
   },
   "nym:Federal Democratic Republic of Ethiopia": {
@@ -8893,23 +6677,6 @@
     "names": {
       "cy": false,
       "en-GB": "Federal Islamic Republic of the Comoros"
-    }
-  },
-  "nym:Germany": {
-    "edges": {
-      "from": [
-        "country:DE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Germany"
     }
   },
   "nym:Federal Republic of Nigeria": {
@@ -9065,23 +6832,6 @@
       "en-GB": "French Congo"
     }
   },
-  "nym:French Guiana": {
-    "edges": {
-      "from": [
-        "territory:GF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Guiana"
-    }
-  },
   "nym:French Guinea": {
     "edges": {
       "from": [
@@ -9099,40 +6849,6 @@
       "en-GB": "French Guinea"
     }
   },
-  "nym:French Oceania": {
-    "edges": {
-      "from": [
-        "territory:PF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Oceania"
-    }
-  },
-  "nym:French Polynesia": {
-    "edges": {
-      "from": [
-        "territory:PF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Polynesia"
-    }
-  },
   "nym:French Republic": {
     "edges": {
       "from": [
@@ -9148,23 +6864,6 @@
     "names": {
       "cy": false,
       "en-GB": "French Republic"
-    }
-  },
-  "nym:French Southern Territories": {
-    "edges": {
-      "from": [
-        "territory:TF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "French Southern Territories"
     }
   },
   "nym:French Sudan": {
@@ -9199,40 +6898,6 @@
     "names": {
       "cy": false,
       "en-GB": "Friendly islands"
-    }
-  },
-  "nym:Færøerne": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Færøerne"
-    }
-  },
-  "nym:Føroyar": {
-    "edges": {
-      "from": [
-        "territory:FO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Føroyar"
     }
   },
   "nym:GA": {
@@ -9320,40 +6985,6 @@
       "en-GB": "GE"
     }
   },
-  "nym:GF": {
-    "edges": {
-      "from": [
-        "territory:GF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GF"
-    }
-  },
-  "nym:GG": {
-    "edges": {
-      "from": [
-        "territory:GG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GG"
-    }
-  },
   "nym:GH": {
     "edges": {
       "from": [
@@ -9369,40 +7000,6 @@
     "names": {
       "cy": false,
       "en-GB": "GH"
-    }
-  },
-  "nym:GI": {
-    "edges": {
-      "from": [
-        "territory:GI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GI"
-    }
-  },
-  "nym:GL": {
-    "edges": {
-      "from": [
-        "territory:GL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GL"
     }
   },
   "nym:GM": {
@@ -9439,23 +7036,6 @@
       "en-GB": "GN"
     }
   },
-  "nym:GP": {
-    "edges": {
-      "from": [
-        "territory:GP"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GP"
-    }
-  },
   "nym:GQ": {
     "edges": {
       "from": [
@@ -9490,23 +7070,6 @@
       "en-GB": "GR"
     }
   },
-  "nym:GS": {
-    "edges": {
-      "from": [
-        "territory:GS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GS"
-    }
-  },
   "nym:GT": {
     "edges": {
       "from": [
@@ -9522,23 +7085,6 @@
     "names": {
       "cy": false,
       "en-GB": "GT"
-    }
-  },
-  "nym:GU": {
-    "edges": {
-      "from": [
-        "territory:GU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "GU"
     }
   },
   "nym:GW": {
@@ -9660,21 +7206,21 @@
       "en-GB": "Georgia"
     }
   },
-  "nym:Gibraltar": {
+  "nym:Germany": {
     "edges": {
       "from": [
-        "territory:GI"
+        "country:DE"
       ]
     },
     "meta": {
       "canonical": false,
       "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
+      "display-name": false,
+      "stable-name": false
     },
     "names": {
       "cy": false,
-      "en-GB": "Gibraltar"
+      "en-GB": "Germany"
     }
   },
   "nym:Gine": {
@@ -9779,23 +7325,6 @@
       "en-GB": "Great Britan"
     }
   },
-  "nym:Greenland": {
-    "edges": {
-      "from": [
-        "territory:GL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Greenland"
-    }
-  },
   "nym:Grenada": {
     "edges": {
       "from": [
@@ -9830,57 +7359,6 @@
       "en-GB": "Gret Britain"
     }
   },
-  "nym:Gronland": {
-    "edges": {
-      "from": [
-        "territory:GL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Gronland"
-    }
-  },
-  "nym:Grønland": {
-    "edges": {
-      "from": [
-        "territory:GL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Grønland"
-    }
-  },
-  "nym:Guadeloupe": {
-    "edges": {
-      "from": [
-        "territory:GP"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guadeloupe"
-    }
-  },
   "nym:Guinea Ecuatorial": {
     "edges": {
       "from": [
@@ -9913,74 +7391,6 @@
     "names": {
       "cy": false,
       "en-GB": "Guinée"
-    }
-  },
-  "nym:Guyane": {
-    "edges": {
-      "from": [
-        "territory:GF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guyane"
-    }
-  },
-  "nym:Guåhån": {
-    "edges": {
-      "from": [
-        "territory:GU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Guåhån"
-    }
-  },
-  "nym:HK": {
-    "edges": {
-      "from": [
-        "territory:HK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "HK"
-    }
-  },
-  "nym:HM": {
-    "edges": {
-      "from": [
-        "territory:HM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "HM"
     }
   },
   "nym:HN": {
@@ -10170,40 +7580,6 @@
       "en-GB": "Hellenic Republic"
     }
   },
-  "nym:Henderson": {
-    "edges": {
-      "from": [
-        "territory:PN"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Henderson"
-    }
-  },
-  "nym:Heung Gong": {
-    "edges": {
-      "from": [
-        "territory:HK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Heung Gong"
-    }
-  },
   "nym:Hindustan": {
     "edges": {
       "from": [
@@ -10255,40 +7631,6 @@
       "en-GB": "Holy See"
     }
   },
-  "nym:Hong Kong Special Administrative Region": {
-    "edges": {
-      "from": [
-        "territory:HK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Hong Kong Special Administrative Region"
-    }
-  },
-  "nym:Howland Island": {
-    "edges": {
-      "from": [
-        "territory:UM-84"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Howland Island"
-    }
-  },
   "nym:Hrvatska": {
     "edges": {
       "from": [
@@ -10321,23 +7663,6 @@
     "names": {
       "cy": false,
       "en-GB": "Hungary"
-    }
-  },
-  "nym:I.O.T.": {
-    "edges": {
-      "from": [
-        "territory:IO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "I.O.T."
     }
   },
   "nym:ID": {
@@ -10391,23 +7716,6 @@
       "en-GB": "IL"
     }
   },
-  "nym:IM": {
-    "edges": {
-      "from": [
-        "territory:IM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "IM"
-    }
-  },
   "nym:IN": {
     "edges": {
       "from": [
@@ -10423,40 +7731,6 @@
     "names": {
       "cy": false,
       "en-GB": "IN"
-    }
-  },
-  "nym:IO": {
-    "edges": {
-      "from": [
-        "territory:IO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "IO"
-    }
-  },
-  "nym:IOT": {
-    "edges": {
-      "from": [
-        "territory:IO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "IOT"
     }
   },
   "nym:IQ": {
@@ -10748,57 +8022,6 @@
       "en-GB": "Island"
     }
   },
-  "nym:Island of Guernsey": {
-    "edges": {
-      "from": [
-        "territory:GG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Island of Guernsey"
-    }
-  },
-  "nym:Island of Jersey": {
-    "edges": {
-      "from": [
-        "territory:JE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Island of Jersey"
-    }
-  },
-  "nym:Isle of Man": {
-    "edges": {
-      "from": [
-        "territory:IM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Isle of Man"
-    }
-  },
   "nym:Israʼiyl": {
     "edges": {
       "from": [
@@ -10899,23 +8122,6 @@
     "names": {
       "cy": false,
       "en-GB": "Ityop'ia"
-    }
-  },
-  "nym:JE": {
-    "edges": {
-      "from": [
-        "territory:JE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "JE"
     }
   },
   "nym:JM": {
@@ -11069,57 +8275,6 @@
     "names": {
       "cy": false,
       "en-GB": "Japan"
-    }
-  },
-  "nym:Jarvis Island": {
-    "edges": {
-      "from": [
-        "territory:UM-86"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Jarvis Island"
-    }
-  },
-  "nym:Johnston Atoll": {
-    "edges": {
-      "from": [
-        "territory:UM-67"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Johnston Atoll"
-    }
-  },
-  "nym:Jugoslavija": {
-    "edges": {
-      "from": [
-        "country:YU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Jugoslavija"
     }
   },
   "nym:Juzur al-Qamar": {
@@ -11326,23 +8481,6 @@
       "en-GB": "KW"
     }
   },
-  "nym:KY": {
-    "edges": {
-      "from": [
-        "territory:KY"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "KY"
-    }
-  },
   "nym:KZ": {
     "edges": {
       "from": [
@@ -11358,23 +8496,6 @@
     "names": {
       "cy": false,
       "en-GB": "KZ"
-    }
-  },
-  "nym:Kalaallit Nunaat": {
-    "edges": {
-      "from": [
-        "territory:GL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Kalaallit Nunaat"
     }
   },
   "nym:Kampuchea": {
@@ -11734,23 +8855,6 @@
       "en-GB": "Kingdom of the Netherlands"
     }
   },
-  "nym:Kingman Reef": {
-    "edges": {
-      "from": [
-        "territory:UM-89"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Kingman Reef"
-    }
-  },
   "nym:Kirghizia": {
     "edges": {
       "from": [
@@ -11870,23 +8974,6 @@
       "en-GB": "Komori"
     }
   },
-  "nym:Kosova": {
-    "edges": {
-      "from": [
-        "country:XK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Kosova"
-    }
-  },
   "nym:Koweit": {
     "edges": {
       "from": [
@@ -11970,23 +9057,6 @@
     "names": {
       "cy": false,
       "en-GB": "Kyrgyzstan"
-    }
-  },
-  "nym:Kòrsou": {
-    "edges": {
-      "from": [
-        "territory:CW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Kòrsou"
     }
   },
   "nym:Ködörösêse tî Bêafrîka": {
@@ -12261,23 +9331,6 @@
       "en-GB": "Lao People's Democratic Republic"
     }
   },
-  "nym:Las Malvinas": {
-    "edges": {
-      "from": [
-        "territory:FK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Las Malvinas"
-    }
-  },
   "nym:Latvija": {
     "edges": {
       "from": [
@@ -12516,23 +9569,6 @@
       "en-GB": "ME"
     }
   },
-  "nym:MF": {
-    "edges": {
-      "from": [
-        "territory:MF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "MF"
-    }
-  },
   "nym:MG": {
     "edges": {
       "from": [
@@ -12635,57 +9671,6 @@
       "en-GB": "MN"
     }
   },
-  "nym:MO": {
-    "edges": {
-      "from": [
-        "territory:MO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "MO"
-    }
-  },
-  "nym:MP": {
-    "edges": {
-      "from": [
-        "territory:MP"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "MP"
-    }
-  },
-  "nym:MQ": {
-    "edges": {
-      "from": [
-        "territory:MQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "MQ"
-    }
-  },
   "nym:MR": {
     "edges": {
       "from": [
@@ -12701,23 +9686,6 @@
     "names": {
       "cy": false,
       "en-GB": "MR"
-    }
-  },
-  "nym:MS": {
-    "edges": {
-      "from": [
-        "territory:MS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "MS"
     }
   },
   "nym:MT": {
@@ -12837,23 +9805,6 @@
     "names": {
       "cy": false,
       "en-GB": "MZ"
-    }
-  },
-  "nym:Macao Special Administrative Region": {
-    "edges": {
-      "from": [
-        "territory:MO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Macao Special Administrative Region"
     }
   },
   "nym:Macedon": {
@@ -13077,23 +10028,6 @@
       "en-GB": "Marruecos"
     }
   },
-  "nym:Martinique": {
-    "edges": {
-      "from": [
-        "territory:MQ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Martinique"
-    }
-  },
   "nym:Masr": {
     "edges": {
       "from": [
@@ -13162,40 +10096,6 @@
       "en-GB": "Mauritius"
     }
   },
-  "nym:Mayotte": {
-    "edges": {
-      "from": [
-        "territory:YT"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Mayotte"
-    }
-  },
-  "nym:Melilla": {
-    "edges": {
-      "from": [
-        "territory:ES-ML"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Melilla"
-    }
-  },
   "nym:Mexcio": {
     "edges": {
       "from": [
@@ -13245,23 +10145,6 @@
     "names": {
       "cy": false,
       "en-GB": "Mexixo"
-    }
-  },
-  "nym:Midway Islands": {
-    "edges": {
-      "from": [
-        "territory:UM-71"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Midway Islands"
     }
   },
   "nym:Misr": {
@@ -13398,23 +10281,6 @@
     "names": {
       "cy": false,
       "en-GB": "Montenegro"
-    }
-  },
-  "nym:Montserrat": {
-    "edges": {
-      "from": [
-        "territory:MS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Montserrat"
     }
   },
   "nym:Moris": {
@@ -13638,23 +10504,6 @@
       "en-GB": "NA"
     }
   },
-  "nym:NC": {
-    "edges": {
-      "from": [
-        "territory:NC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "NC"
-    }
-  },
   "nym:NE": {
     "edges": {
       "from": [
@@ -13670,23 +10519,6 @@
     "names": {
       "cy": false,
       "en-GB": "NE"
-    }
-  },
-  "nym:NF": {
-    "edges": {
-      "from": [
-        "territory:NF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "NF"
     }
   },
   "nym:NG": {
@@ -13808,23 +10640,6 @@
       "en-GB": "NR"
     }
   },
-  "nym:NU": {
-    "edges": {
-      "from": [
-        "territory:NU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "NU"
-    }
-  },
   "nym:NZ": {
     "edges": {
       "from": [
@@ -13893,23 +10708,6 @@
       "en-GB": "Naoero"
     }
   },
-  "nym:Navassa Island": {
-    "edges": {
-      "from": [
-        "territory:UM-76"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Navassa Island"
-    }
-  },
   "nym:Naíjíríà": {
     "edges": {
       "from": [
@@ -13976,23 +10774,6 @@
     "names": {
       "cy": false,
       "en-GB": "Nepāl"
-    }
-  },
-  "nym:New Caledonia": {
-    "edges": {
-      "from": [
-        "territory:NC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "New Caledonia"
     }
   },
   "nym:New Hebrides": {
@@ -14114,40 +10895,6 @@
       "en-GB": "Nippon"
     }
   },
-  "nym:Niue": {
-    "edges": {
-      "from": [
-        "territory:NU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Niue"
-    }
-  },
-  "nym:Niuē": {
-    "edges": {
-      "from": [
-        "territory:NU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Niuē"
-    }
-  },
   "nym:Noreg": {
     "edges": {
       "from": [
@@ -14216,23 +10963,6 @@
       "en-GB": "Northern Ireland"
     }
   },
-  "nym:Northern Marianas": {
-    "edges": {
-      "from": [
-        "territory:MP"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Northern Marianas"
-    }
-  },
   "nym:Northern Rhodesia": {
     "edges": {
       "from": [
@@ -14248,23 +10978,6 @@
     "names": {
       "cy": false,
       "en-GB": "Northern Rhodesia"
-    }
-  },
-  "nym:Nouvelle-Calédonie": {
-    "edges": {
-      "from": [
-        "territory:NC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Nouvelle-Calédonie"
     }
   },
   "nym:Nyasaland": {
@@ -14316,23 +11029,6 @@
     "names": {
       "cy": false,
       "en-GB": "OM"
-    }
-  },
-  "nym:Occupied Palestinian Territories": {
-    "edges": {
-      "from": [
-        "territory:PS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Occupied Palestinian Territories"
     }
   },
   "nym:Oesterreich": {
@@ -14471,23 +11167,6 @@
       "en-GB": "PE"
     }
   },
-  "nym:PF": {
-    "edges": {
-      "from": [
-        "territory:PF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "PF"
-    }
-  },
   "nym:PG": {
     "edges": {
       "from": [
@@ -14556,40 +11235,6 @@
       "en-GB": "PL"
     }
   },
-  "nym:PM": {
-    "edges": {
-      "from": [
-        "territory:PM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "PM"
-    }
-  },
-  "nym:PN": {
-    "edges": {
-      "from": [
-        "territory:PN"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "PN"
-    }
-  },
   "nym:PNG": {
     "edges": {
       "from": [
@@ -14605,23 +11250,6 @@
     "names": {
       "cy": false,
       "en-GB": "PNG"
-    }
-  },
-  "nym:PR": {
-    "edges": {
-      "from": [
-        "territory:PR"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "PR"
     }
   },
   "nym:PRC": {
@@ -14656,23 +11284,6 @@
     "names": {
       "cy": false,
       "en-GB": "PRK"
-    }
-  },
-  "nym:PS": {
-    "edges": {
-      "from": [
-        "territory:PS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "PS"
     }
   },
   "nym:PT": {
@@ -14724,23 +11335,6 @@
     "names": {
       "cy": false,
       "en-GB": "PY"
-    }
-  },
-  "nym:Palmyra Atoll": {
-    "edges": {
-      "from": [
-        "territory:UM-95"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Palmyra Atoll"
     }
   },
   "nym:Panamá": {
@@ -14998,40 +11592,6 @@
       "en-GB": "Piruw"
     }
   },
-  "nym:Pitcairn": {
-    "edges": {
-      "from": [
-        "territory:PN"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Pitcairn"
-    }
-  },
-  "nym:Pitcairn, Henderson, Ducie and Oeno Islands": {
-    "edges": {
-      "from": [
-        "territory:PN"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Pitcairn, Henderson, Ducie and Oeno Islands"
-    }
-  },
   "nym:Plurinational State of Bolivia": {
     "edges": {
       "from": [
@@ -15064,57 +11624,6 @@
     "names": {
       "cy": false,
       "en-GB": "Polska"
-    }
-  },
-  "nym:Polynésie Française": {
-    "edges": {
-      "from": [
-        "territory:PF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Polynésie Française"
-    }
-  },
-  "nym:Polynésie française": {
-    "edges": {
-      "from": [
-        "territory:PF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Polynésie française"
-    }
-  },
-  "nym:Porto Rico": {
-    "edges": {
-      "from": [
-        "territory:PR"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Porto Rico"
     }
   },
   "nym:Portuguesa": {
@@ -15236,23 +11745,6 @@
       "en-GB": "Principality of Monaco"
     }
   },
-  "nym:Puarto Rico": {
-    "edges": {
-      "from": [
-        "territory:PR"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Puarto Rico"
-    }
-  },
   "nym:QA": {
     "edges": {
       "from": [
@@ -15285,23 +11777,6 @@
     "names": {
       "cy": false,
       "en-GB": "Qazaqstan"
-    }
-  },
-  "nym:RE": {
-    "edges": {
-      "from": [
-        "territory:RE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "RE"
     }
   },
   "nym:RO": {
@@ -16222,23 +12697,6 @@
       "en-GB": "Republic of Korea"
     }
   },
-  "nym:Republic of Kosovo": {
-    "edges": {
-      "from": [
-        "country:XK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Republic of Kosovo"
-    }
-  },
   "nym:Republic of Latvia": {
     "edges": {
       "from": [
@@ -17055,23 +13513,6 @@
       "en-GB": "República Oriental del Uruguay"
     }
   },
-  "nym:Reunion": {
-    "edges": {
-      "from": [
-        "territory:RE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Reunion"
-    }
-  },
   "nym:Rgypt": {
     "edges": {
       "from": [
@@ -17361,23 +13802,6 @@
       "en-GB": "République gabonaise"
     }
   },
-  "nym:Réunion": {
-    "edges": {
-      "from": [
-        "territory:RE"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Réunion"
-    }
-  },
   "nym:Rìoghachd Aonaichte": {
     "edges": {
       "from": [
@@ -17531,57 +13955,6 @@
       "en-GB": "SG"
     }
   },
-  "nym:SH-AC": {
-    "edges": {
-      "from": [
-        "territory:SH-AC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SH-AC"
-    }
-  },
-  "nym:SH-HL": {
-    "edges": {
-      "from": [
-        "territory:SH-HL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SH-HL"
-    }
-  },
-  "nym:SH-TA": {
-    "edges": {
-      "from": [
-        "territory:SH-TA"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SH-TA"
-    }
-  },
   "nym:SI": {
     "edges": {
       "from": [
@@ -17597,23 +13970,6 @@
     "names": {
       "cy": false,
       "en-GB": "SI"
-    }
-  },
-  "nym:SJ": {
-    "edges": {
-      "from": [
-        "territory:SJ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SJ"
     }
   },
   "nym:SK": {
@@ -17752,23 +14108,6 @@
       "en-GB": "ST"
     }
   },
-  "nym:SU": {
-    "edges": {
-      "from": [
-        "country:SU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SU"
-    }
-  },
   "nym:SV": {
     "edges": {
       "from": [
@@ -17784,23 +14123,6 @@
     "names": {
       "cy": false,
       "en-GB": "SV"
-    }
-  },
-  "nym:SX": {
-    "edges": {
-      "from": [
-        "territory:SX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "SX"
     }
   },
   "nym:SY": {
@@ -17837,40 +14159,6 @@
       "en-GB": "SZ"
     }
   },
-  "nym:Saint Barthélemy": {
-    "edges": {
-      "from": [
-        "territory:BL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Barthélemy"
-    }
-  },
-  "nym:Saint Helena": {
-    "edges": {
-      "from": [
-        "territory:SH-HL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Helena"
-    }
-  },
   "nym:Saint Lucia": {
     "edges": {
       "from": [
@@ -17888,23 +14176,6 @@
       "en-GB": "Saint Lucia"
     }
   },
-  "nym:Saint Pierre and Miquelon": {
-    "edges": {
-      "from": [
-        "territory:PM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint Pierre and Miquelon"
-    }
-  },
   "nym:Saint Vincent and the Grenadines": {
     "edges": {
       "from": [
@@ -17920,23 +14191,6 @@
     "names": {
       "cy": false,
       "en-GB": "Saint Vincent and the Grenadines"
-    }
-  },
-  "nym:Saint-Pierre et Miquelon": {
-    "edges": {
-      "from": [
-        "territory:PM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Saint-Pierre et Miquelon"
     }
   },
   "nym:Sak'art'velo": {
@@ -18228,23 +14482,6 @@
       "en-GB": "Singapura"
     }
   },
-  "nym:Sint Maarten": {
-    "edges": {
-      "from": [
-        "territory:SX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Sint Maarten"
-    }
-  },
   "nym:Sion": {
     "edges": {
       "from": [
@@ -18328,23 +14565,6 @@
     "names": {
       "cy": false,
       "en-GB": "Slovenská"
-    }
-  },
-  "nym:Socialist Federal Republic of Yugoslavia": {
-    "edges": {
-      "from": [
-        "country:YU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Socialist Federal Republic of Yugoslavia"
     }
   },
   "nym:Socialist People's Libyan Arab": {
@@ -18466,23 +14686,6 @@
       "en-GB": "Soudan"
     }
   },
-  "nym:South Georgia and the South Sandwich Islands": {
-    "edges": {
-      "from": [
-        "territory:GS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "South Georgia and the South Sandwich Islands"
-    }
-  },
   "nym:South Korea": {
     "edges": {
       "from": [
@@ -18515,23 +14718,6 @@
     "names": {
       "cy": false,
       "en-GB": "South west africa"
-    }
-  },
-  "nym:Sovereign Base Areas of Akrotiri and Dhekelia": {
-    "edges": {
-      "from": [
-        "territory:XXD"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Sovereign Base Areas of Akrotiri and Dhekelia"
     }
   },
   "nym:Spanish Guinea": {
@@ -18600,40 +14786,6 @@
     "names": {
       "cy": false,
       "en-GB": "Sri Lankā"
-    }
-  },
-  "nym:St Barth": {
-    "edges": {
-      "from": [
-        "territory:BL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "St Barth"
-    }
-  },
-  "nym:St. Barthelemy": {
-    "edges": {
-      "from": [
-        "territory:BL"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "St. Barthelemy"
     }
   },
   "nym:St. Kitts and Nevis": {
@@ -18874,23 +15026,6 @@
       "en-GB": "Suriyah"
     }
   },
-  "nym:Svalbard and Jan Mayen": {
-    "edges": {
-      "from": [
-        "territory:SJ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Svalbard and Jan Mayen"
-    }
-  },
   "nym:Sverige": {
     "edges": {
       "from": [
@@ -19061,23 +15196,6 @@
       "en-GB": "Sénégal"
     }
   },
-  "nym:TC": {
-    "edges": {
-      "from": [
-        "territory:TC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "TC"
-    }
-  },
   "nym:TD": {
     "edges": {
       "from": [
@@ -19093,23 +15211,6 @@
     "names": {
       "cy": false,
       "en-GB": "TD"
-    }
-  },
-  "nym:TF": {
-    "edges": {
-      "from": [
-        "territory:TF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "TF"
     }
   },
   "nym:TG": {
@@ -19161,23 +15262,6 @@
     "names": {
       "cy": false,
       "en-GB": "TJ"
-    }
-  },
-  "nym:TK": {
-    "edges": {
-      "from": [
-        "territory:TK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "TK"
     }
   },
   "nym:TL": {
@@ -19299,23 +15383,6 @@
       "en-GB": "TV"
     }
   },
-  "nym:TW": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "TW"
-    }
-  },
   "nym:TZ": {
     "edges": {
       "from": [
@@ -19367,23 +15434,6 @@
       "en-GB": "Tadzhikistan"
     }
   },
-  "nym:Taiwan": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Taiwan"
-    }
-  },
   "nym:Tajik": {
     "edges": {
       "from": [
@@ -19416,125 +15466,6 @@
     "names": {
       "cy": false,
       "en-GB": "Tchad"
-    }
-  },
-  "nym:Territory of American Samoa": {
-    "edges": {
-      "from": [
-        "territory:AS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of American Samoa"
-    }
-  },
-  "nym:Territory of Christmas Island": {
-    "edges": {
-      "from": [
-        "territory:CX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of Christmas Island"
-    }
-  },
-  "nym:Territory of Guam": {
-    "edges": {
-      "from": [
-        "territory:GU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of Guam"
-    }
-  },
-  "nym:Territory of Heard Island and McDonald Islands": {
-    "edges": {
-      "from": [
-        "territory:HM"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of Heard Island and McDonald Islands"
-    }
-  },
-  "nym:Territory of Norfolk Island": {
-    "edges": {
-      "from": [
-        "territory:NF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of Norfolk Island"
-    }
-  },
-  "nym:Territory of the Cocos (Keeling) Islands": {
-    "edges": {
-      "from": [
-        "territory:CC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of the Cocos (Keeling) Islands"
-    }
-  },
-  "nym:Territory of the Wallis and Futuna Islands": {
-    "edges": {
-      "from": [
-        "territory:WF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Territory of the Wallis and Futuna Islands"
     }
   },
   "nym:The Arab Republic of Egypt": {
@@ -19586,23 +15517,6 @@
     "names": {
       "cy": false,
       "en-GB": "The Bolivarian Republic of Venezuela"
-    }
-  },
-  "nym:The British Indian Ocean Territory": {
-    "edges": {
-      "from": [
-        "territory:IO"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "The British Indian Ocean Territory"
     }
   },
   "nym:The Central African Republic": {
@@ -20419,23 +16333,6 @@
     "names": {
       "cy": false,
       "en-GB": "The Lebanese Republic"
-    }
-  },
-  "nym:The Occupied Palestinian Territories": {
-    "edges": {
-      "from": [
-        "territory:PS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "The Occupied Palestinian Territories"
     }
   },
   "nym:The Oriental Republic of Uruguay": {
@@ -21286,23 +17183,6 @@
     "names": {
       "cy": false,
       "en-GB": "The Republic of Korea"
-    }
-  },
-  "nym:The Republic of Kosovo": {
-    "edges": {
-      "from": [
-        "country:XK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "The Republic of Kosovo"
     }
   },
   "nym:The Republic of Latvia": {
@@ -22427,23 +18307,6 @@
       "en-GB": "The United States of America"
     }
   },
-  "nym:The Virgin Islands": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "The Virgin Islands"
-    }
-  },
   "nym:Timor Lorosa'e": {
     "edges": {
       "from": [
@@ -22529,23 +18392,6 @@
       "en-GB": "Tojikistan"
     }
   },
-  "nym:Tokelau": {
-    "edges": {
-      "from": [
-        "territory:TK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Tokelau"
-    }
-  },
   "nym:Toçikiston": {
     "edges": {
       "from": [
@@ -22561,23 +18407,6 @@
     "names": {
       "cy": false,
       "en-GB": "Toçikiston"
-    }
-  },
-  "nym:Tristan da Cunha": {
-    "edges": {
-      "from": [
-        "territory:SH-TA"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Tristan da Cunha"
     }
   },
   "nym:Tunes": {
@@ -22699,23 +18528,6 @@
       "en-GB": "Turkomen"
     }
   },
-  "nym:Turks and Caicos Islands": {
-    "edges": {
-      "from": [
-        "territory:TC"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Turks and Caicos Islands"
-    }
-  },
   "nym:Tuvalu": {
     "edges": {
       "from": [
@@ -22731,23 +18543,6 @@
     "names": {
       "cy": false,
       "en-GB": "Tuvalu"
-    }
-  },
-  "nym:Táiwān": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Táiwān"
     }
   },
   "nym:Türkiye": {
@@ -22937,142 +18732,6 @@
       "en-GB": "UK"
     }
   },
-  "nym:UM-67": {
-    "edges": {
-      "from": [
-        "territory:UM-67"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-67"
-    }
-  },
-  "nym:UM-71": {
-    "edges": {
-      "from": [
-        "territory:UM-71"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-71"
-    }
-  },
-  "nym:UM-76": {
-    "edges": {
-      "from": [
-        "territory:UM-76"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-76"
-    }
-  },
-  "nym:UM-81": {
-    "edges": {
-      "from": [
-        "territory:UM-81"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-81"
-    }
-  },
-  "nym:UM-84": {
-    "edges": {
-      "from": [
-        "territory:UM-84"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-84"
-    }
-  },
-  "nym:UM-86": {
-    "edges": {
-      "from": [
-        "territory:UM-86"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-86"
-    }
-  },
-  "nym:UM-89": {
-    "edges": {
-      "from": [
-        "territory:UM-89"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-89"
-    }
-  },
-  "nym:UM-95": {
-    "edges": {
-      "from": [
-        "territory:UM-95"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "UM-95"
-    }
-  },
   "nym:US": {
     "edges": {
       "from": [
@@ -23207,23 +18866,6 @@
     "names": {
       "cy": false,
       "en-GB": "Umbuso weSwatini"
-    }
-  },
-  "nym:Union of Soviet Socialist Republics": {
-    "edges": {
-      "from": [
-        "country:SU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Union of Soviet Socialist Republics"
     }
   },
   "nym:Union of burma": {
@@ -23532,23 +19174,6 @@
       "en-GB": "Untied State"
     }
   },
-  "nym:Uvea mo Futuna": {
-    "edges": {
-      "from": [
-        "territory:WF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Uvea mo Futuna"
-    }
-  },
   "nym:Uzbek": {
     "edges": {
       "from": [
@@ -23615,40 +19240,6 @@
     "names": {
       "cy": false,
       "en-GB": "VE"
-    }
-  },
-  "nym:VG": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "VG"
-    }
-  },
-  "nym:VI": {
-    "edges": {
-      "from": [
-        "territory:VI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "VI"
     }
   },
   "nym:VN": {
@@ -23770,57 +19361,6 @@
       "en-GB": "Vietman"
     }
   },
-  "nym:Virgin Islands": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Virgin Islands"
-    }
-  },
-  "nym:Virgin Islands of the United States": {
-    "edges": {
-      "from": [
-        "territory:VI"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Virgin Islands of the United States"
-    }
-  },
-  "nym:Virgina Islands": {
-    "edges": {
-      "from": [
-        "territory:VG"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Virgina Islands"
-    }
-  },
   "nym:Viti": {
     "edges": {
       "from": [
@@ -23889,23 +19429,6 @@
       "en-GB": "Volívia"
     }
   },
-  "nym:WF": {
-    "edges": {
-      "from": [
-        "territory:WF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "WF"
-    }
-  },
   "nym:WLS": {
     "edges": {
       "from": [
@@ -23957,23 +19480,6 @@
       "en-GB": "Wales"
     }
   },
-  "nym:Wallis-et-Futuna": {
-    "edges": {
-      "from": [
-        "territory:WF"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Wallis-et-Futuna"
-    }
-  },
   "nym:West Pakistan": {
     "edges": {
       "from": [
@@ -23989,23 +19495,6 @@
     "names": {
       "cy": false,
       "en-GB": "West Pakistan"
-    }
-  },
-  "nym:Western Sahara": {
-    "edges": {
-      "from": [
-        "territory:EH"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Western Sahara"
     }
   },
   "nym:Western samoa": {
@@ -24059,57 +19548,6 @@
       "en-GB": "Wuliwya"
     }
   },
-  "nym:XK": {
-    "edges": {
-      "from": [
-        "country:XK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "XK"
-    }
-  },
-  "nym:XQZ": {
-    "edges": {
-      "from": [
-        "territory:XQZ"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "XQZ"
-    }
-  },
-  "nym:XXD": {
-    "edges": {
-      "from": [
-        "territory:XXD"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "XXD"
-    }
-  },
   "nym:Xīnjiāpō": {
     "edges": {
       "from": [
@@ -24161,40 +19599,6 @@
       "en-GB": "YE"
     }
   },
-  "nym:YT": {
-    "edges": {
-      "from": [
-        "territory:YT"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "YT"
-    }
-  },
-  "nym:YU": {
-    "edges": {
-      "from": [
-        "country:YU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "YU"
-    }
-  },
   "nym:Yaltopya": {
     "edges": {
       "from": [
@@ -24244,23 +19648,6 @@
     "names": {
       "cy": false,
       "en-GB": "Yisrael"
-    }
-  },
-  "nym:Yugosav": {
-    "edges": {
-      "from": [
-        "country:YU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Yugosav"
     }
   },
   "nym:ZA": {
@@ -24414,23 +19801,6 @@
     "names": {
       "cy": false,
       "en-GB": "Zhōngguó"
-    }
-  },
-  "nym:Zhōnghuá Mínguó": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Zhōnghuá Mínguó"
     }
   },
   "nym:Zion": {
@@ -25555,40 +20925,6 @@
       "en-GB": "weSwatini Swatini Ngwane"
     }
   },
-  "nym:Åland": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Åland"
-    }
-  },
-  "nym:Åland Islands": {
-    "edges": {
-      "from": [
-        "territory:AX"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": true,
-      "stable-name": true
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Åland Islands"
-    }
-  },
   "nym:Éire": {
     "edges": {
       "from": [
@@ -25895,23 +21231,6 @@
       "en-GB": "Киргизия"
     }
   },
-  "nym:Косово": {
-    "edges": {
-      "from": [
-        "country:XK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Косово"
-    }
-  },
   "nym:Кыргызстан": {
     "edges": {
       "from": [
@@ -26029,23 +21348,6 @@
     "names": {
       "cy": false,
       "en-GB": "Россия1"
-    }
-  },
-  "nym:Союз Советских Социалистических Республик": {
-    "edges": {
-      "from": [
-        "country:SU"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "Союз Советских Социалистических Республик"
     }
   },
   "nym:Србија": {
@@ -26728,23 +22030,6 @@
       "en-GB": "عُمان"
     }
   },
-  "nym:فلسطين": {
-    "edges": {
-      "from": [
-        "territory:PS"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "فلسطين"
-    }
-  },
   "nym:قازاقستان": {
     "edges": {
       "from": [
@@ -26794,23 +22079,6 @@
     "names": {
       "cy": false,
       "en-GB": "لبنان"
-    }
-  },
-  "nym:لصحراء الغربية": {
-    "edges": {
-      "from": [
-        "territory:EH"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "لصحراء الغربية"
     }
   },
   "nym:ليبيا": {
@@ -27714,40 +22982,6 @@
       "en-GB": "中国/中华"
     }
   },
-  "nym:中華民國": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "中華民國"
-    }
-  },
-  "nym:台灣": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "台灣"
-    }
-  },
   "nym:新加坡": {
     "edges": {
       "from": [
@@ -27797,57 +23031,6 @@
     "names": {
       "cy": false,
       "en-GB": "日本"
-    }
-  },
-  "nym:臺灣": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "臺灣"
-    }
-  },
-  "nym:臺灣/台灣": {
-    "edges": {
-      "from": [
-        "territory:TW"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "臺灣/台灣"
-    }
-  },
-  "nym:香港": {
-    "edges": {
-      "from": [
-        "territory:HK"
-      ]
-    },
-    "meta": {
-      "canonical": false,
-      "canonical-mask": 0,
-      "display-name": false,
-      "stable-name": false
-    },
-    "names": {
-      "cy": false,
-      "en-GB": "香港"
     }
   },
   "nym:马来西亚": {
