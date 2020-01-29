@@ -40,6 +40,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               navigator: CompoundNavigator,
                                               identify: IdentifierAction,
                                               getData: DataRetrievalAction,
+                                              allowAccess: AllowAccessActionProvider,
                                               requireData: DataRequiredAction,
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
@@ -50,7 +51,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def form()(implicit messages: Messages): Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

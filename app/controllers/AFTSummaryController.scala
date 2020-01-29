@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions._
+import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.requests.OptionalDataRequest
@@ -47,6 +47,7 @@ class AFTSummaryController @Inject()(
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: AFTSummaryFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
@@ -63,7 +64,7 @@ class AFTSummaryController @Inject()(
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
-  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn)).async {
     implicit request =>
       val futureJsonToPassToTemplate = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)

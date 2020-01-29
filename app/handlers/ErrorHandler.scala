@@ -82,3 +82,11 @@ class ErrorHandler @Inject()(
       ex
     )
 }
+
+class AFTErrorHandler @Inject()(
+                                 renderer: Renderer,
+                                 override val messagesApi: MessagesApi
+                               )(implicit ec: ExecutionContext) extends ErrorHandler(renderer, messagesApi) {
+
+}
+
