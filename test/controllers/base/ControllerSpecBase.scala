@@ -35,8 +35,8 @@ import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded
 import play.api.test.Helpers.{GET, POST}
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
@@ -49,8 +49,6 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-
-
     when(mockAllowAccessActionProvider.apply(any())).thenReturn(fakeActionFilter)
   }
 
@@ -71,15 +69,14 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
     bind[NunjucksRenderer].toInstance(mockRenderer),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
-    bind[CompoundNavigator].toInstance(mockCompoundNavigator)
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator),
+    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
   )
 
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
-        modules(userAnswers) ++ Seq[GuiceableModule](
-          bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
-        ): _*
+        modules(userAnswers): _*
       )
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
