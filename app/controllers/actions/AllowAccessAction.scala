@@ -24,7 +24,7 @@ import connectors.{MinimalPsaConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
 import models.UserAnswers
 import models.requests.OptionalDataRequest
-import pages.IsSuspendedQuery
+import pages.IsPsaSuspendedQuery
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{ActionFilter, Call, Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -52,11 +52,11 @@ class AllowAccessAction( srn: String,
   private def checkForSuspended[A](request: OptionalDataRequest[A],
                                    extractedSRN: String)(implicit hc: HeaderCarrier): Future[Boolean] = {
     val ua = request.userAnswers.getOrElse(UserAnswers())
-    ua.get(IsSuspendedQuery) match {
+    ua.get(IsPsaSuspendedQuery) match {
       case None =>
         minimalPsaConnector.isPsaSuspended(request.psaId.id)
           .flatMap(retrievedIsSuspendedValue =>
-            Future.fromTry(ua.set(IsSuspendedQuery, retrievedIsSuspendedValue))
+            Future.fromTry(ua.set(IsPsaSuspendedQuery, retrievedIsSuspendedValue))
               .flatMap(uaAfterSet =>
                 userAnswersCacheConnector
                   .save(request.internalId, uaAfterSet.data)
