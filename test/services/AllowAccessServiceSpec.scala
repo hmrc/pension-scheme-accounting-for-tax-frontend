@@ -30,6 +30,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPsaSuspendedQuery
+import play.api.mvc.{Call, Results}
 import play.api.mvc.Results.Ok
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
@@ -37,7 +38,7 @@ import uk.gov.hmrc.domain.PsaId
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndAfterEach with MockitoSugar {
+class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndAfterEach with MockitoSugar with Results {
 
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
@@ -70,6 +71,21 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
+
+      whenReady(allowAccessService.redirectLocationForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(errorResult)
+      }
+    }
+
+    "respond with a redirect to the cannot make changes page (i.e. don't allow access) when the PSA is suspended" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .set(IsPsaSuspendedQuery, value = true).toOption.get
+
+      when(config.cannotMakeChangesUrl).thenReturn("no-changes-url")
+
+      val errorResult = Redirect(Call("GET", config.cannotMakeChangesUrl))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
 
