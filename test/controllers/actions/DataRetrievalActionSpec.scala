@@ -27,7 +27,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.PsaId
 import org.mockito.Matchers.{eq => eqTo, _}
-
+import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
