@@ -16,6 +16,7 @@
 
 package controllers.chargeC
 
+import controllers.actions.FakeDataRetrievalAction2
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.chargeC.ChargeDetailsFormProvider
@@ -26,6 +27,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
+import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
@@ -35,6 +37,9 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
+  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
+  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
   private val index = 0
@@ -69,12 +74,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNameAndOrganisation)
 
   "ChargeDetails Controller" must {
 
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -87,15 +91,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
-
-      application.stop()
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = userAnswers.map(_.set(ChargeCDetailsPage(index), SampleData.chargeCDetails)).get.toOption.get
+      
+      fakeDataRetrievalAction2.setDataToReturn(Option(ua))
 
-      val application = applicationBuilder(userAnswers = Some(ua)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGET)).value
@@ -107,19 +111,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(SampleData.chargeCDetails)))
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      fakeDataRetrievalAction2.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
 
-      application.stop()
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -137,7 +138,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -150,31 +151,26 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
-      application.stop()
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      fakeDataRetrievalAction2.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-      application.stop()
-    }
 
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
   }
 }
