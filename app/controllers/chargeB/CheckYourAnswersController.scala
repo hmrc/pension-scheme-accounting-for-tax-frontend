@@ -45,7 +45,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
@@ -64,7 +64,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftConnector.fileAFTReturn(pstr, request.userAnswers).map { _ =>

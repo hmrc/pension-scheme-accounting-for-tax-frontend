@@ -58,7 +58,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
@@ -70,7 +70,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       form.bindFromRequest().fold(
         formWithErrors => {

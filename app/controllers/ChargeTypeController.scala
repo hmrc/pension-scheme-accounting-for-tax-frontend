@@ -52,7 +52,7 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
@@ -78,7 +78,7 @@ class ChargeTypeController @Inject()(
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

@@ -16,6 +16,8 @@
 
 package controllers.actions
 
+import com.google.inject.ImplementedBy
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
 import models.UserAnswers
@@ -24,24 +26,39 @@ import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import utils.AFTConstants
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class DataRetrievalActionImpl @Inject()(
-                                         val userAnswersCacheConnector: UserAnswersCacheConnector
-                                       )(implicit val executionContext: ExecutionContext) extends DataRetrievalAction {
-
+class DataRetrievalImpl(
+                         srn: String,
+                         val userAnswersCacheConnector: UserAnswersCacheConnector
+                       )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    userAnswersCacheConnector.fetch(request.identifier).map {
+    val id = s"$srn${AFTConstants.START_DATE}"
+
+    userAnswersCacheConnector.fetch(id).map {
       case None =>
-        OptionalDataRequest(request.request, request.identifier, request.psaId, None)
+        OptionalDataRequest(request.request, id, request.psaId, None)
       case Some(data) =>
-        OptionalDataRequest(request.request, request.identifier, request.psaId, Some(UserAnswers(data.as[JsObject])))
+        OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(data.as[JsObject])))
     }
   }
 }
 
-trait DataRetrievalAction extends ActionTransformer[IdentifierRequest, OptionalDataRequest]
+class DataRetrievalActionImpl @Inject()(
+                                         userAnswersCacheConnector: UserAnswersCacheConnector
+                                       )(implicit val executionContext: ExecutionContext) extends DataRetrievalAction {
+  override def apply(srn: String): DataRetrieval = new DataRetrievalImpl(srn, userAnswersCacheConnector)
+}
+
+@ImplementedBy(classOf[DataRetrievalImpl])
+trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataRequest]
+
+@ImplementedBy(classOf[DataRetrievalActionImpl])
+trait DataRetrievalAction {
+  def apply(srn: String): DataRetrieval
+}

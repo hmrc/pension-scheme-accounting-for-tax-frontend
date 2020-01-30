@@ -63,7 +63,7 @@ class AFTSummaryController @Inject()(
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
-  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
       val futureJsonToPassToTemplate = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
@@ -92,7 +92,7 @@ class AFTSummaryController @Inject()(
 
   }
 
-  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
@@ -127,7 +127,8 @@ class AFTSummaryController @Inject()(
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-      schemeName = schemeName)
+      schemeName = schemeName,
+          srn = srn)
   }
 
   private def retrieveUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)

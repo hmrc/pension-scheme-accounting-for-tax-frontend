@@ -48,7 +48,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(schemeName), Some(chargeDetails)) =>
@@ -76,7 +76,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>

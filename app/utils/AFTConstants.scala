@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
-import play.api.libs.json.{Json, OWrites}
-
-case class GenericViewModel(submitUrl: String,
-                            returnUrl: String,
-                            schemeName: String,
-                            srn: String)
-
-object GenericViewModel {
-  implicit lazy val writes: OWrites[GenericViewModel] =
-    Json.writes[GenericViewModel]
+object AFTConstants {
+  val START_DATE = "2020-04-01"
 }

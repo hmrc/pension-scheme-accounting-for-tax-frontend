@@ -50,7 +50,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
@@ -59,7 +59,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val viewModel = GenericViewModel(
           submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName,
+          srn = srn)
 
         val answers: Seq[SummaryList.Row] = Seq(
           helper.chargeDMemberDetails(index).get,
@@ -76,7 +77,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
   }
 
-  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
         case (Some(pstr), Some(chargeDetails)) =>

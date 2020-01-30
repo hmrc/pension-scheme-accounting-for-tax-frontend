@@ -33,14 +33,14 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                http: WSClient
                                              ) extends UserAnswersCacheConnector {
 
-  override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+  override protected def url(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/$id"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier
   ): Future[Option[JsValue]] = {
-    http.url(url)
-      .withHttpHeaders(hc.headers: _*)
+    http.url(url(id))
+      .addHttpHeaders(hc.withExtraHeaders("id"-> id).headers: _*)
       .get()
       .flatMap {
         response =>
@@ -59,8 +59,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                 ec: ExecutionContext,
                                                 hc: HeaderCarrier
   ): Future[JsValue] = {
-    http.url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
+    http.url(url(id))
+      .addHttpHeaders(hc.withExtraHeaders(("content-type", "application/json"), ("id"-> id)).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
@@ -73,15 +73,15 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http.url(url)
-      .withHttpHeaders(hc.headers: _*)
+    http.url(url(id))
+      .addHttpHeaders(hc.withExtraHeaders("id"-> id).headers: _*)
       .delete().map(_ => Ok)
   }
 }
 
 trait UserAnswersCacheConnector {
 
-  protected def url: String
+  protected def url(id: String): String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
