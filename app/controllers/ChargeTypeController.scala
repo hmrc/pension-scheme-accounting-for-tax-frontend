@@ -18,6 +18,7 @@ package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
+import connectors.MinimalPsaConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
@@ -29,7 +30,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.SchemeService
+import services.{AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -48,33 +49,42 @@ class ChargeTypeController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       schemeService: SchemeService,
-                                      auditService: AuditService
+                                      auditService: AuditService,
+                                      minimalPsaConnector: MinimalPsaConnector,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn)).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val ua = requestUA
-          .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
-          .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
-          .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
-          .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
+        val futureUA = minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
+          requestUA
+            .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
+            .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
+            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
+            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
+            .set(IsPsaSuspendedQuery, retrievedIsSuspendedValue).toOption.getOrElse(requestUA)
+        }
 
-        userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-          auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        futureUA.flatMap { ua =>
+          allowService.redirectLocationForIllegalPageAccess(srn, ua).flatMap {
+            case None =>
+              userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+                auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+                val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
+                val json = Json.obj(
+                  fields = "form" -> preparedForm,
+                  "radios" -> ChargeType.radios(preparedForm),
+                  "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+                )
 
-          val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
-
-          val json = Json.obj(
-            fields = "form" -> preparedForm,
-            "radios" -> ChargeType.radios(preparedForm),
-            "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-          )
-
-          renderer.render(template = "chargeType.njk", json).map(Ok(_))
+                renderer.render(template = "chargeType.njk", json).map(Ok(_))
+              }
+            case Some(redirectLocation) => Future.successful(redirectLocation)
+          }
         }
       }
   }

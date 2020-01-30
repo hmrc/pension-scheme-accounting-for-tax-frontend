@@ -20,21 +20,20 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{AFTConnector, MinimalPsaConnector}
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.requests.OptionalDataRequest
 import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.SchemeService
+import services.{AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
@@ -55,42 +54,51 @@ class AFTSummaryController @Inject()(
                                       config: FrontendAppConfig,
                                       aftSummaryHelper: AFTSummaryHelper,
                                       aftConnector: AFTConnector,
-                                      schemeService: SchemeService
+                                      schemeService: SchemeService,
+                                      minimalPsaConnector: MinimalPsaConnector,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
+
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
-  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn)).async {
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       val futureJsonToPassToTemplate = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
+        retrievedIsSuspendedValue <- minimalPsaConnector.isPsaSuspended(request.psaId.id)
         userAnswersAfterSave <- userAnswersCacheConnector
-          .save(request.internalId, addSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails).data)
+          .save(request.internalId,
+            addPSAAndSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails, retrievedIsSuspendedValue).data
+          )
+        optionResult <- allowService.redirectLocationForIllegalPageAccess(srn, UserAnswers(userAnswersAfterSave.as[JsObject]))
       } yield {
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
-        ua.get(QuarterPage).map { quarter =>
-          Json.obj(
-            "form" -> form,
-            "list" -> aftSummaryHelper.summaryListData(ua, srn),
-            "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-            "radios" -> Radios.yesNo(form("value")),
-            "startDate" -> getFormattedStartDate(quarter.startDate),
-            "endDate" -> getFormattedEndDate(quarter.endDate)
-          )
+        optionResult match {
+          case None =>
+            ua.get(QuarterPage) match {
+              case Some(quarter) =>
+                val json = Json.obj(
+                  "form" -> form,
+                  "list" -> aftSummaryHelper.summaryListData(ua, srn),
+                  "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
+                  "radios" -> Radios.yesNo(form("value")),
+                  "startDate" -> getFormattedStartDate(quarter.startDate),
+                  "endDate" -> getFormattedEndDate(quarter.endDate)
+                )
+                renderer.render("aftSummary.njk", json).map(Ok(_))
+              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            }
+          case Some(redirectLocation) => Future.successful(redirectLocation)
         }
       }
-
-      futureJsonToPassToTemplate
-        .flatMap{
-          case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          case Some(json) => renderer.render("aftSummary.njk", json).map(Ok(_))
-        }
-
+      futureJsonToPassToTemplate.flatMap(identity)
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -140,6 +148,9 @@ class AFTSummaryController @Inject()(
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
-  private def addSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails): UserAnswers =
-    userAnswers.setOrException(SchemeNameQuery, schemeDetails.schemeName).setOrException(PSTRQuery, schemeDetails.pstr)
+  private def addPSAAndSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails, isSuspended: Boolean): UserAnswers =
+    userAnswers
+      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+      .setOrException(PSTRQuery, schemeDetails.pstr)
+      .setOrException(IsPsaSuspendedQuery, isSuspended)
 }
