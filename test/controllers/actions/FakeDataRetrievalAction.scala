@@ -34,3 +34,20 @@ class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers]) extends DataRet
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
 }
+
+class FakeDataRetrievalAction2 extends DataRetrievalAction {
+  def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
+
+  private var dataToReturn: Option[UserAnswers] = None
+
+  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
+    dataToReturn match {
+      case None =>
+        Future(OptionalDataRequest(request.request, request.identifier, request.psaId, None))
+      case Some(userAnswers) =>
+        Future(OptionalDataRequest(request.request, request.identifier, request.psaId, Some(userAnswers)))
+    }
+
+  override protected implicit val executionContext: ExecutionContext =
+    scala.concurrent.ExecutionContext.Implicits.global
+}

@@ -16,6 +16,7 @@
 
 package controllers.chargeB
 
+import controllers.actions.FakeDataRetrievalAction2
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
@@ -24,6 +25,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeB.WhatYouWillNeedPage
+import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -32,6 +34,9 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
+  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
   private val templateToBeRendered = "chargeB/whatYouWillNeed.njk"
   private def httpPathGET: String = controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
@@ -43,12 +48,13 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
@@ -62,8 +68,6 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
     }
   }
 }

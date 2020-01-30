@@ -29,8 +29,8 @@ import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
-import play.api.test.{FakeHeaders, FakeRequest}
 import play.api.test.Helpers.{GET, POST}
+import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
@@ -42,7 +42,6 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
-
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
@@ -54,10 +53,25 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     bind[CompoundNavigator].toInstance(mockCompoundNavigator)
   )
 
+  def modules2(fakeDataRetrievalAction: FakeDataRetrievalAction2): Seq[GuiceableModule] = Seq(
+    bind[DataRequiredAction].to[DataRequiredActionImpl],
+    bind[IdentifierAction].to[FakeIdentifierAction],
+    bind[DataRetrievalAction].toInstance(fakeDataRetrievalAction),
+    bind[NunjucksRenderer].toInstance(mockRenderer),
+    bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator)
+  )
+
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
         modules(userAnswers): _*
+      )
+
+  protected def applicationBuilder2(fakeDataRetrievalAction: FakeDataRetrievalAction2): GuiceApplicationBuilder =
+    new GuiceApplicationBuilder()
+      .overrides(
+        modules2(fakeDataRetrievalAction): _*
       )
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)
