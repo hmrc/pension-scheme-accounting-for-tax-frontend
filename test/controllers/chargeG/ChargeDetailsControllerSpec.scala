@@ -17,6 +17,7 @@
 package controllers.chargeG
 
 import config.FrontendAppConfig
+import controllers.actions.FakeDataRetrievalAction2
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
@@ -27,6 +28,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -39,7 +41,12 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
-
+  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
+  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
+    .overrides(
+      bind[FrontendAppConfig].toInstance(mockAppConfig)
+    )
+    .build()
   private val formProvider = new ChargeDetailsFormProvider()
 
   private def form: Form[ChargeDetails] = formProvider("The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020")
@@ -78,11 +85,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -100,21 +104,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       )
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
+      jsonCaptor.getValue must containJson(expectedJson)}
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = Some(chargeGMember))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      fakeDataRetrievalAction2.setDataToReturn(Some(chargeGMember))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -134,8 +130,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "redirect to the next page when valid data is submitted" ignore {
@@ -150,19 +144,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
       val result = route(application, postRequest).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual onwardRoute.url
-
-      application.stop()
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -170,12 +158,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
 
-
-      val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeNameAndMemberGName))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))
 
       val request = FakeRequest(POST, httpPathPOST).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm = form.bind(Map("value" -> "invalid value"))
@@ -197,33 +180,27 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      fakeDataRetrievalAction2.setDataToReturn(None)
 
       val result = route(application, getRequest).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      fakeDataRetrievalAction2.setDataToReturn(None)
 
       val result = route(application, postRequest).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }
