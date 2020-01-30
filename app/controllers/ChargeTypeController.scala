@@ -32,6 +32,7 @@ import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -57,7 +58,7 @@ class ChargeTypeController @Inject()(
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val ua = requestUA
-          .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
+          .set(QuarterPage, Quarter(START_DATE, "2020-06-30")).toOption.getOrElse(requestUA)
           .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
           .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
           .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
@@ -68,7 +69,8 @@ class ChargeTypeController @Inject()(
           val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
 
           val json = Json.obj(
-            fields = "form" -> preparedForm,
+            fields = "srn" -> srn,
+            "form" -> preparedForm,
             "radios" -> ChargeType.radios(preparedForm),
             "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
           )
@@ -85,7 +87,8 @@ class ChargeTypeController @Inject()(
         form.bindFromRequest().fold(
           formWithErrors => {
             val json = Json.obj(
-              fields = "form" -> formWithErrors,
+              fields = "srn" -> srn,
+              "form" -> formWithErrors,
               "radios" -> ChargeType.radios(formWithErrors),
               "viewModel" -> viewModel(schemeName, mode, srn)
             )

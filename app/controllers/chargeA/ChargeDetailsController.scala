@@ -69,6 +69,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel(mode, srn, schemeName)
         )
@@ -84,7 +85,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         form.bindFromRequest().fold(
           formWithErrors => {
             val json = Json.obj(
-              "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
+          "srn" -> srn,
+          "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
               "viewModel" -> viewModel(mode, srn, schemeName)
             )
 

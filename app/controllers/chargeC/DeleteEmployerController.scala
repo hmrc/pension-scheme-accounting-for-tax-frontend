@@ -64,7 +64,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> form(employerName),
+          "srn" -> srn,
+          "form" -> form(employerName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
               "employerName" -> employerName
@@ -87,7 +88,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                   schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "radios" -> Radios.yesNo(formWithErrors("value")),
                   "employerName" -> employerName

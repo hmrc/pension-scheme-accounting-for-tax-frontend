@@ -74,7 +74,8 @@ class AFTSummaryController @Inject()(
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
         ua.get(QuarterPage).map { quarter =>
           Json.obj(
-            "form" -> form,
+          "srn" -> srn,
+          "form" -> form,
             "list" -> aftSummaryHelper.summaryListData(ua, srn),
             "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
             "radios" -> Radios.yesNo(form("value")),
@@ -100,7 +101,8 @@ class AFTSummaryController @Inject()(
             val ua = request.userAnswers
             val optionJson = ua.get(QuarterPage).map { quarter =>
               Json.obj(
-                "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
                 "list" -> aftSummaryHelper.summaryListData(ua, srn),
                 "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
                 "radios" -> Radios.yesNo(form("value")),
@@ -127,8 +129,7 @@ class AFTSummaryController @Inject()(
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-      schemeName = schemeName,
-          srn = srn)
+      schemeName = schemeName)
   }
 
   private def retrieveUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)

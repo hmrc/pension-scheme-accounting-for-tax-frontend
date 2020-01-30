@@ -64,7 +64,8 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> form(memberDetails.fullName),
+          "srn" -> srn,
+          "form" -> form(memberDetails.fullName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
               "memberName" -> memberDetails.fullName
@@ -90,7 +91,8 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                   schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "radios" -> Radios.yesNo(formWithErrors("value")),
                   "memberName" -> memberDetails.fullName

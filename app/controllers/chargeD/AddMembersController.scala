@@ -104,7 +104,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
 
     Json.obj(
-      "form" -> form,
+          "srn" -> srn,
+          "form" -> form,
       "viewModel" -> viewModel,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> getFormattedDate(quarter.startDate),

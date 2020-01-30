@@ -103,6 +103,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         val members = getAnnualAllowanceMembers(request.userAnswers, srn)
 
         Json.obj(
+          "srn" -> srn,
           "form" -> form,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form("value")),

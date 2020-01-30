@@ -57,6 +57,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           renderer.render(
             template = "check-your-answers.njk",
             ctx = Json.obj(
+              "srn" -> srn,
               "list" -> Seq(
                 helper.chargeAMembers.get,
                 helper.chargeAAmountLowerRate.get,

@@ -65,6 +65,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
@@ -88,7 +89,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("dateNoticeReceived")),
               "radios" -> Radios.yesNo(formWithErrors("isPaymentMandatory")),

@@ -51,6 +51,7 @@ class WhatYouWillNeedController @Inject()(
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
 
       renderer.render(template = "chargeF/whatYouWillNeed.njk",
-        Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn))
+        .map(Ok(_))
   }
 }

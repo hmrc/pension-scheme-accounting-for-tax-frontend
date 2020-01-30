@@ -65,6 +65,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "radios" -> YearRange.radios(preparedForm),
           "viewModel" -> viewModel
@@ -86,7 +87,8 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "radios" -> YearRange.radios(formWithErrors),
               "viewModel" -> viewModel
             )

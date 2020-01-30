@@ -103,6 +103,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
         val members = getSponsoringEmployers(request.userAnswers, srn)
 
         Json.obj(
+          "srn" -> srn,
           "form" -> form,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form("value")),

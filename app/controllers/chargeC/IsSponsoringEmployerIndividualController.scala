@@ -62,6 +62,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo (preparedForm("value"))

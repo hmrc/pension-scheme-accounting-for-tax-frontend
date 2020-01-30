@@ -53,8 +53,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val viewModel = GenericViewModel(
           submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName,
-          srn = srn)
+          schemeName = schemeName)
 
         val answers: Seq[SummaryList.Row] = Seq(
           helper.chargeFDate.get,
