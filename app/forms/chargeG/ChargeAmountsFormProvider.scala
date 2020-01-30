@@ -32,7 +32,7 @@ class ChargeAmountsFormProvider extends Mappings with Constraints {
         invalidKey = messages("amountTransferred.error.invalid", memberName),
         decimalKey = messages("amountTransferred.error.decimal", memberName)
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"),  messages("amountTransferred.error.maximum", memberName)),
+        maximumValue[BigDecimal](BigDecimal("99999999999.99"),  messages("amountTransferred.error.maximum", memberName)),
         minimumValue[BigDecimal](BigDecimal("0.01"), messages("amountTransferred.error.minimum", memberName))
       ),
       "amountTaxDue" -> bigDecimal2DP(
@@ -40,7 +40,7 @@ class ChargeAmountsFormProvider extends Mappings with Constraints {
         invalidKey = "amountTaxDue.error.invalid",
         decimalKey = "amountTaxDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "amountTaxDue.error.maximum"),
+        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "amountTaxDue.error.maximum"),
         minimumValue[BigDecimal](BigDecimal("0.01"), "amountTaxDue.error.minimum")
       )
     )(ChargeAmounts.apply)(ChargeAmounts.unapply))

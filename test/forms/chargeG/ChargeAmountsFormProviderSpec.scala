@@ -45,7 +45,7 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     behave like longBigDecimal(
       form = form,
       fieldName = amountTransferredKey,
-      length = 11,
+      length = 12,
       expectedError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.maximum", "test name"))
     )
   }
@@ -69,7 +69,7 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
-      length = 11,
+      length = 12,
       expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
     )
   }
