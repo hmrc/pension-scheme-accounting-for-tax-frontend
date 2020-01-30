@@ -17,6 +17,7 @@
 package controllers.chargeE
 
 import connectors.SchemeDetailsConnector
+import controllers.actions.FakeDataRetrievalAction2
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.YearRangeFormProvider
@@ -27,9 +28,9 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
+import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
@@ -39,9 +40,16 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
-
-  private val template = "chargeE/annualAllowanceYear.njk"
+  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
+
+  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
+    .overrides(
+      bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
+    )
+    .build()
+  private val template = "chargeE/annualAllowanceYear.njk"
+
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(YearRange.currentYear.toString)
   )
@@ -74,12 +82,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   "AnnualAllowanceYear Controller" must {
 
     "return OK and the correct view for a GET" in {
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
-            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
-          ): _*
-        ).build()
+      fakeDataRetrievalAction2.setDataToReturn(Option(SampleData.userAnswersWithSchemeName))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -93,19 +96,12 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       templateCaptor.getValue mustEqual template
 
       jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
-
-      application.stop()
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
       val ua = SampleData.userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(ua)) ++ Seq[GuiceableModule](
-            bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
-          ): _*
-        ).build()
+      fakeDataRetrievalAction2.setDataToReturn(Some(ua))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -119,8 +115,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       templateCaptor.getValue mustEqual template
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange.currentYear)))
-
-      application.stop()
     }
 
 
@@ -138,7 +132,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -151,30 +145,25 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
-      application.stop()
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      fakeDataRetrievalAction2.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-      application.stop()
     }
   }
 }
