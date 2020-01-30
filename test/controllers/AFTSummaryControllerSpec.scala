@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.AFTConnector
+import connectors.{AFTConnector, MinimalPsaConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import forms.AFTSummaryFormProvider
@@ -26,14 +26,14 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatest.BeforeAndAfterEach
-import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages._
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.SchemeService
+import services.{AllowAccessService, SchemeService}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 
@@ -45,12 +45,17 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
+  private val mockAllowAccessService = mock[AllowAccessService]
+  private val mockMinimalPsaConnector = mock[MinimalPsaConnector]
+
   override protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
         modules(userAnswers) ++ Seq[GuiceableModule](
           bind[SchemeService].toInstance(mockSchemeService),
-          bind[AFTConnector].toInstance(mockAftConnector)
+          bind[AFTConnector].toInstance(mockAftConnector),
+          bind[AllowAccessService].toInstance(mockAllowAccessService),
+          bind[MinimalPsaConnector].toInstance(mockMinimalPsaConnector)
         ): _*
       )
 
@@ -85,7 +90,10 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-
+    when(mockAllowAccessService.redirectLocationForIllegalPageAccess(any(),any())(any()))
+      .thenReturn(Future.successful(None))
+    when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any()))
+      .thenReturn(Future.successful(false))
   }
 
 
@@ -102,16 +110,28 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
-    "return OK and the correct view for a GET where no version is present in the request" in {
+    "return OK and the correct view for a GET and also save the suspended flag in user answers where no version is present in the request" in {
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val srnCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val jsonCaptorForSaveOfUA = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockUserAnswersCacheConnector.save(any(), jsonCaptorForSaveOfUA.capture())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
 
       val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
 
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockAllowAccessService, times(1)).redirectLocationForIllegalPageAccess(srnCaptor.capture(), any())(any())
+      verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(any())(any(), any())
+
+      jsonCaptorForSaveOfUA.getValue must containJson(Json.obj(
+        IsPsaSuspendedQuery.toString -> false
+      ))
+
+      srnCaptor.getValue mustEqual SampleData.srn
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
