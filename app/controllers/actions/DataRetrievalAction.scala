@@ -37,14 +37,17 @@ class DataRetrievalImpl(
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
     val id = s"$srn${AFTConstants.START_DATE}"
-
-    userAnswersCacheConnector.fetch(id).map {
-      case None =>
-        OptionalDataRequest(request.request, id, request.psaId, None)
-      case Some(data) =>
-        OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(data.as[JsObject])))
+    for {
+      data <- userAnswersCacheConnector.fetch(id)
+      isLocked <- userAnswersCacheConnector.lockedBy(id)
+    } yield {
+      data match {
+        case None =>
+          OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
+        case Some(data) =>
+          OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(data.as[JsObject])), isLocked)
+      }
     }
   }
 }

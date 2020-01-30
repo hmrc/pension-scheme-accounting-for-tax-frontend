@@ -24,12 +24,13 @@
           rows: list
         }) }}
 
-        {{ govukButton({
-            text: messages("site.save_charge_and_continue"),
-            href: viewModel.submitUrl,
-            attributes: {id: "submit"}
-          }) }}
-
+        {% if canChange %}
+            {{ govukButton({
+                text: messages("site.save_charge_and_continue"),
+                href: viewModel.submitUrl,
+                attributes: {id: "submit"}
+              }) }}
+        {% endif %}
       </div>
     </div>
      <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>

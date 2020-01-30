@@ -30,30 +30,31 @@
           {{ csrf() | safe }}
 
 
-      {% for i in range(0, members.length) -%}
+          {% for i in range(0, members.length) -%}
             {{ members[i].name }}
           {%- endfor %}
 
-                            {{ govukTable(table) }}
+          {{ govukTable(table) }}
+          {% if canChange %}
+              {{ govukRadios({
+                      classes: "govuk-radios--inline",
+                      name: 'value',
+                      fieldset: {
+                        legend: {
+                          text: messages('chargeG.addMembers.label'),
+                          isPageHeading: false,
+                          classes: "govuk-fieldset__legend--s"
+                        }
+                      },
+                      items: radios,
+                      errorMessage: form.value.error
+              }) }}
 
-          {{ govukRadios({
-                              classes: "govuk-radios--inline",
-                              name: 'value',
-                              fieldset: {
-                                legend: {
-                                  text: messages('chargeG.addMembers.label'),
-                                  isPageHeading: false,
-                                  classes: "govuk-fieldset__legend--s"
-                                }
-                              },
-                              items: radios,
-                              errorMessage: form.value.error
-          }) }}
-
-          {{ govukButton({
-                            text: messages("site.continue"),
-                            attributes: {id: "submit"}
-                  }) }}
+              {{ govukButton({
+                    text: messages("site.continue"),
+                    attributes: {id: "submit"}
+              }) }}
+          {% endif %}
 
         </form>
 

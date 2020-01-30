@@ -34,27 +34,27 @@
             {{ members[i].name }}
           {%- endfor %}
 
-                            {{ govukTable(table) }}
-
-          {{ govukRadios({
-                              classes: "govuk-radios--inline",
-                              name: 'value',
-                              fieldset: {
-                                legend: {
-                                  text: messages('chargeE.addMembers.label'),
-                                  isPageHeading: false,
-                                  classes: "govuk-fieldset__legend--s"
-                                }
-                              },
-                              items: radios,
-                              errorMessage: form.value.error
-          }) }}
-
-          {{ govukButton({
-                            text: messages("site.continue"),
-                            attributes: {id: "submit"}
+            {{ govukTable(table) }}
+            {% if canChange %}
+                  {{ govukRadios({
+                      classes: "govuk-radios--inline",
+                      name: 'value',
+                      fieldset: {
+                        legend: {
+                          text: messages('chargeE.addMembers.label'),
+                          isPageHeading: false,
+                          classes: "govuk-fieldset__legend--s"
+                        }
+                      },
+                      items: radios,
+                      errorMessage: form.value.error
                   }) }}
 
+                  {{ govukButton({
+                    text: messages("site.continue"),
+                    attributes: {id: "submit"}
+                  }) }}
+            {% endif %}
         </form>
 
       </div>

@@ -53,23 +53,25 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(schemeName), Some(chargeDetails)) =>
           val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
-
+          val seqRows = Seq(
+            helper.chargeAMembers.get,
+            helper.chargeAAmountLowerRate.get,
+            helper.chargeAAmountHigherRate.get,
+            helper.total(chargeDetails.totalAmount)
+          )
+          val answers = if(request.viewOnly) seqRows.map(_.copy(actions = Nil)) else seqRows
           renderer.render(
             template = "check-your-answers.njk",
             ctx = Json.obj(
               "srn" -> srn,
-              "list" -> Seq(
-                helper.chargeAMembers.get,
-                helper.chargeAAmountLowerRate.get,
-                helper.chargeAAmountHigherRate.get,
-                helper.total(chargeDetails.totalAmount)
-              ),
+              "list" -> answers,
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                 schemeName = schemeName
               ),
-              "chargeName" -> "chargeA"
+              "chargeName" -> "chargeA",
+              "canChange" -> !request.viewOnly
             )
           ).map(Ok(_))
         case _ =>

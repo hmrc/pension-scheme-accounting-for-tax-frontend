@@ -55,11 +55,20 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
-  override def save(id: String, value: JsValue)(implicit
-                                                ec: ExecutionContext,
-                                                hc: HeaderCarrier
+  override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    save(id, value, url(id))
+  }
+
+  override def setLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    val setLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
+    save(id, value, setLockUrl)
+  }
+
+  private def save(id: String, value: JsValue, url: String)(implicit
+                                                    ec: ExecutionContext,
+                                                    hc: HeaderCarrier
   ): Future[JsValue] = {
-    http.url(url(id))
+    http.url(url)
       .addHttpHeaders(hc.withExtraHeaders(("content-type", "application/json"), ("id"-> id)).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
@@ -77,6 +86,26 @@ class UserAnswersCacheConnectorImpl @Inject()(
       .addHttpHeaders(hc.withExtraHeaders("id"-> id).headers: _*)
       .delete().map(_ => Ok)
   }
+
+  override def lockedBy(id: String)(implicit
+                                               ec: ExecutionContext,
+                                               hc: HeaderCarrier
+  ): Future[Boolean] = {
+    http.url(url(id))
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .get()
+      .flatMap {
+        response =>
+          response.status match {
+            case NOT_FOUND =>
+              Future.successful(false)
+            case OK =>
+              Future.successful(true)
+            case _ =>
+              Future.failed(new HttpException(response.body, response.status))
+          }
+      }
+  }
 }
 
 trait UserAnswersCacheConnector {
@@ -87,7 +116,14 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
+  def setLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
+
+  def lockedBy(id: String)(implicit
+                                               ec: ExecutionContext,
+                                               hc: HeaderCarrier
+  ): Future[Boolean]
 }
 
 

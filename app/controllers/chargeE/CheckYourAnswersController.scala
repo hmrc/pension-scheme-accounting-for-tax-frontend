@@ -58,18 +58,21 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val answers: Seq[SummaryList.Row] = Seq(
+        val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index).get,
           helper.chargeETaxYear(index).get,
           helper.chargeEDetails(index).get
         ).flatten
+
+        val answers = if(request.viewOnly) seqRows.map(_.copy(actions = Nil)) else seqRows
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "srn" -> srn,
             "list" -> answers,
             "viewModel" -> viewModel,
-            "chargeName" -> "chargeE"
+            "chargeName" -> "chargeE",
+            "canChange" -> !request.viewOnly
           )).map(Ok(_))
       }
   }

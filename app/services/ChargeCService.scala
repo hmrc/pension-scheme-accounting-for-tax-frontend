@@ -64,31 +64,27 @@ object ChargeCService {
 
   def removeUrl(index: Int, srn: String): Call = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, index)
 
-  def mapToTable(members: Seq[Employer])(implicit messages: Messages): Table = {
+  def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(
       Cell(msg"addEmployers.employer.header", classes = Seq("govuk-!-width-one-half")),
       Cell(msg"addEmployers.amount.header", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg""),
       Cell(msg"")
-    )
+    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil)
 
     val rows = members.map { data =>
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
         Cell(Literal(s"£${formatBigDecimalAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
-
-      )
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
+      ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
     }
     val totalAmount = members.map(_.amount).sum
 
     val totalRow = Seq(Seq(
       Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
       Cell(Literal(s"£${formatBigDecimalAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg""),
       Cell(msg"")
-    ))
+    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil) )
 
     Table(head = head, rows = rows ++ totalRow)
   }

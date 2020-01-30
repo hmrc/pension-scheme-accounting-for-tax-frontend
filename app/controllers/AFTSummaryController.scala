@@ -31,7 +31,6 @@ import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
@@ -60,7 +59,9 @@ class AFTSummaryController @Inject()(
   private val form = formProvider()
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
+
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
@@ -68,25 +69,27 @@ class AFTSummaryController @Inject()(
       val futureJsonToPassToTemplate = for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
+        uaWithLock <- setLock(userAnswersAfterRetrieve)
         userAnswersAfterSave <- userAnswersCacheConnector
-          .save(request.internalId, addSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails).data)
+          .save(request.internalId, addSchemeDetailsToUserAnswers(uaWithLock, schemeDetails).data)
       } yield {
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
         ua.get(QuarterPage).map { quarter =>
           Json.obj(
-          "srn" -> srn,
-          "form" -> form,
+            "srn" -> srn,
+            "form" -> form,
             "list" -> aftSummaryHelper.summaryListData(ua, srn),
             "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
             "radios" -> Radios.yesNo(form("value")),
             "startDate" -> getFormattedStartDate(quarter.startDate),
-            "endDate" -> getFormattedEndDate(quarter.endDate)
+            "endDate" -> getFormattedEndDate(quarter.endDate),
+            "canChange" -> !request.viewOnly
           )
         }
       }
 
       futureJsonToPassToTemplate
-        .flatMap{
+        .flatMap {
           case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           case Some(json) => renderer.render("aftSummary.njk", json).map(Ok(_))
         }
@@ -101,13 +104,14 @@ class AFTSummaryController @Inject()(
             val ua = request.userAnswers
             val optionJson = ua.get(QuarterPage).map { quarter =>
               Json.obj(
-          "srn" -> srn,
-          "form" -> formWithErrors,
+                "srn" -> srn,
+                "form" -> formWithErrors,
                 "list" -> aftSummaryHelper.summaryListData(ua, srn),
                 "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
                 "radios" -> Radios.yesNo(form("value")),
                 "startDate" -> getFormattedStartDate(quarter.startDate),
-                "endDate" -> getFormattedEndDate(quarter.endDate)
+                "endDate" -> getFormattedEndDate(quarter.endDate),
+                "canChange" -> !request.viewOnly
               )
             }
 
@@ -120,9 +124,20 @@ class AFTSummaryController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AFTSummaryPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
+            } yield {
+
+              Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
+            }
         )
       }
+  }
+
+  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
+    if(request.viewOnly) {
+      Future.successful(ua)
+    } else {
+      userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
+    }
   }
 
   def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
@@ -141,6 +156,9 @@ class AFTSummaryController @Inject()(
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
-  private def addSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails): UserAnswers =
-    userAnswers.setOrException(SchemeNameQuery, schemeDetails.schemeName).setOrException(PSTRQuery, schemeDetails.pstr)
+  private def addSchemeDetailsToUserAnswers(userAnswers: UserAnswers,
+                                            schemeDetails: SchemeDetails): UserAnswers = {
+    userAnswers.setOrException(SchemeNameQuery, schemeDetails.schemeName).
+      setOrException(PSTRQuery, schemeDetails.pstr)
+  }
 }
