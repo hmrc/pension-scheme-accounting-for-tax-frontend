@@ -41,7 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
 
-  private val fakeActionFilter = new ActionFilter[OptionalDataRequest] {
+  private val FakeActionFilter = new ActionFilter[OptionalDataRequest] {
     override protected def executionContext: ExecutionContext = global
 
     override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
@@ -49,7 +49,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-    when(mockAllowAccessActionProvider.apply(any())).thenReturn(fakeActionFilter)
+    when(mockAllowAccessActionProvider.apply(any())).thenReturn(FakeActionFilter)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]

@@ -31,14 +31,12 @@ class AllowAccessAction (
                         srn:String,
                         pensionsSchemeConnector: SchemeDetailsConnector,
                         errorHandler: ErrorHandler
-                       )(implicit ec: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
+                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
 
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     checkForAssociation(request, srn)
   }
-
-  override protected def executionContext: ExecutionContext = ec
 
   private def checkForAssociation[A](request: OptionalDataRequest[A],
                                      extractedSRN: String)(implicit hc: HeaderCarrier): Future[Option[Result]] =
