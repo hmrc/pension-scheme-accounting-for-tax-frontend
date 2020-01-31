@@ -10,7 +10,7 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                 controllers.SessionExpiredController.onPageLoad
 
-GET         /:srn/cannot-make-changes                                                                                    controllers.CannotMakeChangesController.onPageLoad(srn: String)
+GET         /:srn/new-return/cannot-make-changes                                                                         controllers.CannotMakeChangesController.onPageLoad(srn: String)
 
 GET         /unauthorised                                                                                                controllers.UnauthorisedController.onPageLoad
 

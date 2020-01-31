@@ -132,6 +132,7 @@ class AFTSummaryController @Inject()(
 
   private def retrieveAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
+    
     val futureUserAnswers = optionVersion match {
       case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
       case Some(version) =>
