@@ -49,7 +49,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     reset(pensionsSchemeConnector, errorHandler)
   }
 
-  "redirectLocationForIllegalPageAccess" must {
+  "filterForIllegalPageAccess" must {
     "respond with None (i.e. allow access) when the PSA is not suspended and there is an association" in {
       val ua = SampleData.userAnswersWithSchemeName
         .set(IsPsaSuspendedQuery, value = false).toOption.get
@@ -58,7 +58,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
 
-      whenReady(allowAccessService.redirectLocationForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe None
       }
     }
@@ -74,7 +74,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
 
-      whenReady(allowAccessService.redirectLocationForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
       }
     }
@@ -85,12 +85,26 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       when(config.cannotMakeChangesUrl).thenReturn("no-changes-url")
 
-      val errorResult = Redirect(Call("GET", config.cannotMakeChangesUrl))
+      val expectedResult = Redirect(Call("GET", config.cannotMakeChangesUrl))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
 
-      whenReady(allowAccessService.redirectLocationForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
-        result mustBe Some(errorResult)
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(expectedResult)
+      }
+    }
+
+    "respond with a redirect to thesession expired page (i.e. don't allow access) when no PSA suspended flag is found in user answers" in {
+      val ua = SampleData.userAnswersWithSchemeName
+
+      when(config.cannotMakeChangesUrl).thenReturn("no-changes-url")
+
+      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
+
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(expectedResult)
       }
     }
   }

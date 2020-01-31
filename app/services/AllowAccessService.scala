@@ -33,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
                                    errorHandler: ErrorHandler,
                                    config: FrontendAppConfig)(implicit val executionContext: ExecutionContext) extends Results {
-  def redirectLocationForIllegalPageAccess(srn: String, ua:UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     ua.get(IsPsaSuspendedQuery) match {
       case None => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))

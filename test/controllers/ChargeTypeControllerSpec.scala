@@ -81,12 +81,9 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val jsonCaptorForSaveOfUA = ArgumentCaptor.forClass(classOf[JsObject])
 
         when(mockUserAnswersCacheConnector.save(any(), jsonCaptorForSaveOfUA.capture())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
         when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-        when(mockAllowAccessService.redirectLocationForIllegalPageAccess(any(),any())(any()))
-          .thenReturn(Future.successful(None))
-        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any()))
-          .thenReturn(Future.successful(false))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(),any())(any())).thenReturn(Future.successful(None))
+        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any())).thenReturn(Future.successful(false))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -100,9 +97,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         templateCaptor.getValue mustEqual template
 
-        jsonCaptorForSaveOfUA.getValue must containJson(Json.obj(
-          IsPsaSuspendedQuery.toString -> false
-        ))
+        jsonCaptorForSaveOfUA.getValue must containJson(Json.obj(IsPsaSuspendedQuery.toString -> false))
 
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
 
@@ -121,10 +116,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
           ).build()
 
         when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-        when(mockAllowAccessService.redirectLocationForIllegalPageAccess(any(),any())(any()))
-          .thenReturn(Future.successful(None))
-        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any()))
-          .thenReturn(Future.successful(false))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(),any())(any())).thenReturn(Future.successful(None))
+        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any())).thenReturn(Future.successful(false))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -156,10 +149,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
           ).build()
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
         when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-        when(mockAllowAccessService.redirectLocationForIllegalPageAccess(any(),any())(any()))
-          .thenReturn(Future.successful(None))
-        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any()))
-          .thenReturn(Future.successful(false))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(),any())(any())).thenReturn(Future.successful(None))
+        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any())).thenReturn(Future.successful(false))
 
         val result = route(application, FakeRequest(GET, httpPathGET)).value
 

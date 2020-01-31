@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessAction(srn: String, allowService: AllowAccessService)(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
-    allowService.redirectLocationForIllegalPageAccess(srn, request.userAnswers.getOrElse(UserAnswers()))(request)
+    allowService.filterForIllegalPageAccess(srn, request.userAnswers.getOrElse(UserAnswers()))(request)
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])

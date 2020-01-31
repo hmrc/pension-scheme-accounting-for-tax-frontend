@@ -77,7 +77,7 @@ class AFTSummaryController @Inject()(
           .save(request.internalId,
             addPSAAndSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails, retrievedIsSuspendedValue).data
           )
-        optionResult <- allowService.redirectLocationForIllegalPageAccess(srn, UserAnswers(userAnswersAfterSave.as[JsObject]))
+        optionResult <- allowService.filterForIllegalPageAccess(srn, UserAnswers(userAnswersAfterSave.as[JsObject]))
       } yield {
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
         optionResult match {

@@ -70,7 +70,7 @@ class ChargeTypeController @Inject()(
         }
 
         futureUA.flatMap { ua =>
-          allowService.redirectLocationForIllegalPageAccess(srn, ua).flatMap {
+          allowService.filterForIllegalPageAccess(srn, ua).flatMap {
             case None =>
               userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
                 auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))

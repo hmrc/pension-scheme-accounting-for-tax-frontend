@@ -90,10 +90,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-    when(mockAllowAccessService.redirectLocationForIllegalPageAccess(any(),any())(any()))
-      .thenReturn(Future.successful(None))
-    when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any()))
-      .thenReturn(Future.successful(false))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(),any())(any())).thenReturn(Future.successful(None))
+    when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any())).thenReturn(Future.successful(false))
   }
 
 
@@ -110,7 +108,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
-    "return OK and the correct view for a GET and also save the suspended flag in user answers where no version is present in the request" in {
+    "return OK and the correct view for a GET where no version is present in the request, also saving the PSA suspended flag in user answers" in {
       val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -124,12 +122,10 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockAllowAccessService, times(1)).redirectLocationForIllegalPageAccess(srnCaptor.capture(), any())(any())
+      verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(srnCaptor.capture(), any())(any())
       verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(any())(any(), any())
 
-      jsonCaptorForSaveOfUA.getValue must containJson(Json.obj(
-        IsPsaSuspendedQuery.toString -> false
-      ))
+      jsonCaptorForSaveOfUA.getValue must containJson(Json.obj(IsPsaSuspendedQuery.toString -> false))
 
       srnCaptor.getValue mustEqual SampleData.srn
 
