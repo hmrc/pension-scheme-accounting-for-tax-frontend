@@ -67,19 +67,16 @@ class AFTSummaryController @Inject()(
 
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
+
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val futureJsonToPassToTemplate = for {
+      (for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-        userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
-        retrievedIsSuspendedValue <- minimalPsaConnector.isPsaSuspended(request.psaId.id)
-        userAnswersAfterSave <- userAnswersCacheConnector.save(request.internalId, addPSAAndSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails, retrievedIsSuspendedValue).data)
-        optionResult <- allowService.filterForIllegalPageAccess(srn, UserAnswers(userAnswersAfterSave.as[JsObject]))
+        ua <- retrieveAndUpdateUserAnswers(optionVersion, schemeDetails)
+        _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
+        filterAccess <- allowService.filterForIllegalPageAccess(srn, ua)
       } yield {
-
-        val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
-
-        optionResult match {
+        filterAccess match {
           case None =>
             ua.get(QuarterPage) match {
               case Some(quarter) =>
@@ -96,8 +93,8 @@ class AFTSummaryController @Inject()(
             }
           case Some(redirectLocation) => Future.successful(redirectLocation)
         }
-      }
-      futureJsonToPassToTemplate.flatMap(identity)
+
+      }).flatMap(identity)
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -138,18 +135,29 @@ class AFTSummaryController @Inject()(
       schemeName = schemeName)
   }
 
-  private def retrieveUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
-    optionVersion match {
+  private def retrieveAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                                (implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
+    val futureUserAnswers = optionVersion match {
       case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
       case Some(version) =>
         aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
-  private def addPSAAndSchemeDetailsToUserAnswers(userAnswers: UserAnswers, schemeDetails: SchemeDetails, isSuspended: Boolean): UserAnswers =
-    userAnswers
-      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-      .setOrException(PSTRQuery, schemeDetails.pstr)
-      .setOrException(IsPsaSuspendedQuery, isSuspended)
+    futureUserAnswers.flatMap { ua =>
+      val futureUserAnswersWithSuspendedFlag = ua.get(IsPsaSuspendedQuery) match {
+        case None =>
+          minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
+            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+          }
+        case Some(_) =>
+          Future.successful(ua)
+      }
+
+      futureUserAnswersWithSuspendedFlag.map(_
+        .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+        .setOrException(PSTRQuery, schemeDetails.pstr)
+      )
+    }
+  }
 }
