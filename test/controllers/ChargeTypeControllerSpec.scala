@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, verify, when, reset}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import pages.ChargeTypePage
@@ -58,17 +58,19 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   override def beforeEach: Unit = {
     super.beforeEach
+    reset(mockUserAnswersCacheConnector, mockRenderer)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
   "ChargeType Controller" when {
     "on a GET" must {
 
-      "return OK with the correct view and save the quarter, aft status, scheme name, pstr" in {
+      "return OK with the correct view and save the quarter, aft status, scheme name, pstr when viewOnly is true" in {
         val application = new GuiceApplicationBuilder()
           .overrides(
-            modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
+            modules(Some(SampleData.userAnswersWithSchemeName), viewOnly = true) ++ Seq[GuiceableModule](
               bind[SchemeService].toInstance(mockSchemeService)
             ): _*
           ).build()
@@ -88,6 +90,24 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         templateCaptor.getValue mustEqual template
 
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
+
+        application.stop()
+      }
+
+      "return OK with the correct view and save the quarter, aft status, scheme name, pstr when viewOnly is false" in {
+        val application = new GuiceApplicationBuilder()
+          .overrides(
+            modules(Some(SampleData.userAnswersWithSchemeName), viewOnly = false) ++ Seq[GuiceableModule](
+              bind[SchemeService].toInstance(mockSchemeService)
+            ): _*
+          ).build()
+
+        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+
+        val result = route(application, FakeRequest(GET, httpPathGET)).value
+
+        status(result) mustEqual OK
+        verify(mockUserAnswersCacheConnector, times(1)).setLock(any(), any())(any(), any())
 
         application.stop()
       }

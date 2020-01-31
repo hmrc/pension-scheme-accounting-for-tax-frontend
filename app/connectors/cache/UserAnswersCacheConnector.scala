@@ -68,7 +68,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                     hc: HeaderCarrier
   ): Future[JsValue] = {
     http.url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
+      .withHttpHeaders(hc.headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {

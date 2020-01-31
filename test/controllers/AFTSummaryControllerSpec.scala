@@ -45,7 +45,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
-  override protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
+  protected def appBuilder(userAnswers: Option[UserAnswers] = None, viewOnly: Boolean = false): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
         modules(userAnswers) ++ Seq[GuiceableModule](
@@ -69,26 +69,17 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val summaryHelper = new AFTSummaryHelper
 
-  private val schemeName = "scheme"
-  private val schemePSTR = "pstr"
-
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01","2000-05-31")).toOption.get
-  private val uaGetAFTDetailsPlusSchemeDetails = uaGetAFTDetails
-    .set(SchemeNameQuery, schemeName).toOption.getOrElse(uaGetAFTDetails)
-    .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
-
 
   override def beforeEach: Unit = {
     super.beforeEach()
     Mockito.reset(mockSchemeService, mockAftConnector, mockUserAnswersCacheConnector, mockRenderer)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
+    when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-
   }
-
-
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
@@ -102,8 +93,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
-    "return OK and the correct view for a GET where no version is present in the request" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+    "return OK, the correct view for a GET and don't set lock where no version is present in the request " in {
+      val application = appBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName), viewOnly = true).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -120,8 +111,19 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       application.stop()
     }
 
+    "return OK and set lock where no version is present in the request " in {
+      val application = appBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName), viewOnly = false).build()
+
+      val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
+
+      status(result) mustEqual OK
+
+      verify(mockUserAnswersCacheConnector, times(1)).setLock(any(), any())(any(), any())
+      application.stop()
+    }
+
     "return OK and the correct view for a GET where a version is present in the request" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      val application = appBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
 
       val pstrCaptor = ArgumentCaptor.forClass(classOf[String])
       val startDateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -153,7 +155,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val application = appBuilder(userAnswers = userAnswers).build()
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -171,7 +173,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      val application = appBuilder(userAnswers = userAnswers).build()
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -183,7 +185,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      val application = appBuilder(userAnswers = None).build()
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

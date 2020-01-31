@@ -19,7 +19,7 @@ package connectors.cache
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import play.api.mvc.Results._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
@@ -33,7 +33,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
-  private val aftReturnUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft"
+  private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/testId"
 
   ".fetch" must {
 
@@ -83,21 +83,21 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
 
   ".save" must {
     val json = Json.obj(
-      fields = "fake-identifier" -> "foobar"
+      fields = "testId" -> "foobar"
     )
-//    "save the data in the collection" in {
-//      server.stubFor(
-//        post(urlEqualTo(aftReturnUrl))
-//          .withRequestBody(equalTo(Json.stringify(json)))
-//          .willReturn(
-//            ok
-//          )
-//      )
-//
-//      connector.save(cacheId = "testId", json) map {
-//        _ mustEqual json
-//      }
-//    }
+    "save the data in the collection" in {
+      server.stubFor(
+        post(urlEqualTo(aftReturnUrl))
+          .withRequestBody(equalTo(Json.stringify(json)))
+          .willReturn(
+            aResponse.withStatus(201)
+          )
+      )
+
+      connector.save(cacheId = "testId", json) map {
+        _ mustEqual json
+      }
+    }
 
     "return a failed future on upstream error" in {
 
@@ -112,6 +112,26 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
         connector.save(cacheId = "testId", json)
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  ".setLock" must {
+    val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock/testId"
+    val json = Json.obj(
+      fields = "testId" -> "lock"
+    )
+    "set lock in the collection" in {
+      server.stubFor(
+        post(urlEqualTo(lockUrl))
+          .withRequestBody(equalTo(Json.stringify(json)))
+          .willReturn(
+            aResponse.withStatus(201)
+          )
+      )
+
+      connector.setLock(cacheId = "testId", json) map {
+        _ mustEqual json
       }
     }
   }

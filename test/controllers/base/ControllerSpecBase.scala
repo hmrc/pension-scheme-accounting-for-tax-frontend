@@ -45,10 +45,10 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
-  def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
+  def modules(userAnswers: Option[UserAnswers], viewOnly: Boolean = false): Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
     bind[IdentifierAction].to[FakeIdentifierAction],
-    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers, viewOnly)),
     bind[NunjucksRenderer].toInstance(mockRenderer),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
     bind[CompoundNavigator].toInstance(mockCompoundNavigator)
