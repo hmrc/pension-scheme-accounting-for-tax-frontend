@@ -35,12 +35,11 @@ class DataRetrievalImpl(
                          val userAnswersCacheConnector: UserAnswersCacheConnector
                        )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
-
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     val id = s"$srn${AFTConstants.START_DATE}"
     for {
       data <- userAnswersCacheConnector.fetch(id)
-      isLocked <- userAnswersCacheConnector.lockedBy(id)
+      isLocked <- userAnswersCacheConnector.isLocked(id)
     } yield {
       data match {
         case None =>

@@ -22,11 +22,12 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
+import models.requests.OptionalDataRequest
 import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
@@ -63,22 +64,31 @@ class ChargeTypeController @Inject()(
           .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
           .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
-        userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
-          auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        setLock(ua).flatMap { answers =>
+          userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
+            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
 
-          val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
+            val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
 
-          val json = Json.obj(
-            fields = "srn" -> srn,
-            "form" -> preparedForm,
-            "radios" -> ChargeType.radios(preparedForm),
-            "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-          )
+            val json = Json.obj(
+              fields = "srn" -> srn,
+              "form" -> preparedForm,
+              "radios" -> ChargeType.radios(preparedForm),
+              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+            )
 
-          renderer.render(template = "chargeType.njk", json).map(Ok(_))
+            renderer.render(template = "chargeType.njk", json).map(Ok(_))
+          }
         }
       }
   }
+
+  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
+    if(request.viewOnly) {
+      Future.successful(ua)
+    } else {
+      userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
+    }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>

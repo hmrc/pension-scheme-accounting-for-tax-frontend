@@ -40,7 +40,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                  hc: HeaderCarrier
   ): Future[Option[JsValue]] = {
     http.url(url(id))
-      .addHttpHeaders(hc.withExtraHeaders("id"-> id).headers: _*)
+      .withHttpHeaders(hc.headers: _*)
       .get()
       .flatMap {
         response =>
@@ -69,7 +69,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                     hc: HeaderCarrier
   ): Future[JsValue] = {
     http.url(url)
-      .addHttpHeaders(hc.withExtraHeaders(("content-type", "application/json"), ("id"-> id)).headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
@@ -83,26 +83,24 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http.url(url(id))
-      .addHttpHeaders(hc.withExtraHeaders("id"-> id).headers: _*)
+      .withHttpHeaders(hc.headers: _*)
       .delete().map(_ => Ok)
   }
 
-  override def lockedBy(id: String)(implicit
-                                               ec: ExecutionContext,
-                                               hc: HeaderCarrier
+  override def isLocked(id: String)(implicit
+                                    ec: ExecutionContext,
+                                    hc: HeaderCarrier
   ): Future[Boolean] = {
-    http.url(url(id))
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+    val url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
+    http.url(url)
+      .withHttpHeaders(hc.headers: _*)
       .get()
       .flatMap {
         response =>
           response.status match {
-            case NOT_FOUND =>
-              Future.successful(false)
-            case OK =>
-              Future.successful(true)
-            case _ =>
-              Future.failed(new HttpException(response.body, response.status))
+            case NOT_FOUND => Future.successful(false)
+            case OK => Future.successful(true)
+            case _ => Future.failed(new HttpException(response.body, response.status))
           }
       }
   }
@@ -120,9 +118,9 @@ trait UserAnswersCacheConnector {
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
-  def lockedBy(id: String)(implicit
-                                               ec: ExecutionContext,
-                                               hc: HeaderCarrier
+  def isLocked(id: String)(implicit
+                           ec: ExecutionContext,
+                           hc: HeaderCarrier
   ): Future[Boolean]
 }
 

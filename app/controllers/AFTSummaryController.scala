@@ -132,13 +132,12 @@ class AFTSummaryController @Inject()(
       }
   }
 
-  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
+  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
     if(request.viewOnly) {
       Future.successful(ua)
     } else {
       userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
     }
-  }
 
   def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
