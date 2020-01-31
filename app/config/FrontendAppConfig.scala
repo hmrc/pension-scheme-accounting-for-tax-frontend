@@ -61,7 +61,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
-  lazy val cannotMakeChangesUrl: String = loadConfig("urls.cannotMakeChanges")
   lazy val minimalPsaDetailsUrl: String = s"$pensionsAdministratorUrl${configuration.get[String](path = "urls.minimalPsaDetails")}"
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
 

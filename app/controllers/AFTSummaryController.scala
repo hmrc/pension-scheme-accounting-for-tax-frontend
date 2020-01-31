@@ -63,11 +63,6 @@ class AFTSummaryController @Inject()(
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
-
-  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
-
-
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       (for {
@@ -128,7 +123,7 @@ class AFTSummaryController @Inject()(
       }
   }
 
-  def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
+  private def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -160,4 +155,8 @@ class AFTSummaryController @Inject()(
       )
     }
   }
+
+  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+
+  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 }

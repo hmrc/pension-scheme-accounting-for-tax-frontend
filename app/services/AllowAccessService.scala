@@ -17,22 +17,20 @@
 package services
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import handlers.ErrorHandler
 import models.UserAnswers
 import models.requests.OptionalDataRequest
 import pages.IsPsaSuspendedQuery
 import play.api.http.Status.NOT_FOUND
-import play.api.mvc.{Call, Result, Results}
+import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
-                                   errorHandler: ErrorHandler,
-                                   config: FrontendAppConfig)
+                                   errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
   def filterForIllegalPageAccess(srn: String, ua: UserAnswers)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
@@ -50,7 +48,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
             errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
         }
       case _ =>
-        Future.successful(Some(Redirect(Call("GET", config.cannotMakeChangesUrl.format(srn)))))
+        Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))
     }
   }
 }

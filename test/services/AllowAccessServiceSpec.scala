@@ -17,7 +17,6 @@
 package services
 
 import base.SpecBase
-import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import data.SampleData
 import handlers.ErrorHandler
@@ -31,7 +30,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.IsPsaSuspendedQuery
 import play.api.mvc.{Call, Results}
-import play.api.mvc.Results.Ok
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
 
@@ -43,7 +41,6 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
   private def optionalDataRequest(ua:UserAnswers) = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))
-  private val config: FrontendAppConfig = mock[FrontendAppConfig]
 
   override def beforeEach(): Unit = {
     reset(pensionsSchemeConnector, errorHandler)
@@ -56,7 +53,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe None
@@ -72,7 +69,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -83,25 +80,21 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       val ua = SampleData.userAnswersWithSchemeName
         .set(IsPsaSuspendedQuery, value = true).toOption.get
 
-      when(config.cannotMakeChangesUrl).thenReturn("no-changes-url")
+      val expectedResult = Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(SampleData.srn))
 
-      val expectedResult = Redirect(Call("GET", config.cannotMakeChangesUrl))
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
-
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
 
-    "respond with a redirect to thesession expired page (i.e. don't allow access) when no PSA suspended flag is found in user answers" in {
+    "respond with a redirect to the session expired page (i.e. don't allow access) when no PSA suspended flag is found in user answers" in {
       val ua = SampleData.userAnswersWithSchemeName
-
-      when(config.cannotMakeChangesUrl).thenReturn("no-changes-url")
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler, config)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)

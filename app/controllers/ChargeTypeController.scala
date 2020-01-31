@@ -62,26 +62,22 @@ class ChargeTypeController @Inject()(
     implicit request =>
       (for {
         uaWithSuspendedFlag <- futureUserAnswersWithSuspendedFlag(request)
+        schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+        _ <- userAnswersCacheConnector.save(request.internalId, userAnswers(schemeDetails, uaWithSuspendedFlag).data)
         filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
       } yield {
         filterAccess match {
           case None =>
-            (for {
-              schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-              _ <- userAnswersCacheConnector.save(request.internalId, userAnswers(schemeDetails, uaWithSuspendedFlag).data)
-            } yield {
-              auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
 
-              val preparedForm = uaWithSuspendedFlag.get(ChargeTypePage).fold(form)(form.fill)
+            val preparedForm = uaWithSuspendedFlag.get(ChargeTypePage).fold(form)(form.fill)
 
-              val json = Json.obj(
-                "form" -> preparedForm,
-                "radios" -> ChargeType.radios(preparedForm),
-                "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-              )
-
-              renderer.render(template = "chargeType.njk", json).map(Ok(_))
-            }).flatMap(identity)
+            val json = Json.obj(
+              "form" -> preparedForm,
+              "radios" -> ChargeType.radios(preparedForm),
+              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+            )
+            renderer.render(template = "chargeType.njk", json).map(Ok(_))
           case Some(redirectLocation) =>
             Future.successful(redirectLocation)
         }
