@@ -16,9 +16,9 @@
 
 package controllers.chargeC
 
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringOrganisationDetails
@@ -39,16 +39,16 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/sponsoringOrganisationDetails.njk"
   private val form = new SponsoringOrganisationDetailsFormProvider()()
   private val index = 0
 
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, SampleData.srn, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "name" -> Seq("Big Company"),
@@ -63,21 +63,22 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   private val jsonToPassToTemplate: Form[SponsoringOrganisationDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, SampleData.srn, index).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName)
+      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, index).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
 
   "SponsoringOrganisationDetails Controller" must {
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -93,9 +94,9 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(SponsoringOrganisationDetailsPage(index), SampleData.sponsoringOrganisationDetails)).get.toOption.get
+      val ua = userAnswers.map(_.set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails)).get.toOption.get
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -107,11 +108,11 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(SampleData.sponsoringOrganisationDetails)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(sponsoringOrganisationDetails)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -124,14 +125,14 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
-            SponsoringOrganisationDetailsPage.toString -> Json.toJson(SampleData.sponsoringOrganisationDetails)
+            SponsoringOrganisationDetailsPage.toString -> Json.toJson(sponsoringOrganisationDetails)
           ))
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any())).thenReturn(dummyCall)
 
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -143,11 +144,11 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
 
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -157,7 +158,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

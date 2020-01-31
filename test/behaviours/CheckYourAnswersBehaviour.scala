@@ -16,7 +16,6 @@
 
 package behaviours
 
-import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -27,7 +26,6 @@ import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import pages.Page
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
@@ -54,12 +52,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
-            bind[FrontendAppConfig].toInstance(mockAppConfig)
-          ): _*
-        ).build()
+      val application = applicationBuilder(Some(userAnswers)).build()
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -93,13 +86,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
-            bind[AFTConnector].toInstance(mockAftConnector),
-            bind[FrontendAppConfig].toInstance(mockAppConfig)
-          ): _*
-        ).build()
+      val application = applicationBuilder(Some(userAnswers), Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
 
       val result = route(application, httpGETRequest(httpPath)).value
 

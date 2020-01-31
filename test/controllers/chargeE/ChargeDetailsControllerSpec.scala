@@ -16,9 +16,10 @@
 
 package controllers.chargeE
 
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData._
 import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeE.ChargeEDetails
@@ -37,12 +38,12 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider()()
-  private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
-  private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
+  private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 0).url
+  private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
@@ -63,9 +64,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName),
+      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, 0).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName),
     "date" -> DateInput.localDate(form("dateNoticeReceived")),
     "radios" -> Radios.yesNo(form("isPaymentMandatory")),
     "memberName" -> "first last"
@@ -75,14 +76,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  val validData: UserAnswers = SampleData.userAnswersWithSchemeName.set(MemberDetailsPage(0), SampleData.memberDetails).get
-  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), SampleData.chargeEDetails).get.data
+  val validData: UserAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).get
+  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeEDetails).get.data
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(Some(validData))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -98,9 +100,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = validData.set(ChargeDetailsPage(0), SampleData.chargeEDetails).get
+      val ua = validData.set(ChargeDetailsPage(0), chargeEDetails).get
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -112,11 +114,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(SampleData.chargeEDetails)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(chargeEDetails)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -126,9 +128,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any())).thenReturn(dummyCall)
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(validData))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -139,11 +141,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(Some(validData))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -153,7 +155,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

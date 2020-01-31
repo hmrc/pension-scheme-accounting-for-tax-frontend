@@ -16,8 +16,7 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
@@ -30,7 +29,6 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.IsSponsoringEmployerIndividualPage
 import play.api.Application
-import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
@@ -42,12 +40,8 @@ import scala.concurrent.Future
 
 class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val index = 0
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
-    .overrides(
-      bind[FrontendAppConfig].toInstance(mockAppConfig)
-    )
-    .build()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
   private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage(index), true).success.value
 
@@ -72,7 +66,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -99,7 +93,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(answers))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answers))
 
       val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -128,7 +122,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val request =
         FakeRequest(POST, httpPathGET)
@@ -146,7 +140,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
@@ -171,7 +165,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -184,7 +178,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
     "redirect to Session Expired for a POST if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
         FakeRequest(POST, httpPathGET)

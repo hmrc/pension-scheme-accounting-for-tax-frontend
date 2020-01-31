@@ -23,6 +23,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterEach, FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
@@ -41,13 +42,12 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
     Mockito.reset(mockNunjucksRenderer)
   }
 
-  private val applicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(
-        bind[NunjucksRenderer].toInstance(mockNunjucksRenderer)
-      )
-
   implicit private val request: FakeRequest[_] = FakeRequest()
+
+  val application: Application = new GuiceApplicationBuilder()
+    .overrides(
+      bind[NunjucksRenderer].toInstance(mockNunjucksRenderer)
+    ).build()
 
   "render" - {
 
@@ -59,9 +59,8 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
           .thenReturn(Future.successful(Html("")))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val application = applicationBuilder.build()
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val renderer = application.injector.instanceOf[Renderer]
 
@@ -72,8 +71,6 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
         val json = jsonCaptor.getValue
 
         (json \ "config") mustBe a[JsDefined]
-
-        application.stop()
       }
     }
 
@@ -85,9 +82,8 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
           .thenReturn(Future.successful(Html("")))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val application = applicationBuilder.build()
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val renderer = application.injector.instanceOf[Renderer]
 
@@ -98,8 +94,6 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
         val json = jsonCaptor.getValue
 
         (json \ "config") mustBe a[JsDefined]
-
-        application.stop()
       }
     }
 
@@ -111,9 +105,8 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
           .thenReturn(Future.successful(Html("")))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val application = applicationBuilder.build()
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
         val renderer = application.injector.instanceOf[Renderer]
 
@@ -124,8 +117,6 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
         val json = jsonCaptor.getValue
 
         (json \ "config") mustBe a[JsDefined]
-
-        application.stop()
       }
     }
   }

@@ -18,7 +18,7 @@ package controllers.chargeG
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteMemberFormProvider
@@ -45,10 +45,9 @@ import scala.concurrent.Future
 
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction)
     .overrides(
-      bind[FrontendAppConfig].toInstance(mockAppConfig),
       bind[AFTConnector].toInstance(mockAftConnector)
     )
     .build()
@@ -81,7 +80,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswers))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -108,7 +107,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      fakeDataRetrievalAction2.setDataToReturn(Some(answers))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answers))
 
       val request =
         FakeRequest(POST, httpPathGET)
@@ -132,7 +131,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswers))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
@@ -157,7 +156,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -170,7 +169,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to Session Expired for a POST if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
         FakeRequest(POST, httpPathGET)

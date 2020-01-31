@@ -17,8 +17,9 @@
 package controllers
 
 import connectors.AFTConnector
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
 import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
@@ -26,10 +27,10 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatest.BeforeAndAfterEach
-import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages.{AFTSummaryPage, QuarterPage}
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -40,28 +41,29 @@ import utils.AFTSummaryHelper
 import scala.concurrent.Future
 
 class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
   private val mockSchemeService = mock[SchemeService]
 
-  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[SchemeService].toInstance(mockSchemeService),
+      bind[AFTConnector].toInstance(mockAftConnector)
+    )
 
-  override protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(
-        modules(userAnswers) ++ Seq[GuiceableModule](
-          bind[SchemeService].toInstance(mockSchemeService),
-          bind[AFTConnector].toInstance(mockAftConnector)
-        ): _*
-      )
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+
+  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val templateToBeRendered = "aftSummary.njk"
+
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, None).url
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(srn, None).url
 
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, Some(SampleData.version)).url
+  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(srn, Some(version)).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(srn, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -69,42 +71,37 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val summaryHelper = new AFTSummaryHelper
 
-  private val schemeName = "scheme"
-  private val schemePSTR = "pstr"
-
-  private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01","2000-05-31")).toOption.get
-  private val uaGetAFTDetailsPlusSchemeDetails = uaGetAFTDetails
-    .set(SchemeNameQuery, schemeName).toOption.getOrElse(uaGetAFTDetails)
-    .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
-
+  private val uaGetAFTDetails: UserAnswers = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
 
   override def beforeEach: Unit = {
     super.beforeEach()
     Mockito.reset(mockSchemeService, mockAftConnector, mockUserAnswersCacheConnector, mockRenderer)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
 
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
-    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
+    "list" -> summaryHelper.summaryListData(UserAnswers(), srn),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName),
+      submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
     "return OK and the correct view for a GET where no version is present in the request" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
@@ -116,18 +113,19 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
-
-      application.stop()
     }
 
     "return OK and the correct view for a GET where a version is present in the request" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val pstrCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val startDateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val versionCaptor = ArgumentCaptor.forClass(classOf[String])
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpGETRequest(httpPathGETVersion)).value
@@ -138,22 +136,21 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(SampleData.version)).apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(version)).apply(form))
 
       verify(mockAftConnector, times(1)).getAFTDetails(pstrCaptor.capture(), startDateCaptor.capture, versionCaptor.capture)(any(), any())
 
-      pstrCaptor.getValue mustEqual SampleData.pstr
-      startDateCaptor.getValue mustEqual "2020-04-01"
-      versionCaptor.getValue mustEqual SampleData.version
+      pstrCaptor.getValue mustEqual pstr
 
-      application.stop()
+      startDateCaptor.getValue mustEqual "2020-04-01"
+
+      versionCaptor.getValue mustEqual version
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(dummyCall)
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
-
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -165,31 +162,27 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       jsonCaptor.getValue must containJson(Json.obj(AFTSummaryPage.toString -> Json.toJson(true)))
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
-      application.stop()
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
+
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-      application.stop()
     }
   }
 }

@@ -16,9 +16,9 @@
 
 package controllers.chargeG
 
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.chargeG.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.MemberDetails
@@ -37,24 +37,24 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import scala.concurrent.Future
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/memberDetails.njk"
   private val formProvider = new MemberDetailsFormProvider()
   private val form: Form[MemberDetails] = formProvider()
 
   private lazy val httpPathGET: String =
-    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, SampleData.srn, 0).url
+    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 0).url
   private lazy val httpPathPOST: String =
-    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url
+    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, SampleData.srn, 0).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName),
+      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, 0).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName),
     "date" -> DateInput.localDate(form("dob"))
   )
 
@@ -97,11 +97,12 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
   "MemberDetails Controller" must {
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -119,9 +120,9 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(MemberDetailsPage(0), SampleData.memberGDetails)).get.toOption.get
+      val ua = userAnswers.map(_.set(MemberDetailsPage(0), memberGDetails)).get.toOption.get
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -135,13 +136,13 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(SampleData.memberGDetails)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(memberGDetails)))
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any())).thenReturn(dummyCall)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -153,11 +154,11 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -168,7 +169,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -178,7 +179,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

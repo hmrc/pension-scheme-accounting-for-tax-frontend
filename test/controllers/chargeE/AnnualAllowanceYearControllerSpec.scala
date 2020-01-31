@@ -17,9 +17,9 @@
 package controllers.chargeE
 
 import connectors.SchemeDetailsConnector
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
 import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
@@ -40,10 +40,10 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction)
     .overrides(
       bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector)
     )
@@ -60,30 +60,31 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     fields = "form" -> form,
     "radios" -> YearRange.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName)
+      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, 0).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName)
   )
 
   private def form = new YearRangeFormProvider()()
 
-  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, SampleData.srn, 0).url
+  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, 0).url
 
-  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, SampleData.srn, 0).url
+  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, 0).url
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   "AnnualAllowanceYear Controller" must {
 
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(Option(SampleData.userAnswersWithSchemeName))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeName))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -100,9 +101,9 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
-      val ua = SampleData.userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
-      fakeDataRetrievalAction2.setDataToReturn(Some(ua))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+      val ua = userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -130,9 +131,9 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any())).thenReturn(dummyCall)
 
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -144,11 +145,11 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -158,7 +159,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

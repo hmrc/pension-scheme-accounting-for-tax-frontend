@@ -16,7 +16,7 @@
 
 package controllers.chargeF
 
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import matchers.JsonMatchers
@@ -34,8 +34,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
   private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
@@ -51,7 +51,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

@@ -16,9 +16,9 @@
 
 package controllers.chargeC
 
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.AddMembersFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
@@ -36,12 +36,12 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2).build()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/addEmployers.njk"
   private val form = new AddMembersFormProvider()("chargeC.addEmployers.error")
-  private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(SampleData.srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.AddEmployersController.onSubmit(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(srn).url
+  private def httpPathPOST: String = controllers.chargeC.routes.AddEmployersController.onSubmit(srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -85,9 +85,9 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(SampleData.srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName),
+      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> "1 April 2020",
     "quarterEnd" -> "30 June 2020",
@@ -98,21 +98,22 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
+  private def ua: UserAnswers = userAnswersWithSchemeName
     .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
     .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
-    .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
-    .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
-    .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
-    .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+    .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
+    .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
+    .set(ChargeCDetailsPage(1), chargeCDetails).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
   val expectedJson: JsObject = ua.set(AddEmployersPage, true).get.data
 
   "AddEmployers Controller" must {
     "return OK and the correct view for a GET" in {
-      fakeDataRetrievalAction2.setDataToReturn(Option(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -131,7 +132,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -141,9 +142,9 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(Option(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any())).thenReturn(dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 
@@ -156,12 +157,12 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
       jsonCaptor.getValue must containJson(expectedJson)
 
-      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      redirectLocation(result) mustBe Some(dummyCall.url)
 
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      fakeDataRetrievalAction2.setDataToReturn(Option(ua))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -171,7 +172,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

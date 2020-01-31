@@ -16,9 +16,8 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
 import connectors.AFTConnector
-import controllers.actions.FakeDataRetrievalAction2
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteMemberFormProvider
@@ -54,11 +53,10 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
-  private val fakeDataRetrievalAction2: FakeDataRetrievalAction2 = new FakeDataRetrievalAction2()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
-  private val application: Application = applicationBuilder2(fakeDataRetrievalAction2)
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction)
     .overrides(
-      bind[FrontendAppConfig].toInstance(mockAppConfig),
       bind[AFTConnector].toInstance(mockAftConnector)
     )
     .build()
@@ -87,7 +85,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(answersIndividual))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -118,7 +116,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(answersOrg))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -150,7 +148,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(answersIndividual))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
 
       val request =
         FakeRequest(POST, httpPathGET)
@@ -175,7 +173,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(answersOrg))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
       val request =
         FakeRequest(POST, httpPathGET)
@@ -200,7 +198,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      fakeDataRetrievalAction2.setDataToReturn(Some(userAnswersWithSchemeNameAndIndividual))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndIndividual))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
 
@@ -229,7 +227,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -242,7 +240,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
     "redirect to Session Expired for a POST if no existing data is found" in {
 
-      fakeDataRetrievalAction2.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
         FakeRequest(POST, httpPathGET)
