@@ -24,7 +24,7 @@ import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.requests.OptionalDataRequest
-import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
+import models.{ChargeType, GenericViewModel, Mode, Quarter, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -58,45 +58,34 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  private def ensureUserAnswersHasPSASuspendedFlag(request: OptionalDataRequest[_])(implicit hc:HeaderCarrier):Future[UserAnswers] = {
-    val ua = request.userAnswers.getOrElse(UserAnswers())
-    ua.get(IsPsaSuspendedQuery) match {
-      case None =>
-        minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-          ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
-        }
-      case Some(retrievedIsSuspendedValue) => Future.successful(ua)
-    }
-  }
-
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      ensureUserAnswersHasPSASuspendedFlag(request).flatMap{ ua =>
-        allowService.filterForIllegalPageAccess(srn, ua).flatMap {
+      (for {
+        uaWithSuspendedFlag <- futureUserAnswersWithSuspendedFlag(request)
+        filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
+      } yield {
+        filterAccess match {
           case None =>
-            schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-              userAnswersCacheConnector.save(request.internalId,
-                ua
-                  .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-                  .setOrException(AFTStatusQuery, value = "Compiled")
-                  .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-                  .setOrException(PSTRQuery, schemeDetails.pstr)
-                  .data
-              ).flatMap { _ =>
-                auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-                val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
-                val json = Json.obj(
-                  fields = "form" -> preparedForm,
-                  "radios" -> ChargeType.radios(preparedForm),
-                  "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-                )
+            (for {
+              schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+              _ <- userAnswersCacheConnector.save(request.internalId, userAnswers(schemeDetails, uaWithSuspendedFlag).data)
+            } yield {
+              auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
 
-                renderer.render(template = "chargeType.njk", json).map(Ok(_))
-              }
-            }
-          case Some(redirectLocation) => Future.successful(redirectLocation)
+              val preparedForm = uaWithSuspendedFlag.get(ChargeTypePage).fold(form)(form.fill)
+
+              val json = Json.obj(
+                "form" -> preparedForm,
+                "radios" -> ChargeType.radios(preparedForm),
+                "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+              )
+
+              renderer.render(template = "chargeType.njk", json).map(Ok(_))
+            }).flatMap(identity)
+          case Some(redirectLocation) =>
+            Future.successful(redirectLocation)
         }
-      }
+      }).flatMap(identity)
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -106,7 +95,7 @@ class ChargeTypeController @Inject()(
         form.bindFromRequest().fold(
           formWithErrors => {
             val json = Json.obj(
-              fields = "form" -> formWithErrors,
+              "form" -> formWithErrors,
               "radios" -> ChargeType.radios(formWithErrors),
               "viewModel" -> viewModel(schemeName, mode, srn)
             )
@@ -128,4 +117,24 @@ class ChargeTypeController @Inject()(
       schemeName = schemeName
     )
   }
+
+  private def futureUserAnswersWithSuspendedFlag(request: OptionalDataRequest[_])
+                                                (implicit hc: HeaderCarrier): Future[UserAnswers] = {
+    val ua = request.userAnswers.getOrElse(UserAnswers())
+    ua.get(IsPsaSuspendedQuery) match {
+      case None =>
+        minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
+          ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+        }
+      case Some(_) =>
+        Future.successful(ua)
+    }
+  }
+
+  private def userAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
+    userAnswers
+      .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+      .setOrException(AFTStatusQuery, value = "Compiled")
+      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+      .setOrException(PSTRQuery, schemeDetails.pstr)
 }

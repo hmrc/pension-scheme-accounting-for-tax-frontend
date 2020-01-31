@@ -32,17 +32,25 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
                                    errorHandler: ErrorHandler,
-                                   config: FrontendAppConfig)(implicit val executionContext: ExecutionContext) extends Results {
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+                                   config: FrontendAppConfig)
+                                  (implicit val executionContext: ExecutionContext) extends Results {
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers)
+                                (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+
     ua.get(IsPsaSuspendedQuery) match {
-      case None => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+      case None =>
+        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
       case Some(false) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true => Future.successful(None)
-          case _ => errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
+          case true =>
+            Future.successful(None)
+          case _ =>
+            errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
         }
-      case _ => Future.successful(Some(Redirect(Call("GET", config.cannotMakeChangesUrl.format(srn)))))
+      case _ =>
+        Future.successful(Some(Redirect(Call("GET", config.cannotMakeChangesUrl.format(srn)))))
     }
   }
 }

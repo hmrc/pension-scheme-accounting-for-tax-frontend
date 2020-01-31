@@ -73,13 +73,12 @@ class AFTSummaryController @Inject()(
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
         retrievedIsSuspendedValue <- minimalPsaConnector.isPsaSuspended(request.psaId.id)
-        userAnswersAfterSave <- userAnswersCacheConnector
-          .save(request.internalId,
-            addPSAAndSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails, retrievedIsSuspendedValue).data
-          )
+        userAnswersAfterSave <- userAnswersCacheConnector.save(request.internalId, addPSAAndSchemeDetailsToUserAnswers(userAnswersAfterRetrieve, schemeDetails, retrievedIsSuspendedValue).data)
         optionResult <- allowService.filterForIllegalPageAccess(srn, UserAnswers(userAnswersAfterSave.as[JsObject]))
       } yield {
+
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
+
         optionResult match {
           case None =>
             ua.get(QuarterPage) match {
