@@ -130,9 +130,10 @@ class AFTSummaryController @Inject()(
       schemeName = schemeName)
   }
 
+  // TODO: Refactor this to make it clearer what's going on and to save having to retrieve suspended flag more than once
   private def retrieveAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
-    
+
     val futureUserAnswers = optionVersion match {
       case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
       case Some(version) =>
