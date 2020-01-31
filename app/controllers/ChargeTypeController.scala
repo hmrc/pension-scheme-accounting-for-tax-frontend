@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
+import models.requests.OptionalDataRequest
 import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
 import pages._
@@ -31,6 +32,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AllowAccessService, SchemeService}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -56,25 +58,33 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
+  private def ensureUserAnswersHasPSASuspendedFlag(request: OptionalDataRequest[_])(implicit hc:HeaderCarrier):Future[UserAnswers] = {
+    val ua = request.userAnswers.getOrElse(UserAnswers())
+    ua.get(IsPsaSuspendedQuery) match {
+      case None =>
+        minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
+          ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+        }
+      case Some(retrievedIsSuspendedValue) => Future.successful(ua)
+    }
+  }
+
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val futureUA = minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-          requestUA
-            .set(QuarterPage, Quarter("2020-04-01", "2020-06-30")).toOption.getOrElse(requestUA)
-            .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
-            .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
-            .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
-            .set(IsPsaSuspendedQuery, retrievedIsSuspendedValue).toOption.getOrElse(requestUA)
-        }
-
-        futureUA.flatMap { ua =>
-          allowService.filterForIllegalPageAccess(srn, ua).flatMap {
-            case None =>
-              userAnswersCacheConnector.save(request.internalId, ua.data).flatMap { _ =>
+      ensureUserAnswersHasPSASuspendedFlag(request).flatMap{ ua =>
+        allowService.filterForIllegalPageAccess(srn, ua).flatMap {
+          case None =>
+            schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+              userAnswersCacheConnector.save(request.internalId,
+                ua
+                  .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+                  .setOrException(AFTStatusQuery, value = "Compiled")
+                  .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+                  .setOrException(PSTRQuery, schemeDetails.pstr)
+                  .data
+              ).flatMap { _ =>
                 auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-                val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
+                val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
                 val json = Json.obj(
                   fields = "form" -> preparedForm,
                   "radios" -> ChargeType.radios(preparedForm),
@@ -83,8 +93,8 @@ class ChargeTypeController @Inject()(
 
                 renderer.render(template = "chargeType.njk", json).map(Ok(_))
               }
-            case Some(redirectLocation) => Future.successful(redirectLocation)
-          }
+            }
+          case Some(redirectLocation) => Future.successful(redirectLocation)
         }
       }
   }
