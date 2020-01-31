@@ -16,24 +16,23 @@
 
 package controllers.actions
 
-import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import org.mockito.Matchers.any
+import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.PsaId
-import org.mockito.Matchers.{eq => eqTo, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures {
 
-  class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalActionImpl(dataCacheConnector) {
+  val srn = "srn"
+
+  class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalImpl(srn, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 
