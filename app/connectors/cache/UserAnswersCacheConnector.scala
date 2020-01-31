@@ -35,6 +35,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override protected def url(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/$id"
   override protected def lockUrl(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
+
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier
@@ -117,10 +118,7 @@ trait UserAnswersCacheConnector {
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
-  def isLocked(id: String)(implicit
-                           ec: ExecutionContext,
-                           hc: HeaderCarrier
-  ): Future[Boolean]
+  def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
 }
 
 

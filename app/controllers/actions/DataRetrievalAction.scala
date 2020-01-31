@@ -17,7 +17,6 @@
 package controllers.actions
 
 import com.google.inject.ImplementedBy
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
 import models.UserAnswers
@@ -34,9 +33,11 @@ class DataRetrievalImpl(
                          srn: String,
                          val userAnswersCacheConnector: UserAnswersCacheConnector
                        )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
+
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    val id = s"$srn${AFTConstants.START_DATE}"
+
+    val id = s"$srn${AFTConstants.QUARTER_START_DATE}"
     for {
       data <- userAnswersCacheConnector.fetch(id)
       isLocked <- userAnswersCacheConnector.isLocked(id)
@@ -44,8 +45,8 @@ class DataRetrievalImpl(
       data match {
         case None =>
           OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
-        case Some(data) =>
-          OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(data.as[JsObject])), isLocked)
+        case Some(uaJsValue) =>
+          OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(uaJsValue.as[JsObject])), isLocked)
       }
     }
   }
