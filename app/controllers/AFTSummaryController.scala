@@ -29,7 +29,8 @@ import models.requests.OptionalDataRequest
 import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.data.Form
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -70,22 +71,10 @@ class AFTSummaryController @Inject()(
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         userAnswersAfterRetrieve <- retrieveUserAnswers(optionVersion, schemeDetails)
         uaWithLock <- setLock(userAnswersAfterRetrieve)
-        userAnswersAfterSave <- userAnswersCacheConnector
-          .save(request.internalId, addSchemeDetailsToUserAnswers(uaWithLock, schemeDetails).data)
+        userAnswersAfterSave <- userAnswersCacheConnector.save(request.internalId, addSchemeDetailsToUserAnswers(uaWithLock, schemeDetails).data)
       } yield {
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
-        ua.get(QuarterPage).map { quarter =>
-          Json.obj(
-            "srn" -> srn,
-            "form" -> form,
-            "list" -> aftSummaryHelper.summaryListData(ua, srn),
-            "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-            "radios" -> Radios.yesNo(form("value")),
-            "startDate" -> getFormattedStartDate(quarter.startDate),
-            "endDate" -> getFormattedEndDate(quarter.endDate),
-            "canChange" -> !request.viewOnly
-          )
-        }
+        getJson(form, ua, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
       }
 
       futureJsonToPassToTemplate
@@ -102,18 +91,7 @@ class AFTSummaryController @Inject()(
         form.bindFromRequest().fold(
           formWithErrors => {
             val ua = request.userAnswers
-            val optionJson = ua.get(QuarterPage).map { quarter =>
-              Json.obj(
-                "srn" -> srn,
-                "form" -> formWithErrors,
-                "list" -> aftSummaryHelper.summaryListData(ua, srn),
-                "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
-                "radios" -> Radios.yesNo(form("value")),
-                "startDate" -> getFormattedStartDate(quarter.startDate),
-                "endDate" -> getFormattedEndDate(quarter.endDate),
-                "canChange" -> !request.viewOnly
-              )
-            }
+            val optionJson = getJson(formWithErrors, ua, srn, schemeName, optionVersion, !request.viewOnly)
 
             optionJson match {
               case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -132,8 +110,24 @@ class AFTSummaryController @Inject()(
       }
   }
 
+  private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, schemeName: String,
+                      optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): Option[JsObject] = {
+    ua.get(QuarterPage).map { quarter =>
+      Json.obj(
+        "srn" -> srn,
+        "form" -> form,
+        "list" -> aftSummaryHelper.summaryListData(ua, srn),
+        "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
+        "radios" -> Radios.yesNo(form("value")),
+        "startDate" -> getFormattedStartDate(quarter.startDate),
+        "endDate" -> getFormattedEndDate(quarter.endDate),
+        "canChange" -> canChange
+      )
+    }
+  }
+
   private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
-    if(request.viewOnly) {
+    if (request.viewOnly) {
       Future.successful(ua)
     } else {
       userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
