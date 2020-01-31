@@ -34,7 +34,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                              ) extends UserAnswersCacheConnector {
 
   override protected def url(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/$id"
-
+  override protected def lockUrl(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier
@@ -60,8 +60,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def setLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    val setLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
-    save(id, value, setLockUrl)
+    save(id, value, lockUrl(id))
   }
 
   private def save(id: String, value: JsValue, url: String)(implicit
@@ -91,8 +90,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                     ec: ExecutionContext,
                                     hc: HeaderCarrier
   ): Future[Boolean] = {
-    val url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
-    http.url(url)
+    http.url(lockUrl(id))
       .withHttpHeaders(hc.headers: _*)
       .get()
       .flatMap {
@@ -109,6 +107,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 trait UserAnswersCacheConnector {
 
   protected def url(id: String): String
+  protected def lockUrl(id: String): String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
