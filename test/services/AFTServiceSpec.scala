@@ -20,44 +20,46 @@ import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
+import data.SampleData._
 import models.UserAnswers
-import models.requests.{DataRequest, OptionalDataRequest}
+import models.requests.DataRequest
+import org.mockito.Matchers
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.mvc.{AnyContentAsEmpty, Results}
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
 import play.api.libs.json.Json
+import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
-import SampleData._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
-
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector  = mock[UserAnswersCacheConnector]
 
   private def dataRequest(ua: UserAnswers): DataRequest[AnyContentAsEmpty.type] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
 
   override def beforeEach(): Unit = {
-    //reset(aftConnector, userAnswersCacheConnector)
+    reset(mockAFTConnector, mockUserAnswersCacheConnector)
   }
 
   "fileAFTReturn" must {
     "respond successfully when" in {
       val jsonReturnedByConnector = Json.obj()
       val emptyJson = Json.obj()
-      when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(jsonReturnedByConnector))
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
+        .thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(emptyJson))
 
       val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
-      aftService.fileAFTReturn(pstr, userAnswersWithSchemeName)(dataRequest(userAnswersWithSchemeName))
+      whenReady(aftService.fileAFTReturn(pstr, userAnswersWithSchemeName)(implicitly, implicitly, dataRequest(userAnswersWithSchemeName))) { _ =>
+        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(userAnswersWithSchemeName))(any(), any())
 
+      }
     }
   }
 }
