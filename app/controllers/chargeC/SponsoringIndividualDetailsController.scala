@@ -39,6 +39,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: SponsoringIndividualDetailsFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
@@ -48,7 +49,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(SponsoringIndividualDetailsPage(index)) match {

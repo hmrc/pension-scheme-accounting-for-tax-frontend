@@ -19,23 +19,38 @@ package controllers.base
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions._
+import controllers.actions.{AllowAccessActionProvider, _}
 import models.UserAnswers
+import models.requests.OptionalDataRequest
 import navigators.CompoundNavigator
+import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
+import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
 import play.api.test.Helpers.{GET, POST}
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
 
-  override def beforeEach: Unit = Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator)
+  private val FakeActionFilter = new ActionFilter[OptionalDataRequest] {
+    override protected def executionContext: ExecutionContext = global
+
+    override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
+  }
+
+  override def beforeEach: Unit = {
+    Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
+    when(mockAllowAccessActionProvider.apply(any())).thenReturn(FakeActionFilter)
+  }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
 
@@ -45,13 +60,16 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
+  protected val mockAllowAccessActionProvider: AllowAccessActionProvider = mock[AllowAccessActionProvider]
+
   def modules: Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
     bind[IdentifierAction].to[FakeIdentifierAction],
     bind[NunjucksRenderer].toInstance(mockRenderer),
     bind[FrontendAppConfig].toInstance(mockAppConfig),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
-    bind[CompoundNavigator].toInstance(mockCompoundNavigator)
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator),
+    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
   )
 
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None,

@@ -41,6 +41,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: ChargeDetailsFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
@@ -50,7 +51,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   val form: Form[ChargeCDetails] = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
