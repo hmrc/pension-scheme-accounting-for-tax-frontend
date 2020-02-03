@@ -16,8 +16,10 @@
 
 package controllers
 
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData.{dummyCall, userAnswersWithSchemeName}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -36,9 +38,14 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Option(SampleData.userAnswersWithSchemeName)).build()
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+
+      val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
       val request = FakeRequest(GET, routes.CannotMakeChangesController.onPageLoad(SampleData.srn).url)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val result = route(application, request).value
 
@@ -49,8 +56,6 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
       templateCaptor.getValue mustEqual "cannot-make-changes.njk"
-
-      application.stop()
     }
   }
 }
