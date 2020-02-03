@@ -18,17 +18,31 @@ package services
 
 import com.google.inject.Inject
 import connectors.AFTConnector
+import connectors.cache.UserAnswersCacheConnector
 import models.UserAnswers
+import models.requests.DataRequest
+import pages.IsNewReturn
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class AFTService @Inject()(
-                          aftConnector: AFTConnector
+                          aftConnector: AFTConnector,
+                          userAnswersCacheConnector: UserAnswersCacheConnector
                           ) {
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] =
-    aftConnector.fileAFTReturn(pstr, answers)
+  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request:DataRequest[_]): Future[Unit] = {
+    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
+      answers.remove(IsNewReturn) match {
+        case Success(userAnswersWithIsNewReturnRemoved) =>
+          userAnswersCacheConnector
+            .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
+            .map(_ => ())
+        case Failure(ex) => throw ex
+      }
+    }
+  }
 
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
