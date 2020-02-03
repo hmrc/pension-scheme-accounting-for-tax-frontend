@@ -48,7 +48,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-
   def form()(implicit messages: Messages): Form[ChargeDetails] =
     formProvider()
 
@@ -87,7 +86,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
               "viewModel" -> viewModel(mode, srn, schemeName)
             )
-
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
           value =>

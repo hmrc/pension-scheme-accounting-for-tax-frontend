@@ -72,19 +72,19 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
   }
 
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {
-
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(app, httpGETRequest(httpPathGET)).value
+      val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual OK
 
@@ -97,8 +97,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -129,6 +127,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
+
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }

@@ -51,6 +51,13 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def form()(implicit messages: Messages): Form[ChargeBDetails] =
     formProvider()
 
+  private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =
+    GenericViewModel(
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    )
+
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
@@ -60,14 +67,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           case None => form
         }
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel(mode, srn, schemeName)
         )
 
         renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
@@ -80,23 +82,17 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         form.bindFromRequest().fold(
           formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel
+              "viewModel" -> viewModel(mode, srn, schemeName)
             )
             renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
           },
-          value => {
+          value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
             } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn))
-          }
         )
       }
   }
