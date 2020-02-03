@@ -58,25 +58,36 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   protected val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   protected val mockCompoundNavigator: CompoundNavigator = mock[CompoundNavigator]
-
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected val mockAllowAccessActionProvider: AllowAccessActionProvider = mock[AllowAccessActionProvider]
 
-  def modules(userAnswers: Option[UserAnswers]): Seq[GuiceableModule] = Seq(
+  def modules: Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
     bind[IdentifierAction].to[FakeIdentifierAction],
-    bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
     bind[NunjucksRenderer].toInstance(mockRenderer),
+    bind[FrontendAppConfig].toInstance(mockAppConfig),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
     bind[CompoundNavigator].toInstance(mockCompoundNavigator),
     bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
   )
 
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
+  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None,
+                                   extraModules: Seq[GuiceableModule] = Seq.empty): GuiceApplicationBuilder =
     new GuiceApplicationBuilder()
       .overrides(
-        modules(userAnswers): _*
+        modules ++ extraModules ++ Seq[GuiceableModule](
+          bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers))
+        ): _*
+      )
+
+  protected def applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction,
+                                                         extraModules: Seq[GuiceableModule] = Seq.empty): GuiceApplicationBuilder =
+    new GuiceApplicationBuilder()
+      .overrides(
+        modules ++ extraModules ++ Seq[GuiceableModule](
+          bind[DataRetrievalAction].toInstance(mutableFakeDataRetrievalAction)
+        ): _*
       )
 
   protected def httpGETRequest(path: String): FakeRequest[AnyContentAsEmpty.type] = FakeRequest(GET, path)

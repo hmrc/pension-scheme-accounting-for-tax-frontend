@@ -16,14 +16,17 @@
 
 package controllers.chargeA
 
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.chargeA.WhatYouWillNeedPage
+import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -32,29 +35,34 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
-  private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
 
-  private val jsonToPassToTemplate:JsObject = Json.obj(
-    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url, "viewModel" -> GenericViewModel(
+  private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn).url
+
+  private val jsonToPassToTemplate: JsObject = Json.obj(
+    fields = "schemeName" -> schemeName, "nextPage" -> dummyCall.url, "viewModel" -> GenericViewModel(
       submitUrl = "",
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName))
+      returnUrl = dummyCall.url,
+      schemeName = schemeName))
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(SampleData.dummyCall.url)
   }
-
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -65,8 +73,6 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
     }
   }
 }

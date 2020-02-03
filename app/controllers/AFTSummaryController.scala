@@ -41,27 +41,28 @@ import utils.AFTSummaryHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AFTSummaryController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: AFTSummaryFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
-                                      config: FrontendAppConfig,
-                                      aftSummaryHelper: AFTSummaryHelper,
-                                      aftConnector: AFTConnector,
-                                      schemeService: SchemeService
+class AFTSummaryController @Inject()(override val messagesApi: MessagesApi,
+                                     userAnswersCacheConnector: UserAnswersCacheConnector,
+                                     navigator: CompoundNavigator,
+                                     identify: IdentifierAction,
+                                     getData: DataRetrievalAction,
+                                     requireData: DataRequiredAction,
+                                     allowAccess: AllowAccessActionProvider,
+                                     formProvider: AFTSummaryFormProvider,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     renderer: Renderer,
+                                     config: FrontendAppConfig,
+                                     aftSummaryHelper: AFTSummaryHelper,
+                                     aftConnector: AFTConnector,
+                                     schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
+
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+
   private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn)).async {
@@ -86,7 +87,7 @@ class AFTSummaryController @Inject()(
       }
 
       futureJsonToPassToTemplate
-        .flatMap{
+        .flatMap {
           case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           case Some(json) => renderer.render("aftSummary.njk", json).map(Ok(_))
         }

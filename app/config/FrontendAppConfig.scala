@@ -29,7 +29,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   private def loadConfig(key: String): String = configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
-  private val contactFormServiceIdentifier = "play26frontend"
+  private val contactFormServiceIdentifier = "pensionSchemeAccountingForTaxFrontend"
 
   lazy val appName: String = configuration.get[String](path = "appName")
   val analyticsToken: String = configuration.get[String](s"google-analytics.token")

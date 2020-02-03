@@ -17,8 +17,9 @@
 package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
@@ -28,9 +29,10 @@ import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatest.BeforeAndAfterEach
 import pages.ChargeTypePage
+import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{GET, route, status, _}
@@ -46,34 +48,38 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val mockSchemeService = mock[SchemeService]
   private val mockAuditService = mock[AuditService]
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+
+  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[SchemeService].toInstance(mockSchemeService),
+    bind[AuditService].toInstance(mockAuditService)
+  )
+
+  val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val jsonToTemplate: Form[ChargeType] => JsObject = form => Json.obj(
     fields = "form" -> form,
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
-      schemeName = SampleData.schemeName)
+      submitUrl = controllers.routes.ChargeTypeController.onSubmit(NormalMode, srn).url,
+      returnUrl = dummyCall.url,
+      schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
   "ChargeType Controller" when {
     "on a GET" must {
 
       "return OK with the correct view and save the quarter, aft status, scheme name, pstr" in {
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(SampleData.userAnswersWithSchemeName)) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService)
-            ): _*
-          ).build()
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -88,20 +94,14 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         templateCaptor.getValue mustEqual template
 
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
-
-        application.stop()
       }
 
       "return OK and the correct view for a GET when the question has previously been answered" in {
-        val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(ua)) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService)
-            ): _*
-          ).build()
+        val ua = userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
 
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
+        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -115,29 +115,26 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         templateCaptor.getValue mustEqual template
 
         jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
-
-        application.stop()
       }
 
       "send the AFTStart Audit Event" in {
         Mockito.reset(mockAuditService)
-        val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(ua)) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService),
-              bind[AuditService].toInstance(mockAuditService)
-            ): _*
-          ).build()
+
+        val ua = userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
+
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+
+        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
 
         val result = route(application, FakeRequest(GET, httpPathGET)).value
 
         status(result) mustEqual OK
+
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
-        application.stop()
+
+        eventCaptor.getValue mustEqual StartAFTAuditEvent(psaId, pstr)
       }
     }
 
@@ -146,7 +143,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(dummyCall)
 
         val application = applicationBuilder(userAnswers = userAnswers).build()
 
@@ -160,9 +157,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         jsonCaptor.getValue must containJson(expectedJson)
 
-        redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
-        application.stop()
+        redirectLocation(result) mustBe Some(dummyCall.url)
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {
@@ -173,8 +168,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         status(result) mustEqual BAD_REQUEST
 
         verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-
-        application.stop()
       }
 
       "redirect to Session Expired page for a POST when there is no data" in {
@@ -183,8 +176,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
+
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-        application.stop()
       }
     }
   }
@@ -195,9 +188,9 @@ object ChargeTypeControllerSpec {
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def httpPathGET: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn).url
 
-  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, srn).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
@@ -205,5 +198,5 @@ object ChargeTypeControllerSpec {
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Charge")
   )
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 }

@@ -18,6 +18,7 @@ package controllers.chargeE
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteMemberFormProvider
@@ -30,6 +31,7 @@ import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
 import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
+import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
@@ -42,7 +44,11 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
+
   private def onwardRoute = Call("GET", "/foo")
 
   private val memberName = "first last"
@@ -50,14 +56,13 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, 0).url
+
   private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-  returnUrl = onwardRoute.url,
-  schemeName = schemeName)
-
-  private val pstr = "test pstr"
+    returnUrl = onwardRoute.url,
+    schemeName = schemeName)
 
   private def userAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).success.value
 
@@ -70,11 +75,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
       val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -86,7 +87,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> form,
+        "form" -> form,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(form("value")),
         "memberName" -> memberName
@@ -94,8 +95,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
@@ -104,16 +103,11 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = applicationBuilder(userAnswers = Some(answers))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig),
-          bind[AFTConnector].toInstance(mockAftConnector)
-        )
-        .build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
         FakeRequest(POST, httpPathGET)
-      .withFormUrlEncodedBody(("value", "true"))
+          .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 
@@ -121,12 +115,10 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA =  answers.set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
-          .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+      val expectedUA = answers.set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
+        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
-
-      application.stop()
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -135,11 +127,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
-        .overrides(
-          bind[FrontendAppConfig].toInstance(mockAppConfig)
-        )
-        .build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -152,20 +141,18 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> boundForm,
+        "form" -> boundForm,
         "viewModel" -> viewModel,
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
       templateCaptor.getValue mustEqual "chargeE/deleteMember.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request = FakeRequest(GET, httpPathGET)
 
@@ -174,25 +161,21 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
 
     "redirect to Session Expired for a POST if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val request =
         FakeRequest(POST, httpPathGET)
-      .withFormUrlEncodedBody(("value", "true"))
+          .withFormUrlEncodedBody(("value", "true"))
 
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }
