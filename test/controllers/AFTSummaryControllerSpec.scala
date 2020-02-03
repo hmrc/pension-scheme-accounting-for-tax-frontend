@@ -17,8 +17,10 @@
 package controllers
 
 import connectors.{AFTConnector, MinimalPsaConnector}
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData._
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
 import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
@@ -29,7 +31,7 @@ import org.scalatest.BeforeAndAfterEach
 import pages._
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -48,16 +50,17 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockMinimalPsaConnector = mock[MinimalPsaConnector]
 
-  override protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(
-        modules(userAnswers) ++ Seq[GuiceableModule](
-          bind[SchemeService].toInstance(mockSchemeService),
-          bind[AFTConnector].toInstance(mockAftConnector),
-          bind[AllowAccessService].toInstance(mockAllowAccessService),
-          bind[MinimalPsaConnector].toInstance(mockMinimalPsaConnector)
-        ): _*
-      )
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[SchemeService].toInstance(mockSchemeService),
+      bind[AFTConnector].toInstance(mockAftConnector),
+      bind[AllowAccessService].toInstance(mockAllowAccessService),
+      bind[MinimalPsaConnector].toInstance(mockMinimalPsaConnector)
+    )
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+
+  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
@@ -92,6 +95,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(),any())(any())).thenReturn(Future.successful(None))
     when(mockMinimalPsaConnector.isPsaSuspended(any())(any(),any())).thenReturn(Future.successful(false))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
 
@@ -100,7 +104,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
+      returnUrl = dummyCall.url,
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
@@ -109,7 +113,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   "AFTSummary Controller" must {
     "return OK and the correct view for a GET where no version is present in the request, also saving the PSA suspended flag in user answers" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -132,12 +136,10 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
-
-      application.stop()
     }
 
     "return OK and the correct view for a GET where a version is present in the request" in {
-      val application = applicationBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName)).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
       val pstrCaptor = ArgumentCaptor.forClass(classOf[String])
       val startDateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -161,15 +163,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       pstrCaptor.getValue mustEqual SampleData.pstr
       startDateCaptor.getValue mustEqual "2020-04-01"
       versionCaptor.getValue mustEqual SampleData.version
-
-      application.stop()
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -182,24 +182,20 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       jsonCaptor.getValue must containJson(Json.obj(AFTSummaryPage.toString -> Json.toJson(true)))
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
-      application.stop()
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      val application = applicationBuilder(userAnswers = userAnswers).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
