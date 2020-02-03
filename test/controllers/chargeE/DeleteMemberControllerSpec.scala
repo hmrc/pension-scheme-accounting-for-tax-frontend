@@ -46,11 +46,8 @@ import scala.concurrent.Future
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction)
-    .overrides(
-      bind[AFTConnector].toInstance(mockAftConnector)
-    )
-    .build()
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
 
   private def onwardRoute = Call("GET", "/foo")
 
