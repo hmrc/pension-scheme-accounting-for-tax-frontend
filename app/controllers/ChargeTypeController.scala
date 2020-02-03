@@ -59,7 +59,7 @@ class ChargeTypeController @Inject()(
       val requestUA = request.userAnswers.getOrElse(UserAnswers())
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val ua = requestUA
-          .set(QuarterPage, Quarter(QUARTER_START_DATE, "2020-06-30")).toOption.getOrElse(requestUA)
+          .set(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE)).toOption.getOrElse(requestUA)
           .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
           .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
           .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
