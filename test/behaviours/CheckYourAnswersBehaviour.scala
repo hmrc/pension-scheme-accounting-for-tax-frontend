@@ -17,6 +17,7 @@
 package behaviours
 
 import connectors.AFTConnector
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -25,6 +26,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import pages.Page
+import play.api.Application
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
@@ -34,13 +36,18 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
+
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
-  val mockAftConnector: AFTConnector = mock[AFTConnector]
 
   def cyaController(httpPath: => String,
                     templateToBeRendered: String,
@@ -48,11 +55,11 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
                     userAnswers: UserAnswers = userAnswersWithSchemeName): Unit = {
 
     "return OK and the correct view for a GET" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
+
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(Some(userAnswers)).build()
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -66,10 +73,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-
-      application.stop()
-    }
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)}
   }
 
   def controllerWithOnClick[A](httpPath: => String,
@@ -78,6 +82,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
                               (implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
+
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -86,8 +92,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 
-      val application = applicationBuilder(Some(userAnswers), Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
-
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
@@ -95,20 +99,16 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
       verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-
-      application.stop()
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
 
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }
