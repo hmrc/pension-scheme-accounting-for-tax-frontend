@@ -67,7 +67,7 @@ class AFTSummaryController @Inject()(
     implicit request =>
       (for {
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-        ua <- retrieveAndUpdateUserAnswers(optionVersion, schemeDetails)
+        ua <- retrieveAFTDetailsAndSuspendedFlagAndUpdateUserAnswers(optionVersion, schemeDetails)
         _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
         filterAccess <- allowService.filterForIllegalPageAccess(srn, ua)
       } yield {
@@ -130,8 +130,7 @@ class AFTSummaryController @Inject()(
       schemeName = schemeName)
   }
 
-  // TODO: Refactor this to make it clearer what's going on and to save having to retrieve suspended flag more than once
-  private def retrieveAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+  private def retrieveAFTDetailsAndSuspendedFlagAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                 (implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
 
     val futureUserAnswers = optionVersion match {

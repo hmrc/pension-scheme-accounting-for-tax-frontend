@@ -61,7 +61,7 @@ class ChargeTypeController @Inject()(
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       (for {
-        uaWithSuspendedFlag <- futureUserAnswersWithSuspendedFlag(request)
+        uaWithSuspendedFlag <- retrieveSuspendedFlagAndUpdateUserAnswers(request)
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
         _ <- userAnswersCacheConnector.save(request.internalId, userAnswers(schemeDetails, uaWithSuspendedFlag).data)
         filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
@@ -114,8 +114,8 @@ class ChargeTypeController @Inject()(
     )
   }
 
-  private def futureUserAnswersWithSuspendedFlag(request: OptionalDataRequest[_])
-                                                (implicit hc: HeaderCarrier): Future[UserAnswers] = {
+  private def retrieveSuspendedFlagAndUpdateUserAnswers(request: OptionalDataRequest[_])
+                                                       (implicit hc: HeaderCarrier): Future[UserAnswers] = {
     val ua = request.userAnswers.getOrElse(UserAnswers())
     ua.get(IsPsaSuspendedQuery) match {
       case None =>
