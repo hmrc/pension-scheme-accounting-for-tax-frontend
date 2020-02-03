@@ -45,6 +45,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: AddMembersFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -57,7 +58,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>

@@ -36,6 +36,7 @@ class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
+                                           allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer,
@@ -44,7 +45,7 @@ class WhatYouWillNeedController @Inject()(
                                            navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")

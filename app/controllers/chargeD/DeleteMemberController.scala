@@ -42,6 +42,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
+                                       allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
                                        aftConnector: AFTConnector,
                                        formProvider: DeleteMemberFormProvider,
@@ -53,7 +54,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {

@@ -824,3 +824,10 @@ addEmployers.amount.header = Total
 deleteEmployer.chargeC.title = Are you sure you want to remove the authorised surplus payments charge for {0}?
 deleteEmployer.chargeC.heading = Are you sure you want to remove the authorised surplus payments charge for {0}?
 deleteEmployer.chargeC.error.required = Select yes if you want to remove the authorised surplus payments charge for {0}
+
+pageNotFound404.title = Page not found
+pageNotFound404.heading = Page not found
+pageNotFound404.p1 = If you typed the web address, check it is correct.
+pageNotFound404.p2 = If you pasted the web address, check you copied the entire address.
+
+viewYourSchemes = View your pension schemes
