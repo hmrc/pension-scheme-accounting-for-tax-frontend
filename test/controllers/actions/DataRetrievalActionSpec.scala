@@ -39,7 +39,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures {
 
   "Data Retrieval Action" when {
     "there is no data in the cache" must {
-      "set userAnswers to 'None' in the request" in {
+      "set addRequiredDetailsToUserAnswers to 'None' in the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future(None)
         val action = new Harness(dataCacheConnector)
@@ -53,7 +53,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures {
     }
 
     "there is data in the cache" must {
-      "build a userAnswers object and add it to the request" in {
+      "build a addRequiredDetailsToUserAnswers object and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future.successful(Some(Json.obj()))
         val action = new Harness(dataCacheConnector)

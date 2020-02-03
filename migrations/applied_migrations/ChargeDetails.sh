@@ -54,7 +54,7 @@ echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def chargeDetails: Option[Row] = userAnswers.get(ChargeDetailsPage) map {";\
+     print "  def chargeDetails: Option[Row] = addRequiredDetailsToUserAnswers.get(ChargeDetailsPage) map {";\
      print "    answer =>";\
      print "      Row(";\
      print "        key     = Key(msg\"chargeDetails.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\

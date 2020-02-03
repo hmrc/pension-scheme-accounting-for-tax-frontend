@@ -63,7 +63,7 @@ class ChargeTypeController @Inject()(
       (for {
         uaWithSuspendedFlag <- retrieveSuspendedFlagAndUpdateUserAnswers(request)
         schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-        _ <- userAnswersCacheConnector.save(request.internalId, userAnswers(schemeDetails, uaWithSuspendedFlag).data)
+        _ <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
         filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
       } yield {
         filterAccess match {
@@ -127,7 +127,7 @@ class ChargeTypeController @Inject()(
     }
   }
 
-  private def userAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
+  private def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
     userAnswers
       .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
       .setOrException(AFTStatusQuery, value = "Compiled")

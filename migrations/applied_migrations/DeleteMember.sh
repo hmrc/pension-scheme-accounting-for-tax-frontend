@@ -50,7 +50,7 @@ echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def deleteMember: Option[Row] = userAnswers.get(DeleteMemberPage) map {";\
+     print "  def deleteMember: Option[Row] = addRequiredDetailsToUserAnswers.get(DeleteMemberPage) map {";\
      print "    answer =>";\
      print "      Row(";\
      print "        key     = Key(msg\"deleteMember.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
