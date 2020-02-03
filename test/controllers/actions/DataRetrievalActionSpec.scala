@@ -46,8 +46,8 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
   "Data Retrieval Action" when {
     "there is no data in the cache and user is not locked" must {
       "set userAnswers to 'None' in the request" in {
-        when(dataCacheConnector.fetch(eqTo(s"$srn${AFTConstants.START_DATE}"))(any(), any())) thenReturn Future(None)
-        when(dataCacheConnector.isLocked(eqTo(s"$srn${AFTConstants.START_DATE}"))(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.fetch(eqTo(s"$srn${AFTConstants.QUARTER_START_DATE}"))(any(), any())) thenReturn Future(None)
+        when(dataCacheConnector.isLocked(eqTo(s"$srn${AFTConstants.QUARTER_START_DATE}"))(any(), any())) thenReturn Future(false)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
@@ -61,8 +61,8 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
 
     "there is data in the cache and user is locked" must {
       "build a userAnswers object and add it to the request" in {
-        when(dataCacheConnector.fetch(eqTo(s"$srn${AFTConstants.START_DATE}"))(any(), any())) thenReturn Future.successful(Some(Json.obj()))
-        when(dataCacheConnector.isLocked(eqTo(s"$srn${AFTConstants.START_DATE}"))(any(), any())) thenReturn Future(true)
+        when(dataCacheConnector.fetch(eqTo(s"$srn${AFTConstants.QUARTER_START_DATE}"))(any(), any())) thenReturn Future.successful(Some(Json.obj()))
+        when(dataCacheConnector.isLocked(eqTo(s"$srn${AFTConstants.QUARTER_START_DATE}"))(any(), any())) thenReturn Future(true)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
