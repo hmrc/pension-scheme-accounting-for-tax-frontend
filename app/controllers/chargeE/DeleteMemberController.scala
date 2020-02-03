@@ -31,6 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import services.ChargeEService.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -44,7 +45,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftConnector: AFTConnector,
+                                       aftService: AFTService,
                                        formProvider: DeleteMemberFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -108,7 +109,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                       interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
                       updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+                      _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
                   }
                 } else {

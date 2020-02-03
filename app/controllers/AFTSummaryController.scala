@@ -33,7 +33,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AllowAccessService, SchemeService}
+import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
@@ -53,7 +53,7 @@ class AFTSummaryController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       aftSummaryHelper: AFTSummaryHelper,
-                                      aftConnector: AFTConnector,
+                                      aftService: AFTService,
                                       schemeService: SchemeService,
                                       minimalPsaConnector: MinimalPsaConnector,
                                       allowService: AllowAccessService
@@ -136,7 +136,7 @@ class AFTSummaryController @Inject()(
     val futureUserAnswers = optionVersion match {
       case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
       case Some(version) =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+        aftService.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
