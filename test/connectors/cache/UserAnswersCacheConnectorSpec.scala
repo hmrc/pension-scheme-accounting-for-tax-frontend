@@ -33,7 +33,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
-  private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/testId"
+  private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft"
 
   ".fetch" must {
 
@@ -117,7 +117,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   }
 
   ".setLock" must {
-    val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock/testId"
+    val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
     val json = Json.obj(
       fields = "testId" -> "lock"
     )

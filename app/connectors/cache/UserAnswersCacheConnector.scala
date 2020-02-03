@@ -33,15 +33,15 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                http: WSClient
                                              ) extends UserAnswersCacheConnector {
 
-  override protected def url(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/$id"
-  override protected def lockUrl(id: String) = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock/$id"
+  override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier
   ): Future[Option[JsValue]] = {
-    http.url(url(id))
-      .withHttpHeaders(hc.headers: _*)
+    http.url(url)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap {
         response =>
@@ -57,11 +57,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, url(id))
+    save(id, value, url)
   }
 
   override def setLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, lockUrl(id))
+    save(id, value, lockUrl)
   }
 
   private def save(id: String, value: JsValue, url: String)(implicit
@@ -69,7 +69,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                                     hc: HeaderCarrier
   ): Future[JsValue] = {
     http.url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id), ("content-type", "application/json")).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
@@ -82,8 +82,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http.url(url(id))
-      .withHttpHeaders(hc.headers: _*)
+    http.url(url)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .delete().map(_ => Ok)
   }
 
@@ -91,8 +91,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                     ec: ExecutionContext,
                                     hc: HeaderCarrier
   ): Future[Boolean] = {
-    http.url(lockUrl(id))
-      .withHttpHeaders(hc.headers: _*)
+    http.url(lockUrl)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap {
         response =>
@@ -107,8 +107,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
 trait UserAnswersCacheConnector {
 
-  protected def url(id: String): String
-  protected def lockUrl(id: String): String
+  protected def url: String
+  protected def lockUrl: String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
