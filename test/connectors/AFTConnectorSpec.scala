@@ -109,7 +109,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     val startDate = "2020-01-01"
     val aftVersion = "1"
 
-    "return userAnswers when the backend has returned OK with UserAnswers Json" in {
+    "return addRequiredDetailsToUserAnswers when the backend has returned OK with UserAnswers Json" in {
       server.stubFor(
         get(urlEqualTo(getAftDetailsUrl))
           .withHeader("pstr", equalTo(pstr))

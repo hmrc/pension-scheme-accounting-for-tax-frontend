@@ -831,3 +831,8 @@ pageNotFound404.p1 = If you typed the web address, check it is correct.
 pageNotFound404.p2 = If you pasted the web address, check you copied the entire address.
 
 viewYourSchemes = View your pension schemes
+
+pageCannotMakeChanges.title = Details cannot be changed
+pageCannotMakeChanges.heading = Details cannot be changed
+pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
+pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079

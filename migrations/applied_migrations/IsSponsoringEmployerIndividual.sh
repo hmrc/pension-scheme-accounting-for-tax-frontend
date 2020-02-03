@@ -50,7 +50,7 @@ echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def isSponsoringEmployerIndividual: Option[Row] = userAnswers.get(IsSponsoringEmployerIndividualPage) map {";\
+     print "  def isSponsoringEmployerIndividual: Option[Row] = addRequiredDetailsToUserAnswers.get(IsSponsoringEmployerIndividualPage) map {";\
      print "    answer =>";\
      print "      Row(";\
      print "        key     = Key(msg\"isSponsoringEmployerIndividual.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\

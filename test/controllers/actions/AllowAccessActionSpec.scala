@@ -16,18 +16,16 @@
 
 package controllers.actions
 
-import connectors.SchemeDetailsConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import handlers.ErrorHandler
 import models.requests.OptionalDataRequest
-import org.mockito.Matchers
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito._
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
+import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
-import play.api.mvc.Results._
-import play.api.test.Helpers._
+import services.AllowAccessService
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,45 +33,30 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
+  private val allowAccessService = mock[AllowAccessService]
+
   class TestHarness(
-                     srn:String,
-                     pensionsSchemeConnector: SchemeDetailsConnector,
-                     errorHandler: ErrorHandler
-                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, pensionsSchemeConnector, errorHandler) {
-    def test(optionalDataRequest:OptionalDataRequest[_]):Future[Option[Result]] = this.filter(optionalDataRequest)
+                     srn: String
+                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, allowAccessService) {
+    def test(optionalDataRequest: OptionalDataRequest[_]): Future[Option[Result]] = this.filter(optionalDataRequest)
   }
 
   "Allow Access Action" must {
-    "respond with None (i.e. allow access) when there is an association" in {
-      val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
-      val errorHandler: ErrorHandler = mock[ErrorHandler]
+    "delegate to the allow access service with the correct srn" in {
+      reset(allowAccessService)
+      val srnCaptor = ArgumentCaptor.forClass(classOf[String])
+      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any())(any()))
+        .thenReturn(Future.successful(None))
 
-      reset(pensionsSchemeConnector, errorHandler)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(),any(), any()))
-        .thenReturn(Future.successful(true))
+      val ua = SampleData.userAnswersWithSchemeName
+          .set(IsPsaSuspendedQuery, value = false).toOption.get
 
-      val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(SampleData.userAnswersWithSchemeName))
+      val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))
 
-      val testHarness = new TestHarness("", pensionsSchemeConnector, errorHandler)
-      whenReady( testHarness.test(optionalDataRequest)) { result =>
+      val testHarness = new TestHarness(srn = SampleData.srn)
+      whenReady(testHarness.test(optionalDataRequest)) { result =>
         result mustBe None
-      }
-    }
-
-    "respond with a call to the error handler for 404 (i.e. don't allow access) when there is no association" in {
-      val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
-      val errorHandler: ErrorHandler = mock[ErrorHandler]
-      val errorResult = Ok("error")
-      reset(pensionsSchemeConnector, errorHandler)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(),any(), any()))
-        .thenReturn(Future.successful(false))
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND),any())).thenReturn(Future.successful(errorResult))
-
-      val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(SampleData.userAnswersWithSchemeName))
-
-      val testHarness = new TestHarness("", pensionsSchemeConnector, errorHandler)
-      whenReady( testHarness.test(optionalDataRequest)) { result =>
-        result mustBe Some(errorResult)
+        srnCaptor.getValue mustBe SampleData.srn
       }
     }
   }
