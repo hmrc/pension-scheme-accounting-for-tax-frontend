@@ -58,7 +58,7 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn)).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
       (for {
         uaWithSuspendedFlag <- retrieveSuspendedFlagAndUpdateUserAnswers(request)
