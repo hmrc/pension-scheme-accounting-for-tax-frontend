@@ -23,7 +23,6 @@ import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Quarter, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json.{JsObject, JsValue}
-import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
