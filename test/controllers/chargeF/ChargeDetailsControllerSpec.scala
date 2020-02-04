@@ -41,7 +41,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg, BigDecimal("0.01"))
   private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
   private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url
 

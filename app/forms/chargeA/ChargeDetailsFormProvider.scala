@@ -31,7 +31,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(): Form[ChargeDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeDetails] =
     Form(mapping(
       "numberOfMembers" -> int(
         requiredKey = "chargeA.numberOfMembers.error.required",
@@ -48,7 +48,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
         ).verifying(
           maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
+          minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
         )
       ),
       "totalAmtOfTaxDueAtHigherRate" -> onlyIf[Option[BigDecimal]](
@@ -59,7 +59,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
         ).verifying(
           maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
+          minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
         )
       ),
       "totalAmount" -> bigDecimalTotal("totalAmtOfTaxDueAtLowerRate", "totalAmtOfTaxDueAtHigherRate")

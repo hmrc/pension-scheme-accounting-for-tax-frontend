@@ -25,7 +25,7 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  private val form = new ChargeDetailsFormProvider()()
+  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"

@@ -41,7 +41,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
-  private val form = new ChargeDetailsFormProvider()()
+  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
 
   private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
 

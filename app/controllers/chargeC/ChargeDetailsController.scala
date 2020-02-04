@@ -49,7 +49,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form: Form[ChargeCDetails] = formProvider()
+  val form: Form[ChargeCDetails] = formProvider(minimumChargeValueAllowed = BigDecimal("0.01"))
 
   def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
