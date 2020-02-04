@@ -24,14 +24,14 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, NormalMode}
+import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
@@ -51,7 +51,8 @@ class AFTSummaryController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       aftSummaryHelper: AFTSummaryHelper,
-                                      aftService: AFTService
+                                      aftService: AFTService,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
@@ -60,20 +61,23 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-
-      aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn = srn, optionVersion = optionVersion) { (schemeDetails, ua) =>
-        ua.get(QuarterPage) match {
-          case Some(quarter) =>
-            val json = Json.obj(
-              "form" -> form,
-              "list" -> aftSummaryHelper.summaryListData(ua, srn),
-              "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-              "radios" -> Radios.yesNo(form("value")),
-              "startDate" -> getFormattedStartDate(quarter.startDate),
-              "endDate" -> getFormattedEndDate(quarter.endDate)
-            )
-            renderer.render("aftSummary.njk", json).map(Ok(_))
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
+        allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+          case None =>
+            userAnswers.get(QuarterPage) match {
+              case Some(quarter) =>
+                val json = Json.obj(
+                  "form" -> form,
+                  "list" -> aftSummaryHelper.summaryListData(userAnswers, srn),
+                  "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
+                  "radios" -> Radios.yesNo(form("value")),
+                  "startDate" -> getFormattedStartDate(quarter.startDate),
+                  "endDate" -> getFormattedEndDate(quarter.endDate)
+                )
+                renderer.render("aftSummary.njk", json).map(Ok(_))
+              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            }
+          case Some(redirectLocation) => Future.successful(redirectLocation)
         }
       }
   }

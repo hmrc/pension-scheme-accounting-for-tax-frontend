@@ -113,18 +113,15 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
   }
 
-  "retrieveAFTRequiredDetailsAndFilterForIllegalAccess" when {
+  "retrieveAFTRequiredDetails" when {
     "no version is given and suspended flag is not in user answers" must {
       "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it in Mongo" in {
         val uaToSave = userAnswersWithSchemeName
           .setOrException(IsPsaSuspendedQuery, value = false)
           .setOrException(AFTStatusQuery, value = aftStatus)
-        val block: (SchemeDetails, UserAnswers) => Future[Result] = (_, _) => Future.successful(Ok(""))
 
-        val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAllowService)
-
-        whenReady(aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn, None)(block)) { result =>
-          result.header.status mustBe OK
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
+          resultScheme mustBe schemeDetails
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
           verify(mockAFTConnector, times(0)).getAFTDetails(any(), any(), any())(any(), any())
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
@@ -143,8 +140,8 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn, Some(version))(block)) { result =>
-          result.header.status mustBe OK
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))) { case (resultScheme, _) =>
+          resultScheme mustBe schemeDetails
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
           verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())

@@ -51,8 +51,7 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn:String, optionVersion: Option[String])(
-    block: (SchemeDetails, UserAnswers) => Future[Result])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[Result] = {
+  def retrieveAFTRequiredDetails(srn:String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
 
     def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
       userAnswers
@@ -61,19 +60,13 @@ class AFTService @Inject()(
         .setOrException(SchemeNameQuery, schemeDetails.schemeName)
         .setOrException(PSTRQuery, schemeDetails.pstr)
 
-    (for {
+    for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
-      _ <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
-      filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
+      ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
     } yield {
-      filterAccess match {
-        case None =>
-          block(schemeDetails, uaWithSuspendedFlag)
-        case Some(redirectLocation) =>
-          Future.successful(redirectLocation)
-      }
-    }).flatMap(identity)
+          (schemeDetails, UserAnswers(ua.as[JsObject]))
+    }
   }
 
   private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)

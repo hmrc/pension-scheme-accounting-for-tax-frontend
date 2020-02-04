@@ -29,7 +29,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -48,22 +48,28 @@ class ChargeTypeController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       auditService: AuditService,
-                                      aftService: AFTService
+                                      aftService: AFTService,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn = srn, optionVersion = None) { (schemeDetails, ua) =>
-        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-        val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
-        val json = Json.obj(
-          "form" -> preparedForm,
-          "radios" -> ChargeType.radios(preparedForm),
-          "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-        )
-        renderer.render(template = "chargeType.njk", json).map(Ok(_))
+
+      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
+        allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+          case None =>
+            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+            val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
+            val json = Json.obj(
+              "form" -> preparedForm,
+              "radios" -> ChargeType.radios(preparedForm),
+              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+            )
+            renderer.render(template = "chargeType.njk", json).map(Ok(_))
+          case Some(alternativeLocation) => Future.successful(alternativeLocation)
+        }
       }
   }
 
