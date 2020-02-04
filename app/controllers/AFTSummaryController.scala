@@ -21,19 +21,17 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, MinimalPsaConnector}
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.requests.OptionalDataRequest
-import models.{GenericViewModel, Mode, NormalMode, SchemeDetails, UserAnswers}
+import models.{GenericViewModel, Mode, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AllowAccessService, SchemeService}
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
@@ -53,9 +51,7 @@ class AFTSummaryController @Inject()(
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
                                       aftSummaryHelper: AFTSummaryHelper,
-                                      aftConnector: AFTConnector,
-                                      schemeService: SchemeService,
-                                      minimalPsaConnector: MinimalPsaConnector,
+                                      aftService: AFTService,
                                       allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
@@ -65,19 +61,14 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      (for {
-        schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-        ua <- retrieveAFTDetailsAndSuspendedFlagAndUpdateUserAnswers(optionVersion, schemeDetails)
-        _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
-        filterAccess <- allowService.filterForIllegalPageAccess(srn, ua)
-      } yield {
-        filterAccess match {
+      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
+        allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
           case None =>
-            ua.get(QuarterPage) match {
+            userAnswers.get(QuarterPage) match {
               case Some(quarter) =>
                 val json = Json.obj(
                   "form" -> form,
-                  "list" -> aftSummaryHelper.summaryListData(ua, srn),
+                  "list" -> aftSummaryHelper.summaryListData(userAnswers, srn),
                   "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
                   "radios" -> Radios.yesNo(form("value")),
                   "startDate" -> getFormattedStartDate(quarter.startDate),
@@ -88,8 +79,7 @@ class AFTSummaryController @Inject()(
             }
           case Some(redirectLocation) => Future.successful(redirectLocation)
         }
-
-      }).flatMap(identity)
+      }
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -128,33 +118,6 @@ class AFTSummaryController @Inject()(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, version).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName)
-  }
-
-  private def retrieveAFTDetailsAndSuspendedFlagAndUpdateUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                                (implicit request: OptionalDataRequest[_]): Future[UserAnswers] = {
-
-    val futureUserAnswers = optionVersion match {
-      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
-      case Some(version) =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
-          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
-    }
-
-    futureUserAnswers.flatMap { ua =>
-      val futureUserAnswersWithSuspendedFlag = ua.get(IsPsaSuspendedQuery) match {
-        case None =>
-          minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
-          }
-        case Some(_) =>
-          Future.successful(ua)
-      }
-
-      futureUserAnswersWithSuspendedFlag.map(_
-        .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-        .setOrException(PSTRQuery, schemeDetails.pstr)
-      )
-    }
   }
 
   private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)

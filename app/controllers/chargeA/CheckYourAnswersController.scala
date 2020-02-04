@@ -30,6 +30,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
@@ -42,7 +43,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            getData: DataRetrievalAction,
                                            allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
-                                           aftConnector: AFTConnector,
+                                           aftService: AFTService,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
@@ -90,7 +91,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           for {
             updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-            _ <- aftConnector.fileAFTReturn(pstr, updatedUserAnswers)
+            _ <- aftService.fileAFTReturn(pstr, updatedUserAnswers)
           } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

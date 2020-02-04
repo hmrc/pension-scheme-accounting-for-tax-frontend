@@ -31,6 +31,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import services.ChargeDService.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
@@ -44,7 +45,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            getData: DataRetrievalAction,
                                            allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
-                                           aftConnector: AFTConnector,
+                                           aftService: AFTService,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
@@ -93,7 +94,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             ua1 <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
             ua2 <- Future.fromTry(ua1.set(ChargeDetailsPage(index), updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, ua2.data)
-            _ <- aftConnector.fileAFTReturn(pstr, ua2)
+            _ <- aftService.fileAFTReturn(pstr, ua2)
           } yield {
             Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
           }
