@@ -37,7 +37,7 @@ import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTSummaryHelper
+import utils.{AFTConstants, AFTSummaryHelper}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -76,13 +76,9 @@ class AFTSummaryController @Inject()(
         val ua = UserAnswers(userAnswersAfterSave.as[JsObject])
         getJson(form, ua, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
       }
-
-      futureJsonToPassToTemplate
-        .flatMap {
-          case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          case Some(json) => renderer.render("aftSummary.njk", json).map(Ok(_))
-        }
-
+      futureJsonToPassToTemplate.flatMap { json =>
+        renderer.render("aftSummary.njk", json).map(Ok(_))
+      }
   }
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
@@ -93,10 +89,7 @@ class AFTSummaryController @Inject()(
             val ua = request.userAnswers
             val optionJson = getJson(formWithErrors, ua, srn, schemeName, optionVersion, !request.viewOnly)
 
-            optionJson match {
-              case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              case Some(json) => renderer.render("aftSummary.njk", json).map(BadRequest(_))
-            }
+            renderer.render("aftSummary.njk", optionJson).map(BadRequest(_))
           },
           value =>
             for {
@@ -111,19 +104,19 @@ class AFTSummaryController @Inject()(
   }
 
   private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, schemeName: String,
-                      optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): Option[JsObject] = {
-    ua.get(QuarterPage).map { quarter =>
-      Json.obj(
-        "srn" -> srn,
-        "form" -> form,
-        "list" -> aftSummaryHelper.summaryListData(ua, srn),
-        "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
-        "radios" -> Radios.yesNo(form("value")),
-        "startDate" -> getFormattedStartDate(quarter.startDate),
-        "endDate" -> getFormattedEndDate(quarter.endDate),
-        "canChange" -> canChange
-      )
-    }
+                      optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
+    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(AFTConstants.QUARTER_START_DATE)
+    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(AFTConstants.QUARTER_END_DATE)
+    Json.obj(
+      "srn" -> srn,
+      "form" -> form,
+      "list" -> aftSummaryHelper.summaryListData(ua, srn),
+      "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
+      "radios" -> Radios.yesNo(form("value")),
+      "startDate" -> getFormattedStartDate(quarterStartDate),
+      "endDate" -> getFormattedEndDate(quarterEndDate),
+      "canChange" -> canChange
+    )
   }
 
   private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
