@@ -113,10 +113,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
   }
 
-
-
-
-  "withSchemeDetailsAndUserAnswersWhereValid" when {
+  "retrieveAFTRequiredDetailsAndFilterForIllegalAccess" when {
     "no version is given and suspended flag is not in user answers" must {
       "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it in Mongo" in {
         val uaToSave = userAnswersWithSchemeName
@@ -126,7 +123,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
         val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAllowService)
 
-        whenReady(aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, None)(block)) { result =>
+        whenReady(aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn, None)(block)) { result =>
           result.header.status mustBe OK
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
           verify(mockAFTConnector, times(0)).getAFTDetails(any(), any(), any())(any(), any())
@@ -134,8 +131,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
         }
       }
-
-
     }
 
     "a version is given" must {
@@ -148,7 +143,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        whenReady(aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, Some(version))(block)) { result =>
+        whenReady(aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn, Some(version))(block)) { result =>
           result.header.status mustBe OK
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
           verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
@@ -158,6 +153,4 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       }
     }
   }
-
-
 }

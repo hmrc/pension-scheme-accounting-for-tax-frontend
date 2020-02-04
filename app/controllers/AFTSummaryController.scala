@@ -61,7 +61,7 @@ class AFTSummaryController @Inject()(
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
 
-      aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, optionVersion) { (schemeDetails, ua) =>
+      aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn = srn, optionVersion = optionVersion) { (schemeDetails, ua) =>
         ua.get(QuarterPage) match {
           case Some(quarter) =>
             val json = Json.obj(

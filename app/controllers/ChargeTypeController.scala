@@ -18,7 +18,6 @@ package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
-import connectors.MinimalPsaConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
@@ -30,7 +29,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -48,10 +47,7 @@ class ChargeTypeController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-//                                      schemeService: SchemeService,
                                       auditService: AuditService,
-//                                      minimalPsaConnector: MinimalPsaConnector,
-//                                      allowService: AllowAccessService,
                                       aftService: AFTService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
@@ -59,7 +55,7 @@ class ChargeTypeController @Inject()(
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, None) { (schemeDetails, ua) =>
+      aftService.retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn = srn, optionVersion = None) { (schemeDetails, ua) =>
         auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
         val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
         val json = Json.obj(

@@ -51,8 +51,16 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def withSchemeDetailsAndUserAnswersWhereValid(srn:String, optionVersion: Option[String])(
+  def retrieveAFTRequiredDetailsAndFilterForIllegalAccess(srn:String, optionVersion: Option[String])(
     block: (SchemeDetails, UserAnswers) => Future[Result])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[Result] = {
+
+    def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
+      userAnswers
+        .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+        .setOrException(AFTStatusQuery, value = "Compiled")
+        .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+        .setOrException(PSTRQuery, schemeDetails.pstr)
+
     (for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
@@ -67,13 +75,6 @@ class AFTService @Inject()(
       }
     }).flatMap(identity)
   }
-
-  private def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
-    userAnswers
-      .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-      .setOrException(AFTStatusQuery, value = "Compiled")
-      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-      .setOrException(PSTRQuery, schemeDetails.pstr)
 
   private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                                     (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
