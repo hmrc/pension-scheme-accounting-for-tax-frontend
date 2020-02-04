@@ -81,10 +81,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val schemePSTR = "pstr"
 
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01","2000-05-31")).toOption.get
-  private val uaGetAFTDetailsPlusSchemeDetails = uaGetAFTDetails
-    .set(SchemeNameQuery, schemeName).toOption.getOrElse(uaGetAFTDetails)
-    .set(PSTRQuery, schemePSTR).toOption.getOrElse(uaGetAFTDetails)
-
 
   override def beforeEach: Unit = {
     super.beforeEach()

@@ -17,21 +17,22 @@
 package services
 
 import base.SpecBase
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
-import models.UserAnswers
-import models.requests.DataRequest
+import models.requests.{DataRequest, OptionalDataRequest}
+import models.{SchemeDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.IsNewReturn
+import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, Results}
+import play.api.mvc.{AnyContentAsEmpty, Result, Results}
+import play.api.test.Helpers._
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,10 +42,26 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
 
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
+  private val mockAllowService: AllowAccessService = mock[AllowAccessService]
+
+  private val aftStatus = "Compiled"
+  private val psaId = PsaId(SampleData.psaId)
+  private val internalId = "internal id"
+
+  private val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAllowService)
+
+  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(userAnswersWithSchemeName))
+
   private def dataRequest(ua: UserAnswers): DataRequest[AnyContentAsEmpty.type] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
 
   override def beforeEach(): Unit = {
-    reset(mockAFTConnector, mockUserAnswersCacheConnector)
+    reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAllowService)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+    when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(false))
+    when(mockAllowService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
   }
 
   "fileAFTReturn" must {
@@ -55,7 +72,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(Json.obj()))
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
+
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
@@ -71,7 +88,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
         .thenReturn(Future.successful(Json.obj()))
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
+
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
@@ -88,11 +105,59 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       val jsonReturnedFromConnector = userAnswersWithSchemeName.data
       when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(jsonReturnedFromConnector))
-      val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
+
       whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
         result mustBe jsonReturnedFromConnector
         verify(mockAFTConnector, times(1)).getAFTDetails(Matchers.eq(pstr), Matchers.eq(startDate), Matchers.eq(aftVersion))(any(), any())
       }
     }
   }
+
+
+
+
+  "withSchemeDetailsAndUserAnswersWhereValid" when {
+    "no version is given and suspended flag is not in user answers" must {
+      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it in Mongo" in {
+        val uaToSave = userAnswersWithSchemeName
+          .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(AFTStatusQuery, value = aftStatus)
+        val block: (SchemeDetails, UserAnswers) => Future[Result] = (_, _) => Future.successful(Ok(""))
+
+        val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAllowService)
+
+        whenReady(aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, None)(block)) { result =>
+          result.header.status mustBe OK
+          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+          verify(mockAFTConnector, times(0)).getAFTDetails(any(), any(), any())(any(), any())
+          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
+        }
+      }
+
+
+    }
+
+    "a version is given" must {
+      "call get AFT details and retrieve the suspended flag from DES and save it in Mongo" in {
+        val uaToSave = userAnswersWithSchemeName
+          .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(AFTStatusQuery, value = aftStatus)
+        val block: (SchemeDetails, UserAnswers) => Future[Result] = (_, _) => Future.successful(Ok(""))
+
+        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        whenReady(aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, Some(version))(block)) { result =>
+          result.header.status mustBe OK
+          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+          verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
+          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
+        }
+      }
+    }
+  }
+
+
 }

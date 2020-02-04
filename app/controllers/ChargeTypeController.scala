@@ -23,16 +23,14 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.requests.OptionalDataRequest
-import models.{ChargeType, GenericViewModel, Mode, Quarter, SchemeDetails, UserAnswers}
+import models.{ChargeType, GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AllowAccessService, SchemeService}
-import uk.gov.hmrc.http.HeaderCarrier
+import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -50,38 +48,27 @@ class ChargeTypeController @Inject()(
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      schemeService: SchemeService,
+//                                      schemeService: SchemeService,
                                       auditService: AuditService,
-                                      minimalPsaConnector: MinimalPsaConnector,
-                                      allowService: AllowAccessService
+//                                      minimalPsaConnector: MinimalPsaConnector,
+//                                      allowService: AllowAccessService,
+                                      aftService: AFTService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData).async {
     implicit request =>
-      (for {
-        uaWithSuspendedFlag <- retrieveSuspendedFlagAndUpdateUserAnswers(request)
-        schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-        _ <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
-        filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
-      } yield {
-        filterAccess match {
-          case None =>
-            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-
-            val preparedForm = uaWithSuspendedFlag.get(ChargeTypePage).fold(form)(form.fill)
-
-            val json = Json.obj(
-              "form" -> preparedForm,
-              "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-            )
-            renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          case Some(redirectLocation) =>
-            Future.successful(redirectLocation)
-        }
-      }).flatMap(identity)
+      aftService.withSchemeDetailsAndUserAnswersWhereValid(srn, None) { (schemeDetails, ua) =>
+        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        val preparedForm = ua.get(ChargeTypePage).fold(form)(form.fill)
+        val json = Json.obj(
+          "form" -> preparedForm,
+          "radios" -> ChargeType.radios(preparedForm),
+          "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+        )
+        renderer.render(template = "chargeType.njk", json).map(Ok(_))
+      }
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
@@ -113,24 +100,4 @@ class ChargeTypeController @Inject()(
       schemeName = schemeName
     )
   }
-
-  private def retrieveSuspendedFlagAndUpdateUserAnswers(request: OptionalDataRequest[_])
-                                                       (implicit hc: HeaderCarrier): Future[UserAnswers] = {
-    val ua = request.userAnswers.getOrElse(UserAnswers())
-    ua.get(IsPsaSuspendedQuery) match {
-      case None =>
-        minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-          ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
-        }
-      case Some(_) =>
-        Future.successful(ua)
-    }
-  }
-
-  private def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
-    userAnswers
-      .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-      .setOrException(AFTStatusQuery, value = "Compiled")
-      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-      .setOrException(PSTRQuery, schemeDetails.pstr)
 }

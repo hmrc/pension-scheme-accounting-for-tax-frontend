@@ -60,7 +60,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[AuditService].toInstance(mockAuditService),
     bind[AllowAccessService].toInstance(mockAllowAccessService),
     bind[MinimalPsaConnector].toInstance(mockMinimalPsaConnector)
-
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()

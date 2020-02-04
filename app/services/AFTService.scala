@@ -17,12 +17,13 @@
 package services
 
 import com.google.inject.Inject
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
-import models.UserAnswers
-import models.requests.DataRequest
-import pages.IsNewReturn
-import play.api.libs.json.JsValue
+import connectors.{AFTConnector, MinimalPsaConnector}
+import models.requests.{DataRequest, OptionalDataRequest}
+import models.{Quarter, SchemeDetails, UserAnswers}
+import pages._
+import play.api.libs.json.{JsObject, JsValue}
+import play.api.mvc.Result
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,7 +31,10 @@ import scala.util.{Failure, Success}
 
 class AFTService @Inject()(
                           aftConnector: AFTConnector,
-                          userAnswersCacheConnector: UserAnswersCacheConnector
+                          userAnswersCacheConnector: UserAnswersCacheConnector,
+                          schemeService: SchemeService,
+                          minimalPsaConnector: MinimalPsaConnector,
+                          allowService: AllowAccessService
                           ) {
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request:DataRequest[_]): Future[Unit] = {
     aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
@@ -46,4 +50,50 @@ class AFTService @Inject()(
 
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
+
+  def withSchemeDetailsAndUserAnswersWhereValid(srn:String, optionVersion: Option[String])(
+    block: (SchemeDetails, UserAnswers) => Future[Result])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[Result] = {
+    (for {
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+      uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
+      _ <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
+      filterAccess <- allowService.filterForIllegalPageAccess(srn, uaWithSuspendedFlag)
+    } yield {
+      filterAccess match {
+        case None =>
+          block(schemeDetails, uaWithSuspendedFlag)
+        case Some(redirectLocation) =>
+          Future.successful(redirectLocation)
+      }
+    }).flatMap(identity)
+  }
+
+  private def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
+    userAnswers
+      .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+      .setOrException(AFTStatusQuery, value = "Compiled")
+      .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+      .setOrException(PSTRQuery, schemeDetails.pstr)
+
+  private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+
+    val futureUserAnswers = optionVersion match {
+      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
+      case Some(version) =>
+        getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
+          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
+    }
+
+    futureUserAnswers.flatMap { ua =>
+      ua.get(IsPsaSuspendedQuery) match {
+        case None =>
+          minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
+            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+          }
+        case Some(_) =>
+          Future.successful(ua)
+      }
+    }
+  }
 }
