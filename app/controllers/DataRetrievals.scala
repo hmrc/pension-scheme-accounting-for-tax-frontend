@@ -113,29 +113,22 @@ object DataRetrievals {
                  srn: String)
                 (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
+
     (
       request.userAnswers.get(isSponsoringEmployerIndividual),
+      request.userAnswers.get(sponsoringEmployerAddress),
+      request.userAnswers.get(chargeDetails),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(true), Some(schemeName)) =>
+      case (Some(isSponsoringEmployerIndividual), Some(sponsoringEmployerAddress), Some(chargeDetails), Some(schemeName)) =>
         (
           request.userAnswers.get(sponsoringIndividualDetails),
-          request.userAnswers.get(sponsoringEmployerAddress),
-          request.userAnswers.get(chargeDetails)
+          request.userAnswers.get(sponsoringOrganisationDetails)
         ) match {
-          case (Some(sponsoringIndividualDetails), Some(sponsoringEmployerAddress), Some(chargeDetails)) =>
-            block(true, Left(sponsoringIndividualDetails), sponsoringEmployerAddress, chargeDetails, schemeName)
-          case _ =>
-            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
-        }
-      case (Some(false), Some(schemeName)) =>
-        (
-          request.userAnswers.get(sponsoringOrganisationDetails),
-          request.userAnswers.get(sponsoringEmployerAddress),
-          request.userAnswers.get(chargeDetails)
-        ) match {
-          case (Some(sponsoringOrganisationDetails), Some(sponsoringEmployerAddress), Some(chargeDetails)) =>
-            block(false, Right(sponsoringOrganisationDetails), sponsoringEmployerAddress, chargeDetails, schemeName)
+          case (Some(individual), None) =>
+            block(isSponsoringEmployerIndividual, Left(individual), sponsoringEmployerAddress, chargeDetails, schemeName)
+          case (None, Some(organisation)) =>
+            block(isSponsoringEmployerIndividual, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
             Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
         }
