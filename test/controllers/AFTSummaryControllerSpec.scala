@@ -16,7 +16,6 @@
 
 package controllers
 
-import controllers.ChargeTypeControllerSpec.httpPathGETNoVersion
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -43,7 +42,7 @@ import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits  with Results with ScalaFutures{
+class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
@@ -102,7 +101,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 
   "AFTSummary Controller" must {
-    "return OK and the correct view for a GET where no version is present in the request, also saving the PSA suspended flag in user answers" in {
+    "return OK and the correct view for a GET where no version is present in the request and call the aft service" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
