@@ -61,16 +61,17 @@ class AFTService @Inject()(
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
+      uaWithSuspendedFlag <- retrieveAFTDetailsAndStoreInUserAnswers(optionVersion, schemeDetails)
       ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
     } yield {
       (schemeDetails, UserAnswers(ua.as[JsObject]))
     }
   }
 
-  private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                                (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+  private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                                     (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswersOrBlank = request.userAnswers.getOrElse(UserAnswers())
+
     val futureUserAnswers = optionVersion match {
       case None =>
         aftConnector.getListOfVersions(schemeDetails.pstr).map { listOfVersions =>
