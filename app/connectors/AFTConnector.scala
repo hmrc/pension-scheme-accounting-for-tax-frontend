@@ -19,6 +19,7 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.UserAnswers
+import play.api.http.Status
 import play.api.libs.json.{JsObject, JsValue}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -37,5 +38,14 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
     val url = config.getAftDetails
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
     http.GET[JsValue](url)(implicitly, aftHc, implicitly)
+  }
+
+  def getListOfVersions(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
+    val url = config.aftListOfVersions
+    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> "2020-04-01")
+    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+      require(response.status == Status.OK)
+      response.json.as[Seq[Int]]
+    }
   }
 }

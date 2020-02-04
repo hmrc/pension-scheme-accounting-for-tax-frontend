@@ -29,13 +29,13 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class AFTService @Inject()(
-                          aftConnector: AFTConnector,
-                          userAnswersCacheConnector: UserAnswersCacheConnector,
-                          schemeService: SchemeService,
-                          minimalPsaConnector: MinimalPsaConnector,
-                          allowService: AllowAccessService
+                            aftConnector: AFTConnector,
+                            userAnswersCacheConnector: UserAnswersCacheConnector,
+                            schemeService: SchemeService,
+                            minimalPsaConnector: MinimalPsaConnector,
+                            allowService: AllowAccessService
                           ) {
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request:DataRequest[_]): Future[Unit] = {
+  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
       answers.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
@@ -50,7 +50,7 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetails(srn:String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
+  def retrieveAFTRequiredDetails(srn: String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
 
     def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
       userAnswers
@@ -64,15 +64,22 @@ class AFTService @Inject()(
       uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
       ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
     } yield {
-          (schemeDetails, UserAnswers(ua.as[JsObject]))
+      (schemeDetails, UserAnswers(ua.as[JsObject]))
     }
   }
 
   private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
-
+                                                (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+    def currentUserAnswersOrBlank = request.userAnswers.getOrElse(UserAnswers())
     val futureUserAnswers = optionVersion match {
-      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
+      case None =>
+        aftConnector.getListOfVersions(schemeDetails.pstr).map { listOfVersions =>
+          if (listOfVersions.isEmpty) {
+            currentUserAnswersOrBlank.setOrException(IsNewReturn, true)
+          } else {
+            currentUserAnswersOrBlank
+          }
+        }
       case Some(version) =>
         getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
