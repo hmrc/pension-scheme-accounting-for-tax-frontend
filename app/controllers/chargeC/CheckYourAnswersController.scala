@@ -24,15 +24,15 @@ import controllers.DataRetrievals
 import controllers.actions._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeC.{CheckYourAnswersPage, TotalChargeAmountPage}
+import pages.chargeC._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.ChargeCService._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
-import services.ChargeCService._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -51,25 +51,30 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeC(
+        IsSponsoringEmployerIndividualPage(index),
+        SponsoringIndividualDetailsPage(index),
+        SponsoringOrganisationDetailsPage(index),
+        SponsoringEmployerAddressPage(index),
+        ChargeCDetailsPage(index),
+        srn
+      ) { (isSponsoringEmployerIndividual, sponsorDetails, address, chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val answers: Seq[SummaryList.Row] = Seq(
-          Seq(helper.chargeCIsSponsoringEmployerIndividual(index).get),
-          helper.chargeCEmployerDetails(index),
-          Seq(helper.chargeCAddress(index).get),
-          helper.chargeCChargeDetails(index).get
+          Seq(helper.chargeCIsSponsoringEmployerIndividual(index, isSponsoringEmployerIndividual)),
+          helper.chargeCEmployerDetails(index, sponsorDetails),
+          Seq(helper.chargeCAddress(index, address)),
+          helper.chargeCChargeDetails(index, chargeDetails)
         ).flatten
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel,
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
             "chargeName" -> "chargeC"
           )).map(Ok(_))
       }

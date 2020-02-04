@@ -18,7 +18,7 @@ package controllers.chargeE
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.{UserAnswers, YearRange}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
@@ -30,19 +30,19 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url
-  private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(SampleData.srn, 0).url
+  private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, 0).url
+  private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(srn, 0).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(AnnualAllowanceYearPage(0), YearRange.currentYear).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
+    .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
   private val rows = Seq(
-    helper.chargeEMemberDetails(0).get,
-    helper.chargeETaxYear(0).get,
-    helper.chargeEDetails(0).get
+    helper.chargeEMemberDetails(0, memberDetails),
+    helper.chargeETaxYear(0, YearRange.currentYear),
+    helper.chargeEDetails(0, chargeEDetails)
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(

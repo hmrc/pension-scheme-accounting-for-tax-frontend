@@ -27,10 +27,10 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessAction (
-                        srn:String,
-                        pensionsSchemeConnector: SchemeDetailsConnector,
-                        errorHandler: ErrorHandler
+class AllowAccessAction(
+                         srn: String,
+                         pensionsSchemeConnector: SchemeDetailsConnector,
+                         errorHandler: ErrorHandler
                        )(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
 
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = {
@@ -48,12 +48,12 @@ class AllowAccessAction (
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
-  def apply(srn:String): ActionFilter[OptionalDataRequest]
+  def apply(srn: String): ActionFilter[OptionalDataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(
-                                           pensionsSchemeConnector: SchemeDetailsConnector,
-                                           errorHandler: ErrorHandler
-                                         )(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn:String) = new AllowAccessAction(srn, pensionsSchemeConnector, errorHandler)
+                                               pensionsSchemeConnector: SchemeDetailsConnector,
+                                               errorHandler: ErrorHandler
+                                             )(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
+  def apply(srn: String) = new AllowAccessAction(srn, pensionsSchemeConnector, errorHandler)
 }

@@ -20,12 +20,13 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
+import pages.PSTRQuery
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
-import pages.{PSTRQuery, SchemeNameQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -51,17 +52,16 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(ChargeDetailsPage)) match {
-        case (Some(schemeName), Some(chargeDetails)) =>
+      DataRetrievals.cyaChargeA(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
           val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
           renderer.render(
             template = "check-your-answers.njk",
             ctx = Json.obj(
               "list" -> Seq(
-                helper.chargeAMembers.get,
-                helper.chargeAAmountLowerRate.get,
-                helper.chargeAAmountHigherRate.get,
+                helper.chargeAMembers(chargeDetails),
+                helper.chargeAAmountLowerRate(chargeDetails),
+                helper.chargeAAmountHigherRate(chargeDetails),
                 helper.total(chargeDetails.totalAmount)
               ),
               "viewModel" -> GenericViewModel(
@@ -72,8 +72,6 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               "chargeName" -> "chargeA"
             )
           ).map(Ok(_))
-        case _ =>
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 

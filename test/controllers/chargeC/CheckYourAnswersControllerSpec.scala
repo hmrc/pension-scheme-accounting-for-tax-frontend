@@ -18,7 +18,7 @@ package controllers.chargeC
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeC._
@@ -30,21 +30,21 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, index).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(SampleData.srn, index).url
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index).url
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, index).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(ChargeCDetailsPage(index), SampleData.chargeCDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
-    .set(SponsoringIndividualDetailsPage(index), SampleData.sponsoringIndividualDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), SampleData.sponsoringEmployerAddress).toOption.get
+    .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
+    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
   private val answers = Seq(
-    Seq(helper.chargeCIsSponsoringEmployerIndividual(index).get),
-    helper.chargeCEmployerDetails(index),
-    Seq(helper.chargeCAddress(index).get),
-    helper.chargeCChargeDetails(index).get
+    Seq(helper.chargeCIsSponsoringEmployerIndividual(index, true)),
+    helper.chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
+    Seq(helper.chargeCAddress(index, sponsoringEmployerAddress)),
+    helper.chargeCChargeDetails(index, chargeCDetails)
   ).flatten
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Json.toJson(answers)

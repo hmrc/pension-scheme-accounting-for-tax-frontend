@@ -23,7 +23,7 @@ import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeF.CheckYourAnswersPage
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -48,25 +48,24 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeF(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeFDate.get,
-          helper.chargeFAmount.get
+          helper.chargeFDate(chargeDetails),
+          helper.chargeFAmount(chargeDetails)
         )
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel,
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
             "chargeName" -> "chargeF"
-          )).map(Ok(_))
+          )
+        ).map(Ok(_))
       }
   }
 
