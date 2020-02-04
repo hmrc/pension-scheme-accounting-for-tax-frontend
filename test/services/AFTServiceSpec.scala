@@ -23,13 +23,14 @@ import data.SampleData
 import data.SampleData._
 import models.UserAnswers
 import models.requests.DataRequest
-import org.mockito.Matchers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.Json
+import pages.IsNewReturn
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
 
@@ -47,18 +48,35 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "fileAFTReturn" must {
-    "respond successfully when" in {
-      val jsonReturnedByConnector = Json.obj()
-      val emptyJson = Json.obj()
+    "connect to the aft backend service and then remove the IsNewReturn flag from user answers and save it in the Mongo cache if it is present" in {
+      val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-        .thenReturn(Future.successful(emptyJson))
-
+        .thenReturn(Future.successful(Json.obj()))
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
-      whenReady(aftService.fileAFTReturn(pstr, userAnswersWithSchemeName)(implicitly, implicitly, dataRequest(userAnswersWithSchemeName))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(userAnswersWithSchemeName))(any(), any())
+      whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
+        val uaAfterSave = UserAnswers(jsonCaptor.getValue)
+        uaAfterSave.get(IsNewReturn) mustBe None
+      }
+    }
 
+    "not throw exception if IsNewReturn flag is not present" in {
+      val uaBeforeCalling = userAnswersWithSchemeName
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
+        .thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
+        .thenReturn(Future.successful(Json.obj()))
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
+      whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
+        val uaAfterSave = UserAnswers(jsonCaptor.getValue)
+        uaAfterSave.get(IsNewReturn) mustBe None
       }
     }
   }
