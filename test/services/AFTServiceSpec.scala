@@ -23,9 +23,9 @@ import data.SampleData
 import data.SampleData._
 import models.UserAnswers
 import models.requests.DataRequest
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
@@ -39,7 +39,7 @@ import scala.concurrent.Future
 
 class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
-  private val mockUserAnswersCacheConnector: UserAnswersCacheConnector  = mock[UserAnswersCacheConnector]
+  private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
 
   private def dataRequest(ua: UserAnswers): DataRequest[AnyContentAsEmpty.type] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
 
@@ -77,6 +77,21 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
         val uaAfterSave = UserAnswers(jsonCaptor.getValue)
         uaAfterSave.get(IsNewReturn) mustBe None
+      }
+    }
+  }
+
+  "getAFTDetails" must {
+    "connect to the aft backend service with the specified arguments and return what the connector returns" in {
+      val startDate = "start date"
+      val aftVersion = "aft version"
+      val jsonReturnedFromConnector = userAnswersWithSchemeName.data
+      when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(jsonReturnedFromConnector))
+      val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector)
+      whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
+        result mustBe jsonReturnedFromConnector
+        verify(mockAFTConnector, times(1)).getAFTDetails(Matchers.eq(pstr), Matchers.eq(startDate), Matchers.eq(aftVersion))(any(), any())
       }
     }
   }
