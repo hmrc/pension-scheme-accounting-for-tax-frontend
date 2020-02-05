@@ -159,7 +159,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         val uaToSave = userAnswersWithSchemeName
           .setOrException(IsPsaSuspendedQuery, value = false)
           .setOrException(AFTStatusQuery, value = aftStatus)
-        val block: (SchemeDetails, UserAnswers) => Future[Result] = (_, _) => Future.successful(Ok(""))
 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
