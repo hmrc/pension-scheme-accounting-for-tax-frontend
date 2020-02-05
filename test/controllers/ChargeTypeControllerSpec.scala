@@ -17,8 +17,10 @@
 package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData._
 import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
@@ -26,33 +28,50 @@ import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when, reset}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
-import pages.ChargeTypePage
+import org.scalatest.concurrent.ScalaFutures
+import pages.{ChargeTypePage, IsPsaSuspendedQuery}
+import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, route, status, _}
+import play.api.mvc.Results
+import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.SchemeService
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
+class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   import ChargeTypeControllerSpec._
 
-  private val mockSchemeService = mock[SchemeService]
   private val mockAuditService = mock[AuditService]
+  private val mockAllowAccessService = mock[AllowAccessService]
+  private val mockAFTService = mock[AFTService]
+  private val retrievedUA = userAnswersWithSchemeName
+    .setOrException(IsPsaSuspendedQuery, value = false)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+
+  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[AuditService].toInstance(mockAuditService),
+    bind[AllowAccessService].toInstance(mockAllowAccessService),
+    bind[AFTService].toInstance(mockAFTService)
+  )
+
+  val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
 
   private val jsonToTemplate: Form[ChargeType] => JsObject = form => Json.obj(
     fields = "form" -> form,
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(SampleData.srn),
+      returnUrl = dummyCall.url,
       schemeName = SampleData.schemeName)
   )
 
@@ -60,104 +79,79 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     super.beforeEach
     reset(mockUserAnswersCacheConnector, mockRenderer)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+
   }
 
   "ChargeType Controller" when {
     "on a GET" must {
 
-      "return OK with the correct view and save the quarter, aft status, scheme name, pstr when viewOnly is true" in {
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(SampleData.userAnswersWithSchemeName), viewOnly = true) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService)
-            ): _*
-          ).build()
-
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-
+      "return OK with the correct view and call the aft service" in {
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, FakeRequest(GET, httpPathGET)).value
+        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
 
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(None))(any(), any(), any())
+        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA))(any())
 
         templateCaptor.getValue mustEqual template
-
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
-
-        application.stop()
       }
 
-      "return OK with the correct view and save the quarter, aft status, scheme name, pstr when viewOnly is false" in {
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(SampleData.userAnswersWithSchemeName), viewOnly = false) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService)
-            ): _*
-          ).build()
+      "return alternative location when allow access service returns alternative location" in {
+        val location = "redirect"
+        val alternativeLocation = Redirect(location)
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-
-        val result = route(application, FakeRequest(GET, httpPathGET)).value
-
-        status(result) mustEqual OK
-        verify(mockUserAnswersCacheConnector, times(1)).setLock(any(), any())(any(), any())
-
-        application.stop()
+        whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
+          result.header.status mustEqual SEE_OTHER
+          result.header.headers.get(LOCATION) mustBe Some(location)
+        }
       }
 
       "return OK and the correct view for a GET when the question has previously been answered" in {
         val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(ua)) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService)
-            ): _*
-          ).build()
 
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, FakeRequest(GET, httpPathGET)).value
+        when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, ua)))
+
+        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
 
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual template
-
-        jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(ChargeTypeAnnualAllowance)))
-
-        application.stop()
+        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(ChargeTypeAnnualAllowance)))
       }
 
       "send the AFTStart Audit Event" in {
-        Mockito.reset(mockAuditService)
-        val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
-        val application = new GuiceApplicationBuilder()
-          .overrides(
-            modules(Some(ua)) ++ Seq[GuiceableModule](
-              bind[SchemeService].toInstance(mockSchemeService),
-              bind[AuditService].toInstance(mockAuditService)
-            ): _*
-          ).build()
+        reset(mockAuditService)
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
-        when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, FakeRequest(GET, httpPathGET)).value
+        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
 
         status(result) mustEqual OK
+
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
-        application.stop()
       }
     }
 
@@ -167,8 +161,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
         when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
-
-        val application = applicationBuilder(userAnswers = userAnswers).build()
+        when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -182,7 +175,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
 
-        application.stop()
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {
@@ -194,7 +186,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
 
-        application.stop()
       }
 
       "redirect to Session Expired page for a POST when there is no data" in {
@@ -204,7 +195,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-        application.stop()
       }
     }
   }
@@ -215,7 +205,9 @@ object ChargeTypeControllerSpec {
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def httpPathGET: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGETNoVersion: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+
+  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
 
   private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
 

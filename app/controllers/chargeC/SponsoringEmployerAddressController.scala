@@ -41,6 +41,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: SponsoringEmployerAddressFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
@@ -72,7 +73,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
     }
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {

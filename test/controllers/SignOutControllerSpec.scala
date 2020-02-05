@@ -40,14 +40,13 @@ class SignOutControllerSpec extends ControllerSpecBase {
 
     "clear data and redirect to feedback survey page" in {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
+      when(mockAppConfig.signOutUrl).thenReturn(frontendAppConfig.signOutUrl)
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val result = route(application, FakeRequest(GET, signOutRoute)).value
 
       status(result) mustBe SEE_OTHER
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
       redirectLocation(result) mustBe Some(frontendAppConfig.signOutUrl)
-
-      application.stop()
     }
   }
 }

@@ -31,6 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import services.ChargeEService.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -42,8 +43,9 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
+                                       allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftConnector: AFTConnector,
+                                       aftService: AFTService,
                                        formProvider: DeleteMemberFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -53,7 +55,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -109,7 +111,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                       interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
                       updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+                      _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
                   }
                 } else {

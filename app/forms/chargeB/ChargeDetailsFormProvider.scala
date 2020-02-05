@@ -38,7 +38,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         invalidKey = "totalTaxDue.error.invalid",
         decimalKey = "totalTaxDue.error.decimal"
       ).verifying(
-        maximumValue[BigDecimal](BigDecimal("9999999999.99"), "totalTaxDue.error.maximum"),
+        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "totalTaxDue.error.maximum"),
         minimumValue[BigDecimal](BigDecimal("0.01"), "totalTaxDue.error.minimum")
       )
     )(ChargeBDetails.apply)(ChargeBDetails.unapply))

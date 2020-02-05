@@ -41,13 +41,13 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
-
 
   def form()(implicit messages: Messages): Form[ChargeDetails] =
     formProvider()
@@ -59,7 +59,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -89,7 +89,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
               "viewModel" -> viewModel(mode, srn, schemeName)
             )
-
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
           value =>

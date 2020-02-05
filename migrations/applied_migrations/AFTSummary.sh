@@ -50,7 +50,7 @@ echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def aFTSummary: Option[Row] = userAnswers.get(AFTSummaryPage) map {";\
+     print "  def aFTSummary: Option[Row] = addRequiredDetailsToUserAnswers.get(AFTSummaryPage) map {";\
      print "    answer =>";\
      print "      Row(";\
      print "        key     = Key(msg\"aFTSummary.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\

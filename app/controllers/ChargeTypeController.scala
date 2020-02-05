@@ -22,6 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
+import models.{ChargeType, GenericViewModel, Mode}
 import models.requests.OptionalDataRequest
 import models.{ChargeType, GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
@@ -30,7 +31,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.SchemeService
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants._
@@ -43,52 +44,38 @@ class ChargeTypeController @Inject()(
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: ChargeTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
                                       config: FrontendAppConfig,
-                                      schemeService: SchemeService,
-                                      auditService: AuditService
+                                      auditService: AuditService,
+                                      aftService: AFTService,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
-      val requestUA = request.userAnswers.getOrElse(UserAnswers())
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val ua = requestUA
-          .set(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE)).toOption.getOrElse(requestUA)
-          .set(AFTStatusQuery, value = "Compiled").toOption.getOrElse(requestUA)
-          .set(SchemeNameQuery, schemeDetails.schemeName).toOption.getOrElse(requestUA)
-          .set(PSTRQuery, schemeDetails.pstr).toOption.getOrElse(requestUA)
 
-        setLock(ua).flatMap { answers =>
-          userAnswersCacheConnector.save(request.internalId, answers.data).flatMap { _ =>
+      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
+        allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+          case None =>
             auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-
-            val preparedForm = requestUA.get(ChargeTypePage).fold(form)(form.fill)
-
+            val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
             val json = Json.obj(
               fields = "srn" -> srn,
               "form" -> preparedForm,
               "radios" -> ChargeType.radios(preparedForm),
               "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
             )
-
             renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          }
+          case Some(alternativeLocation) => Future.successful(alternativeLocation)
         }
       }
   }
-
-  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[UserAnswers] =
-    if(request.viewOnly) {
-      Future.successful(ua)
-    } else {
-      userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
-    }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>

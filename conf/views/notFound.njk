@@ -1,3 +1,26 @@
-{% extends 'error.njk' %}
-{% set page = 'global.error.pageNotFound404' %}
-{% set message = 'global.error.pageNotFound404.message' %}
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("pageNotFound404.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">{{ messages('pageNotFound404.heading') }}</h1>
+
+        <p class="govuk-body">
+          {{ messages('pageNotFound404.p1') }}
+        </p>
+
+        <p class="govuk-body">
+          {{ messages('pageNotFound404.p2') }}
+        </p>
+
+        <a href="{{ yourPensionSchemesUrl }}" class="govuk-link"> {{ messages("viewYourSchemes") }}</a>
+
+  </div>
+{% endblock %}

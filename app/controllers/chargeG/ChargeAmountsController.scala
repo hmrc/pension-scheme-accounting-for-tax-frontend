@@ -41,6 +41,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeAmountsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -50,7 +51,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
 
   def form(memberName: String)(implicit messages: Messages): Form[ChargeAmounts] = formProvider(memberName)
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMemberChargeG(MemberDetailsPage(index)){ (schemeName, memberName) =>
 

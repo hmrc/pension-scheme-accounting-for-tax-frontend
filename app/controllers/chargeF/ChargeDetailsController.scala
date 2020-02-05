@@ -44,6 +44,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -58,7 +59,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def form()(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(dateErrorMsg = messages("chargeF.deregistrationDate.error.date", min, max))
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
