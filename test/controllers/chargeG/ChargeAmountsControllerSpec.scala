@@ -161,12 +161,9 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return a redirect when zero amount is submitted and the new return flag is NOT set" in {
-
       when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesZero)).value
 
