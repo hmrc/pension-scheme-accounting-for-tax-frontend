@@ -198,7 +198,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       }
     }
 
-    "return bad request when the backend has returned something other than OK" in {
+    "throw exception when the backend has returned something other than OK" in {
       val startDate = "2020-04-01"
       //val data = Json.obj("pstr" -> pstr, "startDate" -> startDate)
       server.stubFor(
