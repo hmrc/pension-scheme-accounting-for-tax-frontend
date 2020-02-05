@@ -81,12 +81,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     super.beforeEach()
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-    when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
+
+
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
@@ -127,17 +128,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         result.header.status mustEqual SEE_OTHER
         result.header.headers.get(LOCATION) mustBe Some(location)
       }
-    }
-
-    "return OK and set lock where no version is present in the request " in {
-      val application = appBuilder(userAnswers = Some(SampleData.userAnswersWithSchemeName), viewOnly = false).build()
-
-      val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
-
-      status(result) mustEqual OK
-
-      verify(mockUserAnswersCacheConnector, times(1)).setLock(any(), any())(any(), any())
-      application.stop()
     }
 
     "return OK and the correct view for a GET where a version is present in the request" in {

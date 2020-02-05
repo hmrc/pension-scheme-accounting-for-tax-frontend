@@ -28,13 +28,9 @@ class FakeDataRetrievalAction(json: Option[UserAnswers], viewOnly: Boolean = fal
 class FakeDataRetrieval(dataToReturn: Option[UserAnswers], viewOnly: Boolean) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    dataToReturn match {
-      case None =>
-        Future(OptionalDataRequest(request.request, "", request.psaId, None, viewOnly))
-      case Some(userAnswers) =>
-        Future(OptionalDataRequest(request.request, "", request.psaId, Some(userAnswers), viewOnly))
-    }
+    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, viewOnly))
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
 }
+
