@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -49,7 +49,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form(implicit messages: Messages): Form[ChargeDDetails] = formProvider(minimumChargeValueAllowed = BigDecimal("0.01"))
+  def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
@@ -63,8 +63,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
         val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
-          case Some(value) => form.fill(value)
-          case None => form
+          case Some(value) => form(request.userAnswers).fill(value)
+          case None => form(request.userAnswers)
         }
 
         val json = Json.obj(
@@ -82,7 +82,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
-        form.bindFromRequest().fold(
+        form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
 
             val json = Json.obj(

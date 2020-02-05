@@ -66,6 +66,17 @@ final case class UserAnswers(
     }
   }
 
+  def setOrExceptionIfNotPresent[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A], rds: Reads[A]): UserAnswers = {
+    if (get(page).isEmpty) {
+      set(page, value) match {
+        case Success(ua) => ua
+        case Failure(ex) => throw ex
+      }
+    } else {
+      this
+    }
+  }
+
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
 
     val updatedData = data.setObject(page.path, JsNull) match {
@@ -79,6 +90,15 @@ final case class UserAnswers(
       d =>
         val updatedAnswers = copy(data = d)
         page.cleanup(None, updatedAnswers)
+    }
+  }
+}
+
+object UserAnswers {
+  def deriveMinimumChargeValueAllowed(ua:UserAnswers):BigDecimal = {
+    ua.get(IsNewReturn) match {
+      case None => BigDecimal("0.00")
+      case _ => BigDecimal("0.01")
     }
   }
 }

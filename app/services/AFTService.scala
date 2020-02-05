@@ -54,10 +54,10 @@ class AFTService @Inject()(
 
     def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
       userAnswers
-        .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-        .setOrException(AFTStatusQuery, value = "Compiled")
-        .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-        .setOrException(PSTRQuery, schemeDetails.pstr)
+        .setOrExceptionIfNotPresent(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+        .setOrExceptionIfNotPresent(AFTStatusQuery, value = "Compiled")
+        .setOrExceptionIfNotPresent(SchemeNameQuery, schemeDetails.schemeName)
+        .setOrExceptionIfNotPresent(PSTRQuery, schemeDetails.pstr)
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
