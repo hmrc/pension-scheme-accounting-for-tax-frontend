@@ -70,15 +70,15 @@ class AFTService @Inject()(
 
   private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                      (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
-    def currentUserAnswersOrBlank = request.userAnswers.getOrElse(UserAnswers())
+    def currentUserAnswers:UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
     val futureUserAnswers = optionVersion match {
       case None =>
         aftConnector.getListOfVersions(schemeDetails.pstr).map { listOfVersions =>
           if (listOfVersions.isEmpty) {
-            currentUserAnswersOrBlank.setOrException(IsNewReturn, true)
+            currentUserAnswers.setOrException(IsNewReturn, true)
           } else {
-            currentUserAnswersOrBlank
+            currentUserAnswers
           }
         }
       case Some(version) =>
