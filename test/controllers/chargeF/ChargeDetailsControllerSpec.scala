@@ -26,6 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import pages.IsNewReturn
 import pages.chargeF.ChargeDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -50,6 +51,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "deregistrationDate.month" -> Seq("4"),
     "deregistrationDate.year" -> Seq("2020"),
     "amountTaxDue" -> Seq("33.44")
+  )
+
+  private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
+    "deregistrationDate.day" -> Seq("3"),
+    "deregistrationDate.month" -> Seq("4"),
+    "deregistrationDate.year" -> Seq("2020"),
+    "amountTaxDue" -> Seq("0.00")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -138,6 +146,27 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       jsonCaptor.getValue must containJson(Json.obj(ChargeDetailsPage.toString -> Json.toJson(chargeFChargeDetails)))
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+    }
+
+    "return a BAD REQUEST when zero value is submitted and new return flag is set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.setOrException(IsNewReturn, true)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return a redirect when zero value is submitted and new return flag is NOT set" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual SEE_OTHER
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

@@ -49,7 +49,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
+  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =

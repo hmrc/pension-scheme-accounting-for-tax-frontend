@@ -26,6 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import pages.IsNewReturn
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
@@ -51,6 +52,14 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "dateOfEvent.year" -> Seq("2019"),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("50.00")
+  )
+
+  private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
+    "dateOfEvent.day" -> Seq("3"),
+    "dateOfEvent.month" -> Seq("4"),
+    "dateOfEvent.year" -> Seq("2019"),
+    "taxAt25Percent" -> Seq("0.00"),
+    "taxAt55Percent" -> Seq("0.00")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -151,6 +160,27 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return a BAD REQUEST when zero amount is submitted and new return flag is set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData.setOrException(IsNewReturn, true)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return a redirect when zero amount is submitted and new return flag is NOT set" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual SEE_OTHER
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {

@@ -26,6 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import pages.IsNewReturn
 import pages.chargeA.ChargeDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -57,6 +58,12 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "numberOfMembers" -> Seq("999999999999999999999999999999999999999"),
     "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
     "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
+  )
+
+  private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
+    "numberOfMembers" -> Seq("44"),
+    "totalAmtOfTaxDueAtLowerRate" -> Seq("0.00"),
+    "totalAmtOfTaxDueAtHigherRate" -> Seq("0.00")
   )
 
   private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
@@ -119,6 +126,24 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return a BAD REQUEST when zero amounts are submitted where new return flag is set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.setOrException(IsNewReturn, true)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return redirect when zero amounts are submitted where new return flag is NOT set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual SEE_OTHER
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {

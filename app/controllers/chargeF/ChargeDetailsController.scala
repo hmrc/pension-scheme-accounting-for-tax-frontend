@@ -56,7 +56,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
   val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
 
-  def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
+  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(dateErrorMsg = messages("chargeF.deregistrationDate.error.date", min, max), minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {

@@ -26,6 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import pages.IsNewReturn
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
 import play.api.Application
 import play.api.data.Form
@@ -51,6 +52,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "paymentDate.month" -> Seq("4"),
     "paymentDate.year" -> Seq("2019"),
     "amountTaxDue" -> Seq("33.44")
+  )
+
+  private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
+    "paymentDate.day" -> Seq("3"),
+    "paymentDate.month" -> Seq("4"),
+    "paymentDate.year" -> Seq("2019"),
+    "amountTaxDue" -> Seq("0.00")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -162,6 +170,26 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "return a BAD REQUEST when zero amount is submitted and new return flag is set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.setOrException(IsNewReturn, true)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual BAD_REQUEST
+    }
+
+    "Return a redirect when zero amount is submitted and new return flag is NOT set" in {
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
+
+      status(result) mustEqual SEE_OTHER
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
