@@ -24,7 +24,7 @@ import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
 import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -33,7 +33,7 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
+import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTService, AllowAccessService}
@@ -75,6 +75,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val retrievedUA = userAnswersWithSchemeName
     .setOrException(IsPsaSuspendedQuery, value = false)
 
+  private val testManagePensionsUrl = Call("GET", "/scheme-summary")
+
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
 
   override def beforeEach: Unit = {
@@ -84,7 +86,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
   }
 
 
@@ -93,7 +95,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
-      returnUrl = dummyCall.url,
+      returnUrl = testManagePensionsUrl.url,
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
@@ -147,23 +149,31 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(version)).apply(form))
     }
 
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
+    "redirect to next page when user selects yes" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-
-      jsonCaptor.getValue must containJson(Json.obj(AFTSummaryPage.toString -> Json.toJson(true)))
+      verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+    }
+
+    "remove all data and redirect to scheme summary page when user selects no" in {
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result) mustBe Some(testManagePensionsUrl.url)
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

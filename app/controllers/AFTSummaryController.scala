@@ -33,7 +33,7 @@ import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -89,12 +89,12 @@ class AFTSummaryController @Inject()(
             renderer.render("aftSummary.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AFTSummaryPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield {
-
-              Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
+            if(value) {
+             Future.successful(Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, request.userAnswers, srn)))
+            } else {
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+              }
             }
         )
       }

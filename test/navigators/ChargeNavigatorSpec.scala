@@ -32,8 +32,6 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
-  private def addAnotherChargeYes: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, true).toOption
-  private def addAnotherChargeNo: Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(AFTSummaryPage, false).toOption
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -49,8 +47,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeDMemberExists),
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeGMemberExists),
-        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn), addAnotherChargeYes),
-        row(AFTSummaryPage)(Call("GET", frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn)), addAnotherChargeNo)
+        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
