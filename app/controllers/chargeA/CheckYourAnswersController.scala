@@ -52,7 +52,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeA(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
           val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
           renderer.render(

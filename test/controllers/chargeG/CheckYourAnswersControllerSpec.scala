@@ -59,7 +59,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = ua
     )
   }
 }

@@ -23,7 +23,7 @@ import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
@@ -33,34 +33,64 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, index).url
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
+  private def uaInd: UserAnswers = userAnswersWithSchemeName
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
     .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, srn)
-  private val answers = Seq(
-    Seq(helper.chargeCIsSponsoringEmployerIndividual(index, true)),
-    helper.chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
-    Seq(helper.chargeCAddress(index, sponsoringEmployerAddress)),
-    helper.chargeCChargeDetails(index, chargeCDetails)
-  ).flatten
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> Json.toJson(answers)
-  )
+  private def uaOrg: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(index), false).toOption.get
+    .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
+    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  "CheckYourAnswers Controller" must {
+  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn)
+  
+  private val answersInd: Seq[SummaryList.Row] = Seq(
+    Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(IsSponsoringEmployerIndividualPage(index)).get)),
+    helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
+    Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
+    helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
+  ).flatten
+
+  private val answersOrg: Seq[SummaryList.Row] = Seq(
+    Seq(helper(uaOrg).chargeCIsSponsoringEmployerIndividual(index, uaOrg.get(IsSponsoringEmployerIndividualPage(index)).get)),
+    helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
+    Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
+    helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)
+  ).flatten
+
+  private def jsonToPassToTemplate(answers: Seq[SummaryList.Row]): JsObject =
+    Json.obj("list" -> Json.toJson(answers))
+
+  "CheckYourAnswers Controller for individual" must {
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = ua
+      jsonToPassToTemplate = jsonToPassToTemplate(answersInd),
+      userAnswers = uaInd
     )
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = uaInd
+    )
+  }
+
+  "CheckYourAnswers Controller for organisation" must {
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(answersOrg),
+      userAnswers = uaOrg
+    )
+
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = uaOrg
     )
   }
 }

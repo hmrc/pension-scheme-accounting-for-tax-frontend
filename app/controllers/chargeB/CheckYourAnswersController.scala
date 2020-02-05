@@ -48,7 +48,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeB(ChargeBDetailsPage, srn) { (chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
         renderer.render("check-your-answers.njk",

@@ -25,6 +25,7 @@ import models.requests.DataRequest
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeE.AnnualAllowanceYearPage
 import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
+import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -75,12 +76,12 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeA(chargeDetails: QuestionPage[ChargeDetails],
-                 srn: String)
-                (block: (ChargeDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
+                          srn: String)
+                         (block: (A, String) => Future[Result])
+                         (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
-      request.userAnswers.get(chargeDetails),
+      request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(chargeDetails), Some(schemeName)) =>
@@ -90,40 +91,25 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeB(chargeDetails: QuestionPage[ChargeBDetails],
-                 srn: String)
-                (block: (ChargeBDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (
-      request.userAnswers.get(chargeDetails),
-      request.userAnswers.get(SchemeNameQuery)
-    ) match {
-      case (Some(chargeDetails), Some(schemeName)) =>
-        block(chargeDetails, schemeName)
-      case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
-    }
-  }
-
-  def cyaChargeC(isSponsoringEmployerIndividual: QuestionPage[Boolean],
-                 sponsoringIndividualDetails: QuestionPage[MemberDetails],
-                 sponsoringOrganisationDetails: QuestionPage[SponsoringOrganisationDetails],
-                 sponsoringEmployerAddress: QuestionPage[SponsoringEmployerAddress],
-                 chargeDetails: QuestionPage[ChargeCDetails],
+  def cyaChargeC(isSponsoringEmployerIndividualPage: QuestionPage[Boolean],
+                 sponsoringIndividualDetailsPage: QuestionPage[MemberDetails],
+                 sponsoringOrganisationDetailsPage: QuestionPage[SponsoringOrganisationDetails],
+                 sponsoringEmployerAddressPage: QuestionPage[SponsoringEmployerAddress],
+                 chargeDetailsPage: QuestionPage[ChargeCDetails],
                  srn: String)
                 (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     (
-      request.userAnswers.get(isSponsoringEmployerIndividual),
-      request.userAnswers.get(sponsoringEmployerAddress),
-      request.userAnswers.get(chargeDetails),
+      request.userAnswers.get(isSponsoringEmployerIndividualPage),
+      request.userAnswers.get(sponsoringEmployerAddressPage),
+      request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(isSponsoringEmployerIndividual), Some(sponsoringEmployerAddress), Some(chargeDetails), Some(schemeName)) =>
         (
-          request.userAnswers.get(sponsoringIndividualDetails),
-          request.userAnswers.get(sponsoringOrganisationDetails)
+          request.userAnswers.get(sponsoringIndividualDetailsPage),
+          request.userAnswers.get(sponsoringOrganisationDetailsPage)
         ) match {
           case (Some(individual), None) =>
             block(isSponsoringEmployerIndividual, Left(individual), sponsoringEmployerAddress, chargeDetails, schemeName)
@@ -137,14 +123,14 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeD(memberDetails: QuestionPage[models.MemberDetails],
-                 chargeDetails: QuestionPage[models.chargeD.ChargeDDetails],
+  def cyaChargeD(memberDetailsPage: QuestionPage[models.MemberDetails],
+                 chargeDetailsPage: QuestionPage[models.chargeD.ChargeDDetails],
                  srn: String)
                 (block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
-      request.userAnswers.get(memberDetails),
-      request.userAnswers.get(chargeDetails),
+      request.userAnswers.get(memberDetailsPage),
+      request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
@@ -154,16 +140,16 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeE(memberDetails: QuestionPage[MemberDetails],
-                 annualAllowanceYear: QuestionPage[YearRange],
-                 chargeDetails: QuestionPage[models.chargeE.ChargeEDetails],
+  def cyaChargeE(memberDetailsPage: QuestionPage[MemberDetails],
+                 annualAllowanceYearPage: QuestionPage[YearRange],
+                 chargeDetailsPage: QuestionPage[models.chargeE.ChargeEDetails],
                  srn: String)
                 (block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
-      request.userAnswers.get(memberDetails),
-      request.userAnswers.get(annualAllowanceYear),
-      request.userAnswers.get(chargeDetails),
+      request.userAnswers.get(memberDetailsPage),
+      request.userAnswers.get(annualAllowanceYearPage),
+      request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
@@ -173,31 +159,16 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeF(chargeDetails: QuestionPage[models.chargeF.ChargeDetails],
-                 srn: String)
-                (block: (models.chargeF.ChargeDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (
-      request.userAnswers.get(chargeDetails),
-      request.userAnswers.get(SchemeNameQuery)
-    ) match {
-      case (Some(chargeDetails), Some(schemeName)) =>
-        block(chargeDetails, schemeName)
-      case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
-    }
-  }
-
-  def cyaChargeG(chargeDetails: QuestionPage[models.chargeG.ChargeDetails],
-                 memberDetails: QuestionPage[models.chargeG.MemberDetails],
-                 chargeAmounts: QuestionPage[models.chargeG.ChargeAmounts],
+  def cyaChargeG(chargeDetailsPage: QuestionPage[models.chargeG.ChargeDetails],
+                 memberDetailsPage: QuestionPage[models.chargeG.MemberDetails],
+                 chargeAmountsPage: QuestionPage[models.chargeG.ChargeAmounts],
                  srn: String)
                 (block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
-      request.userAnswers.get(chargeDetails),
-      request.userAnswers.get(memberDetails),
-      request.userAnswers.get(chargeAmounts),
+      request.userAnswers.get(chargeDetailsPage),
+      request.userAnswers.get(memberDetailsPage),
+      request.userAnswers.get(chargeAmountsPage),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
       case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>

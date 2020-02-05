@@ -48,7 +48,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeF(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
         val answers: Seq[SummaryList.Row] = Seq(

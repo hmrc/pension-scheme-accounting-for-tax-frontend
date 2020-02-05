@@ -64,7 +64,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val answers: Seq[SummaryList.Row] = Seq(
           Seq(helper.chargeCIsSponsoringEmployerIndividual(index, isSponsoringEmployerIndividual)),
           helper.chargeCEmployerDetails(index, sponsorDetails),
-          Seq(helper.chargeCAddress(index, address)),
+          Seq(helper.chargeCAddress(index, address, sponsorDetails)),
           helper.chargeCChargeDetails(index, chargeDetails)
         ).flatten
 

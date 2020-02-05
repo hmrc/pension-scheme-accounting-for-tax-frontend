@@ -26,12 +26,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import models.{CheckMode, UserAnswers, YearRange}
-import pages.chargeB.ChargeBDetailsPage
 import pages.chargeC._
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPage}
-import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, ChargeDetailsPage => ChargeEDetailsPage}
-import pages.chargeF.ChargeDetailsPage
-import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage => ChargeGDetailsPage, MemberDetailsPage => ChargeGMemberDetailsPage}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -68,15 +63,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       organisation => chargeCOrganisationDetails(index, organisation)
     )
 
-  private def getEmployerName(index: Int): String =
-    (userAnswers.get(IsSponsoringEmployerIndividualPage(index)),
-      userAnswers.get(SponsoringIndividualDetailsPage(index)),
-      userAnswers.get(SponsoringOrganisationDetailsPage(index))
-    ) match {
-      case (Some(true), Some(individualDetails), _) => individualDetails.fullName
-      case (Some(false), _, Some(organisationDetails)) => organisationDetails.name
-      case _ => throw DataMissingException
-    }
+  private def getEmployerName(index: Int,
+                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]): String =
+    sponsorDetails.fold(
+      individual => individual.fullName,
+      organisation => organisation.name
+    )
 
   def chargeCIsSponsoringEmployerIndividual(index: Int, answer: Boolean): Row =
     Row(
@@ -144,15 +136,18 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     )
   }
 
-  def chargeCAddress(index: Int, address: SponsoringEmployerAddress)(implicit messages: Messages): Row =
+  def chargeCAddress(index: Int,
+                     address: SponsoringEmployerAddress,
+                     sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])
+                    (implicit messages: Messages): Row =
     Row(
-      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index)), classes = Seq("govuk-!-width-one-half")),
+      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)), classes = Seq("govuk-!-width-one-half")),
       value = Value(addressAnswer(address)),
       actions = List(
         Action(
           content = msg"site.edit",
           href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index).url,
-          visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index)))
+          visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
         )
       )
     )
@@ -182,36 +177,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         )
       )
     )
-
-  def chargeGDate(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
-    answer =>
-      Row(
-        key = Key(msg"chargeG.chargeDetails.qropsTransferDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.qropsTransferDate.format(dateFormatter))),
-        actions = List(
-          Action(
-            content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"chargeG.chargeDetails.qropsTransferDate.visuallyHidden.checkYourAnswersLabel")
-          )
-        )
-      )
-  }
-
-  def chargeGQROPSReferenceNumber(index: Int): Option[Row] = userAnswers.get(pages.chargeG.ChargeDetailsPage(index)) map {
-    answer =>
-      Row(
-        key = Key(msg"chargeG.chargeDetails.GQROPSReferenceNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.qropsReferenceNumber)),
-        actions = List(
-          Action(
-            content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
-            visuallyHiddenText = Some(msg"chargeG.chargeDetails.qropsReferenceNumber.visuallyHidden.checkYourAnswersLabel")
-          )
-        )
-      )
-  }
 
   def chargeFDate(answer: ChargeDetails): Row =
     Row(
@@ -554,14 +519,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
     )
   }
 
-  private def yesOrNo(answer: Boolean): Content
-
-  =
-    if (answer) {
-      msg"site.yes"
-    } else {
-      msg"site.no"
-    }
+  private def yesOrNo(answer: Boolean): Content =
+    if (answer) msg"site.yes" else msg"site.no"
 }
 
 object CheckYourAnswersHelper {
