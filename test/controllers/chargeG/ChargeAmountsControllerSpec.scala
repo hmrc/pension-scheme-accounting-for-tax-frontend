@@ -26,6 +26,7 @@ import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import pages.IsNewReturn
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
@@ -40,13 +41,18 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"
-  private val form = new ChargeAmountsFormProvider()("first last")
+  private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
   private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, 0).url
   private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "amountTransferred" -> Seq("33.44"),
     "amountTaxDue" -> Seq("50.00")
+  )
+
+  private val valuesZero: Map[String, Seq[String]] = Map(
+    "amountTransferred" -> Seq("0.00"),
+    "amountTaxDue" -> Seq("0.00")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -143,6 +149,28 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+
+    "return a BAD REQUEST when zero amount is submitted and the new return flag is set" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData.setOrException(IsNewReturn, true)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesZero)).value
+
+      status(result) mustEqual BAD_REQUEST
+    }
+
+    "return a redirect when zero amount is submitted and the new return flag is NOT set" in {
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any())).thenReturn(dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesZero)).value
+
+      status(result) mustEqual SEE_OTHER
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {

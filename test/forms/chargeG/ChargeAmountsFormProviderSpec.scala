@@ -22,7 +22,7 @@ import play.api.data.FormError
 
 class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
-  val form = new ChargeAmountsFormProvider()("test name")
+  val form = new ChargeAmountsFormProvider()("test name", BigDecimal("0.01"))
   val amountTransferredKey = "amountTransferred"
   val amountTaxDueKey = "amountTaxDue"
 
