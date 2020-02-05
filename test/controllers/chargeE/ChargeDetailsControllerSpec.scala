@@ -169,8 +169,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 
       status(result) mustEqual BAD_REQUEST
-
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
 
     "return a redirect when zero amount is submitted and new return flag is NOT set" in {
