@@ -72,6 +72,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
         renderer.render("check-your-answers.njk",
           Json.obj(
+            "srn" -> srn,
             "list" -> answers,
             "viewModel" -> viewModel,
             "chargeName" -> "chargeD",
