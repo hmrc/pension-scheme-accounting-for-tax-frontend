@@ -47,7 +47,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
         )
       ),
@@ -58,7 +58,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
           invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
         )
       ),

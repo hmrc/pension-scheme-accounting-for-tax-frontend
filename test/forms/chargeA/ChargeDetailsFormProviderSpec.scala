@@ -89,7 +89,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeADetails(lowerTax = decimal))
           result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
@@ -126,7 +126,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeADetails(higherTax = decimal))
           result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey

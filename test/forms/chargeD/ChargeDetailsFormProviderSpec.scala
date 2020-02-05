@@ -94,7 +94,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeDetails(tax25 = decimal))
           result.errors.head.key mustEqual tax25PercentKey
@@ -131,7 +131,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeDetails(tax55 = decimal))
           result.errors.head.key mustEqual tax55PercentKey

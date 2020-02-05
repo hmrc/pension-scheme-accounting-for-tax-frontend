@@ -70,7 +70,7 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
-      length = 11,
+      length = 12,
       expectedError = FormError(amountTaxDueKey, "totalTaxDue.error.maximum")
     )
   }

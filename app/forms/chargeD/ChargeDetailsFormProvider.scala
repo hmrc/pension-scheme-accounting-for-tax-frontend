@@ -50,7 +50,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
           decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "25"))
         )
       ),
@@ -61,7 +61,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
           decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "55"))
         )
       )
