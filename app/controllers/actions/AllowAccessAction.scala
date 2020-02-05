@@ -16,34 +16,18 @@
 
 package controllers.actions
 
+
 import com.google.inject.{ImplementedBy, Inject}
-import connectors.SchemeDetailsConnector
-import handlers.ErrorHandler
+import models.UserAnswers
 import models.requests.OptionalDataRequest
-import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{ActionFilter, Result}
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import services.AllowAccessService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessAction(
-                         srn: String,
-                         pensionsSchemeConnector: SchemeDetailsConnector,
-                         errorHandler: ErrorHandler
-                       )(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
-
-  override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    checkForAssociation(request, srn)
-  }
-
-  private def checkForAssociation[A](request: OptionalDataRequest[A],
-                                     extractedSRN: String)(implicit hc: HeaderCarrier): Future[Option[Result]] =
-    pensionsSchemeConnector.checkForAssociation(request.psaId.id, extractedSRN)(hc, implicitly, request).flatMap {
-      case true => Future.successful(None)
-      case _ => errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
-    }
+class AllowAccessAction(srn: String, allowService: AllowAccessService)(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
+  override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
+    allowService.filterForIllegalPageAccess(srn, request.userAnswers.getOrElse(UserAnswers()))(request)
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
@@ -51,9 +35,7 @@ trait AllowAccessActionProvider {
   def apply(srn: String): ActionFilter[OptionalDataRequest]
 }
 
-class AllowAccessActionProviderImpl @Inject()(
-                                               pensionsSchemeConnector: SchemeDetailsConnector,
-                                               errorHandler: ErrorHandler
+class AllowAccessActionProviderImpl @Inject()(allowService: AllowAccessService
                                              )(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn: String) = new AllowAccessAction(srn, pensionsSchemeConnector, errorHandler)
+  def apply(srn: String) = new AllowAccessAction(srn, allowService)
 }
