@@ -165,13 +165,13 @@ chargeA.numberOfMembers.error.maximum = The number of members who received a sho
 chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the total amount of tax due at 20%
 chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
-chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £99999999999.99 or less
 chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £0.00 or more
 
 chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the total amount of tax due at 50%
 chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
 chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must include pence, like 123.45 or 156.00
-chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £9999999999.99 or less
+chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £99999999999.99 or less
 chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £0.01 or more
 
 chargeA.chargeDetails.numberOfMembers.checkYourAnswersLabel = Number of members who received a short service refund lump sum in the quarter
@@ -285,7 +285,7 @@ numberOfDeceased.error.maxLength = The number of deceased members for which paym
 totalTaxDue.error.required = Enter the total amount of tax due
 totalTaxDue.error.invalid = The total amount of tax due must be an amount of money, like 123.45 or 156.00
 totalTaxDue.error.decimal = The total amount of tax due must include pence, like 123.45 or 156.00
-totalTaxDue.error.maximum = The total amount of tax due must be £9999999999.99 or less
+totalTaxDue.error.maximum = The total amount of tax due must be £99999999999.99 or less
 totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
 totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
@@ -339,7 +339,7 @@ chargeF.deregistrationDate.error.date = The date the scheme was de-registered mu
 chargeF.amountTaxDue.error.required = Enter the amount of tax due at 40%
 chargeF.amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
 chargeF.amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
-chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £9999999999.99 or less
+chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £99999999999.99 or less
 chargeF.amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeF.chargeDetails.date.label = Date scheme was de-registered
 
@@ -502,11 +502,17 @@ chargeG.chargeAmount.transferred.visuallyHidden.label = how much was transferred
 chargeG.chargeAmount.taxDue.visuallyHidden.label = the amount of tax due for this transfer into the QROPS
 
 amountTransferred.error.required = Enter the amount transferred into the QROPS for {0}
-amountTransferred.error.invalid = The amount transferred into the QROPS for dsfdf sdfs must be an amount of money, like 123.45 or 156.00
-amountTransferred.error.decimal = The amount transferred into the QROPS for dsfdf sdfs must include pence, like 123.45 or 156.00
+amountTransferred.error.invalid = The amount transferred into the QROPS for {0} must be an amount of money, like 123.45 or 156.00
+amountTransferred.error.decimal = The amount transferred into the QROPS for {0} must include pence, like 123.45 or 156.00
+amountTransferred.error.maximum = The amount transferred into the QROPS for {0} must be £99999999999.99 or less
+amountTransferred.error.minimum = The amount transferred into the QROPS for {0} must be £0.01 or more
+
 amountTaxDue.error.required = Enter the amount of tax due for this transfer into the QROPS
 amountTaxDue.error.invalid = The amount of tax due for this transfer into the QROPS must be an amount of money, like 123.45 or 156.00
 amountTaxDue.error.decimal = The amount of tax due for this transfer into the QROPS must include pence, like 123.45 or 156.00
+amountTaxDue.error.maximum = The amount of tax due for this transfer into the QROPS must be £99999999999.99 or less
+amountTaxDue.error.minimum = The amount of tax due for this transfer into the QROPS must be £0.01 or more
+
 country.AD = Andorra
 country.AE = United Arab Emirates
 country.AF = Afghanistan
