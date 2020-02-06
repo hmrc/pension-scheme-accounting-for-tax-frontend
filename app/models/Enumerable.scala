@@ -38,7 +38,7 @@ object Enumerable {
         case JsString(str) =>
           ev.withName(str).map {
             s => JsSuccess(s)
-          }.getOrElse(JsError("error.invalid"))
+          }.getOrElse(throw new RuntimeException("Enumerable item not found:" + str))
         case _ =>
           JsError("error.invalid")
        }
