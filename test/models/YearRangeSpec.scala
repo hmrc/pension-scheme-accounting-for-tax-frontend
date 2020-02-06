@@ -44,7 +44,9 @@ class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCh
       forAll(gen) {
         invalidValue =>
 
-          JsString(invalidValue).validate[YearRange] mustEqual JsError("error.invalid")
+          a [RuntimeException] shouldBe thrownBy {
+            JsString(invalidValue).validate[YearRange]
+          }
       }
     }
 

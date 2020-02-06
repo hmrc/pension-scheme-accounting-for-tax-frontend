@@ -44,7 +44,9 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
       forAll(gen) {
         invalidValue =>
 
-          JsString(invalidValue).validate[ChargeType] mustEqual JsError("error.invalid")
+          a[RuntimeException] shouldBe thrownBy {
+            JsString(invalidValue).validate[ChargeType]
+          }
       }
     }
 
