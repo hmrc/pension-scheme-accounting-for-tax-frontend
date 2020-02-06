@@ -21,9 +21,12 @@ import models.requests.{IdentifierRequest, OptionalDataRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MutableFakeDataRetrievalAction(viewOnly: Boolean = false) extends DataRetrievalAction {
+class MutableFakeDataRetrievalAction extends DataRetrievalAction {
   private var dataToReturn: Option[UserAnswers] = None
+  private var viewOnly: Boolean = false
+
   def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
+  def setViewOnly(viewOnlyFlag: Boolean): Unit = viewOnly = viewOnlyFlag
 
   override def apply(srn: String): DataRetrieval = new MutableFakeDataRetrieval(viewOnly, dataToReturn)
 }
