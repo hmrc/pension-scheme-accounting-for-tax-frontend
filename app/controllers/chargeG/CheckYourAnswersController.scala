@@ -18,13 +18,12 @@ package controllers.chargeG
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -52,13 +51,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeG(
-        ChargeDetailsPage(index),
-        MemberDetailsPage(index),
-        ChargeAmountsPage(index),
-        srn
-      ) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
-
+      DataRetrievals.cyaChargeG(index, srn) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
         val answers: Seq[SummaryList.Row] = Seq(
