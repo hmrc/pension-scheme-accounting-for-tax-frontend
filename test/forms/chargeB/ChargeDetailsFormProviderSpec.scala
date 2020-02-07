@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider()()
+  val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
   val numberOfDeceased = "numberOfDeceased"
   val amountTaxDueKey = "amountTaxDue"
 

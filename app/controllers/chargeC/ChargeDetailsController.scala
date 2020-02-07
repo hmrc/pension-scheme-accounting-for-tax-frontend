@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeC.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeC.ChargeCDetails
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
@@ -49,14 +49,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  val form: Form[ChargeCDetails] = formProvider()
+  private def form(ua:UserAnswers): Form[ChargeCDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
-          case Some(value) => form.fill(value)
-          case None => form
+          case Some(value) => form(request.userAnswers).fill(value)
+          case None => form(request.userAnswers)
         }
 
         val viewModel = GenericViewModel(
@@ -79,7 +79,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        form.bindFromRequest().fold(
+        form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(

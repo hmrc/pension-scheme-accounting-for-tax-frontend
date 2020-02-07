@@ -29,13 +29,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 class AFTService @Inject()(
-                          aftConnector: AFTConnector,
-                          userAnswersCacheConnector: UserAnswersCacheConnector,
-                          schemeService: SchemeService,
-                          minimalPsaConnector: MinimalPsaConnector,
-                          allowService: AllowAccessService
+                            aftConnector: AFTConnector,
+                            userAnswersCacheConnector: UserAnswersCacheConnector,
+                            schemeService: SchemeService,
+                            minimalPsaConnector: MinimalPsaConnector
                           ) {
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request:DataRequest[_]): Future[Unit] = {
+  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
       answers.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
@@ -50,37 +49,46 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetails(srn:String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request:OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
+  def retrieveAFTRequiredDetails(srn: String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
 
     def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
       userAnswers
-        .setOrException(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-        .setOrException(AFTStatusQuery, value = "Compiled")
-        .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-        .setOrException(PSTRQuery, schemeDetails.pstr)
+        .setOrExceptionIfNotPresent(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+        .setOrExceptionIfNotPresent(AFTStatusQuery, value = "Compiled")
+        .setOrExceptionIfNotPresent(SchemeNameQuery, schemeDetails.schemeName)
+        .setOrExceptionIfNotPresent(PSTRQuery, schemeDetails.pstr)
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      uaWithSuspendedFlag <- retrieveAFTDetailsAndSuspendedFlag(optionVersion, schemeDetails)
+      uaWithSuspendedFlag <- retrieveAFTDetailsAndStoreInUserAnswers(optionVersion, schemeDetails)
       uaWithLock <- setLock(uaWithSuspendedFlag)
       ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithLock).data)
     } yield {
-          (schemeDetails, UserAnswers(ua.as[JsObject]))
+      (schemeDetails, UserAnswers(ua.as[JsObject]))
     }
   }
 
   private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] =
-    if(request.viewOnly) {
+    if (request.viewOnly) {
       Future.successful(ua)
     } else {
       userAnswersCacheConnector.saveAndLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
     }
 
-  private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                                                    (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+  private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                                     (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+    def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
+
 
     val futureUserAnswers = optionVersion match {
-      case None => Future.successful(request.userAnswers.getOrElse(UserAnswers()))
+      case None =>
+        aftConnector.getListOfVersions(schemeDetails.pstr).map { listOfVersions =>
+          if (listOfVersions.isEmpty) {
+            currentUserAnswers.setOrException(IsNewReturn, true)
+          } else {
+            currentUserAnswers
+          }
+        }
       case Some(version) =>
         getAFTDetails(schemeDetails.pstr, "2020-04-01", version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
