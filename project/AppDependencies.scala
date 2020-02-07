@@ -14,7 +14,7 @@ object AppDependencies {
     "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.22.0-play-26",
     "uk.gov.hmrc"                   %%  "play-nunjucks-viewmodel"        % "0.6.0-play-26",
     "org.webjars.npm"               %   "govuk-frontend"                 % "3.5.0",
-    "org.webjars.npm"               %   "hmrc-frontend"                  % "1.3.0",
+    "org.webjars.npm"               %   "hmrc-frontend"                  % "1.5.0",
     "com.google.inject.extensions"  %   "guice-multibindings"            % "4.2.2",
     "uk.gov.hmrc"                   %%  "domain"                         % "5.6.0-play-26"
   )

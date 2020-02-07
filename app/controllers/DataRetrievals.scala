@@ -16,10 +16,14 @@
 
 package controllers
 
-import models.MemberDetails
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import models.{Index, MemberDetails, YearRange}
+import pages.chargeC._
+import pages.chargeD.ChargeDetailsPage
+import pages.chargeE.AnnualAllowanceYearPage
 import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
+import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
@@ -67,6 +71,95 @@ object DataRetrievals {
       case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
       case (Some(true), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
+                          srn: String)
+                         (block: (A, String) => Future[Result])
+                         (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
+    (
+      request.userAnswers.get(chargeDetailsPage),
+      request.userAnswers.get(SchemeNameQuery)
+    ) match {
+      case (Some(chargeDetails), Some(schemeName)) =>
+        block(chargeDetails, schemeName)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+    }
+  }
+
+  def cyaChargeC(index: Index, srn: String)
+                (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
+                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+
+    (
+      request.userAnswers.get(IsSponsoringEmployerIndividualPage(index)),
+      request.userAnswers.get(SponsoringEmployerAddressPage(index)),
+      request.userAnswers.get(ChargeCDetailsPage(index)),
+      request.userAnswers.get(SchemeNameQuery)
+    ) match {
+      case (Some(isSponsoringEmployerIndividual), Some(sponsoringEmployerAddress), Some(chargeDetails), Some(schemeName)) =>
+        (
+          request.userAnswers.get(SponsoringIndividualDetailsPage(index)),
+          request.userAnswers.get(SponsoringOrganisationDetailsPage(index))
+        ) match {
+          case (Some(individual), None) =>
+            block(isSponsoringEmployerIndividual, Left(individual), sponsoringEmployerAddress, chargeDetails, schemeName)
+          case (None, Some(organisation)) =>
+            block(isSponsoringEmployerIndividual, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
+          case _ =>
+            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        }
+      case _ =>
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+    }
+  }
+
+  def cyaChargeD(index: Index, srn: String)
+                (block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])
+                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (
+      request.userAnswers.get(pages.chargeD.MemberDetailsPage(index)),
+      request.userAnswers.get(ChargeDetailsPage(index)),
+      request.userAnswers.get(SchemeNameQuery)
+    ) match {
+      case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
+        block(memberDetails, chargeDetails, schemeName)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+    }
+  }
+
+  def cyaChargeE(index: Index, srn: String)
+                (block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])
+                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (
+      request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
+      request.userAnswers.get(AnnualAllowanceYearPage(index)),
+      request.userAnswers.get(pages.chargeE.ChargeDetailsPage(index)),
+      request.userAnswers.get(SchemeNameQuery)
+    ) match {
+      case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
+        block(memberDetails, taxYear, chargeEDetails, schemeName)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+    }
+  }
+
+  def cyaChargeG(index: Index, srn: String)
+                (block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])
+                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (
+      request.userAnswers.get(pages.chargeG.ChargeDetailsPage(index)),
+      request.userAnswers.get(pages.chargeG.MemberDetailsPage(index)),
+      request.userAnswers.get(pages.chargeG.ChargeAmountsPage(index)),
+      request.userAnswers.get(SchemeNameQuery)
+    ) match {
+      case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>
+        block(chargeDetails, memberDetails, chargeAmounts, schemeName)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
     }
   }
 

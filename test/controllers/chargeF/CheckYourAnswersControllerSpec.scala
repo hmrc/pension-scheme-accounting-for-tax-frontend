@@ -18,7 +18,7 @@ package controllers.chargeF
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
@@ -30,18 +30,18 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
-  private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn).url
+  private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(srn).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(ChargeDetailsPage, SampleData.chargeFChargeDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeDetailsPage, chargeFChargeDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
-      helper.chargeFDate.get,
-      helper.chargeFAmount.get
+      helper.chargeFDate(chargeFChargeDetails),
+      helper.chargeFAmount(chargeFChargeDetails)
     ))
 
   "CheckYourAnswers Controller" must {
@@ -54,7 +54,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = ua
     )
   }
 }

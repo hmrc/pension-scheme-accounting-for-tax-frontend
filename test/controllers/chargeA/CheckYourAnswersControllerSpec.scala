@@ -40,9 +40,9 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
-      helper.chargeAMembers.get,
-      helper.chargeAAmountLowerRate.get,
-      helper.chargeAAmountHigherRate.get,
+      helper.chargeAMembers(chargeAChargeDetails),
+      helper.chargeAAmountLowerRate(chargeAChargeDetails),
+      helper.chargeAAmountHigherRate(chargeAChargeDetails),
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(

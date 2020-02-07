@@ -39,8 +39,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val helper = new CheckYourAnswersHelper(ua, srn)
   private val rows = Seq(
-    helper.chargeDMemberDetails(0).get,
-    helper.chargeDDetails(0).get,
+    helper.chargeDMemberDetails(0, memberDetails),
+    helper.chargeDDetails(0, chargeDDetails),
     Seq(helper.total(chargeAmount1 + chargeAmount2))
   ).flatten
 

@@ -47,6 +47,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
+
   }
 
   def cyaController(httpPath: => String,
@@ -56,10 +58,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
-
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -73,7 +71,28 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate)}
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+
+    "redirect to AFT summary page for a GET when necessary answers are missing" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeName))
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, None).url
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
   }
 
   def controllerWithOnClick[A](httpPath: => String,
@@ -86,8 +105,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
@@ -99,16 +116,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
       verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-    }
-
-    "redirect to Session Expired page for a GET when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val result = route(application, httpGETRequest(httpPath)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }

@@ -18,7 +18,6 @@ package controllers.chargeE
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -52,27 +51,25 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeE(index, srn) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val seqRows: Seq[SummaryList.Row] = Seq(
-          helper.chargeEMemberDetails(index).get,
-          helper.chargeETaxYear(index).get,
-          helper.chargeEDetails(index).get
+          helper.chargeEMemberDetails(index, memberDetails),
+          helper.chargeETaxYear(index, taxYear),
+          helper.chargeEDetails(index, chargeEDetails)
         ).flatten
 
-        val answers = if(request.viewOnly) seqRows.map(_.copy(actions = Nil)) else seqRows
+        val rows = if(request.viewOnly) seqRows.map(_.copy(actions = Nil)) else seqRows
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "srn" -> srn,
-            "list" -> answers,
-            "viewModel" -> viewModel,
+            "list" -> rows,
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
             "chargeName" -> "chargeE",
             "canChange" -> !request.viewOnly
           )).map(Ok(_))
