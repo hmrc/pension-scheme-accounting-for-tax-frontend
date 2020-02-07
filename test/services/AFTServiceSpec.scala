@@ -160,28 +160,28 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "viewOnly flag in the request is set to true" must {
       "not call set lock" in {
-        when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
         (implicitly, implicitly, optionalDataRequest())) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
-          verify(mockUserAnswersCacheConnector, never()).setLock(any(), any())(any(), any())
+          verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
         }
       }
     }
 
     "viewOnly flag in the request is set to false" must {
       "call set lock" in {
-        when(mockUserAnswersCacheConnector.setLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
-          verify(mockUserAnswersCacheConnector, times(1)).setLock(any(), any())(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
         }
       }
     }

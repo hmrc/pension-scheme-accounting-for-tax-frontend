@@ -116,7 +116,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
     }
   }
 
-  ".setLock" must {
+  ".saveAndLock" must {
     val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
     val json = Json.obj(
       fields = "testId" -> "lock"
@@ -130,7 +130,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.setLock(cacheId = "testId", json) map {
+      connector.saveAndLock(cacheId = "testId", json) map {
         _ mustEqual json
       }
     }

@@ -60,7 +60,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     save(id, value, url)
   }
 
-  override def setLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  override def saveAndLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     save(id, value, lockUrl)
   }
 
@@ -114,7 +114,7 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
-  def setLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+  def saveAndLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 

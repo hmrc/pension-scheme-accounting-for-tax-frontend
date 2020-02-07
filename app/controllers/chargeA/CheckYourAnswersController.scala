@@ -62,13 +62,12 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.chargeAAmountHigherRate(chargeDetails),
           helper.total(chargeDetails.totalAmount)
         )
-        val rows = if(request.viewOnly) seqRows.map(_.copy(actions = Nil)) else seqRows
 
         renderer.render(
           template = "check-your-answers.njk",
           ctx = Json.obj(
             "srn" -> srn,
-            "list" -> rows,
+            "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
               submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

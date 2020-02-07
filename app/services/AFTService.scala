@@ -73,7 +73,7 @@ class AFTService @Inject()(
     if(request.viewOnly) {
       Future.successful(ua)
     } else {
-      userAnswersCacheConnector.setLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
+      userAnswersCacheConnector.saveAndLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
     }
 
   private def retrieveAFTDetailsAndSuspendedFlag(optionVersion: Option[String], schemeDetails: SchemeDetails)
