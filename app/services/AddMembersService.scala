@@ -27,34 +27,30 @@ import viewmodels.Table.Cell
 
 object AddMembersService {
 
-  private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member])(implicit messages: Messages): Table = {
+  private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 
     val head = Seq(
       Cell(msg"addMembers.members.header", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"addMembers.nino.header", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"addMembers.$chargeName.amount.header", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg""),
       Cell(msg"")
-    )
+    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil)
 
     val rows = members.map { data =>
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"£${formatBigDecimalAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
-
-      )
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
+      ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
     }
     val totalAmount = members.map(_.amount).sum
 
     val totalRow = Seq(Seq(
       Cell(msg""), Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
       Cell(Literal(s"£${formatBigDecimalAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg""),
       Cell(msg"")
-    ))
+    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil))
 
     Table(head = head, rows = rows ++ totalRow)
   }

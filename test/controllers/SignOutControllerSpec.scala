@@ -29,7 +29,8 @@ import scala.concurrent.Future
 
 class SignOutControllerSpec extends ControllerSpecBase {
 
-  private def signOutRoute: String = controllers.routes.SignOutController.signOut().url
+  private val srn = "srn"
+  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn).url
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))

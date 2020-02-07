@@ -59,7 +59,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
@@ -71,7 +71,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       form.bindFromRequest().fold(
         formWithErrors => {
@@ -105,12 +105,14 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
     val members = getLifetimeAllowanceMembers(request.userAnswers, srn)
 
     Json.obj(
-      "form" -> form,
+          "srn" -> srn,
+          "form" -> form,
       "viewModel" -> viewModel,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> getFormattedDate(quarter.startDate),
       "quarterEnd" -> getFormattedDate(quarter.endDate),
-      "table" -> Json.toJson(mapToTable(members))
+      "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
+      "canChange" -> !request.viewOnly
     )
 
 

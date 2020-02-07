@@ -24,12 +24,19 @@
           rows: list
         }) }}
 
-        {{ govukButton({
-            text: messages("site.save_charge_and_continue"),
-            href: viewModel.submitUrl,
-            attributes: {id: "submit"}
-          }) }}
-
+        {% if canChange %}
+            {{ govukButton({
+                text: messages("site.save_charge_and_continue"),
+                href: viewModel.submitUrl,
+                attributes: {id: "submit"}
+              }) }}
+        {% else %}
+            {{ govukButton({
+                 text: messages("site.return_to_summary"),
+                 href: routes.controllers.AFTSummaryController.onPageLoad(srn, None).url,
+                 attributes: {id: "submit"}
+            }) }}
+        {% endif %}
       </div>
     </div>
      <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>

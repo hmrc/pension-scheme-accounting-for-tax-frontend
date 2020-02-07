@@ -22,12 +22,19 @@ import models.requests.{IdentifierRequest, OptionalDataRequest}
 import scala.concurrent.{ExecutionContext, Future}
 
 class MutableFakeDataRetrievalAction extends DataRetrievalAction {
-  def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
-
   private var dataToReturn: Option[UserAnswers] = None
+  private var viewOnly: Boolean = false
+
+  def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
+  def setViewOnly(viewOnlyFlag: Boolean): Unit = viewOnly = viewOnlyFlag
+
+  override def apply(srn: String): DataRetrieval = new MutableFakeDataRetrieval(viewOnly, dataToReturn)
+}
+
+class MutableFakeDataRetrieval(viewOnly: Boolean = false, dataToReturn: Option[UserAnswers]) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    Future(OptionalDataRequest(request.request, request.identifier, request.psaId, dataToReturn))
+    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, viewOnly))
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global

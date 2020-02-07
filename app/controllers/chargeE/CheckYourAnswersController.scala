@@ -49,12 +49,12 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.cyaChargeE(index, srn) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val answers: Seq[SummaryList.Row] = Seq(
+        val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index, memberDetails),
           helper.chargeETaxYear(index, taxYear),
           helper.chargeEDetails(index, chargeEDetails)
@@ -62,17 +62,19 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
         renderer.render("check-your-answers.njk",
           Json.obj(
-            "list" -> answers,
+            "srn" -> srn,
+            "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
               submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName),
-            "chargeName" -> "chargeE"
+            "chargeName" -> "chargeE",
+            "canChange" -> !request.viewOnly
           )).map(Ok(_))
       }
   }
 
-  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = getAnnualAllowanceMembers(request.userAnswers, srn).map(_.amount).sum

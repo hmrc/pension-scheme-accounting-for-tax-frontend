@@ -37,7 +37,7 @@ class CannotMakeChangesController @Inject()(
                                              config: FrontendAppConfig
                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         renderer.render("cannot-make-changes.njk",

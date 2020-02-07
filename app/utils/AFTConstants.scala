@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package models.requests
+package utils
 
-import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.domain.PsaId
-
-case class IdentifierRequest[A] (request: Request[A], psaId: PsaId) extends WrappedRequest[A](request)
+object AFTConstants {
+  val QUARTER_START_DATE = "2020-04-01"
+  val QUARTER_END_DATE = "2020-06-30"
+}

@@ -56,7 +56,7 @@ object ChargeDService {
   def viewUrl(index: Int, srn: String): Call = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, index)
   def removeUrl(index: Int, srn: String): Call = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, index)
 
-  def mapToTable(members: Seq[Member])(implicit messages: Messages): Table =
-    mapChargeXMembersToTable("chargeD", members)
+  def mapToTable(members: Seq[Member], canChange:Boolean)(implicit messages: Messages): Table =
+    mapChargeXMembersToTable("chargeD", members, canChange)
 
 }

@@ -58,7 +58,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
@@ -68,6 +68,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel(mode, srn, index, schemeName),
           "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
@@ -78,7 +79,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
@@ -86,7 +87,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "viewModel" -> viewModel(mode, srn, index, schemeName),
               "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
               "memberName" -> memberName

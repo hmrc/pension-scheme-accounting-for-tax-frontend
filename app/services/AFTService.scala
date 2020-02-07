@@ -32,8 +32,7 @@ class AFTService @Inject()(
                             aftConnector: AFTConnector,
                             userAnswersCacheConnector: UserAnswersCacheConnector,
                             schemeService: SchemeService,
-                            minimalPsaConnector: MinimalPsaConnector,
-                            allowService: AllowAccessService
+                            minimalPsaConnector: MinimalPsaConnector
                           ) {
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
@@ -62,15 +61,24 @@ class AFTService @Inject()(
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       uaWithSuspendedFlag <- retrieveAFTDetailsAndStoreInUserAnswers(optionVersion, schemeDetails)
-      ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag).data)
+      uaWithLock <- setLock(uaWithSuspendedFlag)
+      ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithLock).data)
     } yield {
       (schemeDetails, UserAnswers(ua.as[JsObject]))
     }
   }
 
+  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] =
+    if (request.viewOnly) {
+      Future.successful(ua)
+    } else {
+      userAnswersCacheConnector.saveAndLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
+    }
+
   private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                      (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
-    def currentUserAnswers:UserAnswers = request.userAnswers.getOrElse(UserAnswers())
+    def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
+
 
     val futureUserAnswers = optionVersion match {
       case None =>

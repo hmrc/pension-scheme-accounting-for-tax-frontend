@@ -24,17 +24,21 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, NormalMode}
+import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import play.api.data.Form
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTSummaryHelper
+import utils.{AFTConstants, AFTSummaryHelper}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -59,58 +63,57 @@ class AFTSummaryController @Inject()(
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData).async {
+  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+
+  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
+
+  def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
       aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
           case None =>
-            userAnswers.get(QuarterPage) match {
-              case Some(quarter) =>
-                val json = Json.obj(
-                  "form" -> form,
-                  "list" -> aftSummaryHelper.summaryListData(userAnswers, srn),
-                  "viewModel" -> viewModel(NormalMode, srn, schemeDetails.schemeName, optionVersion),
-                  "radios" -> Radios.yesNo(form("value")),
-                  "startDate" -> getFormattedStartDate(quarter.startDate),
-                  "endDate" -> getFormattedEndDate(quarter.endDate)
-                )
-                renderer.render("aftSummary.njk", json).map(Ok(_))
-              case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-            }
+            val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
+            renderer.render("aftSummary.njk", json).map(Ok(_))
           case Some(redirectLocation) => Future.successful(redirectLocation)
         }
       }
   }
 
-  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
             val ua = request.userAnswers
-            val optionJson = ua.get(QuarterPage).map { quarter =>
-              Json.obj(
-                "form" -> formWithErrors,
-                "list" -> aftSummaryHelper.summaryListData(ua, srn),
-                "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
-                "radios" -> Radios.yesNo(form("value")),
-                "startDate" -> getFormattedStartDate(quarter.startDate),
-                "endDate" -> getFormattedEndDate(quarter.endDate)
-              )
-            }
-
-            optionJson match {
-              case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              case Some(json) => renderer.render("aftSummary.njk", json).map(BadRequest(_))
-            }
+            val json = getJson(formWithErrors, ua, srn, schemeName, optionVersion, !request.viewOnly)
+            renderer.render("aftSummary.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AFTSummaryPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, updatedAnswers, srn))
+            if(value) {
+             Future.successful(Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, request.userAnswers, srn)))
+            } else {
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+              }
+            }
         )
       }
+  }
+
+  private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, schemeName: String,
+                      optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
+    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(AFTConstants.QUARTER_START_DATE)
+    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(AFTConstants.QUARTER_END_DATE)
+    Json.obj(
+      "srn" -> srn,
+      "form" -> form,
+      "list" -> aftSummaryHelper.summaryListData(ua, srn),
+      "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
+      "radios" -> Radios.yesNo(form("value")),
+      "startDate" -> getFormattedStartDate(quarterStartDate),
+      "endDate" -> getFormattedEndDate(quarterEndDate),
+      "canChange" -> canChange
+    )
   }
 
   private def viewModel(mode: Mode, srn: String, schemeName: String, version: Option[String]): GenericViewModel = {
@@ -119,8 +122,4 @@ class AFTSummaryController @Inject()(
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName)
   }
-
-  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
-
-  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
 }

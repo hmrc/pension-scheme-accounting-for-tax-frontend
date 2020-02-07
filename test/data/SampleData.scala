@@ -29,6 +29,7 @@ import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
+import utils.AFTConstants._
 
 object SampleData {
   val userAnswersId = "id"
@@ -71,7 +72,7 @@ object SampleData {
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,
       "pstr" -> pstr,
-      "quarter" -> Quarter("2020-04-01", "2020-06-30"))
+      "quarter" -> Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
     )
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName

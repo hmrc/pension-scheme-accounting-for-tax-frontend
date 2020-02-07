@@ -35,12 +35,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthActionSpec extends ControllerSpecBase {
+class IdentifierActionSpec extends ControllerSpecBase {
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad(): Action[AnyContent] = authAction {
       implicit request =>
-        Ok(Json.obj("psaId" -> request.psaId, "identifier" -> request.identifier))
+        Ok(Json.obj("psaId" -> request.psaId))
     }
   }
 
@@ -55,7 +55,7 @@ class AuthActionSpec extends ControllerSpecBase {
     when(mockAppConfig.loginUrl).thenReturn(dummyCall.url)
   }
 
-  "Auth Action" when {
+  "Identifier Action" when {
 
     "the user has logged in and enrolled in PODS" must {
 
@@ -69,13 +69,12 @@ class AuthActionSpec extends ControllerSpecBase {
           ), "Activated", None)
         ))
 
-        when(authConnector.authorise[Option[String] ~ Enrolments](any(), any())(any(), any()))
-          .thenReturn(Future.successful(new ~(Some("internalId"), enrolments)))
+        when(authConnector.authorise[Enrolments](any(), any())(any(), any()))
+          .thenReturn(Future.successful(enrolments))
 
         val result = controller.onPageLoad()(fakeRequest)
         status(result) mustBe OK
         (contentAsJson(result) \ "psaId").asOpt[String].value mustEqual "A0000000"
-        (contentAsJson(result) \ "identifier").as[String] mustEqual "internalId"
       }
     }
 
@@ -87,8 +86,8 @@ class AuthActionSpec extends ControllerSpecBase {
 
         val enrolments = Enrolments(Set())
 
-        when(authConnector.authorise[Option[String] ~ Enrolments](any(), any())(any(), any()))
-          .thenReturn(Future.successful(new ~(Some("internalId"), enrolments)))
+        when(authConnector.authorise[Enrolments](any(), any())(any(), any()))
+          .thenReturn(Future.successful(enrolments))
 
         val result = controller.onPageLoad()(fakeRequest)
         status(result) mustBe SEE_OTHER

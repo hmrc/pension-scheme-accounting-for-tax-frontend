@@ -34,7 +34,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
-    case AFTSummaryPage => aftSummaryNavigation(ua, srn)
+    case AFTSummaryPage => controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -54,13 +54,6 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
       case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua, srn) == 0 => controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeOverseasTransfer) => controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeG(ua, srn))
       case _ => sessionExpiredPage
-    }
-
-
-  private def aftSummaryNavigation(ua: UserAnswers, srn: String): Call =
-    ua.get(AFTSummaryPage) match {
-      case Some(true) => controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
-      case _ => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad()

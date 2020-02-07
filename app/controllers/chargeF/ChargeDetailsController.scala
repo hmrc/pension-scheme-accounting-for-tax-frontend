@@ -59,7 +59,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(dateErrorMsg = messages("chargeF.deregistrationDate.error.date", min, max), minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -74,6 +74,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("deregistrationDate"))
@@ -83,7 +84,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -95,7 +96,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
             )

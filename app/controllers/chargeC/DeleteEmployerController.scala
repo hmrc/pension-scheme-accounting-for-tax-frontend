@@ -56,7 +56,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
@@ -66,7 +66,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> form(employerName),
+          "srn" -> srn,
+          "form" -> form(employerName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
               "employerName" -> employerName
@@ -76,7 +77,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
         }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
@@ -89,7 +90,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                   schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "radios" -> Radios.yesNo(formWithErrors("value")),
                   "employerName" -> employerName

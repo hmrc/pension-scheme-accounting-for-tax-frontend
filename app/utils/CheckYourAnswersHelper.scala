@@ -521,6 +521,10 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
 
   private def yesOrNo(answer: Boolean): Content =
     if (answer) msg"site.yes" else msg"site.no"
+
+  def rows(viewOnly: Boolean, rows: Seq[SummaryList.Row]): Seq[SummaryList.Row] = {
+    if(viewOnly) rows.map(_.copy(actions = Nil)) else rows
+  }
 }
 
 object CheckYourAnswersHelper {

@@ -16,52 +16,62 @@
 
 package controllers.actions
 
-import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import org.mockito.Matchers.any
+import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants
+
 import org.mockito.Matchers.{eq => eqTo, _}
 import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures {
+class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with BeforeAndAfterEach {
+  val srn = "srn"
+  val dataCacheConnector = mock[UserAnswersCacheConnector]
 
-  class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalActionImpl(dataCacheConnector) {
+  override def beforeEach: Unit = {
+    reset(dataCacheConnector)
+  }
+  class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalImpl(srn, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }
 
   "Data Retrieval Action" when {
     "there is no data in the cache" must {
-      "set addRequiredDetailsToUserAnswers to 'None' in the request" in {
+      "set addRequiredDetailsToUserAnswers to 'None' and viewOnly flag to false in the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
-        when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future(None)
+        when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future(None)
+        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(false)
         val action = new Harness(dataCacheConnector)
 
-        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", PsaId("A0000000")))
+        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isEmpty mustBe true
+          result.viewOnly mustBe false
         }
       }
     }
 
     "there is data in the cache" must {
-      "build a addRequiredDetailsToUserAnswers object and add it to the request" in {
+      "build a addRequiredDetailsToUserAnswers object, set viewOnly flag to true and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
-        when(dataCacheConnector.fetch(eqTo("id"))(any(), any())) thenReturn Future.successful(Some(Json.obj()))
+        when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj()))
+        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(true)
         val action = new Harness(dataCacheConnector)
 
-        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, "id", PsaId("A0000000")))
+        val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true
+          result.viewOnly mustBe true
         }
       }
     }
