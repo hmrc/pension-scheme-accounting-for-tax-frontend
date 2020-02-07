@@ -32,7 +32,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Result, Results}
-import play.api.test.Helpers._
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -114,16 +113,41 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "retrieveAFTRequiredDetails" when {
-    "no version is given and suspended flag is not in user answers" must {
-      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it in Mongo" in {
+    "no version is given and there are no versions in AFT and suspended flag is not in user answers" must {
+      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it and the IsNewReturn flag in Mongo" in {
         val uaToSave = userAnswersWithSchemeName
           .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(IsNewReturn, value = true)
           .setOrException(AFTStatusQuery, value = aftStatus)
+
+        when(mockAFTConnector.getListOfVersions(any())(any(), any()))
+          .thenReturn(Future.successful(Seq[Int]()))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
           verify(mockAFTConnector, times(0)).getAFTDetails(any(), any(), any())(any(), any())
+          verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
+          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
+        }
+      }
+    }
+
+    "no version is given and there ARE versions in AFT and suspended flag is not in user answers" must {
+      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it but NOT the IsNewReturn flag in Mongo" in {
+        val uaToSave = userAnswersWithSchemeName
+          .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(AFTStatusQuery, value = aftStatus)
+
+        when(mockAFTConnector.getListOfVersions(any())(any(), any()))
+          .thenReturn(Future.successful(Seq[Int](1)))
+
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
+          resultScheme mustBe schemeDetails
+          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+          verify(mockAFTConnector, times(0)).getAFTDetails(any(), any(), any())(any(), any())
+          verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
           verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
         }
@@ -135,7 +159,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         val uaToSave = userAnswersWithSchemeName
           .setOrException(IsPsaSuspendedQuery, value = false)
           .setOrException(AFTStatusQuery, value = aftStatus)
-        val block: (SchemeDetails, UserAnswers) => Future[Result] = (_, _) => Future.successful(Ok(""))
 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))

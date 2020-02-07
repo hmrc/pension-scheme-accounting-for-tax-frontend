@@ -35,6 +35,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return"
+  private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
 
   "fileAFTReturn" must {
@@ -136,7 +137,9 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[BadRequestException] {connector.getAFTDetails(pstr, startDate, aftVersion)} map {
+      recoverToExceptionIf[BadRequestException] {
+        connector.getAFTDetails(pstr, startDate, aftVersion)
+      } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
     }
@@ -152,7 +155,9 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[NotFoundException] { connector.getAFTDetails(pstr, startDate, aftVersion)} map { response =>
+      recoverToExceptionIf[NotFoundException] {
+        connector.getAFTDetails(pstr, startDate, aftVersion)
+      } map { response =>
         response.responseCode mustEqual Status.NOT_FOUND
       }
     }
@@ -175,4 +180,41 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     }
   }
 
+  "getListOfVersions" must {
+    "return successfully when the backend has returned OK" in {
+      val startDate = "2020-04-01"
+      val expectedResult = Seq(1)
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .willReturn(
+            ok(Json.stringify(Json.toJson(expectedResult)))
+          )
+      )
+
+      connector.getListOfVersions(pstr) map { result =>
+        result mustBe expectedResult
+      }
+    }
+
+    "throw exception when the backend has returned something other than OK" in {
+      val startDate = "2020-04-01"
+      //val data = Json.obj("pstr" -> pstr, "startDate" -> startDate)
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getListOfVersions(pstr)
+      }.map {
+        _.responseCode mustEqual Status.BAD_REQUEST
+      }
+    }
+  }
 }
