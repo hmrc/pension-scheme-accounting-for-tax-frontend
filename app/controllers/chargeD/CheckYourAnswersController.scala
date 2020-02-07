@@ -18,14 +18,13 @@ package controllers.chargeD
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
-import pages.{PSTRQuery, SchemeNameQuery}
+import pages.PSTRQuery
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -54,25 +53,22 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeD(index, srn) { (memberDetails, chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
-        val total = request.userAnswers.get(ChargeDetailsPage(index)).map(_.total).getOrElse(BigDecimal(0))
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
 
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeDMemberDetails(index).get,
-          helper.chargeDDetails(index).get,
-          Seq(helper.total(total))
+          helper.chargeDMemberDetails(index, memberDetails),
+          helper.chargeDDetails(index, chargeDetails),
+          Seq(helper.total(chargeDetails.total))
         ).flatten
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel,
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
             "chargeName" -> "chargeD"
           )).map(Ok(_))
       }

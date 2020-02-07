@@ -18,7 +18,7 @@ package controllers.chargeG
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
@@ -30,19 +30,19 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, 0).url
-  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(SampleData.srn, 0).url
+  private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, 0).url
+  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, 0).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeGDetails).toOption.get
-    .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(MemberDetailsPage(0), memberGDetails).toOption.get
+    .set(ChargeDetailsPage(0), chargeGDetails).toOption.get
+    .set(ChargeAmountsPage(0), chargeAmounts).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
   private val rows = Seq(
-    helper.chargeGMemberDetails(0).get,
-    helper.chargeGDetails(0).get,
-    helper.chargeGAmounts(0).get
+    helper.chargeGMemberDetails(0, memberGDetails),
+    helper.chargeGDetails(0, chargeGDetails),
+    helper.chargeGAmounts(0, chargeAmounts)
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
@@ -59,7 +59,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = ua
     )
   }
 }

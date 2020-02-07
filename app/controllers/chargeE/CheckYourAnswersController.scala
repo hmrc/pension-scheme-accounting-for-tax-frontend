@@ -18,7 +18,6 @@ package controllers.chargeE
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
@@ -52,24 +51,22 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeE(index, srn) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
         val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeEMemberDetails(index).get,
-          helper.chargeETaxYear(index).get,
-          helper.chargeEDetails(index).get
+          helper.chargeEMemberDetails(index, memberDetails),
+          helper.chargeETaxYear(index, taxYear),
+          helper.chargeEDetails(index, chargeEDetails)
         ).flatten
 
         renderer.render("check-your-answers.njk",
           Json.obj(
             "list" -> answers,
-            "viewModel" -> viewModel,
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
             "chargeName" -> "chargeE"
           )).map(Ok(_))
       }

@@ -18,49 +18,79 @@ package controllers.chargeC
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(SampleData.srn, index).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(SampleData.srn, index).url
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index).url
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, index).url
 
-  private def ua: UserAnswers = SampleData.userAnswersWithSchemeName
-    .set(ChargeCDetailsPage(index), SampleData.chargeCDetails).toOption.get
+  private def uaInd: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
-    .set(SponsoringIndividualDetailsPage(index), SampleData.sponsoringIndividualDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), SampleData.sponsoringEmployerAddress).toOption.get
+    .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
+    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
-  private val answers = Seq(
-    Seq(helper.chargeCIsSponsoringEmployerIndividual(index).get),
-    helper.chargeCEmployerDetails(index),
-    Seq(helper.chargeCAddress(index).get),
-    helper.chargeCChargeDetails(index).get
+  private def uaOrg: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(index), false).toOption.get
+    .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
+    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
+
+  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn)
+  
+  private val answersInd: Seq[SummaryList.Row] = Seq(
+    Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(IsSponsoringEmployerIndividualPage(index)).get)),
+    helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
+    Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
+    helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
-  private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> Json.toJson(answers)
-  )
 
-  "CheckYourAnswers Controller" must {
+  private val answersOrg: Seq[SummaryList.Row] = Seq(
+    Seq(helper(uaOrg).chargeCIsSponsoringEmployerIndividual(index, uaOrg.get(IsSponsoringEmployerIndividualPage(index)).get)),
+    helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
+    Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
+    helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)
+  ).flatten
+
+  private def jsonToPassToTemplate(answers: Seq[SummaryList.Row]): JsObject =
+    Json.obj("list" -> Json.toJson(answers))
+
+  "CheckYourAnswers Controller for individual" must {
     behave like cyaController(
       httpPath = httpGETRoute,
       templateToBeRendered = templateToBeRendered,
-      jsonToPassToTemplate = jsonToPassToTemplate,
-      userAnswers = ua
+      jsonToPassToTemplate = jsonToPassToTemplate(answersInd),
+      userAnswers = uaInd
     )
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = uaInd
+    )
+  }
+
+  "CheckYourAnswers Controller for organisation" must {
+    behave like cyaController(
+      httpPath = httpGETRoute,
+      templateToBeRendered = templateToBeRendered,
+      jsonToPassToTemplate = jsonToPassToTemplate(answersOrg),
+      userAnswers = uaOrg
+    )
+
+    behave like controllerWithOnClick(
+      httpPath = httpOnClickRoute,
+      page = CheckYourAnswersPage,
+      userAnswers = uaOrg
     )
   }
 }

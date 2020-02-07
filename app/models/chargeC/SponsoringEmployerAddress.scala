@@ -18,7 +18,12 @@ package models.chargeC
 
 import play.api.libs.json.{Format, Json}
 
-case class SponsoringEmployerAddress(line1:String, line2:String, line3:Option[String], line4:Option[String], country:String, postcode:Option[String])
+case class SponsoringEmployerAddress(line1: String,
+                                     line2: String,
+                                     line3: Option[String],
+                                     line4: Option[String],
+                                     country: String,
+                                     postcode: Option[String])
 
 object SponsoringEmployerAddress {
   implicit lazy val formats: Format[SponsoringEmployerAddress] =
