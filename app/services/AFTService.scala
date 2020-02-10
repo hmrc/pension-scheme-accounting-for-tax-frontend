@@ -60,10 +60,10 @@ class AFTService @Inject()(
 
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      uaWithSuspendedFlag <- retrieveAFTDetailsAndStoreInUserAnswers(optionVersion, schemeDetails)
-      uaWithLock <- save(addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag))
+      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails)
+      savedUA <- save(addRequiredDetailsToUserAnswers(schemeDetails, updatedUA))
     } yield {
-      (schemeDetails, uaWithLock)
+      (schemeDetails, savedUA)
     }
   }
 
@@ -76,8 +76,8 @@ class AFTService @Inject()(
     savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
   }
 
-  private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
-                                                     (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails)
+                                             (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
 
