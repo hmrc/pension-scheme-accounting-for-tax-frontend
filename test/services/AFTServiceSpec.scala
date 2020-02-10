@@ -51,7 +51,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector,
     mockSchemeService, mockMinimalPsaConnector)
 
-  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(userAnswersWithSchemeName))
+  private val emptyUserAnswers = UserAnswers()
+
+  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers))
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
@@ -107,8 +109,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       val startDate = "start date"
       val aftVersion = "aft version"
       val jsonReturnedFromConnector = userAnswersWithSchemeName.data
-      when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(jsonReturnedFromConnector))
+      when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(jsonReturnedFromConnector))
 
       whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
         result mustBe jsonReturnedFromConnector
@@ -118,73 +119,88 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "retrieveAFTRequiredDetails" when {
-    "no version is given and there are no versions in AFT and suspended flag is not in user answers" must {
-      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it and the IsNewReturn flag in Mongo with lock" in {
-        val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false)
-          .setOrException(IsNewReturn, value = true)
-          .setOrException(AFTStatusQuery, value = aftStatus)
-
-        when(mockAFTConnector.getListOfVersions(any())(any(), any()))
-          .thenReturn(Future.successful(Seq[Int]()))
+    "no version is given and there are no versions in AFT" must {
+      "NOT call get AFT details and " +
+        "retrieve the suspended flag from DES and " +
+        "set the IsNewReturn flag, and " +
+        "retrieve and the quarter, status, scheme name and pstr and" +
+        "save all of these with a lock" in {
+        when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, None)(implicitly, implicitly,
           optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-          resultScheme mustBe schemeDetails
-          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
           verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
+
+          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
+
+          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+          resultScheme mustBe schemeDetails
+
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(uaToSave.data))(any(), any())
+          val expectedUAAfterSave = userAnswersWithSchemeName
+            .setOrException(IsPsaSuspendedQuery, value = false)
+            .setOrException(IsNewReturn, value = true)
+            .setOrException(AFTStatusQuery, value = aftStatus)
+          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
 
     "no version is given and there ARE versions in AFT and suspended flag is not in user answers" must {
-      "NOT call get AFT details but SHOULD retrieve the suspended flag from DES and save it but NOT the IsNewReturn flag in Mongo with lock" in {
-        val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false)
-          .setOrException(AFTStatusQuery, value = aftStatus)
-
+      "NOT call get AFT details and " +
+        "retrieve the suspended flag from DES and " +
+        "NOT set the IsNewReturn flag and " +
+        "NOT retrieve the quarter, status, scheme name or pstr and" +
+        "save with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
+          verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
+
+          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
+
           resultScheme mustBe schemeDetails
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
-          verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
+
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(uaToSave.data))(any(), any())
+          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false)
+          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
 
     "a version is given" must {
-      "call get AFT details and retrieve the suspended flag from DES and save it in Mongo with lock" in {
-        val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false)
-          .setOrException(AFTStatusQuery, value = aftStatus)
+      "call get AFT details and " +
+        "retrieve and the suspended flag from DES and " +
+        "NOT set the IsNewReturn flag and " +
+        "NOT retrieve the quarter, status, scheme name or pstr (since these are retrieved by get aft details) and " +
+        "save with a lock" in {
 
-        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
+          verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
+
           resultScheme mustBe schemeDetails
           verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-          verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
+
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(uaToSave.data))(any(), any())
+          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false)
+          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
 
     "viewOnly flag in the request is set to true" must {
-      "NOT call saveAndLock but should call save with lock instead of save" in {
+      "NOT call saveAndLock but should call save" in {
         val uaToSave = userAnswersWithSchemeName
           .setOrException(IsPsaSuspendedQuery, value = false)
-          .setOrException(AFTStatusQuery, value = aftStatus)
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
