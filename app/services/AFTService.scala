@@ -50,18 +50,10 @@ class AFTService @Inject()(
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
   def retrieveAFTRequiredDetails(srn: String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
-
-    def addRequiredDetailsToUserAnswers(schemeDetails: SchemeDetails, userAnswers: UserAnswers): UserAnswers =
-      userAnswers
-        .setOrExceptionIfNotPresent(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
-        .setOrExceptionIfNotPresent(AFTStatusQuery, value = "Compiled")
-        .setOrExceptionIfNotPresent(SchemeNameQuery, schemeDetails.schemeName)
-        .setOrExceptionIfNotPresent(PSTRQuery, schemeDetails.pstr)
-
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails)
-      savedUA <- save(addRequiredDetailsToUserAnswers(schemeDetails, updatedUA))
+      savedUA <- save(updatedUA)
     } yield {
       (schemeDetails, savedUA)
     }
@@ -80,12 +72,16 @@ class AFTService @Inject()(
                                              (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
-
     val futureUserAnswers = optionVersion match {
       case None =>
         aftConnector.getListOfVersions(schemeDetails.pstr).map { listOfVersions =>
           if (listOfVersions.isEmpty) {
-            currentUserAnswers.setOrException(IsNewReturn, true)
+            currentUserAnswers
+              .setOrException(IsNewReturn, true)
+              .setOrExceptionIfNotPresent(QuarterPage, Quarter("2020-04-01", "2020-06-30"))
+              .setOrExceptionIfNotPresent(AFTStatusQuery, value = "Compiled")
+              .setOrExceptionIfNotPresent(SchemeNameQuery, schemeDetails.schemeName)
+              .setOrExceptionIfNotPresent(PSTRQuery, schemeDetails.pstr)
           } else {
             currentUserAnswers
           }
