@@ -61,19 +61,20 @@ class AFTService @Inject()(
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       uaWithSuspendedFlag <- retrieveAFTDetailsAndStoreInUserAnswers(optionVersion, schemeDetails)
-      uaWithLock <- setLock(uaWithSuspendedFlag)
-      ua <- userAnswersCacheConnector.save(request.internalId, addRequiredDetailsToUserAnswers(schemeDetails, uaWithLock).data)
+      uaWithLock <- save(addRequiredDetailsToUserAnswers(schemeDetails, uaWithSuspendedFlag))
     } yield {
-      (schemeDetails, UserAnswers(ua.as[JsObject]))
+      (schemeDetails, uaWithLock)
     }
   }
 
-  private def setLock(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] =
-    if (request.viewOnly) {
-      Future.successful(ua)
+  private def save(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+    val savedJson = if (request.viewOnly) {
+      userAnswersCacheConnector.save(request.internalId, ua.data)
     } else {
-      userAnswersCacheConnector.saveAndLock(request.internalId, ua.data).map(jsVal => UserAnswers(jsVal.as[JsObject]))
+      userAnswersCacheConnector.saveAndLock(request.internalId, ua.data)
     }
+    savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
+  }
 
   private def retrieveAFTDetailsAndStoreInUserAnswers(optionVersion: Option[String], schemeDetails: SchemeDetails)
                                                      (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
