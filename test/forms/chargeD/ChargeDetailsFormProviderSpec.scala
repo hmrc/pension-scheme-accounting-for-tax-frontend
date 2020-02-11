@@ -25,7 +25,7 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  private val form = new ChargeDetailsFormProvider()()
+  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"
@@ -94,7 +94,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeDetails(tax25 = decimal))
           result.errors.head.key mustEqual tax25PercentKey
@@ -131,7 +131,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     }
 
     "must not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(11) -> "decimalAboveMax") {
+      forAll(longDecimalString(12) -> "decimalAboveMax") {
         decimal: String =>
           val result = form.bind(chargeDetails(tax55 = decimal))
           result.errors.head.key mustEqual tax55PercentKey

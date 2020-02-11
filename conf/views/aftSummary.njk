@@ -37,24 +37,25 @@
             rows: list
           }) }}
 
-          {{ govukRadios({
-            classes: "govuk-radios--inline",
-            name: 'value',
-            fieldset: {
-              legend: {
-                text: messages('aft.summary.radio.question'),
-                classes: "govuk-fieldset__legend--m"
-              }
-            },
-            items: radios,
-            errorMessage: form.value.error
-          }) }}
+          {% if canChange %}
+              {{ govukRadios({
+                classes: "govuk-radios--inline",
+                name: 'value',
+                fieldset: {
+                  legend: {
+                    text: messages('aft.summary.radio.question'),
+                    classes: "govuk-fieldset__legend--m"
+                  }
+                },
+                items: radios,
+                errorMessage: form.value.error
+              }) }}
 
-          {{ govukButton({
-              text: messages("site.continue"),
-              attributes: {id: "submit"}
-            }) }}
-
+              {{ govukButton({
+                  text: messages("site.continue"),
+                  attributes: {id: "submit"}
+                }) }}
+          {% endif %}
         </form>
 
     </div>

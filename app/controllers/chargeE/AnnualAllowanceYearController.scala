@@ -40,6 +40,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               navigator: CompoundNavigator,
                                               identify: IdentifierAction,
                                               getData: DataRetrievalAction,
+                                              allowAccess: AllowAccessActionProvider,
                                               requireData: DataRequiredAction,
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
@@ -50,7 +51,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def form()(implicit messages: Messages): Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -65,6 +66,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "radios" -> YearRange.radios(preparedForm),
           "viewModel" -> viewModel
@@ -74,7 +76,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -86,7 +88,8 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "radios" -> YearRange.radios(formWithErrors),
               "viewModel" -> viewModel
             )

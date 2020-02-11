@@ -32,7 +32,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply()(implicit messages: Messages): Form[ChargeDDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
     Form(mapping(
       "dateOfEvent" -> localDate(
         invalidKey = "dateOfEvent.error.invalid",
@@ -50,8 +50,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
           decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "25"))
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
+          minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "25"))
         )
       ),
       "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
@@ -61,8 +61,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
           decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("9999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
-          minimumValueOption[BigDecimal](BigDecimal("0.00"), messages("chargeD.amountTaxDue.error.invalid", "55"))
+          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
+          minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "55"))
         )
       )
     )(ChargeDDetails.apply)(ChargeDDetails.unapply))

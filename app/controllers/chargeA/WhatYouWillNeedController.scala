@@ -38,6 +38,7 @@ class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
+                                           allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
@@ -47,7 +48,7 @@ class WhatYouWillNeedController @Inject()(
                                            navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val ua = request.userAnswers
@@ -60,7 +61,8 @@ class WhatYouWillNeedController @Inject()(
           schemeName = schemeName)
 
         renderer.render(template = "chargeA/whatYouWillNeed.njk",
-          Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
+          Json.obj(fields = "srn" -> srn, "schemeName" -> schemeName,
+            "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
       }
   }
 }

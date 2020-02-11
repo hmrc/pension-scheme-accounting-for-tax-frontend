@@ -21,7 +21,7 @@ import play.api.data.FormError
 
 class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider()()
+  val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
   val numberOfDeceased = "numberOfDeceased"
   val amountTaxDueKey = "amountTaxDue"
 
@@ -70,7 +70,7 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
-      length = 11,
+      length = 12,
       expectedError = FormError(amountTaxDueKey, "totalTaxDue.error.maximum")
     )
   }

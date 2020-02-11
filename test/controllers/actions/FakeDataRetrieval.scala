@@ -21,16 +21,16 @@ import models.requests.{IdentifierRequest, OptionalDataRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FakeDataRetrievalAction(dataToReturn: Option[UserAnswers]) extends DataRetrievalAction {
+class FakeDataRetrievalAction(json: Option[UserAnswers], viewOnly: Boolean = false) extends DataRetrievalAction {
+  override def apply(srn: String): DataRetrieval = new FakeDataRetrieval(json, viewOnly)
+}
+
+class FakeDataRetrieval(dataToReturn: Option[UserAnswers], viewOnly: Boolean) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    dataToReturn match {
-      case None =>
-        Future(OptionalDataRequest(request.request, request.identifier, request.psaId, None))
-      case Some(userAnswers) =>
-        Future(OptionalDataRequest(request.request, request.identifier, request.psaId, Some(userAnswers)))
-    }
+    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, viewOnly))
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
 }
+

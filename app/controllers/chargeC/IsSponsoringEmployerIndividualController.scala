@@ -39,6 +39,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
+                                      allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: IsSponsoringEmployerIndividualFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
@@ -48,7 +49,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get (IsSponsoringEmployerIndividualPage(index)) match {
@@ -62,6 +63,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo (preparedForm("value"))
@@ -71,7 +73,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
     }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(

@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
 import javax.inject.Inject
 import models.chargeG.ChargeAmounts
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.data.Form
@@ -41,6 +41,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeAmountsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -48,15 +49,16 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form(memberName: String)(implicit messages: Messages): Form[ChargeAmounts] = formProvider(memberName)
+  def form(memberName: String, ua:UserAnswers)(implicit messages: Messages): Form[ChargeAmounts] =
+    formProvider(memberName, minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMemberChargeG(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
         val preparedForm: Form[ChargeAmounts] = request.userAnswers.get(ChargeAmountsPage(index)) match {
-          case Some(value) => form(memberName).fill(value)
-          case None => form(memberName)
+          case Some(value) => form(memberName, request.userAnswers).fill(value)
+          case None => form(memberName, request.userAnswers)
         }
 
         val viewModel = GenericViewModel(
@@ -65,6 +67,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
           schemeName = schemeName)
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "memberName" -> memberName
@@ -74,11 +77,11 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMemberChargeG(MemberDetailsPage(index)){ (schemeName, memberName) =>
 
-        form(memberName).bindFromRequest().fold(
+        form(memberName, request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
               submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, index).url,
@@ -86,7 +89,8 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "memberName" -> memberName
             )

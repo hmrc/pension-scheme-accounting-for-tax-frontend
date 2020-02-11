@@ -36,24 +36,27 @@
 
                             {{ govukTable(table) }}
 
-          {{ govukRadios({
-                              classes: "govuk-radios--inline",
-                              name: 'value',
-                              fieldset: {
-                                legend: {
-                                  text: messages('chargeC.addEmployers.label'),
-                                  isPageHeading: false,
-                                  classes: "govuk-fieldset__legend--s"
-                                }
-                              },
-                              items: radios,
-                              errorMessage: form.value.error
-          }) }}
+                            {% if canChange %}
+                                  {{ govukRadios({
+                                          classes: "govuk-radios--inline",
+                                          name: 'value',
+                                          fieldset: {
+                                            legend: {
+                                              text: messages('chargeC.addEmployers.label'),
+                                              isPageHeading: false,
+                                              classes: "govuk-fieldset__legend--s"
+                                            }
+                                          },
+                                          items: radios,
+                                          errorMessage: form.value.error
+                                  }) }}
 
-          {{ govukButton({
-                            text: messages("site.continue"),
-                            attributes: {id: "submit"}
-                  }) }}
+                                  {{ govukButton({
+                                                    text: messages("site.continue"),
+                                                    attributes: {id: "submit"}
+                                  }) }}
+
+                            {% endif %}
 
         </form>
 

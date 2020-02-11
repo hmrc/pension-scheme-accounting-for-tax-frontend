@@ -24,7 +24,7 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(): Form[ChargeEDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeEDetails] =
     Form(mapping(
 
       "chargeAmount" -> bigDecimal2DP(
@@ -33,7 +33,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         decimalKey = "chargeAmount.error.decimal"
       ).verifying(
         maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmount.error.maximum"),
-        minimumValue[BigDecimal](BigDecimal("0.00"), "chargeAmount.error.invalid")
+        minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmount.error.invalid")
       ),
       "dateNoticeReceived" -> localDate(
         invalidKey = "dateNoticeReceived.error.invalid",

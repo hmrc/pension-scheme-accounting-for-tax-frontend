@@ -29,7 +29,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   private def loadConfig(key: String): String = configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
-  private val contactFormServiceIdentifier = "play26frontend"
+  private val contactFormServiceIdentifier = "pensionSchemeAccountingForTaxFrontend"
 
   lazy val appName: String = configuration.get[String](path = "appName")
   val analyticsToken: String = configuration.get[String](s"google-analytics.token")
@@ -54,10 +54,15 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
+  lazy val pensionsAdministratorUrl:String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
+  lazy val aftListOfVersions: String = s"$aftUrl${configuration.get[String](path = "urls.aftListOfVersions")}"
   lazy val getAftDetails: String = s"$aftUrl${configuration.get[String](path = "urls.getAFTDetails")}"
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
+  lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
+  lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
+  lazy val minimalPsaDetailsUrl: String = s"$pensionsAdministratorUrl${configuration.get[String](path = "urls.minimalPsaDetails")}"
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
 
   def routeToSwitchLanguage: String => Call =

@@ -24,7 +24,7 @@ import play.api.data.FormError
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
   val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg, BigDecimal("0.01"))
   val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"
@@ -71,7 +71,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like longBigDecimal(
       form = form,
       fieldName = amountTaxDueKey,
-      length = 11,
+      length = 12,
       expectedError = FormError(amountTaxDueKey, s"$amountTaxDueMsgKey.error.maximum")
     )
   }

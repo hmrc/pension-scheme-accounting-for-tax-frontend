@@ -82,3 +82,12 @@ final case class UserAnswers(
     }
   }
 }
+
+object UserAnswers {
+  def deriveMinimumChargeValueAllowed(ua:UserAnswers):BigDecimal = {
+    ua.get(IsNewReturn) match {
+      case None => BigDecimal("0.00")
+      case _ => BigDecimal("0.01")
+    }
+  }
+}

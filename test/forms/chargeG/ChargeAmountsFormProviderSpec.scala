@@ -22,7 +22,7 @@ import play.api.data.FormError
 
 class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
-  val form = new ChargeAmountsFormProvider()("test name")
+  val form = new ChargeAmountsFormProvider()("test name", BigDecimal("0.01"))
   val amountTransferredKey = "amountTransferred"
   val amountTaxDueKey = "amountTaxDue"
 
@@ -31,8 +31,22 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     behave like bigDecimalField(
       form = form,
       fieldName = amountTransferredKey,
-      nonNumericError = FormError(amountTransferredKey, s"$amountTransferredKey.error.invalid"),
-      decimalsError = FormError(amountTransferredKey, s"$amountTransferredKey.error.decimal")
+      nonNumericError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.invalid", "test name")),
+      decimalsError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.decimal", "test name"))
+    )
+
+    behave like bigDecimalFieldWithMinimum(
+      form = form,
+      fieldName = amountTransferredKey,
+      minimum = BigDecimal("0.01"),
+      expectedError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.minimum", "test name"))
+    )
+
+    behave like longBigDecimal(
+      form = form,
+      fieldName = amountTransferredKey,
+      length = 12,
+      expectedError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.maximum", "test name"))
     )
   }
 
@@ -43,6 +57,20 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       fieldName = amountTaxDueKey,
       nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
       decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+    )
+
+    behave like bigDecimalFieldWithMinimum(
+      form = form,
+      fieldName = amountTaxDueKey,
+      minimum = BigDecimal("0.01"),
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.minimum")
+    )
+
+    behave like longBigDecimal(
+      form = form,
+      fieldName = amountTaxDueKey,
+      length = 12,
+      expectedError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.maximum")
     )
   }
 }

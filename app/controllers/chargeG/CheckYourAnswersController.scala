@@ -18,10 +18,9 @@ package controllers.chargeG
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
@@ -29,6 +28,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import services.ChargeGService.getOverseasTransferMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
@@ -40,47 +40,48 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
                                            identify: IdentifierAction,
                                            getData: DataRetrievalAction,
+                                           allowAccess: AllowAccessActionProvider,
                                            requireData: DataRequiredAction,
-                                           aftConnector: AFTConnector,
+                                           aftService: AFTService,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.cyaChargeG(index, srn) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
-        val answers: Seq[SummaryList.Row] = Seq(
-          helper.chargeGMemberDetails(index).get,
-          helper.chargeGDetails(index).get,
-          helper.chargeGAmounts(index).get
+        val seqRows: Seq[SummaryList.Row] = Seq(
+          helper.chargeGMemberDetails(index, memberDetails),
+          helper.chargeGDetails(index, chargeDetails),
+          helper.chargeGAmounts(index, chargeAmounts)
         ).flatten
 
         renderer.render("check-your-answers.njk",
           Json.obj(
-            "list" -> answers,
-            "viewModel" -> viewModel,
-            "chargeName" -> "chargeG"
+            "srn" -> srn,
+            "list" -> helper.rows(request.viewOnly, seqRows),
+            "viewModel" -> GenericViewModel(
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName),
+            "chargeName" -> "chargeG",
+            "canChange" -> !request.viewOnly
           )).map(Ok(_))
       }
   }
 
-  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = getOverseasTransferMembers(request.userAnswers, srn).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
         }

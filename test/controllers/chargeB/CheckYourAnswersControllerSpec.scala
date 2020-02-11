@@ -18,8 +18,9 @@ package controllers.chargeB
 
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
-import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
+import models.UserAnswers
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -29,16 +30,16 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(SampleData.srn).url
-  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(SampleData.srn).url
+  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn).url
+  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(srn).url
 
-  private def ua = SampleData.userAnswersWithSchemeName
-    .set(ChargeBDetailsPage, SampleData.chargeBDetails).toOption.get
+  private def ua: UserAnswers = userAnswersWithSchemeName
+    .set(ChargeBDetailsPage, chargeBDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, SampleData.srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
-    "list" -> helper.chargeBDetails.get
+    "list" -> helper.chargeBDetails(chargeBDetails)
   )
 
   "CheckYourAnswers Controller" must {
@@ -51,7 +52,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
     behave like controllerWithOnClick(
       httpPath = httpOnClickRoute,
-      page = CheckYourAnswersPage
+      page = CheckYourAnswersPage,
+      userAnswers = ua
     )
   }
 }

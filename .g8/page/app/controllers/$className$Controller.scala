@@ -18,7 +18,7 @@ class $className$Controller @Inject()(
     renderer: Renderer
 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad: Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
 
       renderer.render("$className;format="decap"$.njk").map(Ok(_))

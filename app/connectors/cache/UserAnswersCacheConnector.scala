@@ -34,13 +34,14 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                              ) extends UserAnswersCacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier
   ): Future[Option[JsValue]] = {
     http.url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap {
         response =>
@@ -55,12 +56,20 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
-  override def save(id: String, value: JsValue)(implicit
-                                                ec: ExecutionContext,
-                                                hc: HeaderCarrier
+  override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    save(id, value, url)
+  }
+
+  override def saveAndLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+    save(id, value, lockUrl)
+  }
+
+  private def save(id: String, value: JsValue, url: String)(implicit
+                                                    ec: ExecutionContext,
+                                                    hc: HeaderCarrier
   ): Future[JsValue] = {
     http.url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("content-type", "application/json")).headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id), ("content-type", "application/json")).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
@@ -74,20 +83,42 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http.url(url)
-      .withHttpHeaders(hc.headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .delete().map(_ => Ok)
+  }
+
+  override def isLocked(id: String)(implicit
+                                    ec: ExecutionContext,
+                                    hc: HeaderCarrier
+  ): Future[Boolean] = {
+    http.url(lockUrl)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .get()
+      .flatMap {
+        response =>
+          response.status match {
+            case NOT_FOUND => Future.successful(false)
+            case OK => Future.successful(true)
+            case _ => Future.failed(new HttpException(response.body, response.status))
+          }
+      }
   }
 }
 
 trait UserAnswersCacheConnector {
 
   protected def url: String
+  protected def lockUrl: String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
+  def saveAndLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
+
+  def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
 }
 
 

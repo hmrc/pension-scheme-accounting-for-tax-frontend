@@ -23,7 +23,7 @@ import controllers.actions._
 import forms.chargeA.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeA.ChargeDetails
-import models.{GenericViewModel, Mode}
+import models.{GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
@@ -41,6 +41,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
@@ -48,9 +49,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-
-  def form()(implicit messages: Messages): Form[ChargeDetails] =
-    formProvider()
+  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
+    formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =
     GenericViewModel(
@@ -59,16 +59,17 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form.fill(value)
-          case None => form
+          case Some(value) => form(request.userAnswers).fill(value)
+          case None => form(request.userAnswers)
         }
 
         val json = Json.obj(
+          "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel(mode, srn, schemeName)
         )
@@ -77,17 +78,17 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
-        form.bindFromRequest().fold(
+        form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
             val json = Json.obj(
-              "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
+          "srn" -> srn,
+          "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
               "viewModel" -> viewModel(mode, srn, schemeName)
             )
-
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
           value =>

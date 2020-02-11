@@ -31,6 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTService
 import services.ChargeCService.getSponsoringEmployers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -43,8 +44,9 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
+                                       allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftConnector: AFTConnector,
+                                       aftService: AFTService,
                                        formProvider: DeleteMemberFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -54,7 +56,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
@@ -64,7 +66,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-              "form" -> form(employerName),
+          "srn" -> srn,
+          "form" -> form(employerName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
               "employerName" -> employerName
@@ -74,7 +77,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
         }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData andThen requireData).async {
+  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
@@ -87,7 +90,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                   schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithErrors,
+          "srn" -> srn,
+          "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "radios" -> Radios.yesNo(formWithErrors("value")),
                   "employerName" -> employerName
@@ -104,7 +108,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                       interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
                       updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- aftConnector.fileAFTReturn(pstr, updatedAnswers)
+                      _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                     } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn))
                   }
                 } else {

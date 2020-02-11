@@ -16,8 +16,8 @@
 
 package behaviours
 
-import config.FrontendAppConfig
 import connectors.AFTConnector
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -26,8 +26,8 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import pages.Page
+import play.api.Application
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json, Writes}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
@@ -36,13 +36,20 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 
 trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
+
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(mockAftConnector)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
+
   }
-  val mockAftConnector: AFTConnector = mock[AFTConnector]
 
   def cyaController(httpPath: => String,
                     templateToBeRendered: String,
@@ -50,16 +57,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
                     userAnswers: UserAnswers = userAnswersWithSchemeName): Unit = {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
-
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
-            bind[FrontendAppConfig].toInstance(mockAppConfig)
-          ): _*
-        ).build()
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -74,8 +72,26 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
       templateCaptor.getValue mustEqual templateToBeRendered
 
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
 
-      application.stop()
+    "redirect to AFT summary page for a GET when necessary answers are missing" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeName))
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, None).url
+    }
+
+    "redirect to Session Expired page for a GET when there is no data" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+
+      val result = route(application, httpGETRequest(httpPath)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 
@@ -85,21 +101,13 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
                               (implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-
-      val application = new GuiceApplicationBuilder()
-        .overrides(
-          modules(Some(userAnswers)) ++ Seq[GuiceableModule](
-            bind[AFTConnector].toInstance(mockAftConnector),
-            bind[FrontendAppConfig].toInstance(mockAppConfig)
-          ): _*
-        ).build()
 
       val result = route(application, httpGETRequest(httpPath)).value
 
@@ -108,20 +116,6 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
       verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-
-      application.stop()
-    }
-
-    "redirect to Session Expired page for a GET when there is no data" in {
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val result = route(application, httpGETRequest(httpPath)).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }
