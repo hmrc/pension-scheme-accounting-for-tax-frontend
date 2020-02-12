@@ -49,7 +49,7 @@ class AFTService @Inject()(
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      answers.remove(IsNewReturn) match {
+      ua.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
             .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)

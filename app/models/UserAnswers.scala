@@ -67,7 +67,7 @@ final case class UserAnswers(
   }
 
   def removeWithPath(path: JsPath): UserAnswers = {
-    data.setObject(path, JsNull) match {
+    data.removeObject(path) match {
       case JsSuccess(jsValue, _) =>
         UserAnswers(jsValue)
       case JsError(_) =>

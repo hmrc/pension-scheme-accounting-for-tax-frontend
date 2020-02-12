@@ -119,7 +119,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
         val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeEDetails").toOption mustBe Option(JsNull)
+        (uaPassedToConnector.data \ "chargeEDetails").toOption mustBe None
       }
     }
   }
