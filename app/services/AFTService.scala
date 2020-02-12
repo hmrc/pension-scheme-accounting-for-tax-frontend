@@ -34,25 +34,21 @@ class AFTService @Inject()(
                             schemeService: SchemeService,
                             minimalPsaConnector: MinimalPsaConnector
                           ) {
-  private val chargeECountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
-    range.flatMap(i => ua.get(pages.chargeE.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
 
-  private val chargeDCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
-    range.flatMap(i => ua.get(pages.chargeD.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
+  private val chargeECountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeE.MemberDetailsPage(i)).forall(_.isDeleted)
 
-  private val chargeGCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
-    range.flatMap(i => ua.get(pages.chargeG.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
+  private val chargeDCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeD.MemberDetailsPage(i)).forall(_.isDeleted)
 
-  private val chargeCCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
-    range.map { i =>
-      (ua.get(pages.chargeC.SponsoringIndividualDetailsPage(i)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(i))) match {
-        case (Some(individual), None) => individual.isDeleted
-        case (None, Some(organisation)) => organisation.isDeleted
-        case _ => true
-      }
-    }.count(_ == false)
+  private val chargeGCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeG.MemberDetailsPage(i)).forall(_.isDeleted)
 
-  private case class ChargeInfo(chargeType: String, nodeName: String, getNoOfMembers: (UserAnswers, Range) => Int)
+  private val chargeCCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) =>
+    (ua.get(pages.chargeC.SponsoringIndividualDetailsPage(i)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(i))) match {
+      case (Some(individual), None) => individual.isDeleted
+      case (None, Some(organisation)) => organisation.isDeleted
+      case _ => true
+    }
+
+  private case class ChargeInfo(chargeType: String, nodeName: String, isMemberDeleted: (UserAnswers, Int) => Boolean)
 
   private val chargesToCheckForDeletion = Seq(
     ChargeInfo("chargeEDetails", "members", chargeECountEmployers),
@@ -64,8 +60,9 @@ class AFTService @Inject()(
   private def removeChargeIfNoMembers(answers: UserAnswers, chargeTypeAndNodeNames: Seq[ChargeInfo]): UserAnswers = {
     chargeTypeAndNodeNames.foldLeft(answers) { (currentUA, chargeTypeAndNodeName) =>
       val countOfMembers = (currentUA.data \ chargeTypeAndNodeName.chargeType \ chargeTypeAndNodeName.nodeName).validate[JsArray] match {
-        case JsSuccess(array, _) => chargeTypeAndNodeName.getNoOfMembers(currentUA, array.value.indices)
-        case JsError(ex) => 0
+        case JsSuccess(array, _) =>
+          array.value.indices.map(i => chargeTypeAndNodeName.isMemberDeleted(currentUA, i)).count(_ == false)
+        case JsError(_) => 0
       }
 
       if (countOfMembers == 0) {
