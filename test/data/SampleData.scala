@@ -58,6 +58,11 @@ object SampleData {
   val sponsoringIndividualDetails: MemberDetails =
     MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
+  val sponsoringIndividualDetailsDeleted: MemberDetails =
+    MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C", isDeleted = true)
+  val sponsoringOrganisationDetailsDeleted: SponsoringOrganisationDetails =
+    SponsoringOrganisationDetails(name = companyName, crn = crn, isDeleted = true)
+
   val sponsoringEmployerAddress: SponsoringEmployerAddress =
     SponsoringEmployerAddress(
       line1 = "line1",
@@ -92,7 +97,7 @@ object SampleData {
   val memberDetailsDeleted: MemberDetails = MemberDetails("Jill", "Bloggs", "AB123456C", isDeleted = true)
   val memberGDetailsDeleted: MemberDetailsG = MemberDetailsG("Jill", "Bloggs", LocalDate.now(), "AB123456C", isDeleted = true)
 
-  val chargeCEmployer = userAnswersWithSchemeNameAndIndividual
+  val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
     .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeName

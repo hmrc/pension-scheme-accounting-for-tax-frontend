@@ -34,22 +34,53 @@ class AFTService @Inject()(
                             schemeService: SchemeService,
                             minimalPsaConnector: MinimalPsaConnector
                           ) {
+  private val chargeECountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
+    range.flatMap(i => ua.get(pages.chargeE.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
+
+  private val chargeDCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
+    range.flatMap(i => ua.get(pages.chargeD.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
+
+  private val chargeGCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
+    range.flatMap(i => ua.get(pages.chargeG.MemberDetailsPage(i)).toSeq).count(_.isDeleted == false)
+
+  private val chargeCCountEmployers: (UserAnswers, Range) => Int = (ua, range) =>
+    range.map { i =>
+      (ua.get(pages.chargeC.SponsoringIndividualDetailsPage(i)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(i))) match {
+        case (Some(individual), None) => individual.isDeleted
+        case (None, Some(organisation)) => organisation.isDeleted
+        case _ => true
+      }
+    }.count(_ == false)
+
+  private case class ChargeInfo(chargeType: String, nodeName: String, getNoOfMembers: (UserAnswers, Range) => Int)
+
+  private val chargesToCheckForDeletion = Seq(
+    ChargeInfo("chargeEDetails", "members", chargeECountEmployers),
+    ChargeInfo("chargeDDetails", "members", chargeDCountEmployers),
+    ChargeInfo("chargeGDetails", "members", chargeGCountEmployers),
+    ChargeInfo("chargeCDetails", "employers", chargeCCountEmployers)
+  )
+
+  private def removeChargeIfNoMembers(answers: UserAnswers, chargeTypeAndNodeNames: Seq[ChargeInfo]): UserAnswers = {
+    chargeTypeAndNodeNames.foldLeft(answers) { (currentUA, chargeTypeAndNodeName) =>
+      val countOfMembers = (currentUA.data \ chargeTypeAndNodeName.chargeType \ chargeTypeAndNodeName.nodeName).validate[JsArray] match {
+        case JsSuccess(array, _) => chargeTypeAndNodeName.getNoOfMembers(currentUA, array.value.indices)
+        case JsError(ex) => 0
+      }
+
+      if (countOfMembers == 0) {
+        currentUA.removeWithPath(JsPath \ chargeTypeAndNodeName.chargeType)
+      } else {
+        currentUA
+      }
+    }
+  }
+
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val countOfMembers = (answers.data \ "chargeEDetails" \ "members").validate[JsArray] match {
-      case JsSuccess(array, _) =>
-        array.value.indices.flatMap(c => answers.get(pages.chargeE.MemberDetailsPage(c)).toSeq)
-          .count(_.isDeleted == false)
-      case JsError(ex) => 0
-    }
+    val chargeRemoved = removeChargeIfNoMembers(answers, chargesToCheckForDeletion)
 
-    val ua = if (countOfMembers == 0) {
-      answers.removeWithPath(JsPath \ "chargeEDetails")
-    } else {
-      answers
-    }
-
-    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      ua.remove(IsNewReturn) match {
+    aftConnector.fileAFTReturn(pstr, chargeRemoved).flatMap { _ =>
+      chargeRemoved.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
             .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
