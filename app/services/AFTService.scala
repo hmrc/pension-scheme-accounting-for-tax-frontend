@@ -22,7 +22,7 @@ import connectors.{AFTConnector, MinimalPsaConnector}
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Quarter, SchemeDetails, UserAnswers}
 import pages._
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +35,20 @@ class AFTService @Inject()(
                             minimalPsaConnector: MinimalPsaConnector
                           ) {
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
+    val countOfMembers = (answers.data \ "chargeEDetails" \ "members").validate[JsArray] match {
+      case JsSuccess(array, _) =>
+        array.value.indices.flatMap(c => answers.get(pages.chargeE.MemberDetailsPage(c)).toSeq)
+          .count(_.isDeleted == false)
+      case JsError(ex) => 0
+    }
+
+    val ua = if (countOfMembers == 0) {
+      answers.removeWithPath(JsPath \ "chargeEDetails")
+    } else {
+      answers
+    }
+
+    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
       answers.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
