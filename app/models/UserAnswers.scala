@@ -28,8 +28,8 @@ final case class UserAnswers(
   def get[A](page: QuestionPage[A])(implicit rds: Reads[A]): Option[A] =
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
 
-    def getAllMembersInCharge[A](charge: String)(implicit rds: Reads[A]): Seq[A] =
-    (data \ charge \ "members" \\ "memberDetails").map {member =>
+  def getAllMembersInCharge[A](charge: String)(implicit rds: Reads[A]): Seq[A] =
+    (data \ charge \ "members" \\ "memberDetails").map { member =>
       validate[A](member)
     }
 
@@ -84,7 +84,7 @@ final case class UserAnswers(
 }
 
 object UserAnswers {
-  def deriveMinimumChargeValueAllowed(ua:UserAnswers):BigDecimal = {
+  def deriveMinimumChargeValueAllowed(ua: UserAnswers): BigDecimal = {
     ua.get(IsNewReturn) match {
       case None => BigDecimal("0.00")
       case _ => BigDecimal("0.01")

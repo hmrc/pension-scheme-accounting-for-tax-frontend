@@ -49,7 +49,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+  private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDDetails] =
+    formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
@@ -60,7 +61,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
         val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
           case Some(value) => form(request.userAnswers).fill(value)
@@ -81,14 +82,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
         form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
 
             val json = Json.obj(
-          "srn" -> srn,
-          "form" -> formWithErrors,
+              "srn" -> srn,
+              "form" -> formWithErrors,
               "viewModel" -> viewModel(mode, srn, index, schemeName),
               "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
               "memberName" -> memberName
