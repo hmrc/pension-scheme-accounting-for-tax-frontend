@@ -99,4 +99,50 @@ object UserAnswers {
       case _ => BigDecimal("0.01")
     }
   }
+
+  private val chargeEIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeDIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeGIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeCIsEmployerDeleted: (UserAnswers, Int) => Boolean = (ua, index) =>
+    (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+      case (Some(true), Some(individual), _) => individual.isDeleted
+      case (Some(false), _, Some(organisation)) => organisation.isDeleted
+      case _ => true
+    }
+
+  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
+
+  private val memberBasedChargeInfo = Seq(
+    ChargeInfo(jsonNode = "chargeEDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeEIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeDDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeDIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeGDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeGIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeCDetails", memberOrEmployerJsonNode = "employers", isDeleted = chargeCIsEmployerDeleted)
+  )
+
+  private def countNonDeletedMembersOrEmployers(ua:UserAnswers, chargeInfo: ChargeInfo):Int = {
+    (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
+      case JsSuccess(array, _) =>
+        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == false)
+      case JsError(_) => 0
+    }
+  }
+
+  def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
+    memberBasedChargeInfo.foldLeft(answers) { (currentUA, chargeInfo) =>
+      if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
+        currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
+      } else {
+        currentUA
+      }
+    }
+  }
+
+  def isAtLeastOneValidCharge(ua: UserAnswers):Boolean = {
+    ua.get(pages.chargeA.ChargeDetailsPage).isDefined ||
+    ua.get(pages.chargeB.ChargeBDetailsPage).isDefined ||
+    ua.get(pages.chargeF.ChargeDetailsPage).isDefined
+  }
 }
