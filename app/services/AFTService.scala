@@ -27,6 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import AFTService._
 
 class AFTService @Inject()(
                             aftConnector: AFTConnector,
@@ -35,49 +36,11 @@ class AFTService @Inject()(
                             minimalPsaConnector: MinimalPsaConnector
                           ) {
 
-  private val chargeECountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeE.MemberDetailsPage(i)).forall(_.isDeleted)
-
-  private val chargeDCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeD.MemberDetailsPage(i)).forall(_.isDeleted)
-
-  private val chargeGCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) => ua.get(pages.chargeG.MemberDetailsPage(i)).forall(_.isDeleted)
-
-  private val chargeCCountEmployers: (UserAnswers, Int) => Boolean = (ua, i) =>
-    (ua.get(pages.chargeC.SponsoringIndividualDetailsPage(i)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(i))) match {
-      case (Some(individual), None) => individual.isDeleted
-      case (None, Some(organisation)) => organisation.isDeleted
-      case _ => true
-    }
-
-  private case class ChargeInfo(chargeType: String, nodeName: String, isMemberDeleted: (UserAnswers, Int) => Boolean)
-
-  private val chargesToCheckForDeletion = Seq(
-    ChargeInfo("chargeEDetails", "members", chargeECountEmployers),
-    ChargeInfo("chargeDDetails", "members", chargeDCountEmployers),
-    ChargeInfo("chargeGDetails", "members", chargeGCountEmployers),
-    ChargeInfo("chargeCDetails", "employers", chargeCCountEmployers)
-  )
-
-  private def removeChargeIfNoMembers(answers: UserAnswers, chargeTypeAndNodeNames: Seq[ChargeInfo]): UserAnswers = {
-    chargeTypeAndNodeNames.foldLeft(answers) { (currentUA, chargeTypeAndNodeName) =>
-      val countOfMembers = (currentUA.data \ chargeTypeAndNodeName.chargeType \ chargeTypeAndNodeName.nodeName).validate[JsArray] match {
-        case JsSuccess(array, _) =>
-          array.value.indices.map(i => chargeTypeAndNodeName.isMemberDeleted(currentUA, i)).count(_ == false)
-        case JsError(_) => 0
-      }
-
-      if (countOfMembers == 0) {
-        currentUA.removeWithPath(JsPath \ chargeTypeAndNodeName.chargeType)
-      } else {
-        currentUA
-      }
-    }
-  }
-
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val chargeRemoved = removeChargeIfNoMembers(answers, chargesToCheckForDeletion)
+    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargeIfNoMembersOrEmployers(answers)
 
-    aftConnector.fileAFTReturn(pstr, chargeRemoved).flatMap { _ =>
-      chargeRemoved.remove(IsNewReturn) match {
+    aftConnector.fileAFTReturn(pstr, userAnswersWithInvalidMemberBasedChargesRemoved).flatMap { _ =>
+      userAnswersWithInvalidMemberBasedChargesRemoved.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
             .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
@@ -140,6 +103,46 @@ class AFTService @Inject()(
           }
         case Some(_) =>
           Future.successful(ua)
+      }
+    }
+  }
+}
+
+object AFTService {
+  private val chargeEIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeDIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeGIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
+
+  private val chargeCIsEmployerDeleted: (UserAnswers, Int) => Boolean = (ua, index) =>
+    (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+      case (Some(true), Some(individual), _) => individual.isDeleted
+      case (Some(false), _, Some(organisation)) => organisation.isDeleted
+      case _ => true
+    }
+
+  private case class ChargeInfo(chargeType: String, nodeName: String, isDeleted: (UserAnswers, Int) => Boolean)
+
+  private val chargesToCheckForDeletion = Seq(
+    ChargeInfo(chargeType = "chargeEDetails", nodeName = "members",   isDeleted = chargeEIsMemberDeleted),
+    ChargeInfo(chargeType = "chargeDDetails", nodeName = "members",   isDeleted = chargeDIsMemberDeleted),
+    ChargeInfo(chargeType = "chargeGDetails", nodeName = "members",   isDeleted = chargeGIsMemberDeleted),
+    ChargeInfo(chargeType = "chargeCDetails", nodeName = "employers", isDeleted = chargeCIsEmployerDeleted)
+  )
+
+  private def removeChargeIfNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
+    chargesToCheckForDeletion.foldLeft(answers) { (currentUA, chargeTypeAndNodeName) =>
+      val countOfMembers = (currentUA.data \ chargeTypeAndNodeName.chargeType \ chargeTypeAndNodeName.nodeName).validate[JsArray] match {
+        case JsSuccess(array, _) =>
+          array.value.indices.map(index => chargeTypeAndNodeName.isDeleted(currentUA, index)).count(_ == false)
+        case JsError(_) => 0
+      }
+
+      if (countOfMembers == 0) {
+        currentUA.removeWithPath(JsPath \ chargeTypeAndNodeName.chargeType)
+      } else {
+        currentUA
       }
     }
   }

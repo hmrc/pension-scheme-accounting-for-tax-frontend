@@ -104,11 +104,17 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       }
     }
 
-    "NOT remove charge E where it has one member and another valid charge is present prior to submitting to DES" in {
+    "NOT remove member-based charges where they have one non-deleted member prior to submitting to DES" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
+        .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
+        .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
+        .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
+        .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
+        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
+        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
         .setOrException(IsNewReturn, true)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
@@ -120,6 +126,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
         val uaPassedToConnector = jsonCaptor.getValue
         (uaPassedToConnector.data \ "chargeEDetails").toOption.isDefined mustBe true
+        (uaPassedToConnector.data \ "chargeDDetails").toOption.isDefined mustBe true
+        (uaPassedToConnector.data \ "chargeGDetails").toOption.isDefined mustBe true
+        (uaPassedToConnector.data \ "chargeCDetails").toOption.isDefined mustBe true
       }
     }
 
