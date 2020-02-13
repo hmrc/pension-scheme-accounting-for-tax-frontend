@@ -40,11 +40,10 @@ class AFTService @Inject()(
     val ua = if (isAtLeastOneValidCharge(answers)) {
       removeChargesHavingNoMembersOrEmployers(answers)
     } else {
-      val allCharges = getSeqDeletedMemberOrEmployerChargeInfo(answers).map { ci =>
-        ci
-      }
+      // if you are here then user must have deleted a member from one of member based charges leaving no undeleted members
+      val toReinstate = getDeletedMemberOrEmployerChargeInfoToReinstate(answers)
 
-      allCharges
+      println("\n>>>" + toReinstate)
 
       answers
     }
@@ -120,7 +119,7 @@ class AFTService @Inject()(
 
 object AFTService {
 
-  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
+  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean) //, reinstate: (UserAnswers, Int) => UserAnswers)
 
   private val chargeEInfo = ChargeInfo(
     jsonNode = "chargeEDetails",
@@ -169,14 +168,26 @@ object AFTService {
       countMembersOrEmployers(ua, chargeGInfo) > 0
   }
 
-  private def getSeqDeletedMemberOrEmployerChargeInfo(ua: UserAnswers): Seq[ChargeInfo] = {
+  private def getDeletedMemberOrEmployerChargeInfoToReinstate(ua: UserAnswers): ChargeInfo = {
     val seqChargeInfo = Seq(
-      if (countMembersOrEmployers(ua, chargeCInfo, isDeleted = true) > 0) Seq(chargeCInfo) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeDInfo, isDeleted = true) > 0) Seq(chargeDInfo) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeEInfo, isDeleted = true) > 0) Seq(chargeEInfo) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeGInfo, isDeleted = true) > 0) Seq(chargeGInfo) else Seq.empty
-    )
-    seqChargeInfo.flatten
+      if (countMembersOrEmployers(ua, chargeCInfo) == 0 && countMembersOrEmployers(ua, chargeCInfo, isDeleted = true) > 0) Seq(chargeCInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeDInfo) == 0 && countMembersOrEmployers(ua, chargeDInfo, isDeleted = true) > 0) Seq(chargeDInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeEInfo) == 0 && countMembersOrEmployers(ua, chargeEInfo, isDeleted = true) > 0) Seq(chargeEInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeGInfo) == 0 && countMembersOrEmployers(ua, chargeGInfo, isDeleted = true) > 0) Seq(chargeGInfo) else Seq.empty
+    ).flatten
+    seqChargeInfo.head
+  }
+
+  private def reinstateDeletedMemberOrEmployerCharge(ua: UserAnswers, whichCharge: ChargeInfo): UserAnswers = {
+    (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
+      case JsSuccess(array, _) =>
+        val itemToReinstate = array.value.indices.reverse.head
+
+
+      case JsError(_) => 0
+    }
+
+    ua
   }
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
