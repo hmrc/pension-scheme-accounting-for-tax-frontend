@@ -845,6 +845,12 @@ pageCannotMakeChanges.heading = Details cannot be changed
 pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
 pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079
 
+confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
+confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
+confirmSubmitAFTReturn.p1 = You can still make amendments to this return even after youʼve submitted it.
+confirmSubmitAFTReturn.checkYourAnswersLabel = confirmSubmitAFTReturn
+confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
+
 declaration.title = Declaration
 declaration.heading = Declaration
 declaration.p1 = By submitting this AFT return, you declare that:

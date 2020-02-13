@@ -16,11 +16,13 @@
 
 package navigators
 
+import java.time.{LocalDate, LocalDateTime, LocalTime}
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.{ChargeType, NormalMode, UserAnswers}
-import pages.{AFTSummaryPage, ChargeTypePage, Page}
+import pages._
 import play.api.mvc.Call
 import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
@@ -28,20 +30,18 @@ import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  def nextIndexChargeD(ua: UserAnswers, srn: String): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn).size
-  def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
-  def nextIndexChargeG(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
-
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
-    case AFTSummaryPage => controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
+    case AFTSummaryPage => aftSummaryNavigation(ua, srn)
+    case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn)
+    case DeclarationPage => controllers.routes.SessionExpiredController.onPageLoad()
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
     case ChargeTypePage => sessionExpiredPage
   }
 
-  private def chargeTypeNavigation(ua:UserAnswers, srn:String):Call =
+  private def chargeTypeNavigation(ua: UserAnswers, srn: String): Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn)
@@ -55,6 +55,27 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
       case Some(ChargeType.ChargeTypeOverseasTransfer) => controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, nextIndexChargeG(ua, srn))
       case _ => sessionExpiredPage
     }
+
+  private def nextIndexChargeD(ua: UserAnswers, srn: String): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn).size
+
+  private def nextIndexChargeE(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
+
+  private def nextIndexChargeG(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
+
+  private def isSubmissionEnabled(quarterEndDate: String): Boolean = {
+    val nextDay = LocalDateTime.of(LocalDate.parse(quarterEndDate).plusDays(1), LocalTime.MIDNIGHT)
+    LocalDateTime.now().compareTo(nextDay) >= 0
+  }
+
+  private def aftSummaryNavigation(ua: UserAnswers, srn: String) = {
+    ua.get(QuarterPage) match {
+      case Some(quarter) if isSubmissionEnabled(quarter.endDate) =>
+        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn)
+      case Some(_) =>
+        controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
+      case _ => sessionExpiredPage
+    }
+  }
 
   private val sessionExpiredPage = controllers.routes.SessionExpiredController.onPageLoad()
 }
