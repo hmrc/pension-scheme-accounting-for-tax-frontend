@@ -846,6 +846,5 @@ pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
-confirmSubmitAFTReturn.p1 = You can still make amendments to this return even after youʼve submitted it.
-confirmSubmitAFTReturn.checkYourAnswersLabel = confirmSubmitAFTReturn
+confirmSubmitAFTReturn.hint.text = You can still make amendments to this return even after youʼve submitted it.
 confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
