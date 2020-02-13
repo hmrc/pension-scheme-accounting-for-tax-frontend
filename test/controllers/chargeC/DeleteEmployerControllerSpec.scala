@@ -29,7 +29,7 @@ import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, TotalChargeAmountPage}
+import pages.chargeC._
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -43,12 +43,27 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
-  private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndIndividual
+
+  val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeName
+    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
+    .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(1), true).toOption.get
+
+  private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndTwoIndividuals
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+    .set(ChargeCDetailsPage(1), chargeCDetails).success.value
     .set(PSTRQuery, pstr).success.value
 
-  private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndOrganisation
+  private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeName
+    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
+    .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
+    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+
+  private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndTwoOrganisations
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+    .set(ChargeCDetailsPage(1), chargeCDetails).success.value
     .set(PSTRQuery, pstr).success.value
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
@@ -159,7 +174,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       val expectedUA = answersIndividual
         .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
+
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }
@@ -184,7 +200,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       val expectedUA = answersOrg
         .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }

@@ -22,11 +22,12 @@ import connectors.{AFTConnector, MinimalPsaConnector}
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Quarter, SchemeDetails, UserAnswers}
 import pages._
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import AFTService._
 
 class AFTService @Inject()(
                             aftConnector: AFTConnector,
@@ -34,9 +35,12 @@ class AFTService @Inject()(
                             schemeService: SchemeService,
                             minimalPsaConnector: MinimalPsaConnector
                           ) {
+
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
-      answers.remove(IsNewReturn) match {
+    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargesHavingNoMembersOrEmployers(answers)
+
+    aftConnector.fileAFTReturn(pstr, userAnswersWithInvalidMemberBasedChargesRemoved).flatMap { _ =>
+      userAnswersWithInvalidMemberBasedChargesRemoved.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
             .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
@@ -99,6 +103,57 @@ class AFTService @Inject()(
           }
         case Some(_) =>
           Future.successful(ua)
+      }
+    }
+  }
+}
+
+object AFTService {
+  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
+
+  private val chargeEInfo = ChargeInfo(
+    jsonNode = "chargeEDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeDInfo = ChargeInfo(
+    jsonNode = "chargeDDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeGInfo = ChargeInfo(
+    jsonNode = "chargeGDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeCInfo = ChargeInfo(
+    jsonNode = "chargeCDetails",
+    memberOrEmployerJsonNode = "employers",
+    isDeleted = (ua, index) =>
+      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+        case (Some(true), Some(individual), _) => individual.isDeleted
+        case (Some(false), _, Some(organisation)) => organisation.isDeleted
+        case _ => true
+      }
+  )
+
+  private def countNonDeletedMembersOrEmployers(ua:UserAnswers, chargeInfo: ChargeInfo):Int = {
+    (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
+      case JsSuccess(array, _) =>
+        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == false)
+      case JsError(_) => 0
+    }
+  }
+
+  def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
+    Seq(chargeEInfo, chargeDInfo, chargeGInfo, chargeCInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
+      if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
+        currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
+      } else {
+        currentUA
       }
     }
   }
