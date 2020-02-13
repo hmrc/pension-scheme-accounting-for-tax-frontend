@@ -42,7 +42,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
 
   def getListOfVersions(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
     val url = config.aftListOfVersions
-    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> "2020-04-01")
+    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> "2020-01-01")
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
       response.json.as[Seq[Int]]

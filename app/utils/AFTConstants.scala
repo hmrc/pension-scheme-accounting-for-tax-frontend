@@ -17,6 +17,6 @@
 package utils
 
 object AFTConstants {
-  val QUARTER_START_DATE = "2020-04-01"
+  val QUARTER_START_DATE = "2020-01-01"
   val QUARTER_END_DATE = "2020-06-30"
 }
