@@ -100,26 +100,35 @@ object UserAnswers {
     }
   }
 
-  private val chargeEIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
-
-  private val chargeDIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
-
-  private val chargeGIsMemberDeleted: (UserAnswers, Int) => Boolean = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
-
-  private val chargeCIsEmployerDeleted: (UserAnswers, Int) => Boolean = (ua, index) =>
-    (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
-      case (Some(true), Some(individual), _) => individual.isDeleted
-      case (Some(false), _, Some(organisation)) => organisation.isDeleted
-      case _ => true
-    }
-
   private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
 
-  private val memberBasedChargeInfo = Seq(
-    ChargeInfo(jsonNode = "chargeEDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeEIsMemberDeleted),
-    ChargeInfo(jsonNode = "chargeDDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeDIsMemberDeleted),
-    ChargeInfo(jsonNode = "chargeGDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeGIsMemberDeleted),
-    ChargeInfo(jsonNode = "chargeCDetails", memberOrEmployerJsonNode = "employers", isDeleted = chargeCIsEmployerDeleted)
+  private val chargeEInfo = ChargeInfo(
+    jsonNode = "chargeEDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeDInfo = ChargeInfo(
+    jsonNode = "chargeDDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeGInfo = ChargeInfo(
+    jsonNode = "chargeGDetails",
+    memberOrEmployerJsonNode = "members",
+    isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
+  )
+
+  private val chargeCInfo = ChargeInfo(
+    jsonNode = "chargeCDetails",
+    memberOrEmployerJsonNode = "employers",
+    isDeleted = (ua, index) =>
+      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+        case (Some(true), Some(individual), _) => individual.isDeleted
+        case (Some(false), _, Some(organisation)) => organisation.isDeleted
+        case _ => true
+      }
   )
 
   private def countNonDeletedMembersOrEmployers(ua:UserAnswers, chargeInfo: ChargeInfo):Int = {
@@ -131,7 +140,7 @@ object UserAnswers {
   }
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
-    memberBasedChargeInfo.foldLeft(answers) { (currentUA, chargeInfo) =>
+    Seq(chargeEInfo, chargeDInfo, chargeGInfo, chargeCInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
       if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
         currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
       } else {
@@ -139,5 +148,4 @@ object UserAnswers {
       }
     }
   }
-
 }
