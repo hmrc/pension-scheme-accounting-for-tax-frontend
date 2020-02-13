@@ -122,25 +122,25 @@ object AFTService {
       case _ => true
     }
 
-  private case class ChargeInfo(chargeType: String, nodeName: String, isDeleted: (UserAnswers, Int) => Boolean)
+  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
 
-  private val chargesToCheckForDeletion = Seq(
-    ChargeInfo(chargeType = "chargeEDetails", nodeName = "members",   isDeleted = chargeEIsMemberDeleted),
-    ChargeInfo(chargeType = "chargeDDetails", nodeName = "members",   isDeleted = chargeDIsMemberDeleted),
-    ChargeInfo(chargeType = "chargeGDetails", nodeName = "members",   isDeleted = chargeGIsMemberDeleted),
-    ChargeInfo(chargeType = "chargeCDetails", nodeName = "employers", isDeleted = chargeCIsEmployerDeleted)
+  private val memberBasedChargeInfo = Seq(
+    ChargeInfo(jsonNode = "chargeEDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeEIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeDDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeDIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeGDetails", memberOrEmployerJsonNode = "members",   isDeleted = chargeGIsMemberDeleted),
+    ChargeInfo(jsonNode = "chargeCDetails", memberOrEmployerJsonNode = "employers", isDeleted = chargeCIsEmployerDeleted)
   )
 
   private def removeChargeIfNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
-    chargesToCheckForDeletion.foldLeft(answers) { (currentUA, chargeTypeAndNodeName) =>
-      val countOfMembers = (currentUA.data \ chargeTypeAndNodeName.chargeType \ chargeTypeAndNodeName.nodeName).validate[JsArray] match {
+    memberBasedChargeInfo.foldLeft(answers) { (currentUA, chargeInfo) =>
+      val countOfMembers = (currentUA.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
         case JsSuccess(array, _) =>
-          array.value.indices.map(index => chargeTypeAndNodeName.isDeleted(currentUA, index)).count(_ == false)
+          array.value.indices.map(index => chargeInfo.isDeleted(currentUA, index)).count(_ == false)
         case JsError(_) => 0
       }
 
       if (countOfMembers == 0) {
-        currentUA.removeWithPath(JsPath \ chargeTypeAndNodeName.chargeType)
+        currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
       } else {
         currentUA
       }
