@@ -232,19 +232,19 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   }
 
   "isAtLeastOneValidCharge" must {
-    "return true where there is a charge type A present" in {
+    "return true where there is only a charge type A present" in {
       val ua = SampleData.userAnswersWithSchemeName
           .setOrException(pages.chargeA.ChargeDetailsPage, chargeAChargeDetails)
       AFTService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
-    "return true where there is a charge type B present" in {
+    "return true where there is only a charge type B present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)
       AFTService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
-    "return true where there is a charge type C present" in {
+    "return true where there is only a charge type C present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(IsSponsoringEmployerIndividualPage(0), true)
@@ -252,25 +252,60 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       AFTService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
-    "return true where there is a charge type D present" in {
+    "return true where there is only a charge type D present" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
-        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+        .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
       AFTService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
-    /*
-        .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
-  .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
-  .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
-  .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
-  .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
-  .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
-  .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-  .setOrException(IsSponsoringEmployerIndividualPage(0), true)
-  .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
- */
+    "return true where there is only a charge type E present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return true where there is only a charge type F present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return true where there is only a charge type G present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return false where there are no charges present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+      AFTService.isAtLeastOneValidCharge(ua) mustBe false
+    }
+
+    "return false where there is only a charge type C present with one employer which is deleted" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
+        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe false
+    }
+
+    "return false where there is only a charge type D present with one member which is deleted" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe false
+    }
+
+    "return false where there is only a charge type E present with one member which is deleted" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe false
+    }
+
+    "return false where there is only a charge type G present with one member which is deleted" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe false
+    }
 
   }
 

@@ -154,11 +154,12 @@ object AFTService {
       countNonDeletedMembersOrEmployers(ua, chargeCInfo) > 0 ||
       countNonDeletedMembersOrEmployers(ua, chargeDInfo) > 0 ||
       countNonDeletedMembersOrEmployers(ua, chargeEInfo) > 0 ||
-      ua.get(pages.chargeF.ChargeDetailsPage).isDefined
+      ua.get(pages.chargeF.ChargeDetailsPage).isDefined ||
+      countNonDeletedMembersOrEmployers(ua, chargeGInfo) > 0
   }
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
-    Seq(chargeEInfo, chargeDInfo, chargeGInfo, chargeCInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
+    Seq(chargeCInfo, chargeDInfo, chargeEInfo, chargeGInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
       if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
         currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
       } else {
