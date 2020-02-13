@@ -18,6 +18,7 @@ site.title.suffix = - managing pension schemes - GOV.UK
 site.view = View
 site.remove = Remove
 site.signOut = Sign out
+site.agree_and_submit = Agree and submit this AFT return
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -843,3 +844,9 @@ pageCannotMakeChanges.title = Details cannot be changed
 pageCannotMakeChanges.heading = Details cannot be changed
 pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
 pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079
+
+declaration.title = Declaration
+declaration.heading = Declaration
+declaration.p1 = By submitting this AFT return, you declare that:
+declaration.li1 = to the best of your knowledge and belief, the information given in this tax return is correct and complete
+declaration.li2 = you understand that if you have made a false statement in this tax return, you may be liable to a penalty, and that false statements may also lead to prosecution
