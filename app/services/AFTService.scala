@@ -23,11 +23,11 @@ import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Quarter, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
+import services.AFTService._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import AFTService._
 
 class AFTService @Inject()(
                             aftConnector: AFTConnector,
@@ -37,10 +37,20 @@ class AFTService @Inject()(
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargesHavingNoMembersOrEmployers(answers)
+    val ua = if (isAtLeastOneValidCharge(answers)) {
+      removeChargesHavingNoMembersOrEmployers(answers)
+    } else {
+      val allCharges = getSeqDeletedMemberOrEmployerChargeInfo(answers).map { ci =>
+        ci
+      }
 
-    aftConnector.fileAFTReturn(pstr, userAnswersWithInvalidMemberBasedChargesRemoved).flatMap { _ =>
-      userAnswersWithInvalidMemberBasedChargesRemoved.remove(IsNewReturn) match {
+      allCharges
+
+      answers
+    }
+
+    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
+      ua.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
           userAnswersCacheConnector
             .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
@@ -109,6 +119,7 @@ class AFTService @Inject()(
 }
 
 object AFTService {
+
   private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
 
   private val chargeEInfo = ChargeInfo(
@@ -140,27 +151,37 @@ object AFTService {
       }
   )
 
-  private def countNonDeletedMembersOrEmployers(ua:UserAnswers, chargeInfo: ChargeInfo):Int = {
+  private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted:Boolean = false): Int = {
     (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
       case JsSuccess(array, _) =>
-        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == false)
+        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == isDeleted)
       case JsError(_) => 0
     }
   }
 
-  def isAtLeastOneValidCharge(ua: UserAnswers):Boolean = {
+  def isAtLeastOneValidCharge(ua: UserAnswers): Boolean = {
     ua.get(pages.chargeA.ChargeDetailsPage).isDefined ||
       ua.get(pages.chargeB.ChargeBDetailsPage).isDefined ||
-      countNonDeletedMembersOrEmployers(ua, chargeCInfo) > 0 ||
-      countNonDeletedMembersOrEmployers(ua, chargeDInfo) > 0 ||
-      countNonDeletedMembersOrEmployers(ua, chargeEInfo) > 0 ||
+      countMembersOrEmployers(ua, chargeCInfo) > 0 ||
+      countMembersOrEmployers(ua, chargeDInfo) > 0 ||
+      countMembersOrEmployers(ua, chargeEInfo) > 0 ||
       ua.get(pages.chargeF.ChargeDetailsPage).isDefined ||
-      countNonDeletedMembersOrEmployers(ua, chargeGInfo) > 0
+      countMembersOrEmployers(ua, chargeGInfo) > 0
+  }
+
+  private def getSeqDeletedMemberOrEmployerChargeInfo(ua: UserAnswers): Seq[ChargeInfo] = {
+    val seqChargeInfo = Seq(
+      if (countMembersOrEmployers(ua, chargeCInfo, isDeleted = true) > 0) Seq(chargeCInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeDInfo, isDeleted = true) > 0) Seq(chargeDInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeEInfo, isDeleted = true) > 0) Seq(chargeEInfo) else Seq.empty,
+      if (countMembersOrEmployers(ua, chargeGInfo, isDeleted = true) > 0) Seq(chargeGInfo) else Seq.empty
+    )
+    seqChargeInfo.flatten
   }
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
     Seq(chargeCInfo, chargeDInfo, chargeEInfo, chargeGInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
-      if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
+      if (countMembersOrEmployers(currentUA, chargeInfo) == 0) {
         currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
       } else {
         currentUA
