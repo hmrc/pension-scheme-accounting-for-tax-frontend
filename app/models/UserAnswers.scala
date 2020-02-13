@@ -140,9 +140,4 @@ object UserAnswers {
     }
   }
 
-  def isAtLeastOneValidCharge(ua: UserAnswers):Boolean = {
-    ua.get(pages.chargeA.ChargeDetailsPage).isDefined ||
-    ua.get(pages.chargeB.ChargeBDetailsPage).isDefined ||
-    ua.get(pages.chargeF.ChargeDetailsPage).isDefined
-  }
 }
