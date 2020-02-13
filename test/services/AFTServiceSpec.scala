@@ -231,6 +231,49 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
   }
 
+  "isAtLeastOneValidCharge" must {
+    "return true where there is a charge type A present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+          .setOrException(pages.chargeA.ChargeDetailsPage, chargeAChargeDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return true where there is a charge type B present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return true where there is a charge type C present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
+        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    "return true where there is a charge type D present" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
+        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+      AFTService.isAtLeastOneValidCharge(ua) mustBe true
+    }
+
+    /*
+        .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
+  .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
+  .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
+  .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
+  .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
+  .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
+  .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
+  .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+  .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+ */
+
+  }
+
   "getAFTDetails" must {
     "connect to the aft backend service with the specified arguments and return what the connector returns" in {
       val startDate = "start date"

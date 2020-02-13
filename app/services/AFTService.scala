@@ -148,6 +148,15 @@ object AFTService {
     }
   }
 
+  def isAtLeastOneValidCharge(ua: UserAnswers):Boolean = {
+    ua.get(pages.chargeA.ChargeDetailsPage).isDefined ||
+      ua.get(pages.chargeB.ChargeBDetailsPage).isDefined ||
+      countNonDeletedMembersOrEmployers(ua, chargeCInfo) > 0 ||
+      countNonDeletedMembersOrEmployers(ua, chargeDInfo) > 0 ||
+      countNonDeletedMembersOrEmployers(ua, chargeEInfo) > 0 ||
+      ua.get(pages.chargeF.ChargeDetailsPage).isDefined
+  }
+
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
     Seq(chargeEInfo, chargeDInfo, chargeGInfo, chargeCInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
       if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
