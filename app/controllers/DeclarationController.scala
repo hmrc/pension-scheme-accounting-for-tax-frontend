@@ -17,10 +17,11 @@
 package controllers
 
 import config.FrontendAppConfig
+import connectors.MinimalPsaConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{GenericViewModel, NormalMode}
+import models.{Declaration, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.DeclarationPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -40,6 +41,7 @@ class DeclarationController @Inject()(
                                        allowAccess: AllowAccessActionProvider,
                                        aftService: AFTService,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                       minimalPsaConnector: MinimalPsaConnector,
                                        navigator: CompoundNavigator,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -63,7 +65,8 @@ class DeclarationController @Inject()(
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(DeclarationPage, value = true))
+          psaName <- minimalPsaConnector.getPsaName(request.psaId.id)
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration(psaName, request.psaId.id, hasAgreed = true)))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
