@@ -37,7 +37,7 @@ class AFTService @Inject()(
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargeIfNoMembersOrEmployers(answers)
+    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargesHavingNoMembersOrEmployers(answers)
 
     aftConnector.fileAFTReturn(pstr, userAnswersWithInvalidMemberBasedChargesRemoved).flatMap { _ =>
       userAnswersWithInvalidMemberBasedChargesRemoved.remove(IsNewReturn) match {
@@ -131,7 +131,7 @@ object AFTService {
     ChargeInfo(jsonNode = "chargeCDetails", memberOrEmployerJsonNode = "employers", isDeleted = chargeCIsEmployerDeleted)
   )
 
-  private def removeChargeIfNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
+  private def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
     memberBasedChargeInfo.foldLeft(answers) { (currentUA, chargeInfo) =>
       val countOfMembers = (currentUA.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
         case JsSuccess(array, _) =>
