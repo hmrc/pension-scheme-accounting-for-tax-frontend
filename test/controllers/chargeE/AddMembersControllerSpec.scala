@@ -93,7 +93,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> "1 January 2020",
-    "quarterEnd" -> "30 June 2020",
+    "quarterEnd" -> "31 March 2020",
     "table" -> table
   )
 
