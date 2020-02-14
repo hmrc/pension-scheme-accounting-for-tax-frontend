@@ -29,7 +29,7 @@ final case class UserAnswers(
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
 
   def getOrException[A](page: QuestionPage[A])(implicit rds: Reads[A]): A =
-    get(page).getOrElse(throw new RuntimeException("Expected value not found for " + page)
+    get(page).getOrElse(throw new RuntimeException("Expected a value but none found for " + page))
 
   def getAllMembersInCharge[A](charge: String)(implicit rds: Reads[A]): Seq[A] =
     (data \ charge \ "members" \\ "memberDetails").map { member =>
