@@ -26,9 +26,15 @@ import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
-  private def otherFieldEmptyOrBothFieldsNonEmpty(otherField: String): Condition =
+  private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
     map =>
-      map(otherField).isEmpty | (map("taxAt25Percent").nonEmpty && map("taxAt55Percent").nonEmpty)
+      (
+        (map(otherField).isEmpty | map(otherField) == "0.00")
+          |
+        ((map("taxAt25Percent").nonEmpty && map("taxAt25Percent") != "0.00")
+          &&
+        (map("taxAt55Percent").nonEmpty && map("taxAt55Percent") != "0.00"))
+      )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
@@ -44,7 +50,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "taxAt55Percent"),
+        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt55Percent"),
         optionBigDecimal2DP(
           requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
@@ -55,7 +61,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         )
       ),
       "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "taxAt25Percent"),
+        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt25Percent"),
         optionBigDecimal2DP(
           requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
           invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),

@@ -21,17 +21,24 @@ import javax.inject.Inject
 import models.chargeA.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
-  private def otherFieldEmptyOrBothFieldsNonEmpty(otherField: String): Condition =
+  private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
     map =>
-      map(otherField).isEmpty | (map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate").nonEmpty)
+      (
+        (map(otherField).isEmpty | map(otherField) == "0.00")
+          |
+        ((map("totalAmtOfTaxDueAtLowerRate").nonEmpty && map("totalAmtOfTaxDueAtLowerRate") != "0.00")
+          &&
+        (map("totalAmtOfTaxDueAtHigherRate").nonEmpty && map("totalAmtOfTaxDueAtHigherRate") != "0.00"))
+      )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeDetails] =
+  def apply(minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
     Form(mapping(
       "numberOfMembers" -> int(
         requiredKey = "chargeA.numberOfMembers.error.required",
@@ -41,25 +48,37 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))
       ),
       "totalAmtOfTaxDueAtLowerRate" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "totalAmtOfTaxDueAtHigherRate"),
+        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "totalAmtOfTaxDueAtHigherRate"),
         optionBigDecimal2DP(
           requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"),
-          minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum")
+          maximumValueOption[BigDecimal](
+            BigDecimal("99999999999.99"),
+            "chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum"
+          ),
+          minimumValueOption[BigDecimal](
+            minimumChargeValueAllowed,
+            messages("chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+          )
         )
       ),
       "totalAmtOfTaxDueAtHigherRate" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrBothFieldsNonEmpty(otherField = "totalAmtOfTaxDueAtLowerRate"),
+        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "totalAmtOfTaxDueAtLowerRate"),
         optionBigDecimal2DP(
           requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"),
-          minimumValueOption[BigDecimal](minimumChargeValueAllowed, "chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum")
+          maximumValueOption[BigDecimal](
+            BigDecimal("99999999999.99"),
+            "chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum"
+          ),
+          minimumValueOption[BigDecimal](
+            minimumChargeValueAllowed,
+            messages("chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum", minimumChargeValueAllowed.formatted("%s"))
+          )
         )
       ),
       "totalAmount" -> bigDecimalTotal("totalAmtOfTaxDueAtLowerRate", "totalAmtOfTaxDueAtHigherRate")
