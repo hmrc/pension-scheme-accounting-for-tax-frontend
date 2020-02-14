@@ -26,8 +26,10 @@ import models.GenericViewModel
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 
 import scala.concurrent.ExecutionContext
 
@@ -41,6 +43,13 @@ class ConfirmationController @Inject()(
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
+  private def getHTml(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages) = {
+    Html(s"""<p class="govuk-body govuk-!-margin-bottom-7">${messages("confirmation.aft.date.submitted",
+      s"${Html(s"""<span class = "govuk-!-font-weight-bold">$submittedDate</span>""").toString()}")}</p>""" +
+      s"""<p class="govuk-body govuk-!-font-weight-bold">$schemeName</p>""" +
+      s"""<p class="govuk-body">${messages("confirmation.aft.pstr",
+        s"""${Html(s"""<span class = "govuk-!-font-weight-bold">$pstr</span>""").toString()}""")}</p>""")
+  }
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
@@ -49,10 +58,12 @@ class ConfirmationController @Inject()(
         val quarterEndDate = LocalDate.parse(quarter.endDate).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
         val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
         val listSchemesUrl = config.yourPensionSchemesUrl
+        val html = getHTml(submittedDate, schemeName, pstr)
 
         val json = Json.obj(
           fields = "srn" -> srn,
           "pstr" -> pstr,
+          "dataHtml" -> html.toString(),
           "pensionSchemesUrl" -> listSchemesUrl,
           "quarterStartDate" -> quarterStartDate,
           "quarterEndDate" -> quarterEndDate,

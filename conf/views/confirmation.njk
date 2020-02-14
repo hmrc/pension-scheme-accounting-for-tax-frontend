@@ -15,21 +15,19 @@
 
         {{ govukPanel({
                 titleText: messages("confirmation.aft.return", quarterStartDate, quarterEndDate),
-                html: messages("confirmation.aft.date.submitted", submittedDate)
+                html:dataHtml
               }) }}
 
         <p class="govuk-body">{{messages("confirmation.p1")}}</p>
 
-        <h2 class="govuk-heading-m">{{messages("confirmation.whatNext")}}</h2>
+        <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
         <ul class="govuk-list">
               <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
-              <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>
-              <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li3", viewModel.schemeName) }}</a></li>
+              <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>
         </ul>
 
-        <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint")}}</h2>
+        <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
 
-        <p class="govuk-body"><a onclick="window.print();return false;" href="#">{{messages("confirmation.saveOrPrint.return.link.text")}}</a></p>
         <p class="govuk-body"><a onclick="window.print();return false;" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
 
         {{ govukButton({
