@@ -843,3 +843,6 @@ pageCannotMakeChanges.title = Details cannot be changed
 pageCannotMakeChanges.heading = Details cannot be changed
 pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
 pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079
+
+year.title = Which year are you submitting an AFT return for?
+years.error.required = Select which year you are submitting an AFT return for

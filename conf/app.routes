@@ -26,6 +26,9 @@ POST        /:srn/new-return/de-registration-charge/change/charge-details       
 GET         /:srn/new-return/de-registration-charge/check-your-answers                                                   controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
 GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers                                          controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
 
+GET         /:srn/new-return/select-year                                                                                 controllers.YearController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST        /:srn/new-return/select-year                                                                                 controllers.YearController.onSubmit(mode: Mode = NormalMode, srn: String)
+
 GET         /:srn/new-return/charge-type                                                                                 controllers.ChargeTypeController.onPageLoad(mode: Mode = NormalMode, srn: String)
 POST        /:srn/new-return/charge-type                                                                                 controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
 GET         /:srn/new-return/change/charge-type                                                                          controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
