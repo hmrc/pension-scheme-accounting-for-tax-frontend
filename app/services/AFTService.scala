@@ -19,6 +19,7 @@ package services
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
+import javax.inject.Singleton
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Quarter, SchemeDetails, UserAnswers}
 import pages._
@@ -28,6 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+@Singleton
 class AFTService @Inject()(
                             aftConnector: AFTConnector,
                             userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -38,14 +40,9 @@ class AFTService @Inject()(
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     val ua = if (aftReturnValidatorService.isAtLeastOneValidCharge(answers)) {
-      println("\nAT LEAST one valid charge")
       aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(answers)
-    } else {
-      println( "\nNO VALID CHARGES")
-      // if you are here then user must have deleted a member from one of member based charges leaving no undeleted members
-      val xx = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(answers)
-      println( "\n>>>AFTER REINSTATEMENT:" + xx.data)
-      xx
+    } else { // User has deleted last member from one of member based charges and there are no other charges present
+      aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(answers)
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>

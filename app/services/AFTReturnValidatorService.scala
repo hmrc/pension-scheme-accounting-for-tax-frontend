@@ -24,7 +24,7 @@ import play.api.libs.json.{JsArray, JsError, JsPath, JsSuccess}
 class AFTReturnValidatorService {
   private val zeroCurrencyValue = BigDecimal(0.00)
 
-  case class ChargeInfo(jsonNode: String,
+  private case class ChargeInfo(jsonNode: String,
                         memberOrEmployerJsonNode: String,
                         isDeleted: (UserAnswers, Int) => Boolean,
                         reinstate: (UserAnswers, Int) => UserAnswers
@@ -41,12 +41,10 @@ class AFTReturnValidatorService {
       },
     reinstate = (ua, index) => {
       val uaWithEmployerReinstated = if (ua.getOrException(pages.chargeC.IsSponsoringEmployerIndividualPage(index))) {
-        println( "\nIND")
         ua.setOrException(pages.chargeC.SponsoringIndividualDetailsPage(index),
           ua.getOrException(pages.chargeC.SponsoringIndividualDetailsPage(index)) copy (isDeleted = false)
         )
       } else {
-        println( "\nORG")
         ua.setOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index),
           ua.getOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index)) copy (isDeleted = false)
         )
@@ -139,18 +137,15 @@ class AFTReturnValidatorService {
       case JsError(_) => 0
     }
 
-  private def reinstateDeletedMemberOrEmployerCharge(ua: UserAnswers, optionWhichCharge: Option[ChargeInfo]): UserAnswers = {
-    println( "\nREINSTATING " + optionWhichCharge)
+  private def reinstateDeletedMemberOrEmployerCharge(ua: UserAnswers, optionWhichCharge: Option[ChargeInfo]): UserAnswers =
     optionWhichCharge.map { whichCharge =>
       val updatedUA = (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
         case JsSuccess(array, _) if array.value.nonEmpty =>
           val itemToReinstate = array.value.size - 1
-          println( "\n>>>REINSTATING " + itemToReinstate)
           whichCharge.reinstate(ua, itemToReinstate)
         case JsError(_) => throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + whichCharge)
       }
       updatedUA
     }.getOrElse(ua)
-  }
 }
 
