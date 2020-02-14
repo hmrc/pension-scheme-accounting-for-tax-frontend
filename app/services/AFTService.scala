@@ -42,10 +42,8 @@ class AFTService @Inject()(
     } else {
       // if you are here then user must have deleted a member from one of member based charges leaving no undeleted members
       val toReinstate = getDeletedMemberOrEmployerChargeInfoToReinstate(answers)
-
       println("\n>>>" + toReinstate)
-
-      answers
+      reinstateDeletedMemberOrEmployerCharge(answers, toReinstate)
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
@@ -119,24 +117,58 @@ class AFTService @Inject()(
 
 object AFTService {
 
-  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean) //, reinstate: (UserAnswers, Int) => UserAnswers)
+  private val zeroCurrencyValue = BigDecimal(0.00)
+
+  private case class ChargeInfo(
+                                 jsonNode: String,
+                                 memberOrEmployerJsonNode: String,
+                                 isDeleted: (UserAnswers, Int) => Boolean,
+                                 reinstate: (UserAnswers, Int) => UserAnswers
+                               )
 
   private val chargeEInfo = ChargeInfo(
     jsonNode = "chargeEDetails",
     memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
+    isDeleted = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted),
+    reinstate = (ua, index) => {
+      val memberDetails = ua.getOrException(pages.chargeE.MemberDetailsPage(index)) copy (isDeleted = false)
+      val chargeDetails = ua.getOrException(pages.chargeE.ChargeDetailsPage(index)) copy (chargeAmount = zeroCurrencyValue)
+      ua
+        .setOrException(pages.chargeE.MemberDetailsPage(index), memberDetails)
+        .setOrException(pages.chargeE.ChargeDetailsPage(index), chargeDetails)
+    }
   )
 
   private val chargeDInfo = ChargeInfo(
     jsonNode = "chargeDDetails",
     memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
+    isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted),
+    reinstate = (ua, index) => {
+      val memberDetails = ua.getOrException(pages.chargeD.MemberDetailsPage(index)) copy (isDeleted = false)
+      val chargeDetails = ua.getOrException(pages.chargeD.ChargeDetailsPage(index)) copy(
+        taxAt25Percent = Option(zeroCurrencyValue),
+        taxAt55Percent = Option(zeroCurrencyValue)
+      )
+      ua
+        .setOrException(pages.chargeD.MemberDetailsPage(index), memberDetails)
+        .setOrException(pages.chargeD.ChargeDetailsPage(index), chargeDetails)
+    }
   )
 
   private val chargeGInfo = ChargeInfo(
     jsonNode = "chargeGDetails",
     memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
+    isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted),
+    reinstate = (ua, index) => {
+      val memberDetails = ua.getOrException(pages.chargeG.MemberDetailsPage(index)) copy (isDeleted = false)
+      val chargeAmounts = ua.getOrException(pages.chargeG.ChargeAmountsPage(index)) copy(
+        amountTransferred = zeroCurrencyValue,
+        amountTaxDue = zeroCurrencyValue
+      )
+      ua
+        .setOrException(pages.chargeG.MemberDetailsPage(index), memberDetails)
+        .setOrException(pages.chargeG.ChargeAmountsPage(index), chargeAmounts)
+    }
   )
 
   private val chargeCInfo = ChargeInfo(
@@ -147,10 +179,25 @@ object AFTService {
         case (Some(true), Some(individual), _) => individual.isDeleted
         case (Some(false), _, Some(organisation)) => organisation.isDeleted
         case _ => true
+      },
+    reinstate = (ua, index) => {
+      val uaWithEmployerReinstated = if (ua.getOrException(pages.chargeC.IsSponsoringEmployerIndividualPage(index))) {
+        ua.setOrException(pages.chargeC.SponsoringIndividualDetailsPage(index),
+          ua.getOrException(pages.chargeC.SponsoringIndividualDetailsPage(index)) copy (isDeleted = false)
+        )
+      } else {
+        ua.setOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index),
+          ua.getOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index)) copy (isDeleted = false)
+        )
       }
+      uaWithEmployerReinstated
+        .setOrException(pages.chargeC.ChargeCDetailsPage(index),
+          uaWithEmployerReinstated.getOrException(pages.chargeC.ChargeCDetailsPage(index)) copy (amountTaxDue = zeroCurrencyValue)
+        )
+    }
   )
 
-  private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted:Boolean = false): Int = {
+  private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted: Boolean = false): Int = {
     (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
       case JsSuccess(array, _) =>
         array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == isDeleted)
@@ -179,16 +226,13 @@ object AFTService {
   }
 
   private def reinstateDeletedMemberOrEmployerCharge(ua: UserAnswers, whichCharge: ChargeInfo): UserAnswers = {
-    (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
-      case JsSuccess(array, _) =>
-        val itemToReinstate = array.value.indices.reverse.head
-        
-
-
-      case JsError(_) => 0
+    val updatedUA = (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
+      case JsSuccess(array, _) if array.value.nonEmpty =>
+        val itemToReinstate = array.value.size - 1
+        whichCharge.reinstate(ua, itemToReinstate)
+      case JsError(_) => throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + whichCharge)
     }
-
-    ua
+    updatedUA
   }
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
