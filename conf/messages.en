@@ -18,6 +18,7 @@ site.title.suffix = - managing pension schemes - GOV.UK
 site.view = View
 site.remove = Remove
 site.signOut = Sign out
+site.finishAndSignOut = Finish and sign out
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -843,3 +844,15 @@ pageCannotMakeChanges.title = Details cannot be changed
 pageCannotMakeChanges.heading = Details cannot be changed
 pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
 pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079
+
+confirmation.title = The pension scheme details have been sent to HMRC
+confirmation.p1 = We have sent a confirmation email to the email address you gave us.
+confirmation.aft.return = AFT return submitted for {0} to {1}
+confirmation.aft.date.submitted = Date submitted: {0}
+confirmation.whatNext.h2 = What you can do next
+confirmation.saveOrPrint.h2 = Save or print
+confirmation.li1 = View the charge reference for this submission
+confirmation.li2 = Return to Smith Harper pension scheme
+confirmation.li3 = View your other pension schemes
+confirmation.saveOrPrint.return.link.text = Save or print your submitted return (100KB)
+confirmation.saveOrPrint.page.link.text = Save or print this page (55KB)
