@@ -182,6 +182,7 @@ object AFTService {
     (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
       case JsSuccess(array, _) =>
         val itemToReinstate = array.value.indices.reverse.head
+        
 
 
       case JsError(_) => 0
