@@ -35,14 +35,14 @@ class AFTService @Inject()(
                             userAnswersCacheConnector: UserAnswersCacheConnector,
                             schemeService: SchemeService,
                             minimalPsaConnector: MinimalPsaConnector,
-                            aftReturnValidatorService: AFTReturnValidatorService
+                            aftReturnValidatorService: UserAnswersValidationService
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     val ua = if (aftReturnValidatorService.isAtLeastOneValidCharge(answers)) {
       aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(answers)
     } else { // User has deleted last member from one of member based charges and there are no other charges present
-      aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(answers)
+      aftReturnValidatorService.reinstateDeletedMemberOrEmployer(answers)
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>

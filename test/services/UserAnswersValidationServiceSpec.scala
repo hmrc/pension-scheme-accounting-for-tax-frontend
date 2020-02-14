@@ -26,9 +26,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.mvc.Results
 
-class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
+class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
   private val zeroCurrencyValue = BigDecimal(0.00)
-  val aftReturnValidatorService = new AFTReturnValidatorService()
+  val aftReturnValidatorService = new UserAnswersValidationService()
 
   val uaWithAllMemberBasedCharges: UserAnswers = userAnswersWithSchemeName
     .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
@@ -183,7 +183,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
     }
   }
 
-  "reinstateDeletedMemberOrEmployerCharge" must {
+  "reinstateDeletedMemberOrEmployer" must {
     "reinstate only the last deleted member from charge C and zero currency value" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
@@ -193,7 +193,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
         .setOrException(IsSponsoringEmployerIndividualPage(1), true)
         .setOrException(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetailsDeleted)
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(ua)
+      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
       result.get(SponsoringIndividualDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(SponsoringIndividualDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(ChargeCDetailsPage(0)).map(_.amountTaxDue) mustBe Some(chargeCDetails.amountTaxDue)
@@ -208,7 +208,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
         .setOrException(pages.chargeD.MemberDetailsPage(1), memberDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(ua)
+      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeD.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeD.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeD.ChargeDetailsPage(0)).flatMap(_.taxAt25Percent) mustBe chargeDDetails.taxAt25Percent
@@ -225,7 +225,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
         .setOrException(pages.chargeE.MemberDetailsPage(1), memberDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(ua)
+      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeE.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeE.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeE.ChargeDetailsPage(0)).map(_.chargeAmount) mustBe Some(chargeEDetails.chargeAmount)
@@ -240,7 +240,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
         .setOrException(pages.chargeG.MemberDetailsPage(1), memberGDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(ua)
+      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeG.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeG.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeG.ChargeAmountsPage(0)).map(_.amountTaxDue) mustBe Some(chargeAmounts.amountTaxDue)
@@ -250,7 +250,7 @@ class AFTReturnValidatorServiceSpec extends SpecBase with ScalaFutures with Befo
     }
 
     "do nothing if there is no member-based charge to reinstate" in {
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployerCharge(uaWithAllMemberBasedCharges)
+      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(uaWithAllMemberBasedCharges)
       result.data mustBe uaWithAllMemberBasedCharges.data
     }
   }

@@ -21,14 +21,14 @@ import models.UserAnswers
 import play.api.libs.json.{JsArray, JsError, JsPath, JsSuccess}
 
 @Singleton
-class AFTReturnValidatorService {
+class UserAnswersValidationService {
   private val zeroCurrencyValue = BigDecimal(0.00)
 
   private case class ChargeInfo(jsonNode: String,
-                        memberOrEmployerJsonNode: String,
-                        isDeleted: (UserAnswers, Int) => Boolean,
-                        reinstate: (UserAnswers, Int) => UserAnswers
-                       )
+                                memberOrEmployerJsonNode: String,
+                                isDeleted: (UserAnswers, Int) => Boolean,
+                                reinstate: (UserAnswers, Int) => UserAnswers
+                               )
 
   private val chargeInfoC = ChargeInfo(
     jsonNode = "chargeCDetails",
@@ -101,6 +101,8 @@ class AFTReturnValidatorService {
     }
   )
 
+  private val seqChargeInfo = Seq(chargeInfoC, chargeInfoD, chargeInfoE, chargeInfoG)
+
   def isAtLeastOneValidCharge(ua: UserAnswers): Boolean =
     ua.get(pages.chargeA.ChargeDetailsPage).isDefined ||
       ua.get(pages.chargeB.ChargeBDetailsPage).isDefined ||
@@ -111,7 +113,7 @@ class AFTReturnValidatorService {
       countMembersOrEmployers(ua, chargeInfoG) > 0
 
   def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers =
-    Seq(chargeInfoC, chargeInfoD, chargeInfoE, chargeInfoG).foldLeft(answers) { (currentUA, chargeInfo) =>
+    seqChargeInfo.foldLeft(answers) { (currentUA, chargeInfo) =>
       if (countMembersOrEmployers(currentUA, chargeInfo) == 0) {
         currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
       } else {
@@ -119,26 +121,12 @@ class AFTReturnValidatorService {
       }
     }
 
-  def reinstateDeletedMemberOrEmployerCharge(answers: UserAnswers): UserAnswers =
-    reinstateDeletedMemberOrEmployerCharge(answers, getDeletedMemberOrEmployerChargeInfoToReinstate(answers))
+  def reinstateDeletedMemberOrEmployer(ua: UserAnswers): UserAnswers = {
+    val chargeToReinstate = seqChargeInfo.flatMap { ci =>
+      if (countMembersOrEmployers(ua, ci) == 0 && countMembersOrEmployers(ua, ci, isDeleted = true) > 0) Seq(ci) else Seq.empty
+    }.headOption
 
-  private def getDeletedMemberOrEmployerChargeInfoToReinstate(ua: UserAnswers): Option[ChargeInfo] =
-    Seq(
-      if (countMembersOrEmployers(ua, chargeInfoC) == 0 && countMembersOrEmployers(ua, chargeInfoC, isDeleted = true) > 0) Seq(chargeInfoC) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeInfoD) == 0 && countMembersOrEmployers(ua, chargeInfoD, isDeleted = true) > 0) Seq(chargeInfoD) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeInfoE) == 0 && countMembersOrEmployers(ua, chargeInfoE, isDeleted = true) > 0) Seq(chargeInfoE) else Seq.empty,
-      if (countMembersOrEmployers(ua, chargeInfoG) == 0 && countMembersOrEmployers(ua, chargeInfoG, isDeleted = true) > 0) Seq(chargeInfoG) else Seq.empty
-    ).flatten.headOption
-
-  private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted: Boolean = false): Int =
-    (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
-      case JsSuccess(array, _) =>
-        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == isDeleted)
-      case JsError(_) => 0
-    }
-
-  private def reinstateDeletedMemberOrEmployerCharge(ua: UserAnswers, optionWhichCharge: Option[ChargeInfo]): UserAnswers =
-    optionWhichCharge.map { whichCharge =>
+    chargeToReinstate.map { whichCharge =>
       val updatedUA = (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
         case JsSuccess(array, _) if array.value.nonEmpty =>
           val itemToReinstate = array.value.size - 1
@@ -147,5 +135,12 @@ class AFTReturnValidatorService {
       }
       updatedUA
     }.getOrElse(ua)
-}
+  }
 
+  private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted: Boolean = false): Int =
+    (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
+      case JsSuccess(array, _) =>
+        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == isDeleted)
+      case JsError(_) => 0
+    }
+}
