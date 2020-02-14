@@ -49,7 +49,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
+  private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =
@@ -85,8 +85,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
             val json = Json.obj(
-          "srn" -> srn,
-          "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
+              "srn" -> srn,
+              "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
               "viewModel" -> viewModel(mode, srn, schemeName)
             )
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))

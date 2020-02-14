@@ -1,0 +1,41 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block pageTitle %}
+  {{ title(messages("confirmation.title")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {{ govukPanel({
+                titleText: messages("confirmation.aft.return", quarterStartDate, quarterEndDate),
+                html:dataHtml
+              }) }}
+
+        <p class="govuk-body">{{messages("confirmation.p1")}}</p>
+
+        <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
+        <ul class="govuk-list">
+              <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
+              <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>
+        </ul>
+
+        <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
+
+        <p class="govuk-body"><a onclick="window.print();return false;" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
+
+        {{ govukButton({
+            href: viewModel.submitUrl,
+            attributes: {id: "submit"},
+            text: messages("site.finishAndSignOut")
+          }) }}
+      </div>
+    </div>
+
+{% endblock %}
