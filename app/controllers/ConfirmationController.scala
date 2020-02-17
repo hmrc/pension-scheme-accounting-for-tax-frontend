@@ -23,13 +23,12 @@ import config.FrontendAppConfig
 import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 
 import scala.concurrent.ExecutionContext
 
@@ -43,13 +42,22 @@ class ConfirmationController @Inject()(
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  private def getHTml(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages) = {
-    Html(s"""<p class="govuk-body govuk-!-margin-bottom-7">${messages("confirmation.aft.date.submitted",
-      s"${Html(s"""<span class = "govuk-!-font-weight-bold">$submittedDate</span>""").toString()}")}</p>""" +
-      s"""<p class="govuk-body govuk-!-font-weight-bold">$schemeName</p>""" +
-      s"""<p class="govuk-body">${messages("confirmation.aft.pstr",
-        s"""${Html(s"""<span class = "govuk-!-font-weight-bold">$pstr</span>""").toString()}""")}</p>""")
+  private def span(text: String): String = {
+    s"${Html(s"""<span class="govuk-!-font-weight-bold">$text</span>""").toString()}"
   }
+
+  private def pTag(text: String, classes: Option[String] = None): String = {
+    s"""<p class="govuk-!-font-size-19 ${classes.getOrElse("")}">$text</p>"""
+  }
+
+  private def confirmationPanelText(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages) = {
+    Html(
+      pTag(messages("confirmation.aft.date.submitted", span(submittedDate)), classes = Some("govuk-!-margin-bottom-7")) +
+        pTag(schemeName, classes = Some("govuk-!-font-weight-bold")) +
+        pTag(messages("confirmation.aft.pstr", span(pstr)))
+    )
+  }
+
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
@@ -58,7 +66,7 @@ class ConfirmationController @Inject()(
         val quarterEndDate = LocalDate.parse(quarter.endDate).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
         val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
         val listSchemesUrl = config.yourPensionSchemesUrl
-        val html = getHTml(submittedDate, schemeName, pstr)
+        val html = confirmationPanelText(submittedDate, schemeName, pstr)
 
         val json = Json.obj(
           fields = "srn" -> srn,
