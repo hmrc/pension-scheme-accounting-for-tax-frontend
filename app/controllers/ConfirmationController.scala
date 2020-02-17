@@ -38,13 +38,15 @@ class ConfirmationController @Inject()(
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
                                         requireData: DataRequiredAction,
+                                        allowAccess: AllowAccessActionProvider,
+                                        allowSubmission: AllowSubmissionAction,
                                         val controllerComponents: MessagesControllerComponents,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         renderer: Renderer,
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
 

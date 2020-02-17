@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -39,7 +39,8 @@ import scala.concurrent.Future
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   private val mockAFTService = mock[AFTService]
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService))
+  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService),
+    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 

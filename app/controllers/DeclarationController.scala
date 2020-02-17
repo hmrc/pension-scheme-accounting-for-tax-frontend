@@ -38,6 +38,7 @@ class DeclarationController @Inject()(
                                        getData: DataRetrievalAction,
                                        requireData: DataRequiredAction,
                                        allowAccess: AllowAccessActionProvider,
+                                       allowSubmission: AllowSubmissionAction,
                                        aftService: AFTService,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
                                        navigator: CompoundNavigator,
@@ -46,7 +47,8 @@ class DeclarationController @Inject()(
                                        renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn)
+    andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
@@ -59,7 +61,8 @@ class DeclarationController @Inject()(
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn)
+    andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         for {

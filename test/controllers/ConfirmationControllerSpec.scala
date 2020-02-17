@@ -19,7 +19,7 @@ package controllers
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{dummyCall, userAnswersWithSchemeName}
@@ -28,6 +28,8 @@ import models.GenericViewModel
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
@@ -67,7 +69,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+      val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn).url)
 

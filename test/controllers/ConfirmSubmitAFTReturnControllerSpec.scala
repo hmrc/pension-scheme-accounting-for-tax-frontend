@@ -16,18 +16,20 @@
 
 package controllers
 
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
 import play.api.data.Form
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
@@ -49,7 +51,8 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val templateToBeRendered = "confirmSubmitAFTReturn.njk"
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])

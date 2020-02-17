@@ -39,6 +39,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
                                                  identify: IdentifierAction,
                                                  getData: DataRetrievalAction,
                                                  allowAccess: AllowAccessActionProvider,
+                                                 allowSubmission: AllowSubmissionAction,
                                                  requireData: DataRequiredAction,
                                                  formProvider: ConfirmSubmitAFTReturnFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
@@ -48,7 +49,8 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen
+    allowAccess(srn) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
@@ -72,7 +74,8 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen
+    allowAccess(srn) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
