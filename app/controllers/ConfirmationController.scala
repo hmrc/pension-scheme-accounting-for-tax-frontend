@@ -44,22 +44,6 @@ class ConfirmationController @Inject()(
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  private def span(text: String): String = {
-    s"${Html(s"""<span class="govuk-!-font-weight-bold">$text</span>""").toString()}"
-  }
-
-  private def pTag(text: String, classes: Option[String] = None): String = {
-    s"""<p class="govuk-!-font-size-19 ${classes.getOrElse("")}">$text</p>"""
-  }
-
-  private def confirmationPanelText(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages) = {
-    Html(
-      pTag(messages("confirmation.aft.date.submitted", span(submittedDate)), classes = Some("govuk-!-margin-bottom-7")) +
-        pTag(schemeName, classes = Some("govuk-!-font-weight-bold")) +
-        pTag(messages("confirmation.aft.pstr", span(pstr)))
-    )
-  }
-
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
@@ -89,5 +73,19 @@ class ConfirmationController @Inject()(
           }
         }
       }
+  }
+
+  private def confirmationPanelText(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages): Html = {
+    def pTag(text: String, classes: Option[String] = None): String = {
+      s"""<p class="govuk-!-font-size-19 ${classes.getOrElse("")}">$text</p>"""
+    }
+    def span(text: String): String = {
+      s"${Html(s"""<span class="govuk-!-font-weight-bold">$text</span>""").toString()}"
+    }
+    Html(
+      pTag(messages("confirmation.aft.date.submitted", span(submittedDate)), classes = Some("govuk-!-margin-bottom-7")) +
+        pTag(schemeName, classes = Some("govuk-!-font-weight-bold")) +
+        pTag(messages("confirmation.aft.pstr", span(pstr)))
+    )
   }
 }

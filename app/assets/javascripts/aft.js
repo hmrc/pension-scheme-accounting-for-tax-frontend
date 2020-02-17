@@ -17,7 +17,7 @@ if(backLink){
     });
 }
 
-var printLink = document.querySelector('.print');
+var printLink = document.querySelector('.print-this-page');
 if(printLink){
     printLink.addEventListener('click', function(e){
         window.print();
