@@ -860,8 +860,7 @@ confirmation.saveOrPrint.page.link.text = Save or print this page (55KB)
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
-confirmSubmitAFTReturn.p1 = You can still make amendments to this return even after youʼve submitted it.
-confirmSubmitAFTReturn.checkYourAnswersLabel = confirmSubmitAFTReturn
+confirmSubmitAFTReturn.hint.text = You can still make amendments to this return even after youʼve submitted it.
 confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
 
 declaration.title = Declaration

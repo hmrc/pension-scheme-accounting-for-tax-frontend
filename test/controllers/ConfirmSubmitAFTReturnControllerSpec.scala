@@ -24,7 +24,7 @@ import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when, never}
+import org.mockito.Mockito.{never, times, verify, when}
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
 import play.api.data.Form
@@ -53,7 +53,8 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
-    fields = "form" -> form,
+    fields = "srn" -> srn,
+      "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = confirmSubmitAFTReturnSubmitRoute,
       returnUrl = onwardRoute.url,
