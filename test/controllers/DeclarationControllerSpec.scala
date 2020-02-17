@@ -16,15 +16,14 @@
 
 package controllers
 
-import connectors.MinimalPsaConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.{dummyCall, pstr, schemeName, srn, userAnswersWithSchemeName}
+import data.SampleData._
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.{DeclarationPage, PSTRQuery}
 import play.api.Application
@@ -40,11 +39,10 @@ import scala.concurrent.Future
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   private val mockAFTService = mock[AFTService]
-  private val mockMinimalPsaConnector = mock[MinimalPsaConnector]
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AFTService].toInstance(mockAFTService), bind[MinimalPsaConnector].toInstance(mockMinimalPsaConnector))
+  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService))
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
   private val templateToBeRendered = "declaration.njk"
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn).url
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn).url
@@ -85,7 +83,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-      when(mockMinimalPsaConnector.getPsaName(any())(any(), any())).thenReturn(Future.successful(""))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
@@ -93,7 +90,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-      verify(mockMinimalPsaConnector, times(1)).getPsaName(any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
     }

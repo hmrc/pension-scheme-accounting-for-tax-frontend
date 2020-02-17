@@ -30,6 +30,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -63,6 +64,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
       when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
@@ -79,6 +81,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
       jsonCaptor.getValue must containJson(json)

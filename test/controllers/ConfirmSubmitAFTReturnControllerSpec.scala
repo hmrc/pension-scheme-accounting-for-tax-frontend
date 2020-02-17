@@ -22,7 +22,7 @@ import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, NormalMode, UserAnswers}
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import pages.ConfirmSubmitAFTReturnPage
@@ -30,6 +30,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
+import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -38,11 +39,13 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 
 class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private def onwardRoute = Call("GET", "/foo")
+  private def onwardRoute = Call("GET", "/onward")
+
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
   private val form = formProvider()
 
   private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn).url
+
   private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -54,19 +57,21 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
 
   private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
     fields = "srn" -> srn,
-      "form" -> form,
+    "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = confirmSubmitAFTReturnSubmitRoute,
-      returnUrl = onwardRoute.url,
+      returnUrl = dummyCall.url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
+    Mockito.reset(mockUserAnswersCacheConnector, mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
+
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   "ConfirmSubmitAFTReturn Controller" must {
@@ -101,7 +106,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to the next page when valid data is submitted" in {
+    "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
@@ -113,7 +118,22 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+    }
+
+    "remove the data and redirect to the pension scheme url when user submits with value false" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
+      val request =
+        FakeRequest(POST, confirmSubmitAFTReturnRoute)
+          .withFormUrlEncodedBody(("value", "false"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual dummyCall.url
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -123,8 +143,8 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       val result = route(application, request).value
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockRenderer, times(1)).render(any(), any())(any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 
 import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
@@ -38,6 +39,7 @@ class ConfirmationController @Inject()(
                                         getData: DataRetrievalAction,
                                         requireData: DataRequiredAction,
                                         val controllerComponents: MessagesControllerComponents,
+                                        userAnswersCacheConnector: UserAnswersCacheConnector,
                                         renderer: Renderer,
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
@@ -81,7 +83,11 @@ class ConfirmationController @Inject()(
             returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
             schemeName = schemeName)
         )
-        renderer.render("confirmation.njk", json).map(Ok(_))
+        renderer.render("confirmation.njk", json).flatMap { viewHtml =>
+          userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+            Ok(viewHtml)
+          }
+        }
       }
   }
 }

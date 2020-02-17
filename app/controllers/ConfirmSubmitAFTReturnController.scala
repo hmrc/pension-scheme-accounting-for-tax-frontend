@@ -44,7 +44,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
                                                  val controllerComponents: MessagesControllerComponents,
                                                  config: FrontendAppConfig,
                                                  renderer: Renderer
-                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
@@ -53,7 +53,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
           case None => form
-          case Some (value) => form.fill (value)
+          case Some(value) => form.fill(value)
         }
 
         val viewModel = GenericViewModel(
@@ -65,11 +65,11 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
           fields = "srn" -> srn,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo (preparedForm("value"))
+          "radios" -> Radios.yesNo(preparedForm("value"))
         )
 
-      renderer.render (template = "confirmSubmitAFTReturn.njk", json).map(Ok (_))
-    }
+        renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(Ok(_))
+      }
   }
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
@@ -85,18 +85,24 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
             val json = Json.obj(
               fields = "srn" -> srn,
-              "form"   -> formWithErrors,
-              "viewModel"   -> viewModel,
+              "form" -> formWithErrors,
+              "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn))
+            if (!value) {
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+              }
+            } else {
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn))
+            }
         )
       }
   }

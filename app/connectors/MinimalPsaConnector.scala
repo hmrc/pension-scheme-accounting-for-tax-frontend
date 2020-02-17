@@ -34,21 +34,4 @@ class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
       (response.json \ "isPsaSuspended").as[Boolean]
     }
   }
-
-  def getPsaName(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[String] = {
-    val psaHc = hc.withExtraHeaders("psaId" -> psaId)
-
-    http.GET[HttpResponse](config.minimalPsaDetailsUrl)(implicitly, psaHc, implicitly) map { response =>
-      require(response.status == Status.OK)
-      val optOrgName = (response.json \ "organisationName").asOpt[String]
-      val optFirstName = (response.json \ "individualDetails" \ "firstName").asOpt[String]
-      val optLastName = (response.json \ "individualDetails" \ "lastName").asOpt[String]
-
-      (optOrgName, optFirstName, optLastName) match {
-        case (Some(orgName), _, _) => orgName
-        case (None, Some(firstName), Some(lastName)) => s"$firstName $lastName"
-        case _ => throw new RuntimeException("No PSA Name returned from minimal psa api response json")
-      }
-    }
-  }
 }

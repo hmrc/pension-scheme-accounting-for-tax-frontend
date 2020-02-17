@@ -17,13 +17,12 @@
 package controllers
 
 import config.FrontendAppConfig
-import connectors.MinimalPsaConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.{Declaration, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.DeclarationPage
+import pages.{AFTStatusQuery, DeclarationPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -41,7 +40,6 @@ class DeclarationController @Inject()(
                                        allowAccess: AllowAccessActionProvider,
                                        aftService: AFTService,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       minimalPsaConnector: MinimalPsaConnector,
                                        navigator: CompoundNavigator,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -65,10 +63,10 @@ class DeclarationController @Inject()(
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         for {
-          psaName <- minimalPsaConnector.getPsaName(request.psaId.id)
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration(psaName, request.psaId.id, hasAgreed = true)))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
+          updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
+          _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
+          _ <- aftService.fileAFTReturn(pstr, updatedStatus)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn))
         }

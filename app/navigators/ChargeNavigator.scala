@@ -16,16 +16,14 @@
 
 package navigators
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.Call
-import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
+import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
@@ -34,7 +32,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
     case AFTSummaryPage => aftSummaryNavigation(ua, srn)
     case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn)
-    case DeclarationPage => controllers.routes.SessionExpiredController.onPageLoad()
+    case DeclarationPage => controllers.routes.ConfirmationController.onPageLoad(srn)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
@@ -62,17 +60,12 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
 
   private def nextIndexChargeG(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
 
-  private def isSubmissionEnabled(quarterEndDate: String): Boolean = {
-    val nextDay = LocalDateTime.of(LocalDate.parse(quarterEndDate).plusDays(1), LocalTime.MIDNIGHT)
-    LocalDateTime.now().compareTo(nextDay) >= 0
-  }
-
-  private def aftSummaryNavigation(ua: UserAnswers, srn: String) = {
-    ua.get(QuarterPage) match {
-      case Some(quarter) if isSubmissionEnabled(quarter.endDate) =>
-        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn)
-      case Some(_) =>
+  private def aftSummaryNavigation(ua: UserAnswers, srn: String): Call = {
+    ua.get(AFTSummaryPage) match {
+      case Some(true) =>
         controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
+      case Some(false) =>
+        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn)
       case _ => sessionExpiredPage
     }
   }
