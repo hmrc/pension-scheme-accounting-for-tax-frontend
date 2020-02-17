@@ -20,9 +20,9 @@ import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import forms.YearFormProvider
+import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{Years, GenericViewModel, Mode}
+import models.{GenericViewModel, Mode, NormalMode, Years}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -35,26 +35,26 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class YearController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: YearFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
-                                      config: FrontendAppConfig,
-                                      auditService: AuditService,
-                                      aftService: AFTService,
-                                      allowService: AllowAccessService
+class YearsController @Inject()(
+                                 override val messagesApi: MessagesApi,
+                                 userAnswersCacheConnector: UserAnswersCacheConnector,
+                                 navigator: CompoundNavigator,
+                                 identify: IdentifierAction,
+                                 getData: DataRetrievalAction,
+                                 allowAccess: AllowAccessActionProvider,
+                                 requireData: DataRequiredAction,
+                                 formProvider: YearsFormProvider,
+                                 val controllerComponents: MessagesControllerComponents,
+                                 renderer: Renderer,
+                                 config: FrontendAppConfig,
+                                 auditService: AuditService,
+                                 aftService: AFTService,
+                                 allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
 
       DataRetrievals.retrieveSchemeName { schemeName =>
@@ -65,14 +65,14 @@ class YearController @Inject()(
           "srn" -> srn,
           "form" -> preparedForm,
           "radios" -> Years.radios(preparedForm),
-          "viewModel" -> viewModel(schemeName, mode, srn)
+          "viewModel" -> viewModel(schemeName, srn)
         )
 
-        renderer.render(template = "year.njk", json).map(Ok(_))
+        renderer.render(template = "years.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -82,22 +82,22 @@ class YearController @Inject()(
               fields = "srn" -> srn,
               "form" -> formWithErrors,
               "radios" -> Years.radios(formWithErrors),
-              "viewModel" -> viewModel(schemeName, mode, srn)
+              "viewModel" -> viewModel(schemeName, srn)
             )
-            renderer.render(template = "year.njk", json).map(BadRequest(_))
+            renderer.render(template = "years.njk", json).map(BadRequest(_))
           },
           value =>
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(YearPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(YearPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(YearPage, NormalMode, updatedAnswers, srn))
         )
       }
   }
 
-  private def viewModel(schemeName: String, mode: Mode, srn: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.YearController.onSubmit(srn).url,
+      submitUrl = routes.YearsController.onSubmit(srn).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )

@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package models
+package forms
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import forms.behaviours.OptionFieldBehaviours
+import models.Years
+import play.api.data.FormError
 
-import models.Quarters.{Q1, Q2, Q3, Q4}
-import play.api.libs.json.{Format, Json}
+class YearsFormProviderSpec extends OptionFieldBehaviours {
 
-case class Quarter(startDate: String, endDate: String) {
-  def date(s: String): LocalDate = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s))
+  val form = new YearsFormProvider()()
 
-  def getQuarters: Quarters = date(startDate).getMonthValue match {
-    case 1 => Q1
-    case 4 => Q2
-    case 7 => Q3
-    case 10 => Q4
+  ".value" must {
+
+    val fieldName = "value"
+    val requiredKey = "years.error.required"
+
+    behave like optionsField[Years](
+      form,
+      fieldName,
+      validValues  = Years.values,
+      invalidError = FormError(fieldName, "error.invalid")
+    )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
   }
 }
-
-object Quarter {
-
-  implicit lazy val formats: Format[Quarter] =
-    Json.format[Quarter]
-}
-

@@ -25,7 +25,9 @@ import play.api.libs.json.{JsString, JsValue, Writes}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 
-sealed trait Years
+sealed trait Years {
+  def getYear: Int = this.asInstanceOf[Year].year
+}
 
 object Years extends Enumerable.Implicits {
 

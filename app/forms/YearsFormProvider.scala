@@ -21,7 +21,7 @@ import javax.inject.Inject
 import models.Years
 import play.api.data.Form
 
-class YearFormProvider @Inject() extends Mappings {
+class YearsFormProvider @Inject() extends Mappings {
 
   def apply(): Form[Years] =
     Form(

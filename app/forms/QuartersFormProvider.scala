@@ -16,30 +16,14 @@
 
 package forms
 
-import forms.behaviours.OptionFieldBehaviours
-import models.Years
-import play.api.data.FormError
+import forms.mappings.Mappings
+import models.Quarters
+import play.api.data.Form
 
-class YearFormProviderSpec extends OptionFieldBehaviours {
+class QuartersFormProvider extends Mappings {
 
-  val form = new YearFormProvider()()
-
-  ".value" must {
-
-    val fieldName = "value"
-    val requiredKey = "years.error.required"
-
-    behave like optionsField[Years](
-      form,
-      fieldName,
-      validValues  = Years.values,
-      invalidError = FormError(fieldName, "error.invalid")
+  def apply(errorKey: String, year: Int): Form[Quarters] =
+    Form(
+      "value" -> enumerable[Quarters](requiredKey = errorKey)(Quarters.enumerable(year))
     )
-
-    behave like mandatoryField(
-      form,
-      fieldName,
-      requiredError = FormError(fieldName, requiredKey)
-    )
-  }
 }
