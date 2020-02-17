@@ -16,3 +16,11 @@ if(backLink){
         }
     });
 }
+
+var printLink = document.querySelector('.print');
+if(printLink){
+    printLink.addEventListener('click', function(e){
+        window.print();
+        return false;
+    });
+}
