@@ -18,10 +18,11 @@ package services
 
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
+import controllers.routes._
 import handlers.ErrorHandler
 import models.UserAnswers
 import models.requests.OptionalDataRequest
-import pages.IsPsaSuspendedQuery
+import pages.{AFTSummaryPage, ChargeTypePage, IsPsaSuspendedQuery, Page}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,32 +33,26 @@ import scala.concurrent.{ExecutionContext, Future}
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
                                    errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers)
+
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionPage: Option[Page] = None, optionVersion: Option[String])
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    ua.get(IsPsaSuspendedQuery) match {
-      case None =>
-        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-      case Some(false) =>
-        pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true =>
-            Future.successful(None)
-          case _ =>
-            errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
-        }
-      case _ =>
-        /*
-
-              IF not locked THEN
-                IF version THEN redirect to cannot make changes page with the version number
-                ELSE redirect to cannot start page
-
-
-
-         */
-        Future.successful(Some(Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(srn, Some("1")))))
+    ua.get(IsPsaSuspendedQuery).fold(Future.successful(Option(Redirect(SessionExpiredController.onPageLoad())))) { isSuspended =>
+      pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
+        case true =>
+          (isSuspended, request.viewOnly, optionPage, optionVersion) match {
+            case (true, false, Some(AFTSummaryPage), Some(_)) =>
+              Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
+            case (true, false, Some(ChargeTypePage), _) =>
+              Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn))))
+            case _ =>
+              Future.successful(None)
+          }
+        case _ =>
+          errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
+      }
     }
   }
 }
