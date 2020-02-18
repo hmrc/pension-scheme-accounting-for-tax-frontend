@@ -25,7 +25,10 @@ trait DateHelper{
 
   private val mockDate: AtomicReference[Option[LocalDate]] = new AtomicReference(None)
 
-  def today: LocalDate = mockDate.get().getOrElse(LocalDate.now())
+  def today: LocalDate = {
+    println()
+    mockDate.get().getOrElse(LocalDate.now())
+  }
   def setDate(date: Option[LocalDate]): Unit = mockDate.set(date)
   def overriddenDate: Option[LocalDate] = mockDate.get()
 }

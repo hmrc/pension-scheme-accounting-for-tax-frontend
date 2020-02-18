@@ -30,7 +30,10 @@ sealed trait Years {
 
 object Years extends Enumerable.Implicits with DateHelper {
 
-  def currentYear: Int = today.getYear
+  def currentYear: Int = {
+    println("\n\n>>>>>>>>>>>>>>>>>>>>> "+today)
+    today.getYear
+  }
 
   def minYear: Int = {
     val earliestYear = currentYear - 6

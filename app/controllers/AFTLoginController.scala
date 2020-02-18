@@ -83,7 +83,8 @@ class AFTLoginController @Inject()(
           _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
         } yield Redirect(controllers.routes.QuartersController.onPageLoad(srn))
 
-      case _ =>
+      case (x, y) =>
+        println(s">>>>>>>>>>>>>>>>>>>>   $x $y")
         for {
           ua <- Future.fromTry(userAnswers.set(YearPage, Year(defaultYear)))
           updatedUa <- Future.fromTry(ua.set(QuarterPage, Quarters.getQuarter(Quarters.values(defaultYear).head, defaultYear)))
