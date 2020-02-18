@@ -23,6 +23,8 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
+import utils.DateHelper
+
 import scala.language.implicitConversions
 
 sealed trait Quarters {
@@ -32,9 +34,8 @@ sealed trait Quarters {
   def endMonth: Int
 
 }
-object Quarters extends Enumerable.Implicits {
-  def currentDate: LocalDate = LocalDate.now()
-  def currentYear: Int = currentDate.getYear
+object Quarters extends Enumerable.Implicits with DateHelper {
+  def currentYear: Int = today.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
     override def startMonth = 1
@@ -66,7 +67,7 @@ object Quarters extends Enumerable.Implicits {
     }
 
   def getCurrentYearQuarters: Seq[Quarters] ={
-    val quartersCY = currentDate.getMonthValue match {
+    val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
       case i if i  > 3 => Seq(Q1, Q2)

@@ -17,21 +17,20 @@
 package models
 
 
-import java.time.LocalDate
-
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{JsString, JsValue, Writes}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
+import utils.DateHelper
 
 sealed trait Years {
   def getYear: Int = this.asInstanceOf[Year].year
 }
 
-object Years extends Enumerable.Implicits {
+object Years extends Enumerable.Implicits with DateHelper {
 
-  def currentYear: Int = LocalDate.now().getYear
+  def currentYear: Int = today.getYear
 
   def minYear: Int = {
     val earliestYear = currentYear - 6
