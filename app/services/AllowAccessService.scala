@@ -39,6 +39,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     val validStatus = Seq(Open, WoundUp, Deregistered)
+
     (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
       case (None, None) | (_, None) | (None, _) =>
         Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))

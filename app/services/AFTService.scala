@@ -87,7 +87,6 @@ class AFTService @Inject()(
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
-              .setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
           } else {
             currentUserAnswers
           }
@@ -98,13 +97,14 @@ class AFTService @Inject()(
     }
 
     futureUserAnswers.flatMap { ua =>
-      ua.get(IsPsaSuspendedQuery) match {
+      val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
+      uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+            uaWithStatus.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
           }
         case Some(_) =>
-          Future.successful(ua)
+          Future.successful(uaWithStatus)
       }
     }
   }
