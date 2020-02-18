@@ -29,9 +29,9 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
+class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
 
-  "CannotStartAFTReturn Controller" must {
+  "CannotChangeAFTReturn Controller" must {
 
     "must return OK and the correct view for a GET" in {
 
@@ -43,7 +43,7 @@ class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-      val request = FakeRequest(GET, routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn).url)
+      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, None).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
@@ -55,7 +55,7 @@ class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual "cannot-start-aft-return.njk"
+      templateCaptor.getValue mustEqual "cannot-change-aft-return.njk"
     }
   }
 }
