@@ -43,7 +43,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-  private val answers: UserAnswers = userAnswersWithSchemeName.set(IsSponsoringEmployerIndividualPage(index), true).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(IsSponsoringEmployerIndividualPage(index), true).success.value
 
   def onwardRoute: Call = Call("GET", "/foo")
 
@@ -66,7 +66,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val request = FakeRequest(GET, httpPathGET)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -122,7 +122,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val request =
         FakeRequest(POST, httpPathGET)
@@ -140,7 +140,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
       val boundForm = form.bind(Map("value" -> ""))

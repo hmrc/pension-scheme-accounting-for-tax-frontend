@@ -16,6 +16,8 @@ GET         /unauthorised                                                       
 
 GET         /accessibility-statement                                                                                     controllers.AccessibilityController.onPageLoad
 
+GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
+
 GET         /:srn/new-return/de-registration-charge/what-you-will-need                                                   controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/de-registration-charge/charge-details                                                       controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)

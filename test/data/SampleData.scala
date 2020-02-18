@@ -76,15 +76,21 @@ object SampleData {
   def userAnswersWithSchemeName: UserAnswers =
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,
+      "pstr" -> pstr)
+    )
+
+  def userAnswersWithSchemeNamePstrQuarter: UserAnswers =
+    UserAnswers(Json.obj(
+      "schemeName" -> schemeName,
       "pstr" -> pstr,
       "quarter" -> Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
     )
 
-  def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeName
+  def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
 
-  def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeName
+  def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
 
@@ -100,16 +106,16 @@ object SampleData {
   val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
     .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
 
-  val chargeEMember: UserAnswers = userAnswersWithSchemeName
+  val chargeEMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  val chargeGMember: UserAnswers = userAnswersWithSchemeName
+  val chargeGMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
     .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
     .set(pages.chargeG.ChargeAmountsPage(0), chargeAmounts).toOption.get
 
-  val chargeDMember: UserAnswers = userAnswersWithSchemeName
+  val chargeDMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
     .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
 }

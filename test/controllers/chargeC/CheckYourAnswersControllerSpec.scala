@@ -33,13 +33,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index).url
   private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, index).url
 
-  private def uaInd: UserAnswers = userAnswersWithSchemeName
+  private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
     .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private def uaOrg: UserAnswers = userAnswersWithSchemeName
+  private def uaOrg: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(index), false).toOption.get
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get

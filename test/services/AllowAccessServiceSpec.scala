@@ -48,7 +48,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
   "filterForIllegalPageAccess" must {
     "respond with None (i.e. allow access) when the PSA is not suspended and there is an association" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .set(IsPsaSuspendedQuery, value = false).toOption.get
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
@@ -61,7 +61,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     }
 
     "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended and there is no association" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .set(IsPsaSuspendedQuery, value = false).toOption.get
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(false))
@@ -77,7 +77,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     }
 
     "respond with a redirect to the cannot make changes page (i.e. don't allow access) when the PSA is suspended" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .set(IsPsaSuspendedQuery, value = true).toOption.get
 
       val expectedResult = Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(SampleData.srn))
@@ -90,7 +90,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     }
 
     "respond with a redirect to the session expired page (i.e. don't allow access) when no PSA suspended flag is found in user answers" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 

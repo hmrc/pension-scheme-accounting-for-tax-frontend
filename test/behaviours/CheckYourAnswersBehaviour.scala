@@ -54,7 +54,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
   def cyaController(httpPath: => String,
                     templateToBeRendered: String,
                     jsonToPassToTemplate: JsObject,
-                    userAnswers: UserAnswers = userAnswersWithSchemeName): Unit = {
+                    userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter): Unit = {
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
@@ -75,7 +75,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     }
 
     "redirect to AFT summary page for a GET when necessary answers are missing" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, httpGETRequest(httpPath)).value
 
@@ -97,7 +97,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
   def controllerWithOnClick[A](httpPath: => String,
                                page: Page,
-                               userAnswers: UserAnswers = userAnswersWithSchemeName)
+                               userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter)
                               (implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {

@@ -77,7 +77,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "Year Controller" must {
     "return OK and the correct view for a GET" in {

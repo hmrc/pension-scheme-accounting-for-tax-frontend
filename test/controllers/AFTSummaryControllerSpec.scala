@@ -72,7 +72,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val summaryHelper = new AFTSummaryHelper
 
-  private val retrievedUA = userAnswersWithSchemeName
+  private val retrievedUA = userAnswersWithSchemeNamePstrQuarter
     .setOrException(IsPsaSuspendedQuery, value = false)
 
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
@@ -100,11 +100,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> Radios.yesNo(form("value"))
   )
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   "AFTSummary Controller" must {
     "return OK and the correct view for a GET where no version is present in the request and call the aft service" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -123,7 +123,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "return alternative location when allow access service returns alternative location" in {
       val location = "redirect"
       val alternativeLocation = Redirect(location)
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
       whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
@@ -133,7 +133,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "return OK and the correct view for a GET where a version is present in the request" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

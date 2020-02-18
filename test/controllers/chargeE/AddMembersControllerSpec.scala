@@ -104,7 +104,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
+  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(MemberDetailsPage(1), memberDetails2).toOption.get
     .set(AnnualAllowanceYearPage(0), YearRange.currentYear).toOption.get

@@ -20,7 +20,7 @@ import data.SampleData
 import models.ChargeType._
 import models.{ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{AFTSummaryPage, ChargeTypePage, Page}
+import pages.{AFTSummaryPage, ChargeTypePage, Page, QuarterPage, YearPage}
 import play.api.mvc.Call
 
 class ChargeNavigatorSpec extends NavigatorBehaviour {
@@ -28,7 +28,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
 
-  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
+  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
@@ -37,6 +37,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
+        row(YearPage)(controllers.routes.QuartersController.onPageLoad(srn)),
+        row(QuarterPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)),
         row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeShortService)),
         row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeLumpSumDeath)),
         row(ChargeTypePage)(controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeAuthSurplus)),

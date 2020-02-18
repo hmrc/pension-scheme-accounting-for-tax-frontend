@@ -34,7 +34,7 @@ sealed trait Quarters {
 }
 object Quarters extends Enumerable.Implicits {
   def currentDate: LocalDate = LocalDate.now()
-  def currentYear: Int = LocalDate.now().getYear
+  def currentYear: Int = currentDate.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
     override def startMonth = 1

@@ -31,7 +31,7 @@ sealed trait Years {
 
 object Years extends Enumerable.Implicits {
 
-  val currentYear: Int = LocalDate.now().getYear
+  def currentYear: Int = LocalDate.now().getYear
 
   def minYear: Int = {
     val earliestYear = currentYear - 6
@@ -41,14 +41,14 @@ object Years extends Enumerable.Implicits {
       2020
   }
 
-  val values: Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
+  def values: Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
 
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
-  implicit val enumerable: Enumerable[Years] =
+  implicit def enumerable: Enumerable[Years] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }
 

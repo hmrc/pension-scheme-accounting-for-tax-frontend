@@ -101,7 +101,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
+  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
     .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get

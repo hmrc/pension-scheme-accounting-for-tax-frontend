@@ -44,7 +44,7 @@ import scala.concurrent.Future
 
 class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
-  val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeName
+  val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
     .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails).toOption.get
@@ -55,7 +55,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
     .set(ChargeCDetailsPage(1), chargeCDetails).success.value
     .set(PSTRQuery, pstr).success.value
 
-  private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeName
+  private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
     .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get

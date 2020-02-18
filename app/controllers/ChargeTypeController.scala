@@ -16,7 +16,6 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -29,7 +28,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -46,36 +44,22 @@ class ChargeTypeController @Inject()(
                                       formProvider: ChargeTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      config: FrontendAppConfig,
-                                      auditService: AuditService,
-                                      aftService: AFTService,
-                                      allowService: AllowAccessService
+                                      config: FrontendAppConfig
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
-      if (!request.viewOnly) {
-
-        aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
-          allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
-            case None =>
-              auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-              val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
-              val json = Json.obj(
-                fields = "srn" -> srn,
-                "form" -> preparedForm,
-                "radios" -> ChargeType.radios(preparedForm),
-                "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
-              )
-              renderer.render(template = "chargeType.njk", json).map(Ok(_))
-            case Some(alternativeLocation) => Future.successful(alternativeLocation)
-          }
-        }
-      } else {
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        val json = Json.obj(
+          fields = "srn" -> srn,
+          "form" -> form,
+          "radios" -> ChargeType.radios(form),
+          "viewModel" -> viewModel(schemeName, mode, srn)
+        )
+        renderer.render(template = "chargeType.njk", json).map(Ok(_))
       }
   }
 

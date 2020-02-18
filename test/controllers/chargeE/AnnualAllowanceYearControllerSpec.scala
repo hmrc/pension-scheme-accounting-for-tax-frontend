@@ -78,12 +78,12 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "AnnualAllowanceYear Controller" must {
 
     "return OK and the correct view for a GET" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -101,7 +101,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
-      val ua = userAnswersWithSchemeName.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
+      val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

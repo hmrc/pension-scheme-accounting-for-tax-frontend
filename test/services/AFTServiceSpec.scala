@@ -73,7 +73,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
   "fileAFTReturn" must {
     "connect to the aft backend service and then remove the IsNewReturn flag from user answers and save it in the Mongo cache if it is present" in {
-      val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
+      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter.setOrException(IsNewReturn, true)
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
@@ -89,7 +89,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "not throw exception if IsNewReturn flag is not present" in {
-      val uaBeforeCalling = userAnswersWithSchemeName
+      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
         .thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
@@ -105,7 +105,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "NOT remove member-based charges where they have one non-deleted member prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
         .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
@@ -133,7 +133,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "remove charge E where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
@@ -152,7 +152,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "remove charge D where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
         .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
@@ -171,7 +171,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "remove charge G where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
         .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
@@ -190,7 +190,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "remove charge C where it has no members and another valid charge is present prior to submitting to DES for individual" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(IsSponsoringEmployerIndividualPage(0), true)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
@@ -211,7 +211,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
 
     "remove charge C where it has no members and another valid charge is present prior to submitting to DES for organisation" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
+      val ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(IsSponsoringEmployerIndividualPage(0), false)
         .setOrException(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetailsDeleted)
@@ -235,7 +235,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "connect to the aft backend service with the specified arguments and return what the connector returns" in {
       val startDate = "start date"
       val aftVersion = "aft version"
-      val jsonReturnedFromConnector = userAnswersWithSchemeName.data
+      val jsonReturnedFromConnector = userAnswersWithSchemeNamePstrQuarter.data
       when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(jsonReturnedFromConnector))
 
       whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
@@ -250,7 +250,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       "NOT call get AFT details and " +
         "retrieve the suspended flag from DES and " +
         "set the IsNewReturn flag, and " +
-        "retrieve and the quarter, status, scheme name and pstr and" +
+        "retrieve and the quarter, status, scheme name and pstr and " +
         "save all of these with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
 
@@ -326,9 +326,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "viewOnly flag in the request is set to true" must {
       "NOT call saveAndLock but should call save" in {
-        val uaToSave = userAnswersWithSchemeName
+        val uaToSave = userAnswersWithSchemeNamePstrQuarter
           .setOrException(IsPsaSuspendedQuery, value = false)
-        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = true))) { case (resultScheme, _) =>
@@ -343,7 +343,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "viewOnly flag in the request is set to false" must {
       "call saveAndLock but should NOT call save instead of save with lock" in {
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+          .thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>

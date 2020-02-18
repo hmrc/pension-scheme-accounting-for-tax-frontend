@@ -82,7 +82,6 @@ class AFTService @Inject()(
           if (listOfVersions.isEmpty) {
             currentUserAnswers
               .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, Quarter("2020-01-01", "2020-03-31"))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)

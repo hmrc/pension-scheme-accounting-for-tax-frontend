@@ -66,7 +66,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val pstr = "test pstr"
 
-  private def userAnswers = userAnswersWithSchemeName
+  private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberGDetails).success.value
     .set(MemberDetailsPage(1), memberGDetails).success.value
 

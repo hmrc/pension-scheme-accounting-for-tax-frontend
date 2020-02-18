@@ -47,7 +47,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {
