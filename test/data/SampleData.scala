@@ -23,7 +23,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{MemberDetails, Quarter, SchemeDetails, UserAnswers}
+import models.{MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -50,7 +50,7 @@ object SampleData {
   val chargeCDetails = ChargeCDetails(paymentDate = LocalDate.of(2019, 4, 3),amountTaxDue = BigDecimal(33.44))
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
-  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr)
+  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
   val version = "1"
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =

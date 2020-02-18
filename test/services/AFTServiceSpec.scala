@@ -21,6 +21,7 @@ import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
+import models.SchemeStatus.Open
 import models.UserAnswers
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
@@ -30,7 +31,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery}
+import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery, SchemeStatusQuery}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
@@ -270,6 +271,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
             .setOrException(IsPsaSuspendedQuery, value = false)
             .setOrException(IsNewReturn, value = true)
             .setOrException(AFTStatusQuery, value = aftStatus)
+            .setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
