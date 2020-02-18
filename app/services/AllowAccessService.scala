@@ -57,7 +57,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
 
 
          */
-        Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))
+        Future.successful(Some(Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(srn, Some("1")))))
     }
   }
 }

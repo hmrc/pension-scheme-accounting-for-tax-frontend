@@ -80,7 +80,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       val ua = SampleData.userAnswersWithSchemeName
         .set(IsPsaSuspendedQuery, value = true).toOption.get
 
-      val expectedResult = Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(SampleData.srn))
+      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
 

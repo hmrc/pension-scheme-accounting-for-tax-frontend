@@ -29,7 +29,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class CannotMakeChangesControllerSpec extends ControllerSpecBase {
+class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
 
   "Cannot Make Changes Controller" must {
 
@@ -43,7 +43,7 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-      val request = FakeRequest(GET, routes.CannotMakeChangesController.onPageLoad(SampleData.srn).url)
+      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
@@ -55,7 +55,7 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual "cannot-make-changes.njk"
+      templateCaptor.getValue mustEqual "cannot-change-aft-return.njk"
     }
   }
 }

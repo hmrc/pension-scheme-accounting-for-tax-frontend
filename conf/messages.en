@@ -839,7 +839,12 @@ pageNotFound404.p2 = If you pasted the web address, check you copied the entire 
 
 viewYourSchemes = View your pension schemes
 
-pageCannotMakeChanges.title = Details cannot be changed
-pageCannotMakeChanges.heading = Details cannot be changed
-pageCannotMakeChanges.p1 = You cannot make any changes to {0} at the moment
-pageCannotMakeChanges.p2 = You need to phone Pension Scheme Services on 0300 123 1079
+pageCannotChangeAFTReturn.title = You cannot make changes to an AFT return
+pageCannotChangeAFTReturn.heading = You cannot make changes to an AFT return
+pageCannotChangeAFTReturn.p1 = If you need to make changes to an existing AFT return, you need to phone Pension Scheme Services on 0300 123 1079 first.
+pageCannotChangeAFTReturn.p2 = You can still
+pageCannotChangeAFTReturn.p2link = view the submitted AFT return for {0} to {1}
+
+pageCannotStartAFTReturn.title = You cannot start a new AFT return
+pageCannotStartAFTReturn.heading = You cannot start a new AFT return
+pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 123 1079.
