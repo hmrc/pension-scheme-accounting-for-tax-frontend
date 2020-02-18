@@ -48,6 +48,15 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
             errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
         }
       case _ =>
+        /*
+
+              IF not locked THEN
+                IF version THEN redirect to cannot make changes page with the version number
+                ELSE redirect to cannot start page
+
+
+
+         */
         Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))
     }
   }
