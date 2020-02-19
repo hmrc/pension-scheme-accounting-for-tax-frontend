@@ -25,11 +25,11 @@ import utils.DateHelper
 
 sealed trait YearRange
 
-object YearRange extends Enumerable.Implicits with DateHelper {
-  def currentYear = new DynamicYearRange(today.getYear.toString)
+object YearRange extends Enumerable.Implicits {
+  def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[DynamicYearRange] = {
-    val maxYear = if (today.getMonthValue > 3) today.getYear + 1 else today.getYear
+    val maxYear = if (DateHelper.today.getMonthValue > 3) DateHelper.today.getYear + 1 else DateHelper.today.getYear
     (2018 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
   }
 

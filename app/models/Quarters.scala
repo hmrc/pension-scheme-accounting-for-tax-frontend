@@ -29,13 +29,12 @@ import scala.language.implicitConversions
 
 sealed trait Quarters {
   def startDay: Int = 1
-  def startMonth: Int
   def endDay: Int = 31
+  def startMonth: Int
   def endMonth: Int
-
 }
-object Quarters extends Enumerable.Implicits with DateHelper {
-  def currentYear: Int = today.getYear
+object Quarters extends Enumerable.Implicits {
+  def currentYear: Int = DateHelper.today.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
     override def startMonth = 1
@@ -43,14 +42,14 @@ object Quarters extends Enumerable.Implicits with DateHelper {
   }
 
   case object Q2 extends WithName("q2") with Quarters {
-    override def startMonth = 4
     override def endDay = 30
+    override def startMonth = 4
     override def endMonth = 6
   }
 
   case object Q3 extends WithName("q3") with Quarters {
-    override def startMonth = 7
     override def endDay = 30
+    override def startMonth = 7
     override def endMonth = 9
   }
 
@@ -67,22 +66,22 @@ object Quarters extends Enumerable.Implicits with DateHelper {
     }
 
   def getCurrentYearQuarters: Seq[Quarters] ={
-    val quartersCY = today.getMonthValue match {
+    val quartersCY = DateHelper.today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
       case i if i  > 3 => Seq(Q1, Q2)
       case _ => Seq(Q1)
     }
 
-    if(currentYear == 2020)
-      quartersCY.filter(_!=Q1)
-    else
+    if(currentYear == 2020) {
+      quartersCY.filter(_ != Q1)
+    }
+    else {
       quartersCY
-
+    }
   }
 
   def radios(form: Form[_], year: Int)(implicit messages: Messages): Seq[Radios.Item] = {
-
     Radios(form("value"), values(year).map { quarter =>
       Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
     })

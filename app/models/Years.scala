@@ -28,25 +28,25 @@ sealed trait Years {
   def getYear: Int = this.asInstanceOf[Year].year
 }
 
-object Years extends Enumerable.Implicits with DateHelper {
+object Years extends Enumerable.Implicits {
 
   def currentYear: Int = {
-    println("\n\n>>>>>>>>>>>>>>>>>>>>> "+today)
-    today.getYear
+    DateHelper.today.getYear
   }
 
   def minYear: Int = {
     val earliestYear = currentYear - 6
-    if(earliestYear > 2020)
+    if(earliestYear > 2020) {
       earliestYear
-    else
+    }
+    else {
       2020
+    }
   }
 
   def values: Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
-
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 

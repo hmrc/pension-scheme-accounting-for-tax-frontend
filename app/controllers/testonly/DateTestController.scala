@@ -17,7 +17,6 @@
 package controllers.testonly
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import com.google.inject.{Inject, Singleton}
 import play.api.data.Form
@@ -37,14 +36,14 @@ class DateTestController @Inject()(
                                     override val messagesApi: MessagesApi,
                                     renderer: Renderer,
                                     val controllerComponents: MessagesControllerComponents
-                                  )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport with DateHelper {
+                                  )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   val form: Form[Option[LocalDate]] = Form("testDate" -> optional(localDate("d MMMM yyyy")))
 
   def present: Action[AnyContent] = Action.async {
     implicit request =>
       val json = Json.obj(
-        "form" -> form.fill(overriddenDate),
+        "form" -> form.fill(DateHelper.overriddenDate),
         "submitUrl" -> controllers.testonly.routes.DateTestController.submit().url
       )
       renderer.render(template = "testonly/dateTest.njk", json).map(Ok(_))
@@ -60,7 +59,7 @@ class DateTestController @Inject()(
           renderer.render(template = "testonly/dateTest.njk", json).map(BadRequest(_))
         },
         date => {
-          setDate(date)
+          DateHelper.setDate(date)
           Future.successful(Redirect(controllers.testonly.routes.DateTestController.present()))
         }
       )
