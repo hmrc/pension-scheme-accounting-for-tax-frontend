@@ -16,6 +16,8 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -35,6 +37,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import scala.concurrent.Future
 
@@ -45,8 +48,8 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val testYear = 2020
-  private val startDate = "2020-01-01"
-  private val endDate = "2020-03-31"
+  private val startDate = "2020-04-01"
+  private val endDate = "2020-06-30"
   private val errorKey = "quarters.error.required"
   val templateToBeRendered = "quarters.njk"
   val formProvider = new QuartersFormProvider()
@@ -65,7 +68,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     "year" -> testYear.toString
   )
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q2"))
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
     "year" -> testYear.toString,
@@ -83,6 +86,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(UserAnswers(Json.obj(
@@ -91,8 +95,8 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     "year" -> testYear.toString)))
 
   "Quarters Controller" must {
-    //UNCOMMENT TESTS AFTER 1 APRIL 2020
-/*    "return OK and the correct view for a GET" in {
+
+    "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -123,8 +127,8 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(Quarters.Q1)))
-    }*/
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(Quarters.Q2)))
+    }
 
     "redirect to Session Expired page for a GET when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(None)
@@ -134,8 +138,8 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
-    //UNCOMMENT TESTS AFTER 1 APRIL 2020
-/*    "Save data to user answers and redirect to next page when valid data is submitted" in {
+
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(QuarterPage), any(), any(), any())).thenReturn(dummyCall)
 
@@ -162,7 +166,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-    }*/
+    }
 
     "redirect to Session Expired page for a POST when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(None)
