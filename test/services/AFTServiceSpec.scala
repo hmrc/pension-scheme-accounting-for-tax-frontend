@@ -97,8 +97,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("success")))
       when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(false)
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
         verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
