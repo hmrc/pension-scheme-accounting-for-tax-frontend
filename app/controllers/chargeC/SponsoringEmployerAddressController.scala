@@ -37,21 +37,21 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressController @Inject()(override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: SponsoringEmployerAddressFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      config: FrontendAppConfig,
-                                      renderer: Renderer
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                    userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                    navigator: CompoundNavigator,
+                                                    identify: IdentifierAction,
+                                                    getData: DataRetrievalAction,
+                                                    allowAccess: AllowAccessActionProvider,
+                                                    requireData: DataRequiredAction,
+                                                    formProvider: SponsoringEmployerAddressFormProvider,
+                                                    val controllerComponents: MessagesControllerComponents,
+                                                    config: FrontendAppConfig,
+                                                    renderer: Renderer
+                                                   )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  private def countryJsonElement(tuple:(String,String), isSelected:Boolean):JsArray = Json.arr(
+  private def countryJsonElement(tuple: (String, String), isSelected: Boolean): JsArray = Json.arr(
     if (isSelected) {
       Json.obj(
         "value" -> tuple._1,
@@ -66,7 +66,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
     }
   )
 
-  private def jsonCountries(countrySelected:Option[String])(implicit messages: Messages): JsArray =
+  private def jsonCountries(countrySelected: Option[String])(implicit messages: Messages): JsArray =
     config.validCountryCodes
       .map(countryCode => (countryCode, messages(s"country.$countryCode")))
       .sortWith(_._2 < _._2).foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
@@ -97,8 +97,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       }
   }
 
-  private def addArgsToErrors(form:Form[SponsoringEmployerAddress], args:String *):Form[SponsoringEmployerAddress] =
-    form copy(errors = form.errors.map(_ copy(args = args)))
+  private def addArgsToErrors(form: Form[SponsoringEmployerAddress], args: String*): Form[SponsoringEmployerAddress] =
+    form copy (errors = form.errors.map(_ copy (args = args)))
 
   def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
@@ -111,8 +111,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
               schemeName = schemeName)
 
             val json = Json.obj(
-          "srn" -> srn,
-          "form" -> addArgsToErrors(formWithErrors, sponsorName),
+              "srn" -> srn,
+              "form" -> addArgsToErrors(formWithErrors, sponsorName),
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,
               "countries" -> jsonCountries(formWithErrors.data.get("country"))
