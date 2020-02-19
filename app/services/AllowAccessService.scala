@@ -21,7 +21,7 @@ import connectors.SchemeDetailsConnector
 import handlers.ErrorHandler
 import models.UserAnswers
 import models.requests.OptionalDataRequest
-import pages.IsPsaSuspendedQuery
+import pages.{IsPsaSuspendedQuery, QuarterPage}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
+                                   aftService: AFTService,
                                    errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
   def filterForIllegalPageAccess(srn: String, ua: UserAnswers)
@@ -49,6 +50,15 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
         }
       case _ =>
         Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))
+    }
+  }
+
+  def allowSubmission(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+    ua.get(QuarterPage) match {
+      case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
+        Future.successful(None)
+      case _ =>
+        errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
     }
   }
 }
