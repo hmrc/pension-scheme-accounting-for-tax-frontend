@@ -83,16 +83,17 @@ class AFTLoginController @Inject()(
           _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
         } yield Redirect(controllers.routes.QuartersController.onPageLoad(srn))
 
-      case (x, y) =>
-        println(s">>>>>>>>>>>>>>>>>>>>   $x $y")
+      case _ =>
+        val defaultQuarter = Quarters.values(defaultYear).headOption.getOrElse(throw NoQuartersAvailableException)
         for {
           ua <- Future.fromTry(userAnswers.set(YearPage, Year(defaultYear)))
-          updatedUa <- Future.fromTry(ua.set(QuarterPage, Quarters.getQuarter(Quarters.values(defaultYear).head, defaultYear)))
+          updatedUa <- Future.fromTry(ua.set(QuarterPage, Quarters.getQuarter(defaultQuarter, defaultYear)))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedUa.data)
         } yield Redirect(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn))
     }
   }
 
+  case object NoQuartersAvailableException extends Exception("No quarters are available to be be selected from")
 
 
 }

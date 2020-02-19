@@ -17,7 +17,6 @@
 package controllers.chargeG
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -36,6 +35,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,9 +52,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatter)
-  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatter)
+  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatterDMY)
+  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatterDMY)
 
   def form()(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(dateErrorMsg = messages("chargeG.chargeDetails.qropsTransferDate.error.date", min, max))

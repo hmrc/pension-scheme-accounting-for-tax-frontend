@@ -17,6 +17,7 @@
 package utils
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.atomic.AtomicReference
 
 object DateHelper {
@@ -26,4 +27,9 @@ object DateHelper {
   def today: LocalDate = mockDate.get().getOrElse(LocalDate.now())
   def setDate(date: Option[LocalDate]): Unit = mockDate.set(date)
   def overriddenDate: Option[LocalDate] = mockDate.get()
+
+  val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+
 }

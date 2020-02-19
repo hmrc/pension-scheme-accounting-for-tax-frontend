@@ -23,7 +23,7 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
-import utils.DateHelper
+import utils.DateHelper._
 
 import scala.language.implicitConversions
 
@@ -34,7 +34,7 @@ sealed trait Quarters {
   def endMonth: Int
 }
 object Quarters extends Enumerable.Implicits {
-  def currentYear: Int = DateHelper.today.getYear
+  def currentYear: Int = today.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
     override def startMonth = 1
@@ -66,7 +66,7 @@ object Quarters extends Enumerable.Implicits {
     }
 
   def getCurrentYearQuarters: Seq[Quarters] ={
-    val quartersCY = DateHelper.today.getMonthValue match {
+    val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
       case i if i  > 3 => Seq(Q1, Q2)
@@ -88,11 +88,9 @@ object Quarters extends Enumerable.Implicits {
   }
 
   def getQuarter(quarter: Quarters, year: Int): Quarter = {
-    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatter),
-      LocalDate.of(year, quarter.endMonth, quarter.endDay).format(dateFormatter))
+    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatterYMD),
+      LocalDate.of(year, quarter.endMonth, quarter.endDay).format(dateFormatterYMD))
   }
-
-  private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
   implicit def enumerable(year: Int): Enumerable[Quarters] =
     Enumerable(values(year).map(v => v.toString -> v): _*)
