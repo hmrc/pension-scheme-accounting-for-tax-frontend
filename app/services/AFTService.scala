@@ -39,18 +39,21 @@ class AFTService @Inject()(
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val ua = if (aftReturnValidatorService.isAtLeastOneValidCharge(answers)) {
-      aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(answers)
-    } else { // User has deleted last member from one of member based charges and there are no other charges present
+    val userHasDeletedLastMemberOrEmployerFromLastCharge = ! aftReturnValidatorService.isAtLeastOneValidCharge(answers)
+    val ua = if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
       aftReturnValidatorService.reinstateDeletedMemberOrEmployer(answers)
+    } else {
+      aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(answers)
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
       ua.remove(IsNewReturn) match {
         case Success(userAnswersWithIsNewReturnRemoved) =>
-          userAnswersCacheConnector
-            .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
-            .map(_ => ())
+          if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
+            userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
+          } else {
+            userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
+          }
         case Failure(ex) => throw ex
       }
     }
