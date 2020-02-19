@@ -34,7 +34,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                    errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
 
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionPage: Option[Page] = None, optionVersion: Option[String])
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionPage: Option[Page] = None, optionVersion: Option[String] = None)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))

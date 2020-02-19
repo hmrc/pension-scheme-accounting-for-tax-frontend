@@ -60,7 +60,7 @@ class ChargeTypeController @Inject()(
       if (!request.viewOnly) {
 
         aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
-          allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+          allowService.filterForIllegalPageAccess(srn, userAnswers, Some(ChargeTypePage)).flatMap {
             case None =>
               auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
               val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
