@@ -52,9 +52,10 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
   def form(memberName: String, ua:UserAnswers)(implicit messages: Messages): Form[ChargeAmounts] =
     formProvider(memberName, minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMemberChargeG(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeQuarterMemberChargeG(MemberDetailsPage(index)){ (schemeName, _, memberName) =>
 
         val preparedForm: Form[ChargeAmounts] = request.userAnswers.get(ChargeAmountsPage(index)) match {
           case Some(value) => form(memberName, request.userAnswers).fill(value)
@@ -79,7 +80,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndMemberChargeG(MemberDetailsPage(index)){ (schemeName, memberName) =>
+      DataRetrievals.retrieveSchemeQuarterMemberChargeG(MemberDetailsPage(index)){ (schemeName, _, memberName) =>
 
         form(memberName, request.userAnswers).bindFromRequest().fold(
           formWithErrors => {

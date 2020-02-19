@@ -18,11 +18,11 @@ package controllers
 
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{Index, MemberDetails, YearRange}
+import models.{Index, MemberDetails, Quarter, YearRange}
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
+import pages.{PSTRQuery, QuarterPage, QuestionPage, SchemeNameQuery}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -55,10 +55,18 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
+  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
+                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeQuarterMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, Quarter, String) => Future[Result])
                                     (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
-      case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage), request.userAnswers.get(memberPage)) match {
+      case (Some(schemeName), Some(quarter), Some(memberDetails)) => block(schemeName, quarter, memberDetails.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

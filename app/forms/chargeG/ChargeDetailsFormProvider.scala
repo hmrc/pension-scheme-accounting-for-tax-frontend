@@ -29,7 +29,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
   val qropsReferenceNumberKey: String = "chargeG.chargeDetails.qropsReferenceNumber.error"
   val qropsTransferDateKey: String = "chargeG.chargeDetails.qropsTransferDate.error"
 
-  def apply(dateErrorMsg: String): Form[ChargeDetails] =
+  def apply(min: LocalDate, max: LocalDate, dateErrorMsg: String): Form[ChargeDetails] =
     Form(mapping(
       "qropsReferenceNumber" -> text(
         errorKey = s"$qropsReferenceNumberKey.required"
@@ -41,8 +41,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = s"$qropsTransferDateKey.required.two",
         requiredKey    = s"$qropsTransferDateKey.required"
       ).verifying(
-        minDate(LocalDate.of(2020, 1, 1), dateErrorMsg),
-        maxDate(LocalDate.of(2020, 6, 30), dateErrorMsg),
+        minDate(min, dateErrorMsg),
+        maxDate(max, dateErrorMsg),
         futureDate(s"$qropsTransferDateKey.future"),
         yearHas4Digits(s"$qropsTransferDateKey.invalid")
       )

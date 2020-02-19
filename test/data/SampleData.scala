@@ -17,6 +17,7 @@
 package data
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import models.chargeB.ChargeBDetails
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
@@ -118,4 +119,6 @@ object SampleData {
   val chargeDMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
     .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
+
+  val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 }

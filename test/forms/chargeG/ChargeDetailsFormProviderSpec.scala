@@ -17,17 +17,23 @@
 package forms.chargeG
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
-import models.MemberDetails
 import models.chargeG.ChargeDetails
 import play.api.data.FormError
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehaviours {
 
-  val dynamicErrorMsg: String = "The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020"
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val startDate = LocalDate.parse(QUARTER_START_DATE)
+  private val endDate = LocalDate.parse(QUARTER_END_DATE)
+  private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
+    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
-  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg)
+  val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg)
   val qropsRefKey = "qropsReferenceNumber"
   val qropsDateKey = "qropsTransferDate"
 
@@ -36,7 +42,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMin(
       form = form,
       key = qropsDateKey,
-      min = LocalDate.of(2020, 1, 1),
+      min = startDate,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
@@ -50,7 +56,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMax(
       form = form,
       key = qropsDateKey,
-      max = LocalDate.of(2020, 6, 30),
+      max = endDate,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
@@ -73,15 +79,15 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     )
 
     "successfully bind when valid QROPS with spaces is provided" in {
-      val date = LocalDate.of(2020,1,1)
+      DateHelper.setDate(Some(startDate.plusDays(2)))
       val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
         qropsRefKey -> " 1 2 3 1 2 3 ",
-        s"$qropsDateKey.day"   -> date.getDayOfMonth.toString,
-        s"$qropsDateKey.month" -> date.getMonthValue.toString,
-        s"$qropsDateKey.year"  -> date.getYear.toString
+        s"$qropsDateKey.day"   -> startDate.getDayOfMonth.toString,
+        s"$qropsDateKey.month" -> startDate.getMonthValue.toString,
+        s"$qropsDateKey.year"  -> startDate.getYear.toString
       )
       )
-      res.get mustEqual ChargeDetails("123123", date)
+      res.get mustEqual ChargeDetails("123123", startDate)
     }
   }
 }

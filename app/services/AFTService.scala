@@ -20,14 +20,14 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{Quarter, SchemeDetails, UserAnswers}
+import models.{SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
+import services.AFTService._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import AFTService._
 
 class AFTService @Inject()(
                             aftConnector: AFTConnector,

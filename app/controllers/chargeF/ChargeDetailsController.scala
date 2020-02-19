@@ -25,7 +25,7 @@ import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
-import models.{GenericViewModel, Mode, UserAnswers}
+import models.{GenericViewModel, Mode, Quarter, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
@@ -52,20 +52,22 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
+  private def form(ua: UserAnswers, quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] = {
+    val minDate: LocalDate = LocalDate.parse(quarter.startDate)
+    val maxDate: LocalDate = LocalDate.parse(quarter.endDate)
 
-  val min: String = LocalDate.of(2020, 4, 1).format(dateFormatterDMY)
-  val max: String = LocalDate.of(2020, 6, 30).format(dateFormatterDMY)
-
-  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
-    formProvider(dateErrorMsg = messages("chargeF.deregistrationDate.error.date", min, max), minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+    formProvider(minDate, maxDate,
+      dateErrorMsg = messages("chargeF.deregistrationDate.error.date", minDate.format(dateFormatterDMY), maxDate.format(dateFormatterDMY)),
+      minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+  }
 
   def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form(request.userAnswers).fill(value)
-          case None => form(request.userAnswers)
+          case Some(value) => form(request.userAnswers, quarter).fill(value)
+          case None => form(request.userAnswers, quarter)
         }
 
         val viewModel = GenericViewModel(
@@ -86,9 +88,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 
-        form(request.userAnswers).bindFromRequest().fold(
+
+        form(request.userAnswers, quarter).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
               submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
@@ -96,8 +99,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               schemeName = schemeName)
 
             val json = Json.obj(
-          "srn" -> srn,
-          "form" -> formWithErrors,
+              "srn" -> srn,
+              "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
             )
