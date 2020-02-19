@@ -20,18 +20,19 @@ import base.SpecBase
 import connectors.SchemeDetailsConnector
 import data.SampleData
 import handlers.ErrorHandler
-import models.UserAnswers
 import models.requests.OptionalDataRequest
+import models.{Quarter, UserAnswers}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.IsPsaSuspendedQuery
-import play.api.mvc.{Call, Results}
+import pages.{IsPsaSuspendedQuery, QuarterPage}
+import play.api.mvc.Results
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,6 +40,7 @@ import scala.concurrent.Future
 class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndAfterEach with MockitoSugar with Results {
 
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+  private val aftService: AFTService = mock[AFTService]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
   private def optionalDataRequest(ua:UserAnswers) = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))
 
@@ -53,7 +55,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe None
@@ -69,7 +71,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -82,7 +84,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val expectedResult = Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(SampleData.srn))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -94,10 +96,39 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
+      }
+    }
+  }
+
+  "allowSubmission" must {
+    "return None if the submission is allowed" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(QuarterPage, Quarter(AFTConstants.QUARTER_START_DATE, AFTConstants.QUARTER_END_DATE))
+        .toOption.getOrElse(SampleData.userAnswersWithSchemeName)
+
+      when(aftService.isSubmissionDisabled(any())).thenReturn(false)
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.allowSubmission(ua)(optionalDataRequest(ua))) { result =>
+        result mustBe None
+      }
+    }
+
+    "return Not Found if the submission is not allowed" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(QuarterPage, Quarter(AFTConstants.QUARTER_START_DATE, AFTConstants.QUARTER_END_DATE))
+        .toOption.getOrElse(SampleData.userAnswersWithSchemeName)
+
+      when(aftService.isSubmissionDisabled(any())).thenReturn(true)
+      when(errorHandler.onClientError(any(), any(), any())).thenReturn(Future(NotFound("Not Found")))
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.allowSubmission(ua)(optionalDataRequest(ua))) { result =>
+        result.value mustBe NotFound("Not Found")
       }
     }
   }
