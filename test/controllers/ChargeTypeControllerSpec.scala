@@ -98,7 +98,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), any(), any())(any())
+        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
 
         templateCaptor.getValue mustEqual template
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
@@ -108,7 +108,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val location = "redirect"
         val alternativeLocation = Redirect(location)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
         whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
           result.header.status mustEqual SEE_OTHER
