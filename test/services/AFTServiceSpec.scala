@@ -92,6 +92,20 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       }
     }
 
+    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+      val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("success")))
+      when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(false)
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+        verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+        verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
+        verify(mockUserAnswersValidationService, times(1)).reinstateDeletedMemberOrEmployer(any())
+      }
+    }
+
     "not throw exception if IsNewReturn flag is not present" in {
       val uaBeforeCalling = userAnswersWithSchemeName
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))

@@ -16,9 +16,11 @@
 
 package navigators
 
+import config.FrontendAppConfig
 import controllers.chargeG.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
+import navigators.ChargeENavigatorSpec.srn
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeG._
@@ -27,7 +29,7 @@ import play.api.mvc.Call
 class ChargeGNavigatorSpec extends NavigatorBehaviour {
 
   import ChargeGNavigatorSpec._
-
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
   "NormalMode" must {
@@ -40,7 +42,8 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None), Some(SampleData.chargeCEmployer)),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeGMember))
       )
 

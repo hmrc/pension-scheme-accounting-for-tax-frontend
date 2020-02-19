@@ -47,14 +47,14 @@ class AFTService @Inject()(
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      ua.remove(IsNewReturn) match {
-        case Success(userAnswersWithIsNewReturnRemoved) =>
-          if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
-            userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
-          } else {
+      if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
+        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
+      } else {
+        ua.remove(IsNewReturn) match {
+          case Success(userAnswersWithIsNewReturnRemoved) =>
             userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
-          }
-        case Failure(ex) => throw ex
+          case Failure(ex) => throw ex
+        }
       }
     }
   }
