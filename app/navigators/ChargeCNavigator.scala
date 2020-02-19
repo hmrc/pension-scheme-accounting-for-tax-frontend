@@ -17,6 +17,7 @@
 package navigators
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.{CheckMode, NormalMode, UserAnswers}
 import pages.Page
@@ -24,8 +25,11 @@ import pages.chargeC._
 import play.api.mvc.Call
 import controllers.chargeC.routes._
 import services.ChargeCService._
+import services.UserAnswersValidationService
 
-class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 userAnswersValidationService: UserAnswersValidationService,
+                                 config: FrontendAppConfig) extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String): Int = getSponsoringEmployersIncludingDeleted(ua, srn).size
 
@@ -66,8 +70,11 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteEmployerPage if getSponsoringEmployers(ua, srn).nonEmpty =>
       AddEmployersController.onPageLoad(srn)
 
-    case DeleteEmployerPage =>
+    case DeleteEmployerPage if userAnswersValidationService.isAtLeastOneValidCharge(ua) =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, None)
+
+    case DeleteEmployerPage =>
+      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
   }
 
   //scalastyle:on cyclomatic.complexity
