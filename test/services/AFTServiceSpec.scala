@@ -45,7 +45,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
 
-  private val mockUserAnswersValidationService = mock[UserAnswersValidationService]
+  private val mockUserAnswersValidationService = mock[AFTReturnTidyService]
 
   private val aftStatus = "Compiled"
   private val psaId = PsaId(SampleData.psaId)

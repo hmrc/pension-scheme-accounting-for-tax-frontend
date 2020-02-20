@@ -21,7 +21,7 @@ import models.UserAnswers
 import play.api.libs.json.{JsArray, JsError, JsPath, JsSuccess}
 
 @Singleton
-class UserAnswersValidationService {
+class AFTReturnTidyService {
   private val zeroCurrencyValue = BigDecimal(0.00)
 
   private case class ChargeInfo(jsonNode: String,
@@ -122,16 +122,16 @@ class UserAnswersValidationService {
     }
 
   def reinstateDeletedMemberOrEmployer(ua: UserAnswers): UserAnswers = {
-    val chargeToReinstate = seqChargeInfo.flatMap { ci =>
+    val optionChargeToReinstate = seqChargeInfo.flatMap { ci =>
       if (countMembersOrEmployers(ua, ci) == 0 && countMembersOrEmployers(ua, ci, isDeleted = true) > 0) Seq(ci) else Seq.empty
     }.headOption
 
-    chargeToReinstate.map { whichCharge =>
-      val updatedUA = (ua.data \ whichCharge.jsonNode \ whichCharge.memberOrEmployerJsonNode).validate[JsArray] match {
+    optionChargeToReinstate.map{ chargeInfo =>
+      val updatedUA = (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
         case JsSuccess(array, _) if array.value.nonEmpty =>
           val itemToReinstate = array.value.size - 1
-          whichCharge.reinstate(ua, itemToReinstate)
-        case JsError(_) => throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + whichCharge)
+          chargeInfo.reinstate(ua, itemToReinstate)
+        case JsError(_) => throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + chargeInfo)
       }
       updatedUA
     }.getOrElse(ua)

@@ -25,10 +25,10 @@ import pages.Page
 import pages.chargeE._
 import play.api.mvc.Call
 import services.ChargeEService._
-import services.UserAnswersValidationService
+import services.AFTReturnTidyService
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
-                                 userAnswersValidationService: UserAnswersValidationService,
+                                 aftReturnTidyService: AFTReturnTidyService,
                                  config: FrontendAppConfig) extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn).size
@@ -46,7 +46,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
     case DeleteMemberPage if getAnnualAllowanceMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
-    case DeleteMemberPage if userAnswersValidationService.isAtLeastOneValidCharge(ua) =>
+    case DeleteMemberPage if aftReturnTidyService.isAtLeastOneValidCharge(ua) =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, None)
     case DeleteMemberPage => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
   }
