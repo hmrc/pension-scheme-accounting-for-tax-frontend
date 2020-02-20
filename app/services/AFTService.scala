@@ -21,6 +21,7 @@ import java.time.{LocalDate, LocalDateTime, LocalTime}
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
+import javax.inject.Singleton
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{Enumerable, Quarter, SchemeDetails, UserAnswers}
 import models.SchemeStatus.statusByName
@@ -30,25 +31,36 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import AFTService._
 
+@Singleton
 class AFTService @Inject()(
                             aftConnector: AFTConnector,
                             userAnswersCacheConnector: UserAnswersCacheConnector,
                             schemeService: SchemeService,
-                            minimalPsaConnector: MinimalPsaConnector
+                            minimalPsaConnector: MinimalPsaConnector,
+                            aftReturnTidyService: AFTReturnTidyService
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val userAnswersWithInvalidMemberBasedChargesRemoved = removeChargesHavingNoMembersOrEmployers(answers)
 
-    aftConnector.fileAFTReturn(pstr, userAnswersWithInvalidMemberBasedChargesRemoved).flatMap { _ =>
-      userAnswersWithInvalidMemberBasedChargesRemoved.remove(IsNewReturn) match {
-        case Success(userAnswersWithIsNewReturnRemoved) =>
-          userAnswersCacheConnector
-            .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
-            .map(_ => ())
-        case Failure(ex) => throw ex
+    val hasDeletedLastMemberOrEmployerFromLastCharge = ! aftReturnTidyService.isAtLeastOneValidCharge(answers)
+
+    val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
+      aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
+    } else {
+      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
+    }
+
+    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
+
+      if (hasDeletedLastMemberOrEmployerFromLastCharge) {
+        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
+      } else {
+        ua.remove(IsNewReturn) match {
+          case Success(userAnswersWithIsNewReturnRemoved) =>
+            userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
+          case Failure(ex) => throw ex
+        }
       }
     }
   }
@@ -115,56 +127,5 @@ class AFTService @Inject()(
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {
     val nextDay = LocalDateTime.of(LocalDate.parse(quarterEndDate).plusDays(1), LocalTime.MIDNIGHT)
     !(LocalDateTime.now().compareTo(nextDay) >= 0)
-  }
-}
-
-object AFTService {
-  private case class ChargeInfo(jsonNode: String, memberOrEmployerJsonNode: String, isDeleted: (UserAnswers, Int) => Boolean)
-
-  private val chargeEInfo = ChargeInfo(
-    jsonNode = "chargeEDetails",
-    memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeE.MemberDetailsPage(index)).forall(_.isDeleted)
-  )
-
-  private val chargeDInfo = ChargeInfo(
-    jsonNode = "chargeDDetails",
-    memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted)
-  )
-
-  private val chargeGInfo = ChargeInfo(
-    jsonNode = "chargeGDetails",
-    memberOrEmployerJsonNode = "members",
-    isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted)
-  )
-
-  private val chargeCInfo = ChargeInfo(
-    jsonNode = "chargeCDetails",
-    memberOrEmployerJsonNode = "employers",
-    isDeleted = (ua, index) =>
-      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
-        case (Some(true), Some(individual), _) => individual.isDeleted
-        case (Some(false), _, Some(organisation)) => organisation.isDeleted
-        case _ => true
-      }
-  )
-
-  private def countNonDeletedMembersOrEmployers(ua:UserAnswers, chargeInfo: ChargeInfo):Int = {
-    (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
-      case JsSuccess(array, _) =>
-        array.value.indices.map(index => chargeInfo.isDeleted(ua, index)).count(_ == false)
-      case JsError(_) => 0
-    }
-  }
-
-  def removeChargesHavingNoMembersOrEmployers(answers: UserAnswers): UserAnswers = {
-    Seq(chargeEInfo, chargeDInfo, chargeGInfo, chargeCInfo).foldLeft(answers) { (currentUA, chargeInfo) =>
-      if (countNonDeletedMembersOrEmployers(currentUA, chargeInfo) == 0) {
-        currentUA.removeWithPath(JsPath \ chargeInfo.jsonNode)
-      } else {
-        currentUA
-      }
-    }
   }
 }

@@ -49,12 +49,14 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
 
+  private val mockUserAnswersValidationService = mock[AFTReturnTidyService]
+
   private val aftStatus = "Compiled"
   private val psaId = PsaId(SampleData.psaId)
   private val internalId = "internal id"
 
   private val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector,
-    mockSchemeService, mockMinimalPsaConnector)
+    mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
 
   private val emptyUserAnswers = UserAnswers()
 
@@ -68,36 +70,49 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   )
 
   override def beforeEach(): Unit = {
-    reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
+    reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(false))
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(true)
   }
 
   "fileAFTReturn" must {
     "connect to the aft backend service and then remove the IsNewReturn flag from user answers and save it in the Mongo cache if it is present" in {
       val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
-        .thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Json.obj()))
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
+        verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
+        verify(mockUserAnswersValidationService, times(1)).removeChargesHavingNoMembersOrEmployers(any())
         val uaAfterSave = UserAnswers(jsonCaptor.getValue)
         uaAfterSave.get(IsNewReturn) mustBe None
+      }
+    }
+
+    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+      val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("success")))
+      when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(false)
+      whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+        verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+        verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
+        verify(mockUserAnswersValidationService, times(1)).reinstateDeletedMemberOrEmployer(any())
       }
     }
 
     "not throw exception if IsNewReturn flag is not present" in {
       val uaBeforeCalling = userAnswersWithSchemeName
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any()))
-        .thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Json.obj()))
+      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
@@ -105,132 +120,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
         val uaAfterSave = UserAnswers(jsonCaptor.getValue)
         uaAfterSave.get(IsNewReturn) mustBe None
-      }
-    }
-
-    "NOT remove member-based charges where they have one non-deleted member prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
-        .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
-        .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
-        .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
-        .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
-        .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
-        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
-        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeEDetails").toOption.isDefined mustBe true
-        (uaPassedToConnector.data \ "chargeDDetails").toOption.isDefined mustBe true
-        (uaPassedToConnector.data \ "chargeGDetails").toOption.isDefined mustBe true
-        (uaPassedToConnector.data \ "chargeCDetails").toOption.isDefined mustBe true
-      }
-    }
-
-    "remove charge E where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
-        .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeEDetails").toOption mustBe None
-      }
-    }
-
-    "remove charge D where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
-        .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeDDetails").toOption mustBe None
-      }
-    }
-
-    "remove charge G where it has no members and another valid charge is present prior to submitting to DES" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
-        .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeGDetails").toOption mustBe None
-      }
-    }
-
-    "remove charge C where it has no members and another valid charge is present prior to submitting to DES for individual" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
-        .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeCDetails").toOption mustBe None
-      }
-    }
-
-
-    "remove charge C where it has no members and another valid charge is present prior to submitting to DES for organisation" in {
-      val ua: UserAnswers = userAnswersWithSchemeName
-        .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), false)
-        .setOrException(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetailsDeleted)
-        .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-        .setOrException(IsNewReturn, true)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-
-      whenReady(aftService.fileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), jsonCaptor.capture())(any(), any())
-        val uaPassedToConnector = jsonCaptor.getValue
-        (uaPassedToConnector.data \ "chargeCDetails").toOption mustBe None
       }
     }
   }
