@@ -22,7 +22,8 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{Quarter, SchemeDetails, UserAnswers}
+import models.{Enumerable, Quarter, SchemeDetails, UserAnswers}
+import models.SchemeStatus.statusByName
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -99,13 +100,14 @@ class AFTService @Inject()(
     }
 
     futureUserAnswers.flatMap { ua =>
-      ua.get(IsPsaSuspendedQuery) match {
+      val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
+      uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+            uaWithStatus.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
           }
         case Some(_) =>
-          Future.successful(ua)
+          Future.successful(uaWithStatus)
       }
     }
   }
