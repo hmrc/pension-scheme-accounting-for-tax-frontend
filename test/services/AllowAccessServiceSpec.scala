@@ -51,9 +51,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   }
 
   "filterForIllegalPageAccess" must {
-    "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and scheme status is Open/Wound-up/Deregistered" in {
+    "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and " +
+      "the scheme status is Open/Wound-up/Deregistered" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = false).toOption.get.set(SchemeStatusQuery, Open).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = false)
+        .setOrException(SchemeStatusQuery, Open)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
@@ -67,7 +69,8 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended, there is an association" +
       "but the scheme status is Rejected" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = false).toOption.get.set(SchemeStatusQuery, Rejected).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = false)
+        .setOrException(SchemeStatusQuery, Rejected)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
