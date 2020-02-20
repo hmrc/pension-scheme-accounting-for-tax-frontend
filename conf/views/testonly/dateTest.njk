@@ -1,0 +1,43 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+
+
+{% block pageTitle %}
+  {{ title("Test Only Date Tool") }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <h1 class="govuk-heading-xl">Test Only Date Tool</h1>
+            <form action="{{ submitUrl }}" method="post" autocomplete="off">
+
+                      {{ csrf() | safe }}
+            {{ govukInput({
+            id: "testDate",
+            name: "testDate",
+            type: "text",
+            value: form.testDate.value,
+            classes: "govuk-input--width-10",
+            errorMessage: form.testDate.error
+          }) }}
+
+
+        {{ govukButton({
+            href: nextPage,
+            attributes: {id: "submit"},
+            text: messages("site.continue")
+        }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+{% endblock %}
