@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.time.LocalDate
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
@@ -81,21 +81,26 @@ class AFTSummaryController @Inject()(
 
   def onSubmit(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeNameWithQuarter { (schemeName, quarter) =>
         form.bindFromRequest().fold(
           formWithErrors => {
             val ua = request.userAnswers
             val json = getJson(formWithErrors, ua, srn, schemeName, optionVersion, !request.viewOnly)
-            renderer.render("aftSummary.njk", json).map(BadRequest(_))
+            renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
           },
-          value =>
-            if(value) {
-             Future.successful(Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, request.userAnswers, srn)))
-            } else {
+          value => {
+            if (!value && aftService.isSubmissionDisabled(quarter.endDate)) {
               userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
                 Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
               }
+            } else {
+              Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
+                userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
+                  Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn))
+                }
+              }
             }
+          }
         )
       }
   }

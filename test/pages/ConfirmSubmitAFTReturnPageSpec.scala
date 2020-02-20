@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads, Writes}
+import pages.behaviours.PageBehaviours
 
-case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String)
-object SchemeDetails {
-  implicit def apiReads: Reads[SchemeDetails] = (
-    (JsPath \ "schemeName").read[String] and
-      (JsPath \ "pstr").read[String] and
-      (JsPath \ "schemeStatus").read[String])(
-    (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status)
-  )
-  implicit lazy val writes: Writes[SchemeDetails] =
-    Json.writes[SchemeDetails]
+class ConfirmSubmitAFTReturnPageSpec extends PageBehaviours {
+
+  "ConfirmSubmitAFTReturnPage" - {
+
+    beRetrievable[Boolean](ConfirmSubmitAFTReturnPage)
+
+    beSettable[Boolean](ConfirmSubmitAFTReturnPage)
+
+    beRemovable[Boolean](ConfirmSubmitAFTReturnPage)
+  }
 }

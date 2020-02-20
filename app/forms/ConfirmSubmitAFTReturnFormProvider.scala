@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package models
+package forms
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads, Writes}
+import javax.inject.Inject
 
-case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String)
-object SchemeDetails {
-  implicit def apiReads: Reads[SchemeDetails] = (
-    (JsPath \ "schemeName").read[String] and
-      (JsPath \ "pstr").read[String] and
-      (JsPath \ "schemeStatus").read[String])(
-    (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status)
-  )
-  implicit lazy val writes: Writes[SchemeDetails] =
-    Json.writes[SchemeDetails]
+import forms.mappings.Mappings
+import play.api.data.Form
+
+class ConfirmSubmitAFTReturnFormProvider @Inject() extends Mappings {
+
+  def apply(): Form[Boolean] =
+    Form(
+      "value" -> boolean("confirmSubmitAFTReturn.error.required")
+    )
 }

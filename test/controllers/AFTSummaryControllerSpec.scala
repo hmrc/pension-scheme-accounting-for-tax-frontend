@@ -16,6 +16,9 @@
 
 package controllers
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -42,7 +45,8 @@ import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
+  with Enumerable.Implicits with Results with ScalaFutures {
 
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
@@ -157,7 +161,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to next page when user selects yes" in {
-
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -169,9 +172,27 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
 
       redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      verify(mockAFTService, never).isSubmissionDisabled(any())
     }
 
-    "remove all data and redirect to scheme summary page when user selects no" in {
+    "redirect to next page when user selects no with submission enabled" in {
+      when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
+
+      redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+      verify(mockAFTService, times(1)).isSubmissionDisabled(any())
+    }
+
+    "remove all data and redirect to scheme summary page when user selects no and submission is disabled" in {
+      when(mockAFTService.isSubmissionDisabled(any())).thenReturn(true)
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -181,6 +202,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) mustBe Some(testManagePensionsUrl.url)
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+      verify(mockAFTService, times(1)).isSubmissionDisabled(any())
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

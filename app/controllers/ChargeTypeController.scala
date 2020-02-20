@@ -58,7 +58,6 @@ class ChargeTypeController @Inject()(
     implicit request =>
 
       if (!request.viewOnly) {
-
         aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
           allowService.filterForIllegalPageAccess(srn, userAnswers, Some(ChargeTypePage)).flatMap {
             case None =>

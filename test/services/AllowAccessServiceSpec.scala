@@ -20,18 +20,20 @@ import base.SpecBase
 import connectors.SchemeDetailsConnector
 import data.SampleData
 import handlers.ErrorHandler
-import models.UserAnswers
+import models.SchemeStatus.{Open, Rejected, WoundUp}
 import models.requests.OptionalDataRequest
+import models.{Quarter, UserAnswers}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{AFTSummaryPage, ChargeTypePage, IsPsaSuspendedQuery}
-import play.api.mvc.{Call, Results}
+import pages._
+import play.api.mvc.Results
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,6 +42,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
   private val version = "1"
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
+  private val aftService: AFTService = mock[AFTService]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
   private def optionalDataRequest(ua:UserAnswers, viewOnly:Boolean = false) = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua), viewOnly)
 
@@ -48,29 +51,48 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   }
 
   "filterForIllegalPageAccess" must {
-    "respond with None (i.e. allow access) when the PSA is not suspended and there is an association" in {
+    "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and scheme status is Open/Wound-up/Deregistered" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = false).toOption.get
+        .set(IsPsaSuspendedQuery, value = false).toOption.get.set(SchemeStatusQuery, Open).toOption.get
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe None
       }
     }
 
-    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended and there is no association" in {
+    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended, there is an association" +
+      "but the scheme status is Rejected" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = false).toOption.get
+        .set(IsPsaSuspendedQuery, value = false).toOption.get.set(SchemeStatusQuery, Rejected).toOption.get
+      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
+        .thenReturn(Future.successful(true))
+
+      val errorResult = Ok("error")
+      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(errorResult)
+      }
+    }
+
+    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended," +
+      "the scheme status is Wound-up but there is no association" in {
+      val ua = SampleData.userAnswersWithSchemeName
+        .setOrException(IsPsaSuspendedQuery, value = false)
+        .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(false))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -79,13 +101,14 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
     "respond with a redirect to the cannot change AFT return page when the PSA is suspended and current page is AFT summary page and not view only" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = true).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = true)
+        .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
       val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, Some(version)))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(AFTSummaryPage), Some(version))(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -94,13 +117,14 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
     "respond with a redirect to the cannot start AFT return page when the PSA is suspended and current page is charge type page and not view only" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = true).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = true)
+        .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
       val expectedResult = Redirect(controllers.routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(ChargeTypePage))(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -109,11 +133,12 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
     "respond with a None (i.e. allow access) when the PSA is suspended and current page is AFT summary page and view only" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = true).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = true)
+        .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(AFTSummaryPage), Some(version))(optionalDataRequest(ua, viewOnly = true))) { result =>
         result mustBe None
@@ -122,11 +147,12 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
     "respond with a None (i.e. allow access) when the PSA is suspended and current page is charge type page and view only" in {
       val ua = SampleData.userAnswersWithSchemeName
-        .set(IsPsaSuspendedQuery, value = true).toOption.get
+        .setOrException(IsPsaSuspendedQuery, value = true)
+        .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(ChargeTypePage))(optionalDataRequest(ua, viewOnly = true))) { result =>
         result mustBe None
@@ -138,10 +164,65 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, errorHandler)
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
+      }
+    }
+
+    "respond with a redirect to the session expired page (i.e. don't allow access) when" +
+      "there is PSA suspeneded flag but no scheme status is found in user answers" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(IsPsaSuspendedQuery, value = false).toOption.get
+
+      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(expectedResult)
+      }
+    }
+
+    "respond with a redirect to the session expired page (i.e. don't allow access) when" +
+      "there is scheme status but no PSA suspeneded flag is found in user answers" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(SchemeStatusQuery, Open).toOption.get
+
+      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+        result mustBe Some(expectedResult)
+      }
+    }
+  }
+
+  "allowSubmission" must {
+    "return None if the submission is allowed" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(QuarterPage, Quarter(AFTConstants.QUARTER_START_DATE, AFTConstants.QUARTER_END_DATE))
+        .toOption.getOrElse(SampleData.userAnswersWithSchemeName)
+
+      when(aftService.isSubmissionDisabled(any())).thenReturn(false)
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.allowSubmission(ua)(optionalDataRequest(ua))) { result =>
+        result mustBe None
+      }
+    }
+
+    "return Not Found if the submission is not allowed" in {
+      val ua = SampleData.userAnswersWithSchemeName.set(QuarterPage, Quarter(AFTConstants.QUARTER_START_DATE, AFTConstants.QUARTER_END_DATE))
+        .toOption.getOrElse(SampleData.userAnswersWithSchemeName)
+
+      when(aftService.isSubmissionDisabled(any())).thenReturn(true)
+      when(errorHandler.onClientError(any(), any(), any())).thenReturn(Future(NotFound("Not Found")))
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.allowSubmission(ua)(optionalDataRequest(ua))) { result =>
+        result.value mustBe NotFound("Not Found")
       }
     }
   }

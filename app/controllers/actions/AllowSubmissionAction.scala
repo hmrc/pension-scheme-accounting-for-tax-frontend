@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package services
+package controllers.actions
 
 import com.google.inject.Inject
-import connectors.SchemeDetailsConnector
-import models.SchemeDetails
-import uk.gov.hmrc.http.HeaderCarrier
+import models.UserAnswers
+import models.requests.OptionalDataRequest
+import play.api.mvc.{ActionFilter, Result}
+import services.AllowAccessService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchemeService @Inject()(
-                               schemeDetailsConnector: SchemeDetailsConnector
-                             ){
-  def retrieveSchemeDetails(psaId:String, srn:String)(implicit hc:HeaderCarrier, ec:ExecutionContext): Future[SchemeDetails] = {
-    schemeDetailsConnector.getSchemeDetails(psaId, schemeIdType = "srn", srn).map { schemeDetails =>
-      SchemeDetails(schemeDetails.schemeName, schemeDetails.pstr, schemeDetails.schemeStatus)
-    }
-  }
+class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)
+                                         (implicit val executionContext: ExecutionContext) extends AllowSubmissionAction {
+
+  override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
+    allowAccessService.allowSubmission(request.userAnswers.getOrElse(UserAnswers()))(request)
 }
+
+trait AllowSubmissionAction extends ActionFilter[OptionalDataRequest]
