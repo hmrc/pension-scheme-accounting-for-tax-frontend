@@ -44,7 +44,8 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
-      case q if q._1.isEmpty | q._2.isEmpty => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+      case retrievedItems if retrievedItems._1.isEmpty | retrievedItems._2.isEmpty =>
+        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
       case (_, Some(status)) if !validStatus.contains(status) =>
         errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + status.toString).map(Option(_))
       case (Some(isSuspended), _) =>

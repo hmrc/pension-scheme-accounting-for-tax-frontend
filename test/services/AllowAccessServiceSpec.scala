@@ -66,13 +66,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       }
     }
 
-    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended, there is an association" +
+    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended " +
       "but the scheme status is Rejected" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Rejected)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(true))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
@@ -84,7 +82,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       }
     }
 
-    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended," +
+    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended, " +
       "the scheme status is Wound-up but there is no association" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(IsPsaSuspendedQuery, value = false)
@@ -162,7 +160,8 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       }
     }
 
-    "respond with a redirect to the session expired page (i.e. don't allow access) when no PSA suspended flag is found in user answers" in {
+    "respond with a redirect to the session expired page (i.e. don't allow access) when " +
+      "no PSA suspended flag is found in user answers" in {
       val ua = SampleData.userAnswersWithSchemeName
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
