@@ -38,7 +38,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
 
   private val validStatus = Seq(Open, WoundUp, Deregistered)
 
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None, hasComeFromWithinAFT:Boolean = true)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -51,12 +51,12 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
       case (Some(isSuspended), _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
-            (isSuspended, request.viewOnly, optionCurrentPage, optionVersion) match {
-              case (true, false, Some(AFTSummaryPage), Some(_)) =>
+            (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, hasComeFromWithinAFT) match {
+              case (true, _, Some(AFTSummaryPage), Some(_), false) =>
                 Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
-              case (true, _, Some(ChargeTypePage), _) =>
+              case (true, _, Some(ChargeTypePage), _, _) =>
                 Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn))))
-              case (false, true, Some(ChargeTypePage), _) =>
+              case (false, true, Some(ChargeTypePage), _, _) =>
                 Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None))))
               case _ =>
                 Future.successful(None)

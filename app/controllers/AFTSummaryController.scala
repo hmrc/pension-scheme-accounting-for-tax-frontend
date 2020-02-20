@@ -69,8 +69,11 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
+      println( "\n>>>" +  request.headers.get("Referer"))
+      val hasComeFromWithinAFT = request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
+      println( "\n>>>FROM WITHIN AFT?" + hasComeFromWithinAFT )
       aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
-        allowService.filterForIllegalPageAccess(srn, userAnswers, Some(AFTSummaryPage), optionVersion).flatMap {
+        allowService.filterForIllegalPageAccess(srn, userAnswers, Some(AFTSummaryPage), optionVersion, hasComeFromWithinAFT).flatMap {
           case None =>
             val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
             renderer.render("aftSummary.njk", json).map(Ok(_))
