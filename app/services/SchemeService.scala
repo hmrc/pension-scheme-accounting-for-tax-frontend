@@ -28,7 +28,7 @@ class SchemeService @Inject()(
                              ){
   def retrieveSchemeDetails(psaId:String, srn:String)(implicit hc:HeaderCarrier, ec:ExecutionContext): Future[SchemeDetails] = {
     schemeDetailsConnector.getSchemeDetails(psaId, schemeIdType = "srn", srn).map { schemeDetails =>
-      SchemeDetails(schemeDetails.schemeName, schemeDetails.pstr)
+      SchemeDetails(schemeDetails.schemeName, schemeDetails.pstr, schemeDetails.schemeStatus)
     }
   }
 }

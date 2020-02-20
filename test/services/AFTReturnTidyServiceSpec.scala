@@ -26,9 +26,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.mvc.Results
 
-class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
+class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
   private val zeroCurrencyValue = BigDecimal(0.00)
-  val aftReturnValidatorService = new UserAnswersValidationService()
+  val aftReturnTidyService = new AFTReturnTidyService()
 
   val uaWithAllMemberBasedCharges: UserAnswers = userAnswersWithSchemeName
     .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
@@ -45,13 +45,13 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
     "return true where there is only a charge type A present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeA.ChargeDetailsPage, chargeAChargeDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type B present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type C present" in {
@@ -59,36 +59,36 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(IsSponsoringEmployerIndividualPage(0), true)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type D present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type E present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type F present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return true where there is only a charge type G present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe true
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
 
     "return false where there are no charges present" in {
       val ua = SampleData.userAnswersWithSchemeName
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe false
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
 
     "return false where there is only a charge type C present with one employer which is deleted" in {
@@ -96,32 +96,32 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(IsSponsoringEmployerIndividualPage(0), true)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe false
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
 
     "return false where there is only a charge type D present with one member which is deleted" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe false
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
 
     "return false where there is only a charge type E present with one member which is deleted" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe false
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
 
     "return false where there is only a charge type G present with one member which is deleted" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
-      aftReturnValidatorService.isAtLeastOneValidCharge(ua) mustBe false
+      aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
 
   }
 
   "removeChargesHavingNoMembersOrEmployers" must {
     "NOT remove member-based charges which are not deleted" in {
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(uaWithAllMemberBasedCharges)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(uaWithAllMemberBasedCharges)
       (result.data \ "chargeEDetails").toOption.isDefined mustBe true
       (result.data \ "chargeDDetails").toOption.isDefined mustBe true
       (result.data \ "chargeGDetails").toOption.isDefined mustBe true
@@ -134,7 +134,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
 
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(ua)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
 
       (result.data \ "chargeEDetails").toOption mustBe None
     }
@@ -146,7 +146,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
 
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(ua)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeDDetails").toOption mustBe None
     }
 
@@ -156,7 +156,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
         .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(ua)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeGDetails").toOption mustBe None
     }
 
@@ -167,7 +167,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(IsSponsoringEmployerIndividualPage(0), true)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(ua)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeCDetails").toOption mustBe None
     }
 
@@ -178,7 +178,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(IsSponsoringEmployerIndividualPage(0), false)
         .setOrException(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
-      val result = aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(ua)
+      val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeCDetails").toOption mustBe None
     }
   }
@@ -193,7 +193,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(IsSponsoringEmployerIndividualPage(1), true)
         .setOrException(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetailsDeleted)
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
+      val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(SponsoringIndividualDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(SponsoringIndividualDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(ChargeCDetailsPage(0)).map(_.amountTaxDue) mustBe Some(chargeCDetails.amountTaxDue)
@@ -208,7 +208,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeD.MemberDetailsPage(1), memberDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
+      val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeD.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeD.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeD.ChargeDetailsPage(0)).flatMap(_.taxAt25Percent) mustBe chargeDDetails.taxAt25Percent
@@ -225,7 +225,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeE.MemberDetailsPage(1), memberDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
+      val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeE.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeE.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeE.ChargeDetailsPage(0)).map(_.chargeAmount) mustBe Some(chargeEDetails.chargeAmount)
@@ -240,7 +240,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
         .setOrException(pages.chargeG.MemberDetailsPage(1), memberGDetailsDeleted)
 
 
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(ua)
+      val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeG.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeG.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
       result.get(pages.chargeG.ChargeAmountsPage(0)).map(_.amountTaxDue) mustBe Some(chargeAmounts.amountTaxDue)
@@ -250,7 +250,7 @@ class UserAnswersValidationServiceSpec extends SpecBase with ScalaFutures with B
     }
 
     "do nothing if there is no member-based charge to reinstate" in {
-      val result = aftReturnValidatorService.reinstateDeletedMemberOrEmployer(uaWithAllMemberBasedCharges)
+      val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(uaWithAllMemberBasedCharges)
       result.data mustBe uaWithAllMemberBasedCharges.data
     }
   }

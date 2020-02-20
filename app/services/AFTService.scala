@@ -23,7 +23,8 @@ import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{Quarter, SchemeDetails, UserAnswers}
+import models.{Enumerable, Quarter, SchemeDetails, UserAnswers}
+import models.SchemeStatus.statusByName
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,19 +38,22 @@ class AFTService @Inject()(
                             userAnswersCacheConnector: UserAnswersCacheConnector,
                             schemeService: SchemeService,
                             minimalPsaConnector: MinimalPsaConnector,
-                            aftReturnValidatorService: UserAnswersValidationService
+                            aftReturnTidyService: AFTReturnTidyService
                           ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-    val userHasDeletedLastMemberOrEmployerFromLastCharge = ! aftReturnValidatorService.isAtLeastOneValidCharge(answers)
-    val ua = if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
-      aftReturnValidatorService.reinstateDeletedMemberOrEmployer(answers)
+
+    val hasDeletedLastMemberOrEmployerFromLastCharge = ! aftReturnTidyService.isAtLeastOneValidCharge(answers)
+
+    val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
+      aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
     } else {
-      aftReturnValidatorService.removeChargesHavingNoMembersOrEmployers(answers)
+      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      if (userHasDeletedLastMemberOrEmployerFromLastCharge) {
+
+      if (hasDeletedLastMemberOrEmployerFromLastCharge) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
         ua.remove(IsNewReturn) match {
@@ -108,13 +112,14 @@ class AFTService @Inject()(
     }
 
     futureUserAnswers.flatMap { ua =>
-      ua.get(IsPsaSuspendedQuery) match {
+      val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
+      uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-            ua.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+            uaWithStatus.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
           }
         case Some(_) =>
-          Future.successful(ua)
+          Future.successful(uaWithStatus)
       }
     }
   }
