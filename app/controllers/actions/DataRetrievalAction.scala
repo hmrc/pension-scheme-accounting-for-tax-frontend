@@ -48,8 +48,8 @@ class DataRetrievalImpl(
           OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
         case Some(uaJsValue) =>
           val ua = UserAnswers(uaJsValue.as[JsObject])
-          val forceReadOnly = ua.get(IsPsaSuspendedQuery).getOrElse(true)
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua), isLocked || forceReadOnly)
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua),
+            isLocked || ua.get(IsPsaSuspendedQuery).getOrElse(true))
       }
     }
   }
