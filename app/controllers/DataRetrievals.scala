@@ -18,11 +18,11 @@ package controllers
 
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{Index, MemberDetails, YearRange}
+import models.{Index, MemberDetails, Quarter, YearRange}
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.{PSTRQuery, QuestionPage, SchemeNameQuery}
+import pages.{PSTRQuery, QuarterPage, QuestionPage, SchemeNameQuery}
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -35,6 +35,22 @@ object DataRetrievals {
                         (implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeNameWithQuarter(block: (String, Quarter) => Future[Result])
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(pstr), Some(quarter)) => block(schemeName, pstr, quarter)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

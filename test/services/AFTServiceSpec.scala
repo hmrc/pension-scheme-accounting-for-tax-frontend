@@ -16,6 +16,9 @@
 
 package services
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
@@ -353,6 +356,33 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
         }
+      }
+    }
+  }
+
+  "isSubmissionDisabled" when {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    "quarter end date is todays date " must {
+      "return disabled as true" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now())
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe true
+      }
+    }
+
+    "quarter end date is in the past " must {
+      "return enabled as false" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now().minusDays(1))
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe false
+      }
+    }
+
+    "quarter end date is in the future " must {
+      "return disabled as true" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now().plusDays(1))
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe true
       }
     }
   }
