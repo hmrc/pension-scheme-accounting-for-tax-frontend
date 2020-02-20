@@ -22,16 +22,7 @@ import models.Quarters.{Q1, Q2, Q3, Q4}
 import play.api.libs.json.{Format, Json}
 import utils.DateHelper.dateFormatterYMD
 
-case class Quarter(startDate: String, endDate: String) {
-  def date(s: String): LocalDate = LocalDate.from(dateFormatterYMD.parse(s))
-
-  def getQuarters: Quarters = date(startDate).getMonthValue match {
-    case 1 => Q1
-    case 4 => Q2
-    case 7 => Q3
-    case 10 => Q4
-  }
-}
+case class Quarter(startDate: String, endDate: String)
 
 object Quarter {
 

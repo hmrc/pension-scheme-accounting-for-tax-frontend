@@ -17,7 +17,6 @@
 package models
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -91,6 +90,22 @@ object Quarters extends Enumerable.Implicits {
     Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatterYMD),
       LocalDate.of(year, quarter.endMonth, quarter.endDay).format(dateFormatterYMD))
   }
+
+  def getStartDate(quarter: Quarters, year: Int): String =
+    LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatterYMD)
+
+  def getQuarter(startDate: String): Quarter = {
+    val date = LocalDate.from(dateFormatterYMD.parse(startDate))
+    getQuarter(getQuartersFromStartDate(startDate), date.getYear)
+  }
+
+  def getQuartersFromStartDate(startDate: String): Quarters =
+    LocalDate.from(dateFormatterYMD.parse(startDate)).getMonthValue match {
+      case 1 => Q1
+      case 4 => Q2
+      case 7 => Q3
+      case 10 => Q4
+    }
 
   implicit def enumerable(year: Int): Enumerable[Quarters] =
     Enumerable(values(year).map(v => v.toString -> v): _*)

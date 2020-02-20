@@ -50,46 +50,22 @@ class AFTLoginController @Inject()(
                                       allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def onPageLoad(srn: String): Action[AnyContent] = (identify).async {
     implicit request =>
 
-      if (!request.viewOnly) {
-
-        aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap {
-          case (schemeDetails, userAnswers) =>
-          allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
-            case None =>
-              auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-              redirectTo(userAnswers, srn)
-            case Some(alternativeLocation) => Future.successful(alternativeLocation)
-          }
-        }
-      } else {
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
-      }
-  }
-
-  private def redirectTo(userAnswers: UserAnswers, srn: String)(implicit request: OptionalDataRequest[_]): Future[Result] = {
-    val defaultYear = Years.minYear
-    (Years.values.size, Quarters.values(defaultYear).size) match {
+      val defaultYear = Years.minYear
+      (Years.values.size, Quarters.values(defaultYear).size) match {
       case (years, _) if years > 1 =>
 
        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 
       case (_, quarters) if quarters > 1 =>
 
-        for {
-          ua <- Future.fromTry(userAnswers.set(YearPage, Year(defaultYear)))
-          _ <- userAnswersCacheConnector.save(request.internalId, ua.data)
-        } yield Redirect(controllers.routes.QuartersController.onPageLoad(srn))
+        Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
         val defaultQuarter = Quarters.values(defaultYear).headOption.getOrElse(throw NoQuartersAvailableException)
-        for {
-          ua <- Future.fromTry(userAnswers.set(YearPage, Year(defaultYear)))
-          updatedUa <- Future.fromTry(ua.set(QuarterPage, Quarters.getQuarter(defaultQuarter, defaultYear)))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedUa.data)
-        } yield Redirect(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn))
+        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear))))
     }
   }
 

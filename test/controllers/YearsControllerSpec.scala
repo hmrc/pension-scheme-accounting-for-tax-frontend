@@ -21,19 +21,21 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, UserAnswers, Year, Years}
+import models.{Enumerable, GenericViewModel, SchemeDetails, UserAnswers, Year, Years}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import pages.YearPage
 import play.api.Application
 import play.api.data.Form
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -41,9 +43,13 @@ import scala.concurrent.Future
 class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
+  val mockSchemeService: SchemeService = mock[SchemeService]
+  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[SchemeService].toInstance(mockSchemeService)
+  )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   val templateToBeRendered = "years.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Years] = formProvider()
@@ -60,14 +66,8 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
       schemeName = schemeName)
   )
 
-  private val year: Years = Year(2020)
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("2020"))
-  private val expectedJson: JsObject = Json.obj(
-    "pstr" -> "pstr",
-    "year" -> "2020",
-    "schemeName" -> "Big Scheme"
-  )
-
+  private val year = "2020"
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -75,6 +75,8 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
+      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr")))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -96,50 +98,13 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
-    "return OK and the correct view for a GET when the question has previously been answered" in {
-      val ua = userAnswers.map(_.set(YearPage, year)).get.toOption.get
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(form.fill(year)))
-    }
-
-    "redirect to Session Expired page for a GET when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val result = route(application, httpGETRequest(httpPathGET)).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-    }
-
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
-
-      when(mockCompoundNavigator.nextPage(Matchers.eq(YearPage), any(), any(), any())).thenReturn(dummyCall)
-
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+    "redirect to next page when valid data is submitted" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      redirectLocation(result) mustBe Some(dummyCall.url)
+      redirectLocation(result) mustBe Some(controllers.routes.QuartersController.onPageLoad(srn, year).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
@@ -150,15 +115,6 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-    }
-
-    "redirect to Session Expired page for a POST when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }

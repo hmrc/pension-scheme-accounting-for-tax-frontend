@@ -16,18 +16,20 @@
 
 package controllers
 
+import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.{ChargeType, GenericViewModel, Mode}
+import models.{ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -44,26 +46,40 @@ class ChargeTypeController @Inject()(
                                       formProvider: ChargeTypeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       renderer: Renderer,
-                                      config: FrontendAppConfig
+                                      config: FrontendAppConfig,
+                                      auditService: AuditService,
+                                      aftService: AFTService,
+                                      allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
 
-        val json = Json.obj(
-          fields = "srn" -> srn,
-          "form" -> form,
-          "radios" -> ChargeType.radios(form),
-          "viewModel" -> viewModel(schemeName, mode, srn)
-        )
-        renderer.render(template = "chargeType.njk", json).map(Ok(_))
+      if (!request.viewOnly) {
+
+        aftService.retrieveAFTRequiredDetails(srn = srn, startDate: String, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
+          allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+            case None =>
+              auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+              val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
+              val json = Json.obj(
+                fields = "srn" -> srn,
+                "form" -> preparedForm,
+                "radios" -> ChargeType.radios(preparedForm),
+                "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
+              )
+              renderer.render(template = "chargeType.njk", json).map(Ok(_))
+            case Some(alternativeLocation) => Future.successful(alternativeLocation)
+          }
+        }
+      } else {
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -73,7 +89,7 @@ class ChargeTypeController @Inject()(
               fields = "srn" -> srn,
               "form" -> formWithErrors,
               "radios" -> ChargeType.radios(formWithErrors),
-              "viewModel" -> viewModel(schemeName, mode, srn)
+              "viewModel" -> viewModel(schemeName, srn, startDate)
             )
             renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
           },
@@ -81,14 +97,14 @@ class ChargeTypeController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeTypePage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn))
         )
       }
   }
 
-  private def viewModel(schemeName: String, mode: Mode, srn: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String, startDate: String): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(mode, srn).url,
+      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )

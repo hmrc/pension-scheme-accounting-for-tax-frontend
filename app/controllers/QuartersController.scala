@@ -22,15 +22,14 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, NormalMode, Quarters, Years}
+import models.{GenericViewModel, Quarters}
 import navigators.CompoundNavigator
-import pages._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -48,75 +47,58 @@ class QuartersController @Inject()(
                                    val controllerComponents: MessagesControllerComponents,
                                    renderer: Renderer,
                                    config: FrontendAppConfig,
+                                   schemeService: SchemeService,
                                    auditService: AuditService,
                                    aftService: AFTService,
                                    allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(year: Years)(implicit messages: Messages): Form[Quarters] =
-    formProvider(messages("quarters.error.required", year.getYear.toString), year.getYear)
+  private def form(year: String)(implicit messages: Messages): Form[Quarters] =
+    formProvider(messages("quarters.error.required", year), year.toInt)
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        request.userAnswers.get(YearPage) match {
-          case Some(year) =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
 
-          val preparedForm: Form[Quarters] = request.userAnswers.get(QuarterPage) match {
-            case None => form(year)
-            case Some(value) =>
-              form(year).fill(value.getQuarters)
-          }
+        val json = Json.obj(
+          "srn" -> srn,
+          "form" -> form(year),
+          "radios" -> Quarters.radios(form(year), year.toInt),
+          "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+          "year" -> year
+        )
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "form" -> preparedForm,
-            "radios" -> Quarters.radios(preparedForm, year.getYear),
-            "viewModel" -> viewModel(schemeName, srn),
-            "year" -> year.getYear.toString
-          )
-
-          renderer.render(template = "quarters.njk", json).map(Ok(_))
-
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
+        renderer.render(template = "quarters.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        request.userAnswers.get(YearPage) match {
-          case Some(year) =>
 
             form(year).bindFromRequest().fold(
               formWithErrors => {
-                val json = Json.obj(
-                  fields = "srn" -> srn,
-                  "form" -> formWithErrors,
-                  "radios" -> Quarters.radios(formWithErrors, year.getYear),
-                  "viewModel" -> viewModel(schemeName, srn),
-                  "year" -> year.getYear.toString
-                )
-                renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+                  val json = Json.obj(
+                    fields = "srn" -> srn,
+                    "form" -> formWithErrors,
+                    "radios" -> Quarters.radios(formWithErrors, year.toInt),
+                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                    "year" -> year
+                  )
+                  renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+                }
               },
               value =>
-                for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(QuarterPage, Quarters.getQuarter(value, year.getYear)))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(QuarterPage, NormalMode, updatedAnswers, srn))
+                Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(value, year.toInt))))
             )
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
-      }
+
   }
 
-  private def viewModel(schemeName: String, srn: String): GenericViewModel = {
-    GenericViewModel(
-      submitUrl = routes.QuartersController.onSubmit(srn).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-      schemeName = schemeName
-    )
-  }
+  private def viewModel(srn: String, year: String, schemeName: String): GenericViewModel =
+      GenericViewModel(
+        submitUrl = routes.QuartersController.onSubmit(srn, year).url,
+        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+        schemeName = schemeName
+      )
 }

@@ -35,8 +35,9 @@ import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import utils.AFTConstants._
+import utils.AFTSummaryHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD}
-import utils.{AFTConstants, AFTSummaryHelper}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -66,7 +67,8 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
-      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
+
+      aftService.retrieveAFTRequiredDetails(srn = srn, QUARTER_START_DATE, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
           case None =>
             val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
@@ -99,8 +101,8 @@ class AFTSummaryController @Inject()(
 
   private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, schemeName: String,
                       optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(AFTConstants.QUARTER_START_DATE)
-    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(AFTConstants.QUARTER_END_DATE)
+    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(QUARTER_START_DATE)
+    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(QUARTER_END_DATE)
     Json.obj(
       "srn" -> srn,
       "form" -> form,

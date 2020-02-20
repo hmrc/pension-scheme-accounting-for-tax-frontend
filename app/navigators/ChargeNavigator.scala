@@ -20,11 +20,12 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.{ChargeType, NormalMode, UserAnswers}
-import pages.{AFTSummaryPage, ChargeTypePage, Page, QuarterPage, YearPage}
+import pages.{AFTSummaryPage, ChargeTypePage, Page}
 import play.api.mvc.Call
-import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
+import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
@@ -33,10 +34,8 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
   def nextIndexChargeG(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
 
   override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case YearPage => controllers.routes.QuartersController.onPageLoad(srn)
-    case QuarterPage => controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
     case ChargeTypePage => chargeTypeNavigation(ua, srn)
-    case AFTSummaryPage => controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
+    case AFTSummaryPage => controllers.routes.ChargeTypeController.onPageLoad(srn, QUARTER_START_DATE)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

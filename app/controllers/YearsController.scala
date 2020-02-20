@@ -29,7 +29,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -47,6 +47,7 @@ class YearsController @Inject()(
                                  val controllerComponents: MessagesControllerComponents,
                                  renderer: Renderer,
                                  config: FrontendAppConfig,
+                                 schemeService: SchemeService,
                                  auditService: AuditService,
                                  aftService: AFTService,
                                  allowService: AllowAccessService
@@ -54,45 +55,39 @@ class YearsController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-      DataRetrievals.retrieveSchemeName { schemeName =>
-
-        val preparedForm = request.userAnswers.get(YearPage).fold(form)(form.fill)
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
 
         val json = Json.obj(
           "srn" -> srn,
-          "form" -> preparedForm,
-          "radios" -> Years.radios(preparedForm),
-          "viewModel" -> viewModel(schemeName, srn)
+          "form" -> form,
+          "radios" -> Years.radios(form),
+          "viewModel" -> viewModel(schemeDetails.schemeName, srn)
         )
 
         renderer.render(template = "years.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
 
         form.bindFromRequest().fold(
-          formWithErrors => {
+          formWithErrors =>
+            schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
               "form" -> formWithErrors,
               "radios" -> Years.radios(formWithErrors),
-              "viewModel" -> viewModel(schemeName, srn)
+              "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(YearPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(YearPage, NormalMode, updatedAnswers, srn))
+            Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
         )
-      }
   }
 
   private def viewModel(schemeName: String, srn: String): GenericViewModel = {

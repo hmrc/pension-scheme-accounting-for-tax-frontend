@@ -36,6 +36,7 @@ object SampleData {
   val userAnswersId = "id"
   val psaId = "A0000000"
   val srn = "aa"
+  val startDate = "2020-04-01"
   val pstr = "pstr"
   val schemeName = "Big Scheme"
   val companyName = "Big Company"

@@ -21,7 +21,7 @@ import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
-import models.UserAnswers
+import models.{Quarter, UserAnswers}
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -30,10 +30,11 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery}
+import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery, QuarterPage}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -254,7 +255,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "save all of these with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)(implicitly, implicitly,
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)(implicitly, implicitly,
           optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
 
@@ -270,6 +271,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
             .setOrException(IsPsaSuspendedQuery, value = false)
             .setOrException(IsNewReturn, value = true)
             .setOrException(AFTStatusQuery, value = aftStatus)
+              .setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -283,7 +285,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "save with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
 
           verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
@@ -309,7 +311,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
 
           resultScheme mustBe schemeDetails
@@ -330,7 +332,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           .setOrException(IsPsaSuspendedQuery, value = false)
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = true))) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
           verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
@@ -345,7 +347,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
