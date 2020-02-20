@@ -165,3 +165,13 @@ GET        /:srn/new-return/overseas-transfer-charge/:index/on-click-check-your-
 
 GET         /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
 POST        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, index: Index)
+
+GET        /:srn/new-return/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String)
+
+GET        /:srn/new-return/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String)
+POST       /:srn/new-return/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: String)
+GET        /:srn/new-return/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: String)
+POST       /:srn/new-return/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: String)
+
+GET        /:srn/new-return/declaration                                         controllers.DeclarationController.onPageLoad(srn: String)
+GET        /:srn/new-return/declaration/on-submit-declaration                                         controllers.DeclarationController.onSubmit(srn: String)

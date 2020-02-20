@@ -19,9 +19,10 @@ package services
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
 import handlers.ErrorHandler
+import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.UserAnswers
 import models.requests.OptionalDataRequest
-import pages.IsPsaSuspendedQuery
+import pages.{IsPsaSuspendedQuery, QuarterPage, SchemeStatusQuery}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,6 +31,7 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
+                                   aftService: AFTService,
                                    errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
   def filterForIllegalPageAccess(srn: String, ua: UserAnswers)
@@ -37,18 +39,41 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    ua.get(IsPsaSuspendedQuery) match {
-      case None =>
+    val validStatus = Seq(Open, WoundUp, Deregistered)
+
+    (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
+      case (None, None) | (_, None) | (None, _) =>
         Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-      case Some(false) =>
-        pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true =>
-            Future.successful(None)
-          case _ =>
-            errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
-        }
-      case _ =>
+
+      case (_, Some(status)) if !validStatus.contains(status) =>
+        errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed").map(Some.apply)
+
+      case (Some(false), _) =>
+        checkForAssociation(srn)
+
+      case (Some(true), _) =>
         Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))
+
+      case _ =>
+        Future.successful(None)
+    }
+  }
+
+  private def checkForAssociation(srn: String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier) = {
+    pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
+      case true =>
+        Future.successful(None)
+      case _ =>
+        errorHandler.onClientError(request, NOT_FOUND, message = "Check for association failed").map(Some.apply)
+    }
+  }
+
+  def allowSubmission(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+    ua.get(QuarterPage) match {
+      case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
+        Future.successful(None)
+      case _ =>
+        errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
     }
   }
 }

@@ -26,6 +26,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import models.{CheckMode, UserAnswers, YearRange}
+import pages.ConfirmSubmitAFTReturnPage
 import pages.chargeC._
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._

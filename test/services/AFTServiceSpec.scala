@@ -16,11 +16,15 @@
 
 package services
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
+import models.SchemeStatus.Open
 import models.UserAnswers
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
@@ -30,7 +34,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery}
+import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery, SchemeStatusQuery}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
@@ -159,6 +163,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
             .setOrException(IsPsaSuspendedQuery, value = false)
             .setOrException(IsNewReturn, value = true)
             .setOrException(AFTStatusQuery, value = aftStatus)
+            .setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -183,7 +188,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
 
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false)
+          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -207,7 +212,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
 
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false)
+          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -216,7 +221,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "viewOnly flag in the request is set to true" must {
       "NOT call saveAndLock but should call save" in {
         val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
@@ -240,6 +245,33 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
         }
+      }
+    }
+  }
+
+  "isSubmissionDisabled" when {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    "quarter end date is todays date " must {
+      "return disabled as true" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now())
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe true
+      }
+    }
+
+    "quarter end date is in the past " must {
+      "return enabled as false" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now().minusDays(1))
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe false
+      }
+    }
+
+    "quarter end date is in the future " must {
+      "return disabled as true" in {
+        val quarterEndDate = formatter.format(LocalDateTime.now().plusDays(1))
+        val result = aftService.isSubmissionDisabled(quarterEndDate)
+        result mustBe true
       }
     }
   }

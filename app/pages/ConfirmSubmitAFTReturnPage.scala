@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads, Writes}
+import play.api.libs.json.JsPath
 
-case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String)
-object SchemeDetails {
-  implicit def apiReads: Reads[SchemeDetails] = (
-    (JsPath \ "schemeName").read[String] and
-      (JsPath \ "pstr").read[String] and
-      (JsPath \ "schemeStatus").read[String])(
-    (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status)
-  )
-  implicit lazy val writes: Writes[SchemeDetails] =
-    Json.writes[SchemeDetails]
+case object ConfirmSubmitAFTReturnPage extends QuestionPage[Boolean] {
+
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "confirmSubmitAFTReturn"
 }
