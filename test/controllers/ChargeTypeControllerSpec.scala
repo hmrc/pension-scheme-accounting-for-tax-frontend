@@ -147,19 +147,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
       }
-
-      "redirect to aft summary page when the user is locked and coming to charge type page" in {
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        mutableFakeDataRetrievalAction.setViewOnly(true)
-
-        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
-
-        redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, None).url
-
-        verify(mockRenderer, never()).render(any(), any())(any())
-        verify(mockAFTService, never()).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, never()).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), any(), any())(any())
-      }
     }
 
     "on a POST" must {
