@@ -36,22 +36,28 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                    errorHandler: ErrorHandler)
                                   (implicit val executionContext: ExecutionContext) extends Results {
 
-  private val validStatus = Seq(Open, WoundUp, Deregistered)
+  private val validStatuses = Seq(Open, WoundUp, Deregistered)
 
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None, hasComeFromWithinAFT:Boolean = true)
+  def filterForIllegalPageAccess(
+                                  srn: String,
+                                  ua: UserAnswers,
+                                  optionCurrentPage: Option[Page] = None,
+                                  optionVersion: Option[String] = None
+                                )
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
-      case retrievedItems if retrievedItems._1.isEmpty | retrievedItems._2.isEmpty =>
+      case uaItems if uaItems._1.isEmpty | uaItems._2.isEmpty =>
         Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-      case (_, Some(status)) if !validStatus.contains(status) =>
+      case (_, Some(status)) if !validStatuses.contains(status) =>
         errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + status.toString).map(Option(_))
       case (Some(isSuspended), _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
-            (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, hasComeFromWithinAFT) match {
+            val isPreviousPageWithinAFT = request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
+            (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
               case (true, _, Some(AFTSummaryPage), Some(_), false) =>
                 Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
               case (true, _, Some(ChargeTypePage), _, _) =>
