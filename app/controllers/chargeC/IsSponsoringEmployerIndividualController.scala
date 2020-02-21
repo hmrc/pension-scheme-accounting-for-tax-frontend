@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class IsSponsoringEmployerIndividualController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -58,7 +60,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -80,7 +82,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -96,7 +98,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(IsSponsoringEmployerIndividualPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

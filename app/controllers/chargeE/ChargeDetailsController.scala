@@ -16,12 +16,15 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeE.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
 import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
@@ -61,7 +64,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -85,7 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         form(request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -103,7 +106,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }

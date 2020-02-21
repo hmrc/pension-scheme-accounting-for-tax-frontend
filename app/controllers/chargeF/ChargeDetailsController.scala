@@ -34,6 +34,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -106,7 +108,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
           }
         )
       }

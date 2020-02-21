@@ -24,6 +24,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages._
@@ -36,7 +37,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
-import models.LocalDateBinder._
 
 class ChargeTypeController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -78,7 +78,7 @@ class ChargeTypeController @Inject()(
           }
         }
       } else {
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
       }
   }
 
@@ -100,12 +100,12 @@ class ChargeTypeController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate))
         )
       }
   }
 
-  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, startDate: LocalDate): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String, startDate: LocalDate): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -59,7 +61,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName
         )
@@ -83,7 +85,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -101,7 +103,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

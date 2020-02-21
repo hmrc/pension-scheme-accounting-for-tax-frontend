@@ -16,12 +16,15 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
@@ -81,7 +84,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           case Some(value) => form.fill(value)
         }
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -106,7 +109,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -124,7 +127,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

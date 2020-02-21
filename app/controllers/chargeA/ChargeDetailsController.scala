@@ -90,7 +90,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "srn" -> srn,
               "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
-              "viewModel" -> viewModel(mode, srn, schemeName)
+              "viewModel" -> viewModel(mode, srn, startDate, schemeName)
             )
             renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
           },
@@ -98,7 +98,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
         )
       }
   }

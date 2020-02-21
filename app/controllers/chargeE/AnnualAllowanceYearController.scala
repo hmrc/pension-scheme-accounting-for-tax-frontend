@@ -16,12 +16,15 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YearRangeFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, Mode, YearRange}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
@@ -61,7 +64,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -83,7 +86,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -99,7 +102,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AnnualAllowanceYearPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }

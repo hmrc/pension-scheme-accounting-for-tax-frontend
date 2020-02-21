@@ -34,6 +34,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -68,7 +70,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -92,7 +94,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -110,7 +112,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

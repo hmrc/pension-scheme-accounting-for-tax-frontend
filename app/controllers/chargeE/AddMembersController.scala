@@ -16,11 +16,14 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
@@ -59,7 +62,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         case (Some(schemeName), Some(quarter)) =>
 
           renderer.render(template = "chargeE/addMembers.njk",
-            getJson(srn, form, schemeName, quarter)).map(Ok(_))
+            getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
@@ -74,7 +77,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
                 renderer.render(
                   template = "chargeE/addMembers.njk",
-                  getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+                  getJson(srn, startDate, formWithErrors, schemeName, quarter)).map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
@@ -83,7 +86,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn, startDate))
           }
         )
       }
@@ -96,7 +99,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val members = getAnnualAllowanceMembers(request.userAnswers, srn)
+        val members = getAnnualAllowanceMembers(request.userAnswers, srn, startDate)
 
         Json.obj(
           "srn" -> srn,

@@ -37,6 +37,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -53,8 +55,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeD(index, srn) { (memberDetails, chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      DataRetrievals.cyaChargeD(index, srn, startDate) { (memberDetails, chargeDetails, schemeName) =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeDMemberDetails(index, memberDetails),
@@ -67,7 +69,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             "srn" -> srn,
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName),
             "chargeName" -> "chargeD",
@@ -81,7 +83,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
         case (Some(pstr), Some(chargeDetails)) =>
 
-          val totalAmount: BigDecimal = getLifetimeAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
+          val totalAmount: BigDecimal = getLifetimeAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum
 
           val updatedChargeDetails: ChargeDDetails = chargeDetails.copy(
             taxAt25Percent = Option(chargeDetails.taxAt25Percent.getOrElse(BigDecimal(0.00))),
@@ -94,7 +96,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             _ <- userAnswersCacheConnector.save(request.internalId, ua2.data)
             _ <- aftService.fileAFTReturn(pstr, ua2)
           } yield {
-            Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+            Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
           }
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

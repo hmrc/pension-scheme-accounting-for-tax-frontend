@@ -16,16 +16,18 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeC.{DeleteEmployerPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, TotalChargeAmountPage}
+import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -37,7 +39,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -106,13 +108,13 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
                     for {
                       interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn))
+                    } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
                   }
                 } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn)))
+                  Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate)))
                 }
             )
       }
@@ -128,5 +130,5 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       case _ => Try(ua)
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
 }

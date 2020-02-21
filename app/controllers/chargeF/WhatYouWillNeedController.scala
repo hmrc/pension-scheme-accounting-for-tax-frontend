@@ -16,21 +16,23 @@
 
 package controllers.chargeF
 
+import java.time.LocalDate
+
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsSuccess, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
                                            override val messagesApi: MessagesApi,
@@ -49,7 +51,7 @@ class WhatYouWillNeedController @Inject()(
     implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
       renderer.render(template = "chargeF/whatYouWillNeed.njk",
         Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn))

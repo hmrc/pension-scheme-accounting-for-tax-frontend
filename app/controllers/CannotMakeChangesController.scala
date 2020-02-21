@@ -17,12 +17,13 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -30,18 +31,17 @@ import scala.concurrent.ExecutionContext
 
 class CannotMakeChangesController @Inject()(
                                              identify: IdentifierAction,
-                                             getData: DataRetrievalAction,
-                                             requireData: DataRequiredAction,
+                                             schemeService: SchemeService,
                                              val controllerComponents: MessagesControllerComponents,
                                              renderer: Renderer,
                                              config: FrontendAppConfig
                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         renderer.render("cannot-make-changes.njk",
-          Json.obj("schemeName" -> schemeName,
+          Json.obj("schemeName" -> schemeDetails.schemeName,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn))
         ).map(Ok(_))
       }

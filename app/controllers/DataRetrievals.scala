@@ -28,6 +28,8 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.Future
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 object DataRetrievals {
 
@@ -93,7 +95,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(schemeName)) =>
         block(chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
@@ -117,10 +119,10 @@ object DataRetrievals {
           case (None, Some(organisation)) =>
             block(isSponsoringEmployerIndividual, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
-            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
         }
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
@@ -135,7 +137,7 @@ object DataRetrievals {
       case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
         block(memberDetails, chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
@@ -151,7 +153,7 @@ object DataRetrievals {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
         block(memberDetails, taxYear, chargeEDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
@@ -167,7 +169,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>
         block(chargeDetails, memberDetails, chargeAmounts, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 

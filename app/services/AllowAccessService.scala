@@ -28,6 +28,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
                                    errorHandler: ErrorHandler)
@@ -45,7 +47,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
           case true =>
             Future.successful(None)
           case _ =>
-            errorHandler.onClientError(request, NOT_FOUND, "").map(Some.apply)
+            errorHandler.onClientError(request, NOT_FOUND).map(Some.apply)
         }
       case _ =>
         Future.successful(Some(Redirect(controllers.routes.CannotMakeChangesController.onPageLoad(srn))))

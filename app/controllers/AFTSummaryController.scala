@@ -24,6 +24,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.{AFTSummaryPage, QuarterPage}
@@ -71,7 +72,7 @@ class AFTSummaryController @Inject()(
       aftService.retrieveAFTRequiredDetails(srn = srn, QUARTER_START_DATE, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
           case None =>
-            val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
+            val json = getJson(form, userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, !request.viewOnly)
             renderer.render("aftSummary.njk", json).map(Ok(_))
           case Some(redirectLocation) => Future.successful(redirectLocation)
         }
@@ -84,12 +85,12 @@ class AFTSummaryController @Inject()(
         form.bindFromRequest().fold(
           formWithErrors => {
             val ua = request.userAnswers
-            val json = getJson(formWithErrors, ua, srn, schemeName, optionVersion, !request.viewOnly)
+            val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, !request.viewOnly)
             renderer.render("aftSummary.njk", json).map(BadRequest(_))
           },
           value =>
             if(value) {
-             Future.successful(Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, request.userAnswers, srn)))
+             Future.successful(Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, request.userAnswers, srn, startDate)))
             } else {
               userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
                 Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
@@ -106,8 +107,8 @@ class AFTSummaryController @Inject()(
     Json.obj(
       "srn" -> srn,
       "form" -> form,
-      "list" -> aftSummaryHelper.summaryListData(ua, srn),
-      "viewModel" -> viewModel(NormalMode, srn, schemeName, optionVersion),
+      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
+      "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
       "startDate" -> getFormattedStartDate(quarterStartDate),
       "endDate" -> getFormattedEndDate(quarterEndDate),

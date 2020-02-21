@@ -16,6 +16,8 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -52,7 +54,7 @@ class WhatYouWillNeedController @Inject()(
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn).url,
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate).url,
         returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )

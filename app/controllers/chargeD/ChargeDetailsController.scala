@@ -16,12 +16,15 @@
 
 package controllers.chargeD
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
@@ -54,7 +57,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
@@ -71,7 +74,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         val json = Json.obj(
           "srn" -> srn,
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, index, schemeName),
+          "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
           "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
           "memberName" -> memberName
         )
@@ -90,7 +93,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "srn" -> srn,
               "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, index, schemeName),
+              "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
               "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
               "memberName" -> memberName
             )
@@ -100,7 +103,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }

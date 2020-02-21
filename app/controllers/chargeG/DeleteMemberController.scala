@@ -16,13 +16,15 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeG.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
@@ -109,13 +111,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                     for {
                       interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
+                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                   }
                 } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn)))
+                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
                 }
             )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -123,5 +125,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getOverseasTransferMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getOverseasTransferMembers(ua, srn, startDate).map(_.amount).sum
 }

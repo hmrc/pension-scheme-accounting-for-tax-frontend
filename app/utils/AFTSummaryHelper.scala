@@ -26,43 +26,45 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import models.ChargeType._
 import utils.CheckYourAnswersHelper.formatBigDecimalAsString
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class AFTSummaryHelper{
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
-  def summaryListData(ua: UserAnswers, srn: String)(implicit messages: Messages): Seq[Row] = {
+  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages): Seq[Row] = {
 
     val summaryDataUK: Seq[SummaryDetails] = Seq(
       SummaryDetails(
         chargeType = ChargeTypeAnnualAllowance,
         totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeE.routes.AddMembersController.onPageLoad(srn)
+        href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate)
       ),
       SummaryDetails(
         chargeType = ChargeTypeAuthSurplus,
         totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeC.routes.AddEmployersController.onPageLoad(srn)
+        href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate)
       ),
       SummaryDetails(
         chargeType = ChargeTypeDeRegistration,
         totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
+        href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
       ),
       SummaryDetails(
         chargeType = ChargeTypeLifetimeAllowance,
         totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0.00)),
-        href = chargeD.routes.AddMembersController.onPageLoad(srn)
+        href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate)
       ),
       SummaryDetails(
         chargeType = ChargeTypeShortService,
         totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-        href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn)
+        href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
       ),
       SummaryDetails(
         chargeType = ChargeTypeLumpSumDeath,
         totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn)
+        href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
       )
     )
 
@@ -70,7 +72,7 @@ class AFTSummaryHelper{
             SummaryDetails(
               chargeType = ChargeTypeOverseasTransfer,
               totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-              href = chargeG.routes.AddMembersController.onPageLoad(srn)
+              href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
             )
     )
 

@@ -16,11 +16,14 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
@@ -51,8 +54,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeE(index, srn) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      DataRetrievals.cyaChargeE(index, srn, startDate) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index, memberDetails),
@@ -65,7 +68,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             "srn" -> srn,
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName),
             "chargeName" -> "chargeE",
@@ -77,13 +80,13 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getAnnualAllowanceMembers(request.userAnswers, srn).map(_.amount).sum
+        val totalAmount = getAnnualAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
   }

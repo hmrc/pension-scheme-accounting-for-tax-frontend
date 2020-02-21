@@ -28,10 +28,12 @@ import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.CheckYourAnswersHelper.formatBigDecimalAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 object ChargeCService {
 
-  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String): Seq[Employer] = {
+  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] = {
     def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
@@ -48,8 +50,8 @@ object ChargeCService {
             index,
             name,
             chargeDetails.amountTaxDue,
-            viewUrl(index, srn).url,
-            removeUrl(index, srn).url,
+            viewUrl(index, srn, startDate).url,
+            removeUrl(index, srn, startDate).url,
             isDeleted
           )
         }
@@ -57,12 +59,12 @@ object ChargeCService {
     }
   }
 
-  def getSponsoringEmployers(ua: UserAnswers, srn: String): Seq[Employer] =
-    getSponsoringEmployersIncludingDeleted(ua, srn).filterNot(_.isDeleted)
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] =
+    getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String): Call = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
-  def removeUrl(index: Int, srn: String): Call = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(

@@ -36,6 +36,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -108,13 +110,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                     for {
                       interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
+                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                   }
                 } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn)))
+                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
                 }
             )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -122,5 +124,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getAnnualAllowanceMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
 }

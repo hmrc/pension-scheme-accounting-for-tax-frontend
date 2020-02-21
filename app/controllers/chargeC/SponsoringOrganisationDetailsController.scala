@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class SponsoringOrganisationDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -58,7 +60,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -79,7 +81,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -95,7 +97,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringOrganisationDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringOrganisationDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(SponsoringOrganisationDetailsPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

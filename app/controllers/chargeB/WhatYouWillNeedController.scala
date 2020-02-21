@@ -16,6 +16,8 @@
 
 package controllers.chargeB
 
+import java.time.LocalDate
+
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -49,7 +51,7 @@ class WhatYouWillNeedController @Inject()(
     implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
       renderer.render(template = "chargeB/whatYouWillNeed.njk",
         Json.obj(fields = "srn" -> srn, "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))

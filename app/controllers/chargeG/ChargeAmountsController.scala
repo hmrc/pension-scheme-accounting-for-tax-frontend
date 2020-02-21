@@ -35,6 +35,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -63,7 +65,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -85,7 +87,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
         form(memberName, request.userAnswers).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeAmountsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -101,7 +103,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeAmountsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeAmountsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeAmountsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }
