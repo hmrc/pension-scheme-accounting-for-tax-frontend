@@ -70,7 +70,7 @@ class AFTSummaryController @Inject()(
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
       aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
-        allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
+        allowService.filterForIllegalPageAccess(srn, userAnswers, Some(AFTSummaryPage), optionVersion).flatMap {
           case None =>
             val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
             renderer.render("aftSummary.njk", json).map(Ok(_))

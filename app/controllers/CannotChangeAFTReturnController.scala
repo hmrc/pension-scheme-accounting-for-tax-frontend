@@ -16,6 +16,9 @@
 
 package controllers
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
@@ -28,7 +31,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
 
-class CannotMakeChangesController @Inject()(
+class CannotChangeAFTReturnController @Inject()(
                                              identify: IdentifierAction,
                                              getData: DataRetrievalAction,
                                              requireData: DataRequiredAction,
@@ -37,12 +40,23 @@ class CannotMakeChangesController @Inject()(
                                              config: FrontendAppConfig
                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
+
+  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
+
+  def onPageLoad(srn: String, optionVersion:Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer.render("cannot-make-changes.njk",
+      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
+
+        renderer.render("cannot-change-aft-return.njk",
           Json.obj("schemeName" -> schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn))
+            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+            "quarterStart" -> getFormattedStartDate(quarter.startDate),
+            "quarterEnd" -> getFormattedEndDate(quarter.endDate),
+            "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, optionVersion).url
+          )
         ).map(Ok(_))
       }
   }

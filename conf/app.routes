@@ -10,7 +10,9 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                 controllers.SessionExpiredController.onPageLoad
 
-GET         /:srn/new-return/cannot-make-changes                                                                         controllers.CannotMakeChangesController.onPageLoad(srn: String)
+GET         /:srn/new-return/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String)
+GET         /:srn/new-return/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, version: Option[String] = None)
+GET         /:srn/new-return/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, version: Option[String])
 
 GET         /unauthorised                                                                                                controllers.UnauthorisedController.onPageLoad
 

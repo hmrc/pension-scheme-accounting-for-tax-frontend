@@ -218,6 +218,17 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       }
     }
 
+    "user is suspended" must {
+      "NOT save with a lock" in {
+        when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(true))
+        when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
+
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (_, _) =>
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+        }
+      }
+    }
+
     "viewOnly flag in the request is set to true" must {
       "NOT call saveAndLock but should call save" in {
         val uaToSave = userAnswersWithSchemeName
