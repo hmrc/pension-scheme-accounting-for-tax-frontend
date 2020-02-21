@@ -16,6 +16,8 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -34,6 +36,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import models.LocalDateBinder._
 
 class ChargeTypeController @Inject()(
                                       override val messagesApi: MessagesApi,
@@ -54,12 +57,12 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async {
     implicit request =>
 
       if (!request.viewOnly) {
 
-        aftService.retrieveAFTRequiredDetails(srn = srn, startDate: String, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
+        aftService.retrieveAFTRequiredDetails(srn = srn, startDate = startDate, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
           allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
             case None =>
               auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
@@ -79,7 +82,7 @@ class ChargeTypeController @Inject()(
       }
   }
 
-  def onSubmit(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -102,7 +105,7 @@ class ChargeTypeController @Inject()(
       }
   }
 
-  private def viewModel(schemeName: String, srn: String, startDate: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, startDate: LocalDate): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

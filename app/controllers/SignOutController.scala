@@ -34,7 +34,7 @@ class SignOutController @Inject()(
                                    userAnswersCacheConnector: UserAnswersCacheConnector
 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def signOut(srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def signOut(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async {
     implicit request =>
       userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
         Redirect(config.signOutUrl).withNewSession

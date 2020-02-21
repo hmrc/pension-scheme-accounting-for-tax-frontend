@@ -52,14 +52,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  private def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
@@ -80,7 +80,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 

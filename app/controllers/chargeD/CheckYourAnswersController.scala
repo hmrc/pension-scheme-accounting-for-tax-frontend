@@ -51,7 +51,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.cyaChargeD(index, srn) { (memberDetails, chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
@@ -76,7 +76,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
   }
 
-  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
         case (Some(pstr), Some(chargeDetails)) =>

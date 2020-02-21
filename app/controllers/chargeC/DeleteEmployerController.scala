@@ -56,12 +56,12 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteEmployerController.onSubmit(srn, index).url,
+              submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -77,7 +77,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
         }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
 
@@ -85,7 +85,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               formWithErrors => {
 
                 val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteEmployerController.onSubmit(srn, index).url,
+                  submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
                   returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                   schemeName = schemeName)
 
@@ -128,5 +128,5 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       case _ => Try(ua)
     }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getSponsoringEmployers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn).map(_.amount).sum
 }

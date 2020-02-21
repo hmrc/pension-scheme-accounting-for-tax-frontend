@@ -55,13 +55,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -79,7 +79,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -88,7 +88,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               formWithErrors => {
 
                 val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+                  submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
                   returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                   schemeName = schemeName)
 
@@ -123,5 +123,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getLifetimeAllowanceMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getLifetimeAllowanceMembers(ua, srn).map(_.amount).sum
 }

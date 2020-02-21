@@ -16,15 +16,14 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.AuditService
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, NormalMode, Years}
+import models.{GenericViewModel, Years}
 import navigators.CompoundNavigator
-import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}

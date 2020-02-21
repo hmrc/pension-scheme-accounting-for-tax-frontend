@@ -16,8 +16,6 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -52,16 +50,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua: UserAnswers, quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] = {
-    val minDate: LocalDate = LocalDate.parse(quarter.startDate)
-    val maxDate: LocalDate = LocalDate.parse(quarter.endDate)
-
-    formProvider(minDate, maxDate,
-      dateErrorMsg = messages("chargeF.deregistrationDate.error.date", minDate.format(dateFormatterDMY), maxDate.format(dateFormatterDMY)),
+  private def form(ua: UserAnswers, quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] =
+    formProvider(quarter.startDate, quarter.endDate,
+      dateErrorMsg = messages("chargeF.deregistrationDate.error.date",
+        quarter.startDate.format(dateFormatterDMY),
+        quarter.endDate.format(dateFormatterDMY)),
       minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
-  }
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 
@@ -71,7 +67,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -86,7 +82,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 
@@ -94,7 +90,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         form(request.userAnswers, quarter).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 

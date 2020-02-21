@@ -26,6 +26,7 @@ import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
 import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
 import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 

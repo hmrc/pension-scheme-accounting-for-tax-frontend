@@ -34,6 +34,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import models.LocalDateBinder._
 
 class QuartersController @Inject()(
                                    override val messagesApi: MessagesApi,

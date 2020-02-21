@@ -16,6 +16,9 @@
 
 package controllers.chargeA
 
+import java.time.LocalDate
+import models.LocalDateBinder._
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -52,14 +55,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -71,14 +74,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         val json = Json.obj(
           "srn" -> srn,
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, schemeName)
+          "viewModel" -> viewModel(mode, srn, startDate, schemeName)
         )
 
         renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

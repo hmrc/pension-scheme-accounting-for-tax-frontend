@@ -16,6 +16,8 @@
 
 package services
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
@@ -53,7 +55,7 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetails(srn: String, startDate: String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
+  def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
@@ -72,7 +74,7 @@ class AFTService @Inject()(
     savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
   }
 
-  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: String)
+  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)
                                              (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 

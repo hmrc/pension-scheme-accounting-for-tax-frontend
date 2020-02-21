@@ -83,7 +83,7 @@ object DataRetrievals {
   }
 
   def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
-                          srn: String)
+                          srn: String, startDate: LocalDate)
                          (block: (A, String) => Future[Result])
                          (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
@@ -97,7 +97,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeC(index: Index, srn: String)
+  def cyaChargeC(index: Index, srn: String, startDate: LocalDate)
                 (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
 
@@ -124,7 +124,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeD(index: Index, srn: String)
+  def cyaChargeD(index: Index, srn: String, startDate: LocalDate)
                 (block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -139,7 +139,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeE(index: Index, srn: String)
+  def cyaChargeE(index: Index, srn: String, startDate: LocalDate)
                 (block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -155,7 +155,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeG(index: Index, srn: String)
+  def cyaChargeG(index: Index, srn: String, startDate: LocalDate)
                 (block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
