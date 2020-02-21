@@ -68,9 +68,7 @@ class AFTService @Inject()(
   }
 
   private def save(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    val forceReadOnly = ua.get(IsPsaSuspendedQuery).getOrElse(true) // Don't lock aft return if user is suspended
-
-    val savedJson = if (forceReadOnly || request.viewOnly) {
+    val savedJson = if (request.viewOnly || ua.get(IsPsaSuspendedQuery).getOrElse(true)) {
       userAnswersCacheConnector.save(request.internalId, ua.data)
     } else {
       userAnswersCacheConnector.saveAndLock(request.internalId, ua.data)
