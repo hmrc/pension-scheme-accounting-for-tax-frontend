@@ -25,9 +25,9 @@ import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
+import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
-import pages.{AFTSummaryPage, QuarterPage}
+import pages.AFTSummaryPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -36,7 +36,6 @@ import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTConstants._
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
 
@@ -69,7 +68,7 @@ class AFTSummaryController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn, startDate)).async {
     implicit request =>
 
-      aftService.retrieveAFTRequiredDetails(srn = srn, QUARTER_START_DATE, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
+      aftService.retrieveAFTRequiredDetails(srn = srn, startDate, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers).flatMap {
           case None =>
             val json = getJson(form, userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, !request.viewOnly)
@@ -102,16 +101,15 @@ class AFTSummaryController @Inject()(
 
   private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, startDate: LocalDate, schemeName: String,
                       optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(QUARTER_START_DATE)
-    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(QUARTER_END_DATE)
+    val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
       "form" -> form,
       "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
-      "startDate" -> getFormattedStartDate(quarterStartDate),
-      "endDate" -> getFormattedEndDate(quarterEndDate),
+      "startDate" -> getFormattedStartDate(startDate),
+      "endDate" -> getFormattedEndDate(endDate),
       "canChange" -> canChange
     )
   }
