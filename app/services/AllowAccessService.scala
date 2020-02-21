@@ -21,7 +21,7 @@ import connectors.SchemeDetailsConnector
 import controllers.routes._
 import handlers.ErrorHandler
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
-import models.UserAnswers
+import models.{SchemeStatus, UserAnswers}
 import models.requests.OptionalDataRequest
 import pages._
 import play.api.http.Status.NOT_FOUND
@@ -38,25 +38,28 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
 
   private val validStatuses = Seq(Open, WoundUp, Deregistered)
 
-  def filterForIllegalPageAccess(
-                                  srn: String,
-                                  ua: UserAnswers,
-                                  optionCurrentPage: Option[Page] = None,
-                                  optionVersion: Option[String] = None
-                                )
+  private def retrieveSuspendedFlagAndSchemeStatus(ua: UserAnswers)(block: (Boolean, SchemeStatus) => Future[Option[Result]]): Future[Option[Result]] = {
+    (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
+      case (Some(isSuspended), Some(schemeStatus)) =>
+        block(isSuspended, schemeStatus)
+      case _ =>
+        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+    }
+  }
+
+  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
-      case uaItems if uaItems._1.isEmpty | uaItems._2.isEmpty =>
-        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-      case (_, Some(status)) if !validStatuses.contains(status) =>
-        errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + status.toString).map(Option(_))
-      case (Some(isSuspended), _) =>
+    retrieveSuspendedFlagAndSchemeStatus(ua) {
+      case (_, schemeStatus) if !validStatuses.contains(schemeStatus) =>
+        errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
+      case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
             val isPreviousPageWithinAFT = request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
+
             (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
               case (true, _, Some(AFTSummaryPage), Some(_), false) =>
                 Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
