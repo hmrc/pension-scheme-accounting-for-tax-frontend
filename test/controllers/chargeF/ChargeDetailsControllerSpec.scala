@@ -16,14 +16,12 @@
 
 package controllers.chargeF
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
@@ -45,13 +43,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
-  private val startDate = LocalDate.parse(QUARTER_START_DATE)
-  private val endDate = LocalDate.parse(QUARTER_END_DATE)
+  private val startDate = QUARTER_START_DATE
+  private val endDate = QUARTER_END_DATE
   private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
     s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
   private val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg, BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
-  private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url
+  private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
+  private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
@@ -77,7 +75,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
+      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("deregistrationDate"))
@@ -138,7 +136,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -165,7 +163,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return a redirect when zero value is submitted and new return flag is NOT set" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

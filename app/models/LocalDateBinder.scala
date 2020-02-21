@@ -26,7 +26,7 @@ object LocalDateBinder {
 
   implicit def datePathBindable(implicit stringBinder: PathBindable[String]):
   PathBindable[LocalDate] = new PathBindable[LocalDate] {
-    println("\n\n\n 1.....")
+
     override def bind(key: String, value: String): Either[String, LocalDate] = {
       stringBinder.bind(key, value) match {
         case Right(right) => Right(LocalDate.from(dateFormatterYMD.parse(right)))

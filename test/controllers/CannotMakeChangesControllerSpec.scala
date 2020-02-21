@@ -20,16 +20,27 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
+import models.SchemeDetails
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.SchemeService
+import play.api.inject.bind
 
 import scala.concurrent.Future
 
 class CannotMakeChangesControllerSpec extends ControllerSpecBase {
+
+  val mockSchemeService: SchemeService = mock[SchemeService]
+
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[SchemeService].toInstance(mockSchemeService)
+    )
 
   "Cannot Make Changes Controller" must {
 
@@ -39,13 +50,12 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
         .thenReturn(Future.successful(Html("")))
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("scheme name", "pstr")))
 
-      val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+      val application = applicationBuilder(extraModules = extraModules).build()
 
       val request = FakeRequest(GET, routes.CannotMakeChangesController.onPageLoad(SampleData.srn).url)
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, request).value
 

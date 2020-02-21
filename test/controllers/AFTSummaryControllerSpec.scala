@@ -41,6 +41,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
@@ -60,11 +61,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, None).url
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, None).url
 
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, Some(SampleData.version)).url
+  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -92,9 +93,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
-    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
+    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
       returnUrl = testManagePensionsUrl.url,
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
@@ -151,7 +152,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "redirect to next page when user selects yes" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

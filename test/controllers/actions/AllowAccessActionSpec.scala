@@ -42,10 +42,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   }
 
   "Allow Access Action" must {
-    "delegate to the allow access service with the correct srn" in {
+    "delegate to the allow access service with the correct srn, startDate" in {
       reset(allowAccessService)
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
-      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any())(any()))
+      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(), any())(any()))
         .thenReturn(Future.successful(None))
 
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter

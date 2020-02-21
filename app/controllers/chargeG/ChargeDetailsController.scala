@@ -92,7 +92,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         form(quarter).bindFromRequest().fold(
           formWithErrors => {
-
             val viewModel = GenericViewModel(
               submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

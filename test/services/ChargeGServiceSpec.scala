@@ -16,15 +16,20 @@
 
 package services
 
+import java.time.LocalDate
+
 import base.SpecBase
 import data.SampleData
 import models.chargeG.MemberDetails
 import models.{Member, UserAnswers}
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 class ChargeGServiceSpec extends SpecBase {
 
   val srn = "S1234567"
+  val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers().set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
     .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
@@ -35,8 +40,8 @@ class ChargeGServiceSpec extends SpecBase {
     .set(MemberDetailsPage(2), SampleData.memberGDetailsDeleted).toOption.get
     .set(ChargeAmountsPage(2), SampleData.chargeAmounts).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, index).url
-  def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, index).url
+  def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
+  def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int) =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
@@ -50,13 +55,13 @@ class ChargeGServiceSpec extends SpecBase {
 
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      ChargeGService.getOverseasTransferMembers(allMembers, srn) mustBe expectedAllMembers
+      ChargeGService.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeGService.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn) mustBe expectedMembersIncludingDeleted
+      ChargeGService.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

@@ -32,12 +32,14 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
+import SampleData._
+import models.LocalDateBinder._
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
-  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(SampleData.srn).url
+  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
 
   private val jsonToPassToTemplate:JsObject = Json.obj(
     fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
@@ -55,7 +57,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 

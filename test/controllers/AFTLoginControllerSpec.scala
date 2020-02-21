@@ -18,24 +18,21 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.AuditService
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
+import models.LocalDateBinder._
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import pages.IsPsaSuspendedQuery
 import play.api.Application
 import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
@@ -44,7 +41,7 @@ import scala.concurrent.Future
 class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(SampleData.srn).url
+  private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 

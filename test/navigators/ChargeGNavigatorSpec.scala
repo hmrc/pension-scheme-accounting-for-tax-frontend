@@ -23,6 +23,8 @@ import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeG._
 import play.api.mvc.Call
+import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 class ChargeGNavigatorSpec extends NavigatorBehaviour {
 
@@ -34,35 +36,36 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index)),
-        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, index)),
-        row(ChargeDetailsPage(index))(ChargeAmountsController.onPageLoad(NormalMode, srn, index)),
-        row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
-        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None)),
-        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeGMember))
+        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(ChargeDetailsPage(index))(ChargeAmountsController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
+        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
+        row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeGMember))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
   }
 
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(MemberDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
-        row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, index))
+        row(MemberDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
+        row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
+        row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
   }
 
 }
 
 object ChargeGNavigatorSpec {
   private val srn = "test-srn"
+  private val startDate = QUARTER_START_DATE
   private val index = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption

@@ -16,6 +16,8 @@
 
 package navigators
 
+import java.time.LocalDate
+
 import base.SpecBase
 import models.{Mode, UserAnswers}
 import org.scalatest.MustMatchers
@@ -32,11 +34,11 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
 
   protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
                                                        routes: TableFor3[Page, UserAnswers, Call],
-                                                       srn: String): Unit = {
+                                                       srn: String, startDate: LocalDate): Unit = {
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
-          val result = navigator.nextPage(page, mode, userAnswers, srn)
+          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)
           result mustBe call
         }
     }

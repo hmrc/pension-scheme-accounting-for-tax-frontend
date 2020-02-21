@@ -34,17 +34,18 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTConstants
+import utils.AFTConstants._
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/addEmployers.njk"
   private val form = new AddMembersFormProvider()("chargeC.addEmployers.error")
-  private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(srn).url
-  private def httpPathPOST: String = controllers.chargeC.routes.AddEmployersController.onSubmit(srn).url
+  private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(srn, startDate).url
+  private def httpPathPOST: String = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -67,14 +68,14 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
       Json.arr(
         Json.obj("text" -> "First Last","classes" -> cssHalfWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Big Company","classes" -> cssHalfWidth),
         Json.obj("text" -> "£33.44","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
@@ -88,12 +89,12 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn).url,
+      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> LocalDate.parse(AFTConstants.QUARTER_START_DATE).format(dateFormatter),
-    "quarterEnd" -> LocalDate.parse(AFTConstants.QUARTER_END_DATE).format(dateFormatter),
+    "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatter),
+    "quarterEnd" -> LocalDate.parse(QUARTER_END_DATE).format(dateFormatter),
     "table" -> table
   )
 
@@ -147,7 +148,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 

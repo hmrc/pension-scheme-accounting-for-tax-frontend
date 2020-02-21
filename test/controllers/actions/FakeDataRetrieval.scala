@@ -16,13 +16,15 @@
 
 package controllers.actions
 
+import java.time.LocalDate
+
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class FakeDataRetrievalAction(json: Option[UserAnswers], viewOnly: Boolean = false) extends DataRetrievalAction {
-  override def apply(srn: String): DataRetrieval = new FakeDataRetrieval(json, viewOnly)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, viewOnly)
 }
 
 class FakeDataRetrieval(dataToReturn: Option[UserAnswers], viewOnly: Boolean) extends DataRetrieval {

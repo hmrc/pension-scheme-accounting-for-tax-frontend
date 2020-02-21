@@ -25,18 +25,19 @@ import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
+import models.LocalDateBinder._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn).url
+  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
 
-  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn).url
+  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn, startDate).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
-  private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn)
+  private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn, startDate)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
@@ -46,8 +47,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn),
+      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn, startDate),
       schemeName = schemeName
     ),
     "chargeName" -> "chargeA"
