@@ -17,6 +17,7 @@
 package navigators
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
 import models.{NormalMode, UserAnswers}
@@ -24,8 +25,11 @@ import pages.Page
 import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.Call
 import services.ChargeGService._
+import services.AFTReturnTidyService
 
-class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 aftReturnTidyService: AFTReturnTidyService,
+                                 config: FrontendAppConfig) extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String): Int = getOverseasTransferMembersIncludingDeleted(ua, srn).size
 
@@ -42,7 +46,9 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn)
     case AddMembersPage => addMembers(ua, srn)
     case DeleteMemberPage if getOverseasTransferMembers(ua, srn).nonEmpty => AddMembersController.onPageLoad(srn)
-    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
+    case DeleteMemberPage if aftReturnTidyService.isAtLeastOneValidCharge(ua) =>
+      controllers.routes.AFTSummaryController.onPageLoad(srn, None)
+    case DeleteMemberPage => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {

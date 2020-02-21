@@ -16,6 +16,7 @@
 
 package navigators
 
+import config.FrontendAppConfig
 import controllers.chargeD.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
@@ -27,7 +28,7 @@ import play.api.mvc.Call
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
   import ChargeDNavigatorSpec._
-
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
 
@@ -40,9 +41,9 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad( srn, None), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None), Some(SampleData.chargeCEmployer)),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn), Some(SampleData.chargeDMember))
-
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
