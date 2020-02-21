@@ -47,6 +47,9 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     }
   }
 
+  private def isPreviousPageWithinAFT(implicit request: OptionalDataRequest[_]):Boolean =
+    request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
+
   def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
@@ -58,8 +61,6 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
       case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
-            val isPreviousPageWithinAFT = request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
-
             (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
               case (true, _, Some(AFTSummaryPage), Some(_), false) =>
                 Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
