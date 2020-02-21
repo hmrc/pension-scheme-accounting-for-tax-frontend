@@ -41,6 +41,31 @@ object DataRetrievals {
     }
   }
 
+  def retrieveSchemeNameWithQuarter(block: (String, Quarter) => Future[Result])
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])
+                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(pstr), Some(quarter)) => block(schemeName, pstr, quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
+                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) => block(schemeName,quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+
   def retrievePSTR(block: String => Future[Result])
                   (implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
@@ -53,14 +78,6 @@ object DataRetrievals {
                              (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
-  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
-                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

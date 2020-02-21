@@ -55,7 +55,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
     formProvider(memberName, minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeQuarterMemberChargeG(MemberDetailsPage(index)){ (schemeName, _, memberName) =>
 

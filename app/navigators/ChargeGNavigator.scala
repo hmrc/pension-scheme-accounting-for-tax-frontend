@@ -17,6 +17,7 @@
 package navigators
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
 import models.{NormalMode, UserAnswers}
@@ -26,8 +27,11 @@ import play.api.mvc.Call
 import services.ChargeGService._
 import java.time.LocalDate
 import models.LocalDateBinder._
+import services.AFTReturnTidyService
 
-class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 aftReturnTidyService: AFTReturnTidyService,
+                                 config: FrontendAppConfig) extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
@@ -44,7 +48,9 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate)
     case AddMembersPage => addMembers(ua, srn, startDate)
     case DeleteMemberPage if getOverseasTransferMembers(ua, srn, startDate).nonEmpty => AddMembersController.onPageLoad(srn, startDate)
-    case DeleteMemberPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteMemberPage if aftReturnTidyService.isAtLeastOneValidCharge(ua) =>
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteMemberPage => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {

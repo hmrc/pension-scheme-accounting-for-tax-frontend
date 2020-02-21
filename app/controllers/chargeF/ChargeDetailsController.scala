@@ -59,7 +59,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         quarter.endDate.format(dateFormatterDMY)),
       minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 

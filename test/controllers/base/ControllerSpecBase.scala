@@ -34,7 +34,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
 import play.api.test.Helpers.{GET, POST}
 import play.api.test.{FakeHeaders, FakeRequest}
-import services.SchemeService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -50,7 +49,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-    when(mockAllowAccessActionProvider.apply(any())).thenReturn(FakeActionFilter)
+    when(mockAllowAccessActionProvider.apply(any(), any())).thenReturn(FakeActionFilter)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]

@@ -24,6 +24,7 @@ import data.SampleData._
 import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
+import models.LocalDateBinder._
 import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -43,7 +44,6 @@ import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
@@ -79,7 +79,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
 
@@ -99,7 +99,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA))(any())
+        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
 
         templateCaptor.getValue mustEqual template
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
@@ -109,7 +109,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val location = "redirect"
         val alternativeLocation = Redirect(location)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
         whenReady(route(application, httpGETRequest(httpPathGETVersion)).value) { result =>
           result.header.status mustEqual SEE_OTHER
@@ -147,19 +147,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
-      }
-
-      "redirect to aft summary page when the user is locked and coming to charge type page" in {
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        mutableFakeDataRetrievalAction.setViewOnly(true)
-
-        val result = route(application, httpGETRequest(httpPathGETVersion)).value
-
-        redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None).url
-
-        verify(mockRenderer, never()).render(any(), any())(any())
-        verify(mockAFTService, never()).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, never()).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA))(any())
       }
     }
 

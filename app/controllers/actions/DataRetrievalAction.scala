@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
+import pages.IsPsaSuspendedQuery
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
@@ -47,7 +48,9 @@ class DataRetrievalImpl(
         case None =>
           OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
         case Some(uaJsValue) =>
-          OptionalDataRequest(request.request, id, request.psaId, Some(UserAnswers(uaJsValue.as[JsObject])), isLocked)
+          val ua = UserAnswers(uaJsValue.as[JsObject])
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua),
+            isLocked || ua.get(IsPsaSuspendedQuery).getOrElse(true))
       }
     }
   }

@@ -17,12 +17,14 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import data.SampleData
 import models.UserAnswers
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
+import models.LocalDateBinder._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -182,36 +184,33 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   "getListOfVersions" must {
     "return successfully when the backend has returned OK" in {
-      val startDate = "2020-01-01"
       val expectedResult = Seq(1)
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))
           .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo(startDate))
+          .withHeader("startDate", equalTo(SampleData.startDate))
           .willReturn(
             ok(Json.stringify(Json.toJson(expectedResult)))
           )
       )
 
-      connector.getListOfVersions(pstr) map { result =>
+      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
         result mustBe expectedResult
       }
     }
 
     "throw exception when the backend has returned something other than OK" in {
-      val startDate = "2020-01-01"
-      //val data = Json.obj("pstr" -> pstr, "startDate" -> startDate)
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))
           .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo(startDate))
+          .withHeader("startDate", equalTo(SampleData.startDate))
           .willReturn(
             badRequest()
           )
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.getListOfVersions(pstr)
+        connector.getListOfVersions(pstr, SampleData.startDate)
       }.map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }

@@ -16,6 +16,7 @@
 
 package navigators
 
+import config.FrontendAppConfig
 import controllers.chargeD.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
@@ -29,7 +30,7 @@ import models.LocalDateBinder._
 class ChargeDNavigatorSpec extends NavigatorBehaviour {
 
   import ChargeDNavigatorSpec._
-
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
 
@@ -42,7 +43,8 @@ class ChargeDNavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), Some(SampleData.chargeCEmployer)),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeDMember))
 
       )

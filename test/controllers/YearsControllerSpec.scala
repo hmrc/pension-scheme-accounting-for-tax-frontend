@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, SchemeDetails, UserAnswers, Years}
+import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers, Years}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -76,7 +76,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
-      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr")))
+      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)

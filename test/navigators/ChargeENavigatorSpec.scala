@@ -16,9 +16,11 @@
 
 package navigators
 
+import config.FrontendAppConfig
 import controllers.chargeE.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, UserAnswers}
+import navigators.ChargeDNavigatorSpec.srn
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeE._
@@ -29,7 +31,7 @@ import models.LocalDateBinder._
 class ChargeENavigatorSpec extends NavigatorBehaviour {
 
   import ChargeENavigatorSpec._
-
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
 
 
@@ -43,7 +45,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), Some(SampleData.chargeCEmployer)),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeEMember))
       )
 

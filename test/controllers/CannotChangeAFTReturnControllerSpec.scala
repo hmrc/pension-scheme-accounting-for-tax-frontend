@@ -20,29 +20,19 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
-import models.SchemeDetails
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import play.api.inject.guice.GuiceableModule
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.SchemeService
-import play.api.inject.bind
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
-class CannotMakeChangesControllerSpec extends ControllerSpecBase {
+class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
 
-  val mockSchemeService: SchemeService = mock[SchemeService]
-
-  private val extraModules: Seq[GuiceableModule] =
-    Seq[GuiceableModule](
-      bind[SchemeService].toInstance(mockSchemeService)
-    )
-
-  "Cannot Make Changes Controller" must {
+  "CannotChangeAFTReturn Controller" must {
 
     "must return OK and the correct view for a GET" in {
 
@@ -50,12 +40,13 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
         .thenReturn(Future.successful(Html("")))
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("scheme name", "pstr")))
 
-      val application = applicationBuilder(extraModules = extraModules).build()
+      val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-      val request = FakeRequest(GET, routes.CannotMakeChangesController.onPageLoad(SampleData.srn).url)
+      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, request).value
 
@@ -65,7 +56,7 @@ class CannotMakeChangesControllerSpec extends ControllerSpecBase {
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
-      templateCaptor.getValue mustEqual "cannot-make-changes.njk"
+      templateCaptor.getValue mustEqual "cannot-change-aft-return.njk"
     }
   }
 }

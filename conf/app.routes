@@ -2,7 +2,7 @@
 
 GET         /                                                                                                            controllers.IndexController.onPageLoad
 
-GET         /sign-out/:srn                                                                                                    controllers.SignOutController.signOut(srn: String, startDate: String)
+GET         /:startDate/:srn/sign-out                                                                                                    controllers.SignOutController.signOut(srn: String, startDate: String)
 
 GET         /assets/*file                                                                                                controllers.Assets.versioned(path="/public", file: Asset)
 
@@ -10,7 +10,9 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                 controllers.SessionExpiredController.onPageLoad
 
-GET         /:srn/new-return/cannot-make-changes                                                                         controllers.CannotMakeChangesController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
+GET         /:srn/new-return/:startDate/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String])
 
 GET         /unauthorised                                                                                                controllers.UnauthorisedController.onPageLoad
 
@@ -173,3 +175,13 @@ GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/on-click-
 
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
+
+GET        /:srn/new-return/:startDate/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String)
+
+GET        /:srn/new-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
+POST       /:srn/new-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET        /:srn/new-return/:startDate/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String)
+POST       /:srn/new-return/:startDate/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String)
+
+GET        /:srn/new-return/:startDate/declaration                                         controllers.DeclarationController.onPageLoad(srn: String, startDate: String)
+GET        /:srn/new-return/:startDate/declaration/on-submit-declaration                                         controllers.DeclarationController.onSubmit(srn: String, startDate: String)

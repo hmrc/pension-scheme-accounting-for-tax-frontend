@@ -23,7 +23,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarters, SchemeDetails, UserAnswers}
+import models.{Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -85,7 +85,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
-      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr")))
+      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
     DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
   }
 

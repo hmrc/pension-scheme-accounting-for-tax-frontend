@@ -16,32 +16,34 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
-import controllers.actions.IdentifierAction
+import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
 
-class CannotMakeChangesController @Inject()(
+class CannotStartAFTReturnController @Inject()(
                                              identify: IdentifierAction,
-                                             schemeService: SchemeService,
+                                             getData: DataRetrievalAction,
+                                             requireData: DataRequiredAction,
                                              val controllerComponents: MessagesControllerComponents,
                                              renderer: Renderer,
                                              config: FrontendAppConfig
                                            )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        renderer.render("cannot-make-changes.njk",
-          Json.obj("schemeName" -> schemeDetails.schemeName,
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        renderer.render("cannot-start-aft-return.njk",
+          Json.obj("schemeName" -> schemeName,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn))
         ).map(Ok(_))
       }
