@@ -20,7 +20,7 @@ import data.SampleData
 import models.ChargeType._
 import models.{ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{AFTSummaryPage, ChargeTypePage, Page}
+import pages._
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -33,6 +33,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
+  private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
+  private def aftSummaryNo: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, false).toOption
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -48,7 +50,11 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeDMemberExists),
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeGMemberExists),
-        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, QUARTER_START_DATE))
+        row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn), aftSummaryNo),
+        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, QUARTER_START_DATE), aftSummaryYes),
+        row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn)),
+        row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)

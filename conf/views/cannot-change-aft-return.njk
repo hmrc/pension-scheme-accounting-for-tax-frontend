@@ -3,30 +3,28 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("pageCannotMakeChanges.title")) }}
+  {{ title(messages("pageCannotChangeAFTReturn.title")) }}
 {% endblock %}
 
 {% block mainContent %}
 
-  <div class="govuk-main-wrapper">
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
         <h1 class="govuk-heading-xl">
-          {{ messages("pageCannotMakeChanges.heading") }}
+          {{ messages("pageCannotChangeAFTReturn.heading") }}
         </h1>
 
         <p class="govuk-body">
-          {{ messages("pageCannotMakeChanges.p1", schemeName) }}
+          {{ messages("pageCannotChangeAFTReturn.p1", schemeName) }}
         </p>
 
         <p class="govuk-body">
-          {{ messages("pageCannotMakeChanges.p2") }}
+          {{ messages("pageCannotChangeAFTReturn.p2") }} <a href="{{ viewVersionURL }}" id="viewAFTReturn" class="govuk-link"> {{ messages("pageCannotChangeAFTReturn.p2link", quarterStart, quarterEnd) }}</a>.
         </p>
 
       </div>
     </div>
-  </div>
 
   <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 
