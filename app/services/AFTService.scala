@@ -28,6 +28,7 @@ import models.{Quarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -124,7 +125,7 @@ class AFTService @Inject()(
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {
-    val nextDay = LocalDateTime.of(LocalDate.parse(quarterEndDate).plusDays(1), LocalTime.MIDNIGHT)
-    !(LocalDateTime.now().compareTo(nextDay) >= 0)
+    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
+    !(DateHelper.today.compareTo(nextDay) >= 0)
   }
 }
