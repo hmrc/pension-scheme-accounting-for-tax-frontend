@@ -108,6 +108,7 @@ class AFTSummaryController @Inject()(
     val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
+          "startDate" -> startDate,
       "form" -> form,
       "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),

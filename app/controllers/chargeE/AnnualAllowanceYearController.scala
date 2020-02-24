@@ -70,6 +70,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> startDate,
           "form" -> preparedForm,
           "radios" -> YearRange.radios(preparedForm),
           "viewModel" -> viewModel
@@ -92,6 +93,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> startDate,
           "form" -> formWithErrors,
               "radios" -> YearRange.radios(formWithErrors),
               "viewModel" -> viewModel

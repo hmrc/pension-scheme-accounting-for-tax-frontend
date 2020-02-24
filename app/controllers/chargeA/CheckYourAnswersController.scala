@@ -69,6 +69,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           template = "check-your-answers.njk",
           ctx = Json.obj(
             "srn" -> srn,
+          "startDate" -> startDate,
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
               submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,

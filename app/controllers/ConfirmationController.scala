@@ -59,6 +59,7 @@ class ConfirmationController @Inject()(
 
         val json = Json.obj(
           fields = "srn" -> srn,
+          "startDate" -> startDate,
           "pstr" -> pstr,
           "dataHtml" -> html.toString(),
           "pensionSchemesUrl" -> listSchemesUrl,

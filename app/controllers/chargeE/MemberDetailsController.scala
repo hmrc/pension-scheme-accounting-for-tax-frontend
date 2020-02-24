@@ -68,6 +68,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> startDate,
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "chargeName" -> "chargeE"
@@ -90,6 +91,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> startDate,
           "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "chargeName" -> "chargeE"

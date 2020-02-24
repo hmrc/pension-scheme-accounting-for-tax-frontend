@@ -61,7 +61,8 @@ class WhatYouWillNeedController @Inject()(
           schemeName = schemeName)
 
         renderer.render(template = "chargeA/whatYouWillNeed.njk",
-          Json.obj(fields = "srn" -> srn, "schemeName" -> schemeName,
+          Json.obj(fields = "srn" -> srn,
+          "startDate" -> startDate, "schemeName" -> schemeName,
             "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
   }
 }
