@@ -38,6 +38,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
+import utils.DateHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -265,7 +266,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     "quarter end date is todays date " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDate.now())
+        val quarterEndDate = formatter.format(DateHelper.today)
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }
@@ -273,7 +274,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the past " must {
       "return enabled as false" in {
-        val quarterEndDate = formatter.format(LocalDate.now().minusDays(1))
+        val quarterEndDate = formatter.format(DateHelper.today.minusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe false
       }
@@ -281,7 +282,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the future " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDate.now().plusDays(1))
+        val quarterEndDate = formatter.format(DateHelper.today.plusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }
