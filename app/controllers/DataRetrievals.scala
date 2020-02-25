@@ -55,15 +55,6 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
-                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-      case (Some(schemeName), Some(quarter)) => block(schemeName,quarter)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
-
   def retrievePSTR(block: String => Future[Result])
                   (implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
@@ -80,10 +71,18 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
+  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
+                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
+      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeQuarterMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, Quarter, String) => Future[Result])
                                     (implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
-      case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage), request.userAnswers.get(memberPage)) match {
+      case (Some(schemeName), Some(quarter), Some(memberDetails)) => block(schemeName, quarter, memberDetails.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

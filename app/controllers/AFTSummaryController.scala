@@ -26,19 +26,18 @@ import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Mode, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages._
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
-import pages.{AFTSummaryPage, PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages.{AFTSummaryPage, QuarterPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.{AFTConstants, AFTSummaryHelper}
+import utils.AFTConstants._
+import utils.AFTSummaryHelper
+import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,16 +59,15 @@ class AFTSummaryController @Inject()(
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  private def getFormattedEndDate(s: String): String = LocalDate.from(dateFormatterYMD.parse(s)).format(dateFormatterDMY)
 
-  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
+  private def getFormattedStartDate(s: String): String = LocalDate.from(dateFormatterYMD.parse(s)).format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, optionVersion: Option[String]): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
-      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
+      aftService.retrieveAFTRequiredDetails(srn = srn, QUARTER_START_DATE, optionVersion = optionVersion).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers, Some(AFTSummaryPage), optionVersion).flatMap {
           case None =>
             val json = getJson(form, userAnswers, srn, schemeDetails.schemeName, optionVersion, !request.viewOnly)
@@ -107,8 +105,8 @@ class AFTSummaryController @Inject()(
 
   private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, schemeName: String,
                       optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(AFTConstants.QUARTER_START_DATE)
-    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(AFTConstants.QUARTER_END_DATE)
+    val quarterStartDate = ua.get(QuarterPage).map(_.startDate).getOrElse(QUARTER_START_DATE)
+    val quarterEndDate = ua.get(QuarterPage).map(_.endDate).getOrElse(QUARTER_END_DATE)
     Json.obj(
       "srn" -> srn,
       "form" -> form,

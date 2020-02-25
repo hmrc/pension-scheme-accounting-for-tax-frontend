@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import base.SpecBase
@@ -25,19 +25,19 @@ import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
 import models.SchemeStatus.Open
-import models.UserAnswers
 import models.requests.{DataRequest, OptionalDataRequest}
+import models.{Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
-import pages.{AFTStatusQuery, IsNewReturn, IsPsaSuspendedQuery, SchemeStatusQuery}
+import pages._
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, Results}
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -80,7 +80,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
   "fileAFTReturn" must {
     "connect to the aft backend service and then remove the IsNewReturn flag from user answers and save it in the Mongo cache if it is present" in {
-      val uaBeforeCalling = userAnswersWithSchemeName.setOrException(IsNewReturn, true)
+      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter.setOrException(IsNewReturn, true)
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
@@ -109,7 +109,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     }
 
     "not throw exception if IsNewReturn flag is not present" in {
-      val uaBeforeCalling = userAnswersWithSchemeName
+      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
@@ -128,7 +128,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "connect to the aft backend service with the specified arguments and return what the connector returns" in {
       val startDate = "start date"
       val aftVersion = "aft version"
-      val jsonReturnedFromConnector = userAnswersWithSchemeName.data
+      val jsonReturnedFromConnector = userAnswersWithSchemeNamePstrQuarter.data
       when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(jsonReturnedFromConnector))
 
       whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
@@ -143,11 +143,11 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       "NOT call get AFT details and " +
         "retrieve the suspended flag from DES and " +
         "set the IsNewReturn flag, and " +
-        "retrieve and the quarter, status, scheme name and pstr and" +
+        "retrieve and the quarter, status, scheme name and pstr and " +
         "save all of these with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)(implicitly, implicitly,
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)(implicitly, implicitly,
           optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
 
@@ -164,6 +164,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
             .setOrException(IsNewReturn, value = true)
             .setOrException(AFTStatusQuery, value = aftStatus)
             .setOrException(SchemeStatusQuery, Open)
+              .setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -177,7 +178,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "save with a lock" in {
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (resultScheme, _) =>
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getListOfVersions(any())(any(), any())
 
           verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
@@ -203,7 +204,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
 
           resultScheme mustBe schemeDetails
@@ -223,7 +224,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(true))
         when(mockAFTConnector.getListOfVersions(any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, None)) { case (_, _) =>
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (_, _) =>
           verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
         }
       }
@@ -235,7 +236,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           .setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = true))) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
           verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
@@ -248,9 +249,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "viewOnly flag in the request is set to false" must {
       "call saveAndLock but should NOT call save instead of save with lock" in {
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+          .thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, Some(version))
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
         (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
           resultScheme mustBe schemeDetails
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
@@ -264,7 +265,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     "quarter end date is todays date " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now())
+        val quarterEndDate = formatter.format(LocalDate.now())
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }
@@ -272,7 +273,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the past " must {
       "return enabled as false" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now().minusDays(1))
+        val quarterEndDate = formatter.format(LocalDate.now().minusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe false
       }
@@ -280,7 +281,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the future " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now().plusDays(1))
+        val quarterEndDate = formatter.format(LocalDate.now().plusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }

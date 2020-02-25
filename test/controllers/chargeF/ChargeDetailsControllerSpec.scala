@@ -16,6 +16,9 @@
 
 package controllers.chargeF
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -34,6 +37,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.AFTConstants._
 
 import scala.concurrent.Future
 
@@ -41,8 +45,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
-  private val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  private val form = new ChargeDetailsFormProvider()(dynamicErrorMsg, BigDecimal("0.01"))
+  private val startDate = LocalDate.parse(QUARTER_START_DATE)
+  private val endDate = LocalDate.parse(QUARTER_END_DATE)
+  private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
+    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
+  private val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg, BigDecimal("0.01"))
   private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
   private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url
 
@@ -83,7 +90,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

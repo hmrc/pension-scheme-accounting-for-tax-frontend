@@ -24,9 +24,9 @@ import data.SampleData._
 import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
-import models.{ChargeType, Enumerable, GenericViewModel, NormalMode, UserAnswers}
+import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when, never}
+import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -68,7 +68,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     fields = "form" -> form,
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url,
+      submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
       returnUrl = dummyCall.url,
       schemeName = SampleData.schemeName)
   )
@@ -79,7 +79,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
-    when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
+    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
 
   }
@@ -92,12 +92,12 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(None))(any(), any(), any())
+        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
         verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
 
         templateCaptor.getValue mustEqual template
@@ -110,7 +110,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
-        whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
+        whenReady(route(application, httpGETRequest(httpPathGETVersion)).value) { result =>
           result.header.status mustEqual SEE_OTHER
           result.header.headers.get(LOCATION) mustBe Some(location)
         }
@@ -123,9 +123,9 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        when(mockAFTService.retrieveAFTRequiredDetails(any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, ua)))
+        when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, ua)))
 
-        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -140,7 +140,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
-        val result = route(application, httpGETRequest(httpPathGETNoVersion)).value
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -198,11 +198,9 @@ object ChargeTypeControllerSpec {
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def httpPathGETNoVersion: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
+  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url
 
-  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(NormalMode, SampleData.srn).url
-
-  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(NormalMode, SampleData.srn).url
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)

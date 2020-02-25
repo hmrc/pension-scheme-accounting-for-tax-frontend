@@ -17,14 +17,20 @@
 package forms.chargeF
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 import forms.behaviours._
 import play.api.data.FormError
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
-  val dynamicErrorMsg: String = "The date the scheme was de-registered must be between 1 April 2020 and 30 June 2020"
-  val form = new ChargeDetailsFormProvider()(dynamicErrorMsg, BigDecimal("0.01"))
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val startDate = LocalDate.parse(QUARTER_START_DATE)
+  private val endDate = LocalDate.parse(QUARTER_END_DATE)
+  private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
+    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
+  val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg, BigDecimal("0.01"))
   val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"
@@ -35,14 +41,14 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like dateFieldWithMin(
       form = form,
       key = deRegDateKey,
-      min = LocalDate.of(2020, 4, 1),
+      min = startDate,
       formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = deRegDateKey,
-      max = LocalDate.of(2020, 6, 30),
+      max = endDate,
       formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 

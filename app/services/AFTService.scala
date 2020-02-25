@@ -22,12 +22,13 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
-import models.requests.{DataRequest, OptionalDataRequest}
-import models.{Enumerable, Quarter, SchemeDetails, UserAnswers}
 import models.SchemeStatus.statusByName
+import models.requests.{DataRequest, OptionalDataRequest}
+import models.{Quarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -68,11 +69,10 @@ class AFTService @Inject()(
   def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetails(srn: String, optionVersion: Option[String])
-                                (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]):Future[(SchemeDetails, UserAnswers)] = {
+  def retrieveAFTRequiredDetails(srn: String, startDate: String, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails)
+      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
       savedUA <- save(updatedUA)
     } yield {
       (schemeDetails, savedUA)
@@ -88,7 +88,7 @@ class AFTService @Inject()(
     savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
   }
 
-  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails)
+  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: String)
                                              (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
@@ -98,7 +98,7 @@ class AFTService @Inject()(
           if (listOfVersions.isEmpty) {
             currentUserAnswers
               .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, Quarter("2020-01-01", "2020-03-31"))
+              .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
@@ -125,7 +125,7 @@ class AFTService @Inject()(
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {
-    val nextDay = LocalDateTime.of(LocalDate.parse(quarterEndDate).plusDays(1), LocalTime.MIDNIGHT)
-    !(LocalDateTime.now().compareTo(nextDay) >= 0)
+    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
+    !(DateHelper.today.compareTo(nextDay) >= 0)
   }
 }

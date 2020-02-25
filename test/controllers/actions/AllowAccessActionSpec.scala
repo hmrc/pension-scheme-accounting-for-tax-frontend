@@ -48,7 +48,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any())(any()))
         .thenReturn(Future.successful(None))
 
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
           .set(IsPsaSuspendedQuery, value = false).toOption.get
 
       val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))

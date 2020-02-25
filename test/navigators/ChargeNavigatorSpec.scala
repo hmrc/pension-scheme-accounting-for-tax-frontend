@@ -22,13 +22,14 @@ import models.{ChargeType, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages._
 import play.api.mvc.Call
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeNavigatorSpec extends NavigatorBehaviour {
 
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
 
-  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ct).toOption
+  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
@@ -50,7 +51,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 1), chargeGMemberExists),
         row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn), aftSummaryNo),
-        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn), aftSummaryYes),
+        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, QUARTER_START_DATE), aftSummaryYes),
         row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn))

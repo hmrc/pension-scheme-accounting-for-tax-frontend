@@ -17,7 +17,6 @@
 package controllers.chargeD
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -37,6 +36,7 @@ import renderer.Renderer
 import services.ChargeDService._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,9 +55,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeD.addMembers.error")
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-
-  def getFormattedDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
+  def getFormattedDate(s: String): String = LocalDate.from(dateFormatterYMD.parse(s)).format(dateFormatterDMY)
 
   def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
     implicit request =>

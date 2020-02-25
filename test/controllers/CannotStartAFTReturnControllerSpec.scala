@@ -19,7 +19,7 @@ package controllers
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeName}
+import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -45,7 +45,7 @@ class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
 
       val request = FakeRequest(GET, routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn).url)
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, request).value
 

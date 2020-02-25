@@ -16,21 +16,20 @@
 
 package models
 
-import java.time.{LocalDate, Year}
-
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
+import utils.DateHelper
 
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
-  def currentYear = new DynamicYearRange(Year.now.toString)
+  def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[DynamicYearRange] = {
-    val maxYear = if (LocalDate.now.getMonthValue > 3) Year.now.getValue + 1 else Year.now.getValue
+    val maxYear = if (DateHelper.today.getMonthValue > 3) DateHelper.today.getYear + 1 else DateHelper.today.getYear
     (2018 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
   }
 

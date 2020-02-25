@@ -22,7 +22,7 @@ import java.time.{LocalDate, LocalDateTime}
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeName}
+import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
 import models.GenericViewModel
 import org.mockito.ArgumentCaptor
@@ -74,7 +74,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn).url)
 
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, request).value
 

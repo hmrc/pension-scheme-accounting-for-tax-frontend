@@ -87,7 +87,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  val validData: UserAnswers = userAnswersWithSchemeName.set(MemberDetailsPage(0), memberDetails).get
+  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get
   val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeDDetails).get.data
 
   "ChargeDetails Controller" must {

@@ -33,7 +33,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, 0).url
   private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, 0).url
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
+  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberGDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeGDetails).toOption.get
     .set(ChargeAmountsPage(0), chargeAmounts).toOption.get

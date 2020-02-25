@@ -64,7 +64,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     returnUrl = onwardRoute.url,
     schemeName = schemeName)
 
-  private def userAnswers = userAnswersWithSchemeName
+  private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
 

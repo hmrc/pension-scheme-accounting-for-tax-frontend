@@ -52,7 +52,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {

@@ -16,6 +16,8 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -32,6 +34,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import utils.AFTConstants
 
 import scala.concurrent.Future
 
@@ -89,8 +92,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> "1 January 2020",
-    "quarterEnd" -> "31 March 2020",
+    "quarterStart" -> LocalDate.parse(AFTConstants.QUARTER_START_DATE).format(dateFormatter),
+    "quarterEnd" -> LocalDate.parse(AFTConstants.QUARTER_END_DATE).format(dateFormatter),
     "table" -> table
   )
 
@@ -101,7 +104,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private def ua: UserAnswers = userAnswersWithSchemeName
+  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
     .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get

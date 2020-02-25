@@ -25,6 +25,7 @@ import play.api.mvc.Call
 import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
 import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
 import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
@@ -63,7 +64,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
   private def aftSummaryNavigation(ua: UserAnswers, srn: String): Call = {
     ua.get(AFTSummaryPage) match {
       case Some(true) =>
-        controllers.routes.ChargeTypeController.onPageLoad(NormalMode, srn)
+        controllers.routes.ChargeTypeController.onPageLoad(srn, QUARTER_START_DATE)
       case Some(false) =>
         controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn)
       case _ => sessionExpiredPage

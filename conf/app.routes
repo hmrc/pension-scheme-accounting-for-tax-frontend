@@ -18,6 +18,8 @@ GET         /unauthorised                                                       
 
 GET         /accessibility-statement                                                                                     controllers.AccessibilityController.onPageLoad
 
+GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
+
 GET         /:srn/new-return/de-registration-charge/what-you-will-need                                                   controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/de-registration-charge/charge-details                                                       controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
@@ -28,10 +30,14 @@ POST        /:srn/new-return/de-registration-charge/change/charge-details       
 GET         /:srn/new-return/de-registration-charge/check-your-answers                                                   controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
 GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers                                          controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
 
-GET         /:srn/new-return/charge-type                                                                                 controllers.ChargeTypeController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/charge-type                                                                                 controllers.ChargeTypeController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/change/charge-type                                                                          controllers.ChargeTypeController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/change/charge-type                                                                          controllers.ChargeTypeController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
+POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)
+
+GET         /:srn/new-return/:year/select-quarter                                                                        controllers.QuartersController.onPageLoad(srn: String, year: String)
+POST        /:srn/new-return/:year/select-quarter                                                                        controllers.QuartersController.onSubmit(srn: String, year: String)
+
+GET         /:srn/new-return/:startDate/charge-type                                                                      controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/charge-type                                                                      controllers.ChargeTypeController.onSubmit(srn: String, startDate: String)
 
 GET         /:srn/new-return/special-lump-sum-death-benefits-charge/what-you-will-need                                   controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String)
 

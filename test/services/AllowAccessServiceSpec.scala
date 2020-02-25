@@ -56,7 +56,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   "filterForIllegalPageAccess" must {
     "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and " +
       "the scheme status is Open/Wound-up/Deregistered" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Open)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
@@ -71,7 +71,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
     "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended " +
       "but the scheme status is Rejected" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Rejected)
 
@@ -104,7 +104,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     }
 
     "respond with a redirect to the AFT summary page when the PSA is not suspended and current page is charge type page and view only" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
@@ -171,7 +171,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
     }
 
     "respond with a None (i.e. allow access) when the PSA is suspended and current page is AFT summary page and referer is an AFT URL" in {
-      val ua = SampleData.userAnswersWithSchemeName
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = true)
         .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))

@@ -872,3 +872,13 @@ declaration.heading = Declaration
 declaration.p1 = By submitting this AFT return, you declare that:
 declaration.li1 = to the best of your knowledge and belief, the information given in this tax return is correct and complete
 declaration.li2 = you understand that if you have made a false statement in this tax return, you may be liable to a penalty, and that false statements may also lead to prosecution
+
+year.title = Which year are you submitting an AFT return for?
+years.error.required = Select which year you are submitting an AFT return for
+
+quarters.title = Which quarter of {0} are you submitting an AFT return for?
+quarters.q1.label = 1 January to 31 March
+quarters.q2.label = 1 April to 30 June
+quarters.q3.label = 1 July to 30 September
+quarters.q4.label = 1 October to 31 December
+quarters.error.required = Select the quarter of {0} you are submitting an AFT return for

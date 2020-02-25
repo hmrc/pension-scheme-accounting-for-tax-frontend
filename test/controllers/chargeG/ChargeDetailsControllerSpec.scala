@@ -16,6 +16,9 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -35,6 +38,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 import scala.concurrent.Future
 
@@ -42,8 +46,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new ChargeDetailsFormProvider()
+  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  private val startDate = LocalDate.parse(QUARTER_START_DATE)
+  private val endDate = LocalDate.parse(QUARTER_END_DATE)
+  private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
+    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
 
-  private def form: Form[ChargeDetails] = formProvider("The date of the transfer into the QROPS must be between 1 April 2020 and 30 June 2020")
+  private def form: Form[ChargeDetails] = formProvider(startDate, endDate, dynamicErrorMsg)
 
   private def onwardRoute: Call = Call("GET", "/foo")
 
@@ -70,7 +79,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   )
 
   private val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
-    userAnswersWithSchemeName.set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
+    userAnswersWithSchemeNamePstrQuarter.set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
 
   "ChargeGDetails Controller" must {
 

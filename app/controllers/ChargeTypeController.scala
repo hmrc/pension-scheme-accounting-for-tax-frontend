@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
-import models.{ChargeType, GenericViewModel, Mode}
+import models.{ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,9 +54,9 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def onPageLoad(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn)).async {
     implicit request =>
-      aftService.retrieveAFTRequiredDetails(srn = srn, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
+      aftService.retrieveAFTRequiredDetails(srn = srn, startDate: String, optionVersion = None).flatMap { case (schemeDetails, userAnswers) =>
         allowService.filterForIllegalPageAccess(srn, userAnswers, Some(ChargeTypePage)).flatMap {
           case None =>
             auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
@@ -65,7 +65,7 @@ class ChargeTypeController @Inject()(
               fields = "srn" -> srn,
               "form" -> preparedForm,
               "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeDetails.schemeName, mode, srn)
+              "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
             )
             renderer.render(template = "chargeType.njk", json).map(Ok(_))
           case Some(alternativeLocation) => Future.successful(alternativeLocation)
@@ -73,7 +73,7 @@ class ChargeTypeController @Inject()(
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -83,7 +83,7 @@ class ChargeTypeController @Inject()(
               fields = "srn" -> srn,
               "form" -> formWithErrors,
               "radios" -> ChargeType.radios(formWithErrors),
-              "viewModel" -> viewModel(schemeName, mode, srn)
+              "viewModel" -> viewModel(schemeName, srn, startDate)
             )
             renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
           },
@@ -91,14 +91,14 @@ class ChargeTypeController @Inject()(
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeTypePage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn))
         )
       }
   }
 
-  private def viewModel(schemeName: String, mode: Mode, srn: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String, startDate: String): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(mode, srn).url,
+      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
