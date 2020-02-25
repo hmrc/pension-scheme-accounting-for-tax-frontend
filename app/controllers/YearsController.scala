@@ -16,6 +16,8 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import audit.AuditService
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -52,7 +54,7 @@ class YearsController @Inject()(
                                  allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private val form = formProvider()
+  private def form = formProvider()
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -61,6 +63,7 @@ class YearsController @Inject()(
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> None,
           "form" -> form,
           "radios" -> Years.radios(form),
           "viewModel" -> viewModel(schemeDetails.schemeName, srn)
@@ -78,6 +81,7 @@ class YearsController @Inject()(
             schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
+              "startDate" -> None,
               "form" -> formWithErrors,
               "radios" -> Years.radios(formWithErrors),
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)

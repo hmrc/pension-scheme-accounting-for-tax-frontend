@@ -90,7 +90,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
         val json = Json.obj(
           "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
@@ -116,7 +116,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
             val json = Json.obj(
               "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
               "form" -> addArgsToErrors(formWithErrors, sponsorName),
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,

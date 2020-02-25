@@ -103,7 +103,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
     Json.obj(
           "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
           "form" -> form,
       "viewModel" -> viewModel,
       "radios" -> Radios.yesNo(form("value")),

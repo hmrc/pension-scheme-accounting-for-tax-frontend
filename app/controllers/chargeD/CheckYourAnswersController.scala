@@ -67,7 +67,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         renderer.render("check-your-answers.njk",
           Json.obj(
             "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
               submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,

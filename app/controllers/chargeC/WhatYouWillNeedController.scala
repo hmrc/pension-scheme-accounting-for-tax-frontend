@@ -61,6 +61,6 @@ class WhatYouWillNeedController @Inject()(
 
       renderer.render(template = "chargeC/whatYouWillNeed.njk",
         Json.obj("srn" -> srn,
-          "startDate" -> startDate, "viewModel" -> viewModel)).map(Ok(_))
+          "startDate" -> Some(startDate), "viewModel" -> viewModel)).map(Ok(_))
   }
 }

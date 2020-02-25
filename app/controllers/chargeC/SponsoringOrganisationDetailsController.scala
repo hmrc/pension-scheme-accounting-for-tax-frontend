@@ -66,7 +66,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
 
         val json = Json.obj(
           "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel
         )
@@ -88,7 +88,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
 
             val json = Json.obj(
           "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
           "form" -> formWithErrors,
               "viewModel" -> viewModel
             )

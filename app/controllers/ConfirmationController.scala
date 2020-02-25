@@ -59,7 +59,7 @@ class ConfirmationController @Inject()(
 
         val json = Json.obj(
           fields = "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
           "pstr" -> pstr,
           "dataHtml" -> html.toString(),
           "pensionSchemesUrl" -> listSchemesUrl,
@@ -67,7 +67,7 @@ class ConfirmationController @Inject()(
           "quarterEndDate" -> quarterEndDate,
           "submittedDate" -> submittedDate,
           "viewModel" -> GenericViewModel(
-            submitUrl = controllers.routes.SignOutController.signOut(srn, startDate).url,
+            submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
             returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
             schemeName = schemeName)
         )

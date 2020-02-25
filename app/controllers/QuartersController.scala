@@ -64,6 +64,7 @@ class QuartersController @Inject()(
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> None,
           "form" -> form(year),
           "radios" -> Quarters.radios(form(year), year.toInt),
           "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
@@ -82,6 +83,7 @@ class QuartersController @Inject()(
                 schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
                   val json = Json.obj(
                     fields = "srn" -> srn,
+                    "startDate" -> None,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, year.toInt),
                     "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),

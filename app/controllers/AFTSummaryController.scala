@@ -108,13 +108,13 @@ class AFTSummaryController @Inject()(
     val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
-          "startDate" -> startDate,
+          "startDate" -> Some(startDate),
       "form" -> form,
       "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
-      "startDate" -> getFormattedStartDate(startDate),
-      "endDate" -> getFormattedEndDate(endDate),
+      "quarterStartDate" -> getFormattedStartDate(startDate),
+      "quarterEndDate" -> getFormattedEndDate(endDate),
       "canChange" -> canChange
     )
   }

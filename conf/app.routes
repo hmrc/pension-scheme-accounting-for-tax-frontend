@@ -2,7 +2,8 @@
 
 GET         /                                                                                                            controllers.IndexController.onPageLoad
 
-GET         /:startDate/:srn/sign-out                                                                                                    controllers.SignOutController.signOut(srn: String, startDate: String)
+GET         /:srn/sign-out                                                                                               controllers.SignOutController.signOut(srn: String, startDate: Option[String] = None)
+GET         /:startDate/:srn/sign-out                                                                                    controllers.SignOutController.signOut(srn: String, startDate: Option[String])
 
 GET         /assets/*file                                                                                                controllers.Assets.versioned(path="/public", file: Asset)
 
