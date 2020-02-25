@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import base.SpecBase
@@ -265,7 +265,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     "quarter end date is todays date " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now())
+        val quarterEndDate = formatter.format(LocalDate.now())
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }
@@ -273,7 +273,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the past " must {
       "return enabled as false" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now().minusDays(1))
+        val quarterEndDate = formatter.format(LocalDate.now().minusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe false
       }
@@ -281,7 +281,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "quarter end date is in the future " must {
       "return disabled as true" in {
-        val quarterEndDate = formatter.format(LocalDateTime.now().plusDays(1))
+        val quarterEndDate = formatter.format(LocalDate.now().plusDays(1))
         val result = aftService.isSubmissionDisabled(quarterEndDate)
         result mustBe true
       }

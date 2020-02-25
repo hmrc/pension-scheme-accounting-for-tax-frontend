@@ -14,4 +14,3 @@
 
 GET        /manage-pension-scheme-accounting-for-tax/test-only/set-date             @controllers.testonly.DateTestController.present()
 POST       /manage-pension-scheme-accounting-for-tax/test-only/set-date             @controllers.testonly.DateTestController.submit()
-

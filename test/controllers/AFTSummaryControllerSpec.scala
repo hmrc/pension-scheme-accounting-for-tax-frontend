@@ -16,9 +16,6 @@
 
 package controllers
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
