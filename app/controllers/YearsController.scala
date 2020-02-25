@@ -25,6 +25,7 @@ import javax.inject.Inject
 import models.{GenericViewModel, Mode, NormalMode, Years}
 import navigators.CompoundNavigator
 import pages._
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -53,7 +54,7 @@ class YearsController @Inject()(
                                  allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private val form = formProvider()
+  private def form: Form[Years] = formProvider()
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
