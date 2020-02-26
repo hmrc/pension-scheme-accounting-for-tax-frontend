@@ -26,16 +26,17 @@ import forms.chargeC.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.ChargeCDetails
-import models.{GenericViewModel, Index, Mode, UserAnswers}
+import models.{GenericViewModel, Index, Mode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,14 +53,23 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua:UserAnswers): Form[ChargeCDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+  private def form(ua:UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
+    val endDate = Quarters.getQuarter(startDate).endDate
+    formProvider(
+      startDate,
+      endDate,
+      messages("chargeC.paymentDate.error.date", startDate.format(dateFormatterDMY), endDate.format(dateFormatterDMY)),
+      UserAnswers.deriveMinimumChargeValueAllowed(ua)
+    )
+  }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
-          case Some(value) => form(request.userAnswers).fill(value)
-          case None => form(request.userAnswers)
+          case Some(value) => form(request.userAnswers, startDate).fill(value)
+          case None => form(request.userAnswers, startDate)
         }
 
         val viewModel = GenericViewModel(
@@ -80,10 +90,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        form(request.userAnswers).bindFromRequest().fold(
+        form(request.userAnswers, startDate).bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(

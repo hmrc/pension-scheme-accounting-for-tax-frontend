@@ -17,6 +17,8 @@
 package forms.chargeC
 
 
+import java.time.LocalDate
+
 import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeC.ChargeCDetails
@@ -25,7 +27,7 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeCDetails] =
+  def apply(min: LocalDate, max: LocalDate, dateErrorMsg: String, minimumChargeValueAllowed:BigDecimal): Form[ChargeCDetails] =
     Form(mapping(
       "paymentDate" -> localDate(
         invalidKey = "chargeC.paymentDate.error.invalid",
@@ -33,6 +35,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = "chargeC.paymentDate.error.incomplete",
         requiredKey = "chargeC.paymentDate.error.required"
       ).verifying(
+        minDate(min, dateErrorMsg),
+        maxDate(max, dateErrorMsg),
         futureDate("chargeC.paymentDate.error.future"),
         yearHas4Digits("chargeC.paymentDate.error.invalid")
       ),
