@@ -47,7 +47,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMax(
       form = form,
       key = qropsDateKey,
-      max = LocalDate.now(),
+      max = DateHelper.today,
       formError = FormError(qropsDateKey, futureErrorMsg)
     )
 
