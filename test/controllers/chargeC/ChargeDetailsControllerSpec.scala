@@ -50,16 +50,16 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "paymentDate.day" -> Seq("3"),
-    "paymentDate.month" -> Seq("4"),
-    "paymentDate.year" -> Seq("2019"),
+    "paymentDate.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+    "paymentDate.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+    "paymentDate.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "amountTaxDue" -> Seq("33.44")
   )
 
   private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
-    "paymentDate.day" -> Seq("3"),
-    "paymentDate.month" -> Seq("4"),
-    "paymentDate.year" -> Seq("2019"),
+    "paymentDate.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+    "paymentDate.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+    "paymentDate.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "amountTaxDue" -> Seq("0.00")
   )
 

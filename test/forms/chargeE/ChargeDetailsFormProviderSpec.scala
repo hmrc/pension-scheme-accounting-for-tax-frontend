@@ -16,8 +16,6 @@
 
 package forms.chargeE
 
-import java.time.LocalDate
-
 import forms.behaviours._
 import play.api.data.FormError
 import utils.AFTConstants.QUARTER_START_DATE

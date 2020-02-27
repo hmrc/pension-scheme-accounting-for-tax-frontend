@@ -49,8 +49,10 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dateOfEvent.error.incomplete",
         requiredKey = "dateOfEvent.error.required"
       ).verifying(
-        minDate(min, messages("dateOfEvent.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
-        maxDate(max, messages("dateOfEvent.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
+        minDate(min, messages("dateOfEvent.error.date", min.format(dateFormatterDMY),
+          max.format(dateFormatterDMY))),
+        maxDate(max, messages("dateOfEvent.error.date", min.format(dateFormatterDMY),
+          max.format(dateFormatterDMY))),
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](

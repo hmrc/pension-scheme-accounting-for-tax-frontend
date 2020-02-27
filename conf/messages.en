@@ -143,6 +143,7 @@ dob.error.required = Enter the member’s date of birth
 dob.error.invalid = Enter a real date for the member’s date of birth
 dob.error.incomplete = The member’s date of birth must include a day, month and year
 dob.error.future = The member’s date of birth must be in the past
+dob.error.past = The member’s date of birth must be after 31 12 1899
 
 return.to.link = Return to {0}
 
