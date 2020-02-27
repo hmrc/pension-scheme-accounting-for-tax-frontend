@@ -26,18 +26,16 @@ import forms.chargeE.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{GenericViewModel, Index, Mode, Quarter, Quarters, UserAnswers}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
-import utils.DateHelper.dateFormatterDMY
-import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,15 +52,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeEDetails] = {
-    val endDate = Quarters.getQuarter(startDate).endDate
-    formProvider(
-      startDate,
-      endDate,
-      messages("dateNoticeReceived.error.date", startDate.format(dateFormatterDMY), endDate.format(dateFormatterDMY)),
-      UserAnswers.deriveMinimumChargeValueAllowed(ua)
-    )
-  }
+  private def form(ua:UserAnswers): Form[ChargeEDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
@@ -70,8 +60,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
           val preparedForm: Form[ChargeEDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
-            case Some(value) => form(request.userAnswers, startDate).fill(value)
-            case None => form(request.userAnswers, startDate)
+            case Some(value) => form(request.userAnswers).fill(value)
+            case None => form(request.userAnswers)
           }
 
           val viewModel = GenericViewModel(
@@ -98,7 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       implicit request =>
         DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
-          form(request.userAnswers, startDate).bindFromRequest().fold(
+          form(request.userAnswers).bindFromRequest().fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,

@@ -18,13 +18,17 @@ package forms.chargeC
 
 import java.time.LocalDate
 
+import base.SpecBase
 import forms.behaviours.{BigDecimalFieldBehaviours, DateBehaviours}
 import models.chargeC.ChargeCDetails
 import play.api.data.FormError
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  val form = new ChargeDetailsFormProvider().apply(
+    QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01")
+  )
   val amountTaxDueMsgKey = "chargeC.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
   val dateKey = "paymentDate"

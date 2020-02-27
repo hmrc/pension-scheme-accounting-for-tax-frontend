@@ -18,16 +18,17 @@ package forms.chargeF
 
 import java.time.format.DateTimeFormatter
 
+import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
     s"${QUARTER_START_DATE.format(dateFormatter)} and ${QUARTER_END_DATE.format(dateFormatter)}"
-  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, dynamicErrorMsg, BigDecimal("0.01"))
+  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, BigDecimal("0.01"))
   val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"

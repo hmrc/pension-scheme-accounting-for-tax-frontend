@@ -37,13 +37,14 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
-  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
   private val index = 0
   private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
   private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url
