@@ -40,7 +40,7 @@ object DataRetrievals {
   }
 
   def retrieveSchemeNameWithQuarter(block: (String, Quarter) => Future[Result])
-                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+                                   (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -48,7 +48,7 @@ object DataRetrievals {
   }
 
   def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])
-                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+                                          (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(pstr), Some(quarter)) => block(schemeName, pstr, quarter)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -63,7 +63,8 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result])
+  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])
+                             (block: (String, String) => Future[Result])
                              (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
@@ -72,22 +73,24 @@ object DataRetrievals {
   }
 
   def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
-                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+                              (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeQuarterMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, Quarter, String) => Future[Result])
-                                    (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeQuarterMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])
+                                        (block: (String, Quarter, String) => Future[Result])
+                                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(quarter), Some(memberDetails)) => block(schemeName, quarter, memberDetails.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndSponsoringEmployer(index: Int)(block: (String, String) => Future[Result])
+  def retrieveSchemeAndSponsoringEmployer(index: Int)
+                                         (block: (String, String) => Future[Result])
                                          (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
     (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringOrganisationDetailsPage(index)),
@@ -98,8 +101,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
-                          srn: String)
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String)
                          (block: (A, String) => Future[Result])
                          (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
