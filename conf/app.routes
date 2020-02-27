@@ -2,7 +2,8 @@
 
 GET         /                                                                                                                   controllers.IndexController.onPageLoad
 
-GET         /sign-out/:srn                                                                                                      controllers.SignOutController.signOut(srn: String)
+GET         /:srn/sign-out                                                                                               controllers.SignOutController.signOut(srn: String, startDate: Option[String] = None)
+GET         /:startDate/:srn/sign-out                                                                                    controllers.SignOutController.signOut(srn: String, startDate: Option[String])
 
 GET         /assets/*file                                                                                                       controllers.Assets.versioned(path="/public", file: Asset)
 
@@ -10,28 +11,18 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                        controllers.SessionExpiredController.onPageLoad
 
-GET         /:srn/new-return/cannot-start-aft-return                                                                            controllers.CannotStartAFTReturnController.onPageLoad(srn: String)
-GET         /:srn/new-return/cannot-change-aft-return                                                                           controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, version: Option[String] = None)
-GET         /:srn/new-return/cannot-change-aft-return/version                                                                   controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, version: Option[String])
+GET         /:srn/new-return/:startDate/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
+GET         /:srn/new-return/:startDate/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String])
 
 GET         /unauthorised                                                                                                       controllers.UnauthorisedController.onPageLoad
 
 GET         /accessibility-statement                                                                                            controllers.AccessibilityController.onPageLoad
 
-GET         /:srn/new-return/aft-login                                                                                          controllers.AFTLoginController.onPageLoad(srn: String)
+GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
 
-GET         /:srn/new-return/de-registration-charge/what-you-will-need                                                          controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String)
-
-GET         /:srn/new-return/de-registration-charge/charge-details                                                              controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/de-registration-charge/charge-details                                                              controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/de-registration-charge/change/charge-details                                                       controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/de-registration-charge/change/charge-details                                                       controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
-
-GET         /:srn/new-return/de-registration-charge/check-your-answers                                                          controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String)
-GET         /:srn/new-return/de-registration-charge/on-click-check-your-answers                                                 controllers.chargeF.CheckYourAnswersController.onClick(srn: String)
-
-GET         /:srn/new-return/select-year                                                                                        controllers.YearsController.onPageLoad(srn: String)
-POST        /:srn/new-return/select-year                                                                                        controllers.YearsController.onSubmit(srn: String)
+GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
+POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)
 
 GET         /:srn/new-return/:year/select-quarter                                                                               controllers.QuartersController.onPageLoad(srn: String, year: String)
 POST        /:srn/new-return/:year/select-quarter                                                                               controllers.QuartersController.onSubmit(srn: String, year: String)
@@ -39,147 +30,158 @@ POST        /:srn/new-return/:year/select-quarter                               
 GET         /:srn/new-return/:startDate/charge-type                                                                             controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/new-return/:startDate/charge-type                                                                             controllers.ChargeTypeController.onSubmit(srn: String, startDate: String)
 
-GET         /:srn/new-return/special-lump-sum-death-benefits-charge/what-you-will-need                                          controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/what-you-will-need                                                   controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/special-lump-sum-death-benefits-charge/charge-details                                              controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/special-lump-sum-death-benefits-charge/charge-details                                              controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details                                       controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/special-lump-sum-death-benefits-charge/change/charge-details                                       controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/charge-details                                                       controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/de-registration-charge/charge-details                                                       controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/change/charge-details                                                controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/de-registration-charge/change/charge-details                                                controllers.chargeF.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String)
 
-GET         /:srn/new-return/special-lump-sum-death-benefits-charge/check-your-answers                                          controllers.chargeB.CheckYourAnswersController.onPageLoad(srn: String)
-GET         /:srn/new-return/special-lump-sum-death-benefits-charge/on-click-check-your-answers                                 controllers.chargeB.CheckYourAnswersController.onClick(srn: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/check-your-answers                                                   controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/on-click-check-your-answers                                          controllers.chargeF.CheckYourAnswersController.onClick(srn: String, startDate: String)
 
-GET         /:srn/new-return/annual-allowance-charge/:index/members-details                                                     controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/members-details                                                     controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/annual-allowance-charge/:index/change/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/change/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
 
-GET         /:srn/new-return/annual-allowance-charge/what-you-will-need                                                         controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/what-you-will-need                                   controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/annual-allowance-charge/:index/select-tax-year                                                     controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/select-tax-year                                                     controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/change/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/charge-details                                       controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/charge-details                                       controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/change/charge-details                                controllers.chargeB.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/change/charge-details                                controllers.chargeB.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String)
 
-GET         /:srn/new-return/annual-allowance-charge/:index/charge-details                                                      controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/charge-details                                                      controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/annual-allowance-charge/:index/change/charge-details                                               controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/change/charge-details                                               controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/check-your-answers                                   controllers.chargeB.CheckYourAnswersController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/on-click-check-your-answers                          controllers.chargeB.CheckYourAnswersController.onClick(srn: String, startDate: String)
 
-GET         /:srn/new-return/annual-allowance-charge/:index/check-your-answers                                                  controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
-GET         /:srn/new-return/annual-allowance-charge/:index/on-click-check-your-answers                                         controllers.chargeE.CheckYourAnswersController.onClick(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/annual-allowance-charge/list-of-charges                                                            controllers.chargeE.AddMembersController.onPageLoad(srn: String)
-POST        /:srn/new-return/annual-allowance-charge/list-of-charges                                                            controllers.chargeE.AddMembersController.onSubmit(srn: String)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/what-you-will-need                                                  controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/annual-allowance-charge/:index/remove-charge                                                       controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, index: Index)
-POST        /:srn/new-return/annual-allowance-charge/:index/remove-charge                                                       controllers.chargeE.DeleteMemberController.onSubmit(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/summary                                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, version: Option[String] = None)
-POST        /:srn/new-return/summary                                                                                            controllers.AFTSummaryController.onSubmit(srn: String, version: Option[String] = None)
-GET         /:srn/new-return/:version/summary                                                                                   controllers.AFTSummaryController.onPageLoad(srn: String, version: Option[String])
-POST        /:srn/new-return/:version/summary                                                                                   controllers.AFTSummaryController.onSubmit(srn: String, version: Option[String])
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/what-you-will-need                                            controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/check-your-answers                                           controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/on-click-check-your-answers                                  controllers.chargeE.CheckYourAnswersController.onClick(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/charge-details                                                controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/short-service-refund-lump-sum-charge/charge-details                                                controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details                                         controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/short-service-refund-lump-sum-charge/change/charge-details                                         controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onSubmit(srn: String, startDate: String)
 
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/check-your-answers                                            controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String)
-GET         /:srn/new-return/short-service-refund-lump-sum-charge/on-click-check-your-answers                                   controllers.chargeA.CheckYourAnswersController.onClick(srn: String)
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/lifetime-allowance-charge/what-you-will-need                                                       controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
+POST        /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String] = None)
+GET         /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
+POST        /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String])
 
-GET         /:srn/new-return/lifetime-allowance-charge/:index/members-details                                                   controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/lifetime-allowance-charge/:index/members-details                                                   controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/lifetime-allowance-charge/:index/change/members-details                                            controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/lifetime-allowance-charge/:index/change/members-details                                            controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/what-you-will-need                                     controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/lifetime-allowance-charge/:index/charge-details                                                    controllers.chargeD.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/lifetime-allowance-charge/:index/charge-details                                                    controllers.chargeD.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/lifetime-allowance-charge/:index/change/charge-details                                             controllers.chargeD.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/lifetime-allowance-charge/:index/change/charge-details                                             controllers.chargeD.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/charge-details                                         controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/charge-details                                         controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/change/charge-details                                  controllers.chargeA.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/change/charge-details                                  controllers.chargeA.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String)
 
-GET         /:srn/new-return/lifetime-allowance-charge/:index/check-your-answers                                                controllers.chargeD.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
-GET         /:srn/new-return/lifetime-allowance-charge/:index/on-click-check-your-answers                                       controllers.chargeD.CheckYourAnswersController.onClick(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/check-your-answers                                     controllers.chargeA.CheckYourAnswersController.onPageLoad(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/on-click-check-your-answers                            controllers.chargeA.CheckYourAnswersController.onClick(srn: String, startDate: String)
 
-GET         /:srn/new-return/lifetime-allowance-charge/list-of-charges                                                          controllers.chargeD.AddMembersController.onPageLoad(srn: String)
-POST        /:srn/new-return/lifetime-allowance-charge/list-of-charges                                                          controllers.chargeD.AddMembersController.onSubmit(srn: String)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/what-you-will-need                                               controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/lifetime-allowance-charge/:index/remove-charge                                                     controllers.chargeD.DeleteMemberController.onPageLoad(srn: String, index: Index)
-POST        /:srn/new-return/lifetime-allowance-charge/:index/remove-charge                                                     controllers.chargeD.DeleteMemberController.onSubmit(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/members-details                                            controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/members-details                                            controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/change/members-details                                     controllers.chargeD.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/change/members-details                                     controllers.chargeD.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/what-you-will-need                                              controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/charge-details                                             controllers.chargeD.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/charge-details                                             controllers.chargeD.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/change/charge-details                                      controllers.chargeD.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/change/charge-details                                      controllers.chargeD.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/is-sponsoring-employer-individual                        controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/is-sponsoring-employer-individual                        controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/change/is-sponsoring-employer-individual                 controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/change/is-sponsoring-employer-individual                 controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/check-your-answers                                         controllers.chargeD.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/on-click-check-your-answers                                controllers.chargeD.CheckYourAnswersController.onClick(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/sponsoring-individual-details                            controllers.chargeC.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/sponsoring-individual-details                            controllers.chargeC.SponsoringIndividualDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/change/sponsoring-individual-details                     controllers.chargeC.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/change/sponsoring-individual-details                     controllers.chargeC.SponsoringIndividualDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/list-of-charges                                                   controllers.chargeD.AddMembersController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/list-of-charges                                                   controllers.chargeD.AddMembersController.onSubmit(srn: String, startDate: String)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/sponsoring-company-or-organisation-details               controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/sponsoring-company-or-organisation-details               controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/change/sponsoring-company-or-organisation-details        controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/change/sponsoring-company-or-organisation-details        controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/enter-address                                            controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/enter-address                                            controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/change/enter-address                                     controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/change/enter-address                                     controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/what-you-will-need                                       controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/charge-details                                           controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/charge-details                                           controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/change/charge-details                                    controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/change/charge-details                                    controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/is-sponsoring-employer-individual                        controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/is-sponsoring-employer-individual                        controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/is-sponsoring-employer-individual                 controllers.chargeC.IsSponsoringEmployerIndividualController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/is-sponsoring-employer-individual                 controllers.chargeC.IsSponsoringEmployerIndividualController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/check-your-answers                                       controllers.chargeC.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/on-click-check-your-answers                              controllers.chargeC.CheckYourAnswersController.onClick(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/sponsoring-individual-details                            controllers.chargeC.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/sponsoring-individual-details                            controllers.chargeC.SponsoringIndividualDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/sponsoring-individual-details                     controllers.chargeC.SponsoringIndividualDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/sponsoring-individual-details                     controllers.chargeC.SponsoringIndividualDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/list-of-charges                                                 controllers.chargeC.AddEmployersController.onPageLoad(srn: String)
-POST        /:srn/new-return/authorised-surplus-payments-charge/list-of-charges                                                 controllers.chargeC.AddEmployersController.onSubmit(srn: String)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/sponsoring-company-or-organisation-details               controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/sponsoring-company-or-organisation-details               controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/sponsoring-company-or-organisation-details        controllers.chargeC.SponsoringOrganisationDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/sponsoring-company-or-organisation-details        controllers.chargeC.SponsoringOrganisationDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/authorised-surplus-payments-charge/:index/remove-charge                                            controllers.chargeC.DeleteEmployerController.onPageLoad(srn: String, index: Index)
-POST        /:srn/new-return/authorised-surplus-payments-charge/:index/remove-charge                                            controllers.chargeC.DeleteEmployerController.onSubmit(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-address                                            controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-address                                            controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-address                                     controllers.chargeC.SponsoringEmployerAddressController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-address                                     controllers.chargeC.SponsoringEmployerAddressController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/what-you-will-need                                                        controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/charge-details                  controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/charge-details                  controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/charge-details                        controllers.chargeC.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/charge-details                        controllers.chargeC.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/members-details                                                    controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/members-details                                                    controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/overseas-transfer-charge/:index/change/members-details                                             controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/change/members-details                                             controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/check-your-answers                 controllers.chargeC.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/on-click-check-your-answers        controllers.chargeC.CheckYourAnswersController.onClick(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/charge-details                                                     controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/charge-details                                                     controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/overseas-transfer-charge/:index/change/charge-details                                              controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/change/charge-details                                              controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/list-of-charges                  controllers.chargeC.AddEmployersController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/list-of-charges                  controllers.chargeC.AddEmployersController.onSubmit(srn: String, startDate: String)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                                                     controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = NormalMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/charge-amounts                                                     controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = NormalMode, srn: String, index: Index)
-GET         /:srn/new-return/overseas-transfer-charge/:index/change/charge-amounts                                              controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = CheckMode, srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/change/charge-amounts                                              controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = CheckMode, srn: String, index: Index)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onPageLoad(srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onSubmit(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/list-of-charges                                                           controllers.chargeG.AddMembersController.onPageLoad(srn: String)
-POST        /:srn/new-return/overseas-transfer-charge/list-of-charges                                                           controllers.chargeG.AddMembersController.onSubmit(srn: String)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/what-you-will-need                                                 controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/check-your-answers                                                 controllers.chargeG.CheckYourAnswersController.onPageLoad(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/members-details                                             controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/members-details                                             controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/members-details                                      controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/members-details                                      controllers.chargeG.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/on-click-check-your-answers                                        controllers.chargeG.CheckYourAnswersController.onClick(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/charge-details                                              controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/charge-details                                              controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/charge-details                                       controllers.chargeG.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/charge-details                                       controllers.chargeG.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                                      controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, index: Index)
-POST        /:srn/new-return/overseas-transfer-charge/:index/remove-charge                                                      controllers.chargeG.DeleteMemberController.onSubmit(srn: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/charge-amounts                            controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/charge-amounts                            controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/charge-amounts                     controllers.chargeG.ChargeAmountsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/change/charge-amounts                     controllers.chargeG.ChargeAmountsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/confirmation                                                                                       controllers.ConfirmationController.onPageLoad(srn: String)
+GET        /:srn/new-return/:startDate/overseas-transfer-charge/list-of-charges                     controllers.chargeG.AddMembersController.onPageLoad(srn: String, startDate: String)
+POST       /:srn/new-return/:startDate/overseas-transfer-charge/list-of-charges                     controllers.chargeG.AddMembersController.onSubmit(srn: String, startDate: String)
 
-GET         /:srn/new-return/want-to-submit                                                                                     controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String)
-POST        /:srn/new-return/want-to-submit                                                                                     controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: String)
-GET         /:srn/new-return/change/want-to-submit                                                                              controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: String)
-POST        /:srn/new-return/change/want-to-submit                                                                              controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: String)
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/check-your-answers                 controllers.chargeG.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, index: Index)
 
-GET         /:srn/new-return/declaration                                                                                        controllers.DeclarationController.onPageLoad(srn: String)
-GET         /:srn/new-return/declaration/on-submit-declaration                                                                  controllers.DeclarationController.onSubmit(srn: String)
+GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/on-click-check-your-answers          controllers.chargeG.CheckYourAnswersController.onClick(srn: String, startDate: String, index: Index)
+
+GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
+POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
+
+GET        /:srn/new-return/:startDate/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String)
+
+GET        /:srn/new-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
+POST       /:srn/new-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET        /:srn/new-return/:startDate/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String)
+POST       /:srn/new-return/:startDate/change/want-to-submit                                               controllers.ConfirmSubmitAFTReturnController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String)
+
+GET        /:srn/new-return/:startDate/declaration                                         controllers.DeclarationController.onPageLoad(srn: String, startDate: String)
+GET        /:srn/new-return/:startDate/declaration/on-submit-declaration                                         controllers.DeclarationController.onSubmit(srn: String, startDate: String)

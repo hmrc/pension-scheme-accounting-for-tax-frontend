@@ -16,6 +16,8 @@
 
 package controllers.chargeB
 
+import java.time.LocalDate
+
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -45,13 +47,14 @@ class WhatYouWillNeedController @Inject()(
                                            navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
       renderer.render(template = "chargeB/whatYouWillNeed.njk",
-        Json.obj(fields = "srn" -> srn, "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
+        Json.obj(fields = "srn" -> srn,
+          "startDate" -> Some(startDate), "schemeName" -> schemeName, "nextPage" -> nextPage.url)).map(Ok(_))
   }
 }

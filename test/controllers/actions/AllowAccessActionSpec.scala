@@ -27,6 +27,7 @@ import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
 import services.AllowAccessService
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,15 +38,15 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   class TestHarness(
                      srn: String
-                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, allowAccessService) {
+                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService) {
     def test(optionalDataRequest: OptionalDataRequest[_]): Future[Option[Result]] = this.filter(optionalDataRequest)
   }
 
   "Allow Access Action" must {
-    "delegate to the allow access service with the correct srn" in {
+    "delegate to the allow access service with the correct srn, startDate" in {
       reset(allowAccessService)
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
-      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any())(any()))
+      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter

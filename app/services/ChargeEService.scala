@@ -16,16 +16,18 @@
 
 package services
 
-import models.{Member, MemberDetails, NormalMode, UserAnswers}
+import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeE.ChargeDetailsPage
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 object ChargeEService {
 
-  def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String): Seq[Member] = {
+  def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
     val members = for {
         (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
@@ -36,8 +38,8 @@ object ChargeEService {
             member.fullName,
             member.nino,
             chargeDetails.chargeAmount,
-            viewUrl(index, srn).url,
-            removeUrl(index, srn).url,
+            viewUrl(index, srn, startDate).url,
+            removeUrl(index, srn, startDate).url,
             member.isDeleted
           )
         }
@@ -46,11 +48,11 @@ object ChargeEService {
     members.flatten
   }
 
-  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String): Seq[Member] =
-    getAnnualAllowanceMembersIncludingDeleted(ua, srn).filterNot(_.isDeleted)
+  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
+    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index)
-  def removeUrl(index: Int, srn: String): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeE", members, canChange)

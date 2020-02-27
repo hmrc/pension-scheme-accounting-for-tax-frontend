@@ -32,6 +32,7 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -46,18 +47,19 @@ class ConfirmationController @Inject()(
                                         config: FrontendAppConfig
                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen allowSubmission andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
 
-        val quarterStartDate = LocalDate.parse(quarter.startDate).format(DateTimeFormatter.ofPattern("d MMMM"))
-        val quarterEndDate = LocalDate.parse(quarter.endDate).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+        val quarterStartDate = quarter.startDate.format(DateTimeFormatter.ofPattern("d MMMM"))
+        val quarterEndDate = quarter.endDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
         val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
         val listSchemesUrl = config.yourPensionSchemesUrl
         val html = confirmationPanelText(submittedDate, schemeName, pstr)
 
         val json = Json.obj(
           fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
           "pstr" -> pstr,
           "dataHtml" -> html.toString(),
           "pensionSchemesUrl" -> listSchemesUrl,
@@ -65,7 +67,7 @@ class ConfirmationController @Inject()(
           "quarterEndDate" -> quarterEndDate,
           "submittedDate" -> submittedDate,
           "viewModel" -> GenericViewModel(
-            submitUrl = controllers.routes.SignOutController.signOut(srn).url,
+            submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
             returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
             schemeName = schemeName)
         )

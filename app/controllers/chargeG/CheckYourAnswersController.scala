@@ -35,6 +35,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -49,10 +51,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeG(index, srn) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      DataRetrievals.cyaChargeG(index, srn, startDate) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeGMemberDetails(index, memberDetails),
@@ -63,9 +65,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         renderer.render("check-your-answers.njk",
           Json.obj(
             "srn" -> srn,
+          "startDate" -> Some(startDate),
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, index).url,
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName),
             "chargeName" -> "chargeG",
@@ -74,16 +77,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
   }
 
-  def onClick(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getOverseasTransferMembers(request.userAnswers, srn).map(_.amount).sum
+        val totalAmount = getOverseasTransferMembers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
   }

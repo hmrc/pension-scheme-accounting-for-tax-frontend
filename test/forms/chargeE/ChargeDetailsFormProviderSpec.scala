@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import forms.behaviours._
 import play.api.data.FormError
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
@@ -33,7 +34,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
    behave like dateFieldWithMax(
       form = form,
       key = dateKey,
-      max = LocalDate.now(),
+      max = QUARTER_START_DATE,
       formError = FormError(dateKey, s"$dateKey.error.future")
     )
 

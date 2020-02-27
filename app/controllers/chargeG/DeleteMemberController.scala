@@ -16,13 +16,15 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeG.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
@@ -55,18 +57,19 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.chargeG.error.required", memberName))
 
-  def onPageLoad(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> form(memberDetails.fullName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
@@ -79,7 +82,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -88,12 +91,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
               formWithErrors => {
 
                 val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteMemberController.onSubmit(srn, index).url,
+                  submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
                   returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                   schemeName = schemeName)
 
                 val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> formWithErrors,
                   "viewModel" -> viewModel,
                   "radios" -> Radios.yesNo(formWithErrors("value")),
@@ -109,13 +113,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                     for {
                       interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn)))
+                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                       _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn))
+                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                   }
                 } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn)))
+                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
                 }
             )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -123,5 +127,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def totalAmount(ua: UserAnswers, srn: String): BigDecimal = getOverseasTransferMembers(ua, srn).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getOverseasTransferMembers(ua, srn, startDate).map(_.amount).sum
 }

@@ -36,6 +36,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -44,9 +45,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
 
-  private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn).url
+  private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
 
-  private def httpPathPOST: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url
+  private def httpPathPOST: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "numberOfMembers" -> Seq("44"),
@@ -69,7 +70,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn).url,
+      submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
@@ -79,7 +80,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any())).thenReturn(dummyCall)
+    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
   }
 
 

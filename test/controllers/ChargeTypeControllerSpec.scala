@@ -24,6 +24,7 @@ import data.SampleData._
 import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
+import models.LocalDateBinder._
 import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -78,7 +79,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
 
@@ -98,7 +99,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
+        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
 
         templateCaptor.getValue mustEqual template
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
@@ -108,7 +109,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val location = "redirect"
         val alternativeLocation = Redirect(location)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
         whenReady(route(application, httpGETRequest(httpPathGETVersion)).value) { result =>
           result.header.status mustEqual SEE_OTHER
@@ -154,7 +155,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

@@ -25,19 +25,20 @@ import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
+import models.LocalDateBinder._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, 0).url
-  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, 0).url
+  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
+  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, srn)
+  private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
   private val rows = Seq(
     helper.chargeDMemberDetails(0, memberDetails),
     helper.chargeDDetails(0, chargeDDetails),

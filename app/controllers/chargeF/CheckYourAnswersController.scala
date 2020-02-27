@@ -16,11 +16,13 @@
 
 package controllers.chargeF
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage}
@@ -47,10 +49,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeFDate(chargeDetails),
@@ -60,9 +62,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         renderer.render("check-your-answers.njk",
           Json.obj(
             "srn" -> srn,
+          "startDate" -> Some(startDate),
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName),
             "chargeName" -> "chargeF",
@@ -72,11 +75,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileAFTReturn(pstr, request.userAnswers).map { _ =>
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
   }

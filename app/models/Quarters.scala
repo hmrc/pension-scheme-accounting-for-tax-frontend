@@ -87,20 +87,18 @@ object Quarters extends Enumerable.Implicits {
   }
 
   def getQuarter(quarter: Quarters, year: Int): Quarter = {
-    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatterYMD),
-      LocalDate.of(year, quarter.endMonth, quarter.endDay).format(dateFormatterYMD))
+    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
+      LocalDate.of(year, quarter.endMonth, quarter.endDay))
   }
 
-  def getStartDate(quarter: Quarters, year: Int): String =
-    LocalDate.of(year, quarter.startMonth, quarter.startDay).format(dateFormatterYMD)
+  def getStartDate(quarter: Quarters, year: Int): LocalDate =
+    LocalDate.of(year, quarter.startMonth, quarter.startDay)
 
-  def getQuarter(startDate: String): Quarter = {
-    val date = LocalDate.from(dateFormatterYMD.parse(startDate))
-    getQuarter(getQuartersFromStartDate(startDate), date.getYear)
-  }
+  def getQuarter(startDate: LocalDate): Quarter =
+    getQuarter(getQuartersFromStartDate(startDate), startDate.getYear)
 
-  def getQuartersFromStartDate(startDate: String): Quarters =
-    LocalDate.from(dateFormatterYMD.parse(startDate)).getMonthValue match {
+  def getQuartersFromStartDate(startDate: LocalDate): Quarters =
+    startDate.getMonthValue match {
       case 1 => Q1
       case 4 => Q2
       case 7 => Q3

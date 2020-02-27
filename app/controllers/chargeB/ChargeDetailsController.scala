@@ -35,6 +35,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -52,14 +54,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeBDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  private def viewModel(mode: Mode, srn: String, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn)  andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)  andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -70,15 +72,16 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, schemeName)
+          "viewModel" -> viewModel(mode, srn, startDate, schemeName)
         )
 
         renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -86,8 +89,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, schemeName)
+              "viewModel" -> viewModel(mode, srn, startDate, schemeName)
             )
             renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
           },
@@ -95,7 +99,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
         )
       }
   }

@@ -37,6 +37,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val index = 0
@@ -50,9 +51,9 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
   private val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   private val form = formProvider()
 
-  private def httpPathGET: String = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, index).url
+  private def httpPathGET: String = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, index).url
+  private def httpPathPOST: String = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, startDate, index).url
 
   private def viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -120,7 +121,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
     "redirect to the next page when valid data is submitted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 

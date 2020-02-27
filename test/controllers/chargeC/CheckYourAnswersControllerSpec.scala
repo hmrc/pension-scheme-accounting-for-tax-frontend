@@ -25,13 +25,14 @@ import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
+import models.LocalDateBinder._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, index).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, index).url
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, index).url
 
   private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
@@ -45,7 +46,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn)
+  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
   
   private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(IsSponsoringEmployerIndividualPage(index)).get)),

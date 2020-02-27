@@ -37,6 +37,8 @@ import utils.AFTConstants
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import AFTConstants._
+import models.LocalDateBinder._
 
 class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -64,7 +66,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe None
       }
     }
@@ -80,7 +82,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
       }
     }
@@ -98,7 +100,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(errorResult)
       }
     }
@@ -110,11 +112,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, None))
+      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, None))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(ChargeTypePage))(optionalDataRequest(ua, viewOnly = true))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua, Some(ChargeTypePage))(optionalDataRequest(ua, viewOnly = true))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -126,11 +128,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn))
+      val expectedResult = Redirect(controllers.routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn, QUARTER_START_DATE))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(ChargeTypePage))(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua, Some(ChargeTypePage))(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -142,11 +144,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, Some(version)))
+      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, QUARTER_START_DATE, Some(version)))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, ua, Some(AFTSummaryPage), Some(version))(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua, Some(AFTSummaryPage), Some(version))(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -158,12 +160,12 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, Some(version)))
+      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, QUARTER_START_DATE, Some(version)))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService
-        .filterForIllegalPageAccess(SampleData.srn, ua,
+        .filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua,
           Some(AFTSummaryPage),
           Some(version))(optionalDataRequest(ua, viewOnly = true, headers = Seq("Referer" -> "manage-pension-schemes")))) { result =>
         result mustBe Some(expectedResult)
@@ -180,7 +182,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
       whenReady(allowAccessService
-        .filterForIllegalPageAccess(SampleData.srn, ua,
+        .filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua,
           Some(AFTSummaryPage),
           Some(version))(optionalDataRequest(ua, viewOnly = true, headers = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")))) { result =>
         result mustBe None
@@ -195,7 +197,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -208,7 +210,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -221,7 +223,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", ua)(optionalDataRequest(ua))) { result =>
+      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(optionalDataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }

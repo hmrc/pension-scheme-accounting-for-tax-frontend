@@ -37,6 +37,8 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 import scala.concurrent.Future
 
@@ -46,9 +48,9 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
   private val form = formProvider()
 
-  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn).url
+  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE).url
 
-  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn).url
+  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
@@ -112,7 +114,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTReturnRoute)
           .withFormUrlEncodedBody(("value", "true"))

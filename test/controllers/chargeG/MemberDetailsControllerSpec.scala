@@ -35,6 +35,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -45,14 +46,14 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val form: Form[MemberDetails] = formProvider()
 
   private lazy val httpPathGET: String =
-    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, 0).url
+    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
   private lazy val httpPathPOST: String =
-    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, 0).url
+    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, 0).url,
+      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("dob"))
@@ -142,7 +143,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any())).thenReturn(dummyCall)
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

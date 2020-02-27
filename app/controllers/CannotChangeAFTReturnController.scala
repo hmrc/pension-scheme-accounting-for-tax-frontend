@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class CannotChangeAFTReturnController @Inject()(
                                              identify: IdentifierAction,
@@ -43,19 +44,16 @@ class CannotChangeAFTReturnController @Inject()(
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  private def getFormattedEndDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatter)
-  private def getFormattedStartDate(s: String): String = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse(s)).format(dateFormatterStartDate)
-
-  def onPageLoad(srn: String, optionVersion:Option[String]): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 
         renderer.render("cannot-change-aft-return.njk",
           Json.obj("schemeName" -> schemeName,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "quarterStart" -> getFormattedStartDate(quarter.startDate),
-            "quarterEnd" -> getFormattedEndDate(quarter.endDate),
-            "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, optionVersion).url
+            "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
+            "quarterEnd" -> quarter.endDate.format(dateFormatter),
+            "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
           )
         ).map(Ok(_))
       }

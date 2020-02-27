@@ -41,6 +41,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -54,9 +55,9 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val formProvider = new DeleteMemberFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
-  private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, 0).url
+  private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, 0).url
 
-  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, 0).url
+  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -101,7 +102,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

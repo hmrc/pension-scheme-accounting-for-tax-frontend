@@ -16,12 +16,15 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
 import models.{GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
@@ -73,7 +76,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
     }
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
@@ -81,12 +84,13 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
           case Some(value) => form.fill(value)
         }
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
@@ -100,18 +104,19 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   private def addArgsToErrors(form: Form[SponsoringEmployerAddress], args: String*): Form[SponsoringEmployerAddress] =
     form copy (errors = form.errors.map(_ copy (args = args)))
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
               "srn" -> srn,
+          "startDate" -> Some(startDate),
               "form" -> addArgsToErrors(formWithErrors, sponsorName),
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,
@@ -124,7 +129,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

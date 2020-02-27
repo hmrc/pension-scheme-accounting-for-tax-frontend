@@ -28,6 +28,8 @@ import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.Future
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 object DataRetrievals {
 
@@ -101,7 +103,8 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String)
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
+                          srn: String, startDate: LocalDate)
                          (block: (A, String) => Future[Result])
                          (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
@@ -111,11 +114,11 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(schemeName)) =>
         block(chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
-  def cyaChargeC(index: Index, srn: String)
+  def cyaChargeC(index: Index, srn: String, startDate: LocalDate)
                 (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
 
@@ -135,14 +138,14 @@ object DataRetrievals {
           case (None, Some(organisation)) =>
             block(isSponsoringEmployerIndividual, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
-            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
         }
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
-  def cyaChargeD(index: Index, srn: String)
+  def cyaChargeD(index: Index, srn: String, startDate: LocalDate)
                 (block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -153,11 +156,11 @@ object DataRetrievals {
       case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
         block(memberDetails, chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
-  def cyaChargeE(index: Index, srn: String)
+  def cyaChargeE(index: Index, srn: String, startDate: LocalDate)
                 (block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -169,11 +172,11 @@ object DataRetrievals {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
         block(memberDetails, taxYear, chargeEDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 
-  def cyaChargeG(index: Index, srn: String)
+  def cyaChargeG(index: Index, srn: String, startDate: LocalDate)
                 (block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -185,7 +188,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>
         block(chargeDetails, memberDetails, chargeAmounts, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
     }
   }
 

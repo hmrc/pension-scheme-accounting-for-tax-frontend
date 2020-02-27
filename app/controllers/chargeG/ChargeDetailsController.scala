@@ -16,8 +16,6 @@
 
 package controllers.chargeG
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -36,6 +34,8 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import utils.DateHelper.dateFormatterDMY
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,16 +52,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def form(quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] = {
-    val minDate: LocalDate = LocalDate.parse(quarter.startDate)
-    val maxDate: LocalDate = LocalDate.parse(quarter.endDate)
+  def form(quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] =
 
-    formProvider(minDate, maxDate,
-      dateErrorMsg = messages("chargeG.chargeDetails.qropsTransferDate.error.date", minDate.format(dateFormatterDMY), maxDate.format(dateFormatterDMY)))
-  }
+    formProvider(quarter.startDate, quarter.endDate,
+      dateErrorMsg = messages("chargeG.chargeDetails.qropsTransferDate.error.date",
+        quarter.startDate.format(dateFormatterDMY),
+        quarter.endDate.format(dateFormatterDMY)))
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeQuarterMemberChargeG(MemberDetailsPage(index)){ (schemeName, quarter, memberName) =>
 
@@ -71,12 +70,13 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "date" -> DateInput.localDate(preparedForm("qropsTransferDate")),
@@ -87,20 +87,20 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeQuarterMemberChargeG(MemberDetailsPage(index)){ (schemeName, quarter, memberName) =>
 
         form(quarter).bindFromRequest().fold(
           formWithErrors => {
-
             val viewModel = GenericViewModel(
-              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("qropsTransferDate")),
@@ -113,7 +113,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

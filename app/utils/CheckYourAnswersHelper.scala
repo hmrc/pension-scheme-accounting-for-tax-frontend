@@ -17,8 +17,10 @@
 package utils
 
 import java.text.DecimalFormat
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import models.LocalDateBinder._
 import models.chargeB.ChargeBDetails
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
@@ -26,8 +28,6 @@ import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import models.{CheckMode, UserAnswers, YearRange}
-import pages.ConfirmSubmitAFTReturnPage
-import pages.chargeC._
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -36,7 +36,7 @@ import utils.CheckYourAnswersHelper._
 
 case object DataMissingException extends Exception
 
-class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit messages: Messages) {
+class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages) {
 
   private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
     def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
@@ -78,7 +78,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, index).url,
+          href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, startDate, index).url,
           visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel"))
       )
     )
@@ -91,7 +91,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -102,7 +102,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel".withArgs(answer.fullName))
           )
         )
@@ -118,7 +118,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -129,7 +129,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel".withArgs(answer.name))
           )
         )
@@ -147,7 +147,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, index).url,
+          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index).url,
           visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
         )
       )
@@ -161,7 +161,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -172,7 +172,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -186,7 +186,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
           visuallyHiddenText = Some(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -200,7 +200,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
           visuallyHiddenText = Some(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -213,7 +213,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -227,7 +227,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -241,7 +241,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -261,7 +261,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
             visuallyHiddenText = Some(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -272,7 +272,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn).url,
+            href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
             visuallyHiddenText = Some(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -288,7 +288,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
           )
         )
@@ -299,7 +299,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
           )
         )
@@ -315,7 +315,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.taxYear.label")
           )
         )
@@ -332,7 +332,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.chargeAmount.label")
           )
         )
@@ -343,7 +343,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.dateNoticeReceived.label")
           )
         )
@@ -354,7 +354,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.isPaymentMandatory.label")
           )
         )
@@ -370,7 +370,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
           )
         )
@@ -381,7 +381,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeD.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
           )
         )
@@ -397,7 +397,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeDDetails.dateOfEvent.visuallyHidden.label")
           )
         )
@@ -408,7 +408,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"taxAt25Percent.visuallyHidden.label")
           )
         )
@@ -419,7 +419,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"taxAt55Percent.visuallyHidden.label")
           )
         )
@@ -435,7 +435,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
           )
         )
@@ -446,7 +446,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"dob.cya.label".withArgs(answer.fullName))
           )
         )
@@ -457,7 +457,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
           )
         )
@@ -473,7 +473,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
           )
         )
@@ -484,7 +484,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeGDetails.qropsTransferDate.visuallyHidden.label")
           )
         )
@@ -500,7 +500,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeG.chargeAmount.transferred.visuallyHidden.label")
           )
         )
@@ -512,7 +512,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String)(implicit mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, index).url,
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
             visuallyHiddenText = Some(msg"chargeG.chargeAmount.taxDue.visuallyHidden.label")
           )
         )

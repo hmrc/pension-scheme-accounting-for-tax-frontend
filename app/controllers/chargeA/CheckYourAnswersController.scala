@@ -16,12 +16,14 @@
 
 package controllers.chargeA
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
@@ -51,10 +53,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            renderer: Renderer
                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn) { (chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn)
+      DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
+        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows = Seq(
           helper.chargeAMembers(chargeDetails),
@@ -67,9 +69,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           template = "check-your-answers.njk",
           ctx = Json.obj(
             "srn" -> srn,
+          "startDate" -> Some(startDate),
             "list" -> helper.rows(request.viewOnly, seqRows),
             "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn).url,
+              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             ),
@@ -80,7 +83,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       }
   }
 
-  def onClick(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>
@@ -94,7 +97,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
             _ <- aftService.fileAFTReturn(pstr, updatedUserAnswers)
-          } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn))
+          } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate))
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }

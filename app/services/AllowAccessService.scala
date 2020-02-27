@@ -30,6 +30,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
                                    aftService: AFTService,
@@ -50,7 +52,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
   private def isPreviousPageWithinAFT(implicit request: OptionalDataRequest[_]):Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def filterForIllegalPageAccess(srn: String, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
+  def filterForIllegalPageAccess(srn: String, startDate: LocalDate, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
                                 (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -63,11 +65,11 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
           case true =>
             (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
               case (true, _, Some(AFTSummaryPage), Some(_), false) =>
-                Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, optionVersion))))
+                Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optionVersion))))
               case (true, _, Some(ChargeTypePage), _, _) =>
-                Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn))))
+                Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
               case (false, true, Some(ChargeTypePage), _, _) =>
-                Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, None))))
+                Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
               case _ =>
                 Future.successful(None)
             }

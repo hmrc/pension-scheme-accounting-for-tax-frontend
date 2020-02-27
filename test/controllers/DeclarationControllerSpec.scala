@@ -33,6 +33,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
+import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 import scala.concurrent.Future
 
@@ -45,12 +47,12 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val templateToBeRendered = "declaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn).url
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
 
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn).url,
+      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
@@ -82,7 +84,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).getOrElse(UserAnswers())))
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value

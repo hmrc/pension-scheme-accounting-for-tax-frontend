@@ -24,13 +24,15 @@ import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import utils.AFTConstants._
 
 import scala.concurrent.Future
 
 class SignOutControllerSpec extends ControllerSpecBase {
 
   private val srn = "srn"
-  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn).url
+  private val startDate = Some(QUARTER_START_DATE.toString)
+  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn, startDate).url
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))

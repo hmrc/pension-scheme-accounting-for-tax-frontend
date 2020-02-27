@@ -16,6 +16,8 @@
 
 package controllers.actions
 
+import java.time.LocalDate
+
 import models.UserAnswers
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 
@@ -28,7 +30,7 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
   def setDataToReturn(userAnswers: Option[UserAnswers]): Unit = dataToReturn = userAnswers
   def setViewOnly(viewOnlyFlag: Boolean): Unit = viewOnly = viewOnlyFlag
 
-  override def apply(srn: String): DataRetrieval = new MutableFakeDataRetrieval(viewOnly, dataToReturn)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new MutableFakeDataRetrieval(viewOnly, dataToReturn)
 }
 
 class MutableFakeDataRetrieval(viewOnly: Boolean = false, dataToReturn: Option[UserAnswers]) extends DataRetrieval {

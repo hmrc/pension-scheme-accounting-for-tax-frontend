@@ -16,15 +16,16 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
+import java.time.LocalDate
+
+import audit.AuditService
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Mode, NormalMode, Years}
+import models.{GenericViewModel, Years}
 import navigators.CompoundNavigator
-import pages._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -63,6 +64,7 @@ class YearsController @Inject()(
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> None,
           "form" -> form,
           "radios" -> Years.radios(form),
           "viewModel" -> viewModel(schemeDetails.schemeName, srn)
@@ -80,6 +82,7 @@ class YearsController @Inject()(
             schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
+              "startDate" -> None,
               "form" -> formWithErrors,
               "radios" -> Years.radios(formWithErrors),
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)

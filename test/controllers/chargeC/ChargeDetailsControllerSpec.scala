@@ -36,6 +36,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
@@ -44,8 +45,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
   private val index = 0
-  private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, index).url
-  private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "paymentDate.day" -> Seq("3"),
@@ -71,7 +72,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate:Form[ChargeCDetails]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, index).url,
+      submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
@@ -145,7 +146,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -181,11 +182,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "Return a redirect when zero amount is submitted and new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 

@@ -16,6 +16,8 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -29,6 +31,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,12 +50,12 @@ class DeclarationController @Inject()(
                                        renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn)
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
     andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeclarationController.onSubmit(srn).url,
+          submitUrl = routes.DeclarationController.onSubmit(srn, startDate).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName
         )
@@ -61,7 +64,7 @@ class DeclarationController @Inject()(
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn)
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
     andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
@@ -71,7 +74,7 @@ class DeclarationController @Inject()(
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
         } yield {
-          Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn))
+          Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
   }

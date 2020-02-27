@@ -16,17 +16,16 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.AuditService
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.requests.OptionalDataRequest
-import models.{NormalMode, Quarters, UserAnswers, Year, Years}
+import models.LocalDateBinder._
+import models.{Quarters, Years}
 import navigators.CompoundNavigator
-import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -50,7 +49,7 @@ class AFTLoginController @Inject()(
                                       allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify).async {
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
 
       val defaultYear = Years.minYear

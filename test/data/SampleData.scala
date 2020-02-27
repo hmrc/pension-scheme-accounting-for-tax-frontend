@@ -36,7 +36,7 @@ object SampleData {
   val userAnswersId = "id"
   val psaId = "A0000000"
   val srn = "aa"
-  val startDate = "2020-04-01"
+  val startDate = QUARTER_START_DATE
   val pstr = "pstr"
   val schemeName = "Big Scheme"
   val companyName = "Big Company"
@@ -51,7 +51,7 @@ object SampleData {
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
   val chargeCDetails = ChargeCDetails(paymentDate = LocalDate.of(2019, 4, 3),amountTaxDue = BigDecimal(33.44))
   val chargeDDetails = ChargeDDetails(LocalDate.of(2019, 4, 3), Option(chargeAmount1), Option(chargeAmount2))
-  val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "Q123456", qropsTransferDate = LocalDate.of(2020, 4, 3))
+  val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
   val version = "1"
 

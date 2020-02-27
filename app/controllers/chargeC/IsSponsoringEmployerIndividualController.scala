@@ -33,6 +33,8 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class IsSponsoringEmployerIndividualController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -49,7 +51,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get (IsSponsoringEmployerIndividualPage(index)) match {
@@ -58,12 +60,13 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo (preparedForm("value"))
@@ -73,14 +76,14 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
     }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -96,7 +99,7 @@ class IsSponsoringEmployerIndividualController @Inject()(override val messagesAp
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(IsSponsoringEmployerIndividualPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

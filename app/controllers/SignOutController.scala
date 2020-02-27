@@ -24,7 +24,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class SignOutController @Inject()(
                                    config: FrontendAppConfig,
@@ -34,10 +34,19 @@ class SignOutController @Inject()(
                                    userAnswersCacheConnector: UserAnswersCacheConnector
 )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def signOut(srn: String): Action[AnyContent] = (identify andThen getData(srn)).async {
+  def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async {
     implicit request =>
-      userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-        Redirect(config.signOutUrl).withNewSession
+
+      startDate match {
+        case Some(startDate) =>
+
+          val id = s"$srn$startDate"
+          userAnswersCacheConnector.removeAll(id).map { _ =>
+            Redirect(config.signOutUrl).withNewSession
+          }
+        case _ =>
+
+          Future.successful(Redirect(config.signOutUrl).withNewSession)
       }
   }
 }

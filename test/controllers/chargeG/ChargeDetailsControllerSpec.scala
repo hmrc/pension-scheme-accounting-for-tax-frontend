@@ -41,6 +41,8 @@ import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
+import utils.DateHelper
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -56,9 +58,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   private def onwardRoute: Call = Call("GET", "/foo")
 
-  private def httpPathGET: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, 0).url
+  private def httpPathGET: String = routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
 
-  private def httpPathPOST: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, 0).url
+  private def httpPathPOST: String = routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
   private def getRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, httpPathGET)
@@ -135,16 +137,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to the next page when valid data is submitted" ignore {
-      //    TODO: This test cannot pass until we build dynamic quarters.
-      //          As the form is constrained both by which quarter the submission takes place and that
-      //          the date is not in the future, hard coding the quarter to 1/4/20-30/6/20 means that
-      //          the submission can only be in the future. The work to build dynamic quarters will be done in
-      //          Sprint 58 (PODS-3755). Uncomment and amend test then.
-
+    "redirect to the next page when valid data is submitted" in {
+      DateHelper.setDate(Some(startDate))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))

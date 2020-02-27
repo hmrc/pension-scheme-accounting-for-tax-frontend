@@ -16,6 +16,8 @@
 
 package controllers.actions
 
+import java.time.LocalDate
+
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
@@ -26,19 +28,18 @@ import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import utils.AFTConstants
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class DataRetrievalImpl(
-                         srn: String,
+                         srn: String, startDate: LocalDate,
                          val userAnswersCacheConnector: UserAnswersCacheConnector
                        )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    val id = s"$srn${AFTConstants.QUARTER_START_DATE}"
+    val id = s"$srn$startDate"
     for {
       data <- userAnswersCacheConnector.fetch(id)
       isLocked <- userAnswersCacheConnector.isLocked(id)
@@ -58,7 +59,7 @@ class DataRetrievalImpl(
 class DataRetrievalActionImpl @Inject()(
                                          userAnswersCacheConnector: UserAnswersCacheConnector
                                        )(implicit val executionContext: ExecutionContext) extends DataRetrievalAction {
-  override def apply(srn: String): DataRetrieval = new DataRetrievalImpl(srn, userAnswersCacheConnector)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }
 
 @ImplementedBy(classOf[DataRetrievalImpl])
@@ -66,5 +67,5 @@ trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataReq
 
 @ImplementedBy(classOf[DataRetrievalActionImpl])
 trait DataRetrievalAction {
-  def apply(srn: String): DataRetrieval
+  def apply(srn: String, startDate: LocalDate): DataRetrieval
 }

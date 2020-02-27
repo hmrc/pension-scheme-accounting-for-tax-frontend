@@ -16,12 +16,15 @@
 
 package controllers.chargeD
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
@@ -52,14 +55,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
-  private def viewModel(mode: Mode, srn: String, index: Index, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, index).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
@@ -70,8 +73,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, index, schemeName),
+          "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
           "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
           "memberName" -> memberName
         )
@@ -80,7 +84,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
@@ -89,8 +93,9 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "srn" -> srn,
+          "startDate" -> Some(startDate),
               "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, index, schemeName),
+              "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
               "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
               "memberName" -> memberName
             )
@@ -100,7 +105,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }

@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
@@ -36,7 +37,7 @@ import renderer.Renderer
 import services.ChargeEService.{getAnnualAllowanceMembers, mapToTable}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterYMD}
+import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,21 +56,19 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
-  def getFormattedDate(s: String): String = LocalDate.from(dateFormatterYMD.parse(s)).format(dateFormatterDMY)
-
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
 
           renderer.render(template = "chargeE/addMembers.njk",
-            getJson(srn, form, schemeName, quarter)).map(Ok(_))
+            getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
         form.bindFromRequest().fold(
           formWithErrors => {
@@ -78,7 +77,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
                 renderer.render(
                   template = "chargeE/addMembers.njk",
-                  getJson(srn, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+                  getJson(srn, startDate, formWithErrors, schemeName, quarter)).map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
@@ -87,28 +86,29 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddMembersPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AddMembersPage, NormalMode, updatedAnswers, srn, startDate))
           }
         )
       }
 
-  private def getJson(srn: String, form: Form[_], schemeName: String, quarter: Quarter
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter
                      )(implicit request: DataRequest[AnyContent]): JsObject = {
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.AddMembersController.onSubmit(srn).url,
+          submitUrl = routes.AddMembersController.onSubmit(srn, startDate).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
-        val members = getAnnualAllowanceMembers(request.userAnswers, srn)
+        val members = getAnnualAllowanceMembers(request.userAnswers, srn, startDate)
 
         Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> form,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(form("value")),
-          "quarterStart" -> getFormattedDate(quarter.startDate),
-          "quarterEnd" -> getFormattedDate(quarter.endDate),
+          "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+          "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
           "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
           "canChange" -> !request.viewOnly
         )

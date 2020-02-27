@@ -42,6 +42,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import scala.concurrent.Future
+import utils.AFTConstants.QUARTER_START_DATE
+import models.LocalDateBinder._
 
 class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
@@ -54,7 +56,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val testYear = 2020
-  private val startDate = "2020-04-01"
+  private val startDate = QUARTER_START_DATE
   private val errorKey = "quarters.error.required"
   val templateToBeRendered = "quarters.njk"
   val formProvider = new QuartersFormProvider()

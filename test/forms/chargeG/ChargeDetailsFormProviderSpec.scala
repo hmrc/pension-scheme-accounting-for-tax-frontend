@@ -28,12 +28,10 @@ import utils.DateHelper
 class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehaviours {
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  private val startDate = LocalDate.parse(QUARTER_START_DATE)
-  private val endDate = LocalDate.parse(QUARTER_END_DATE)
   private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
-    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
+    s"${QUARTER_START_DATE.format(dateFormatter)} and ${QUARTER_END_DATE.format(dateFormatter)}"
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
-  val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg)
+  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, dynamicErrorMsg)
   val qropsRefKey = "qropsReferenceNumber"
   val qropsDateKey = "qropsTransferDate"
 
@@ -42,7 +40,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMin(
       form = form,
       key = qropsDateKey,
-      min = startDate,
+      min = QUARTER_START_DATE,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
@@ -56,7 +54,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     behave like dateFieldWithMax(
       form = form,
       key = qropsDateKey,
-      max = endDate,
+      max = QUARTER_END_DATE,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
     )
 
@@ -79,15 +77,15 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
     )
 
     "successfully bind when valid QROPS with spaces is provided" in {
-      DateHelper.setDate(Some(startDate.plusDays(2)))
+      DateHelper.setDate(Some(QUARTER_START_DATE.plusDays(2)))
       val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
         qropsRefKey -> " 1 2 3 1 2 3 ",
-        s"$qropsDateKey.day"   -> startDate.getDayOfMonth.toString,
-        s"$qropsDateKey.month" -> startDate.getMonthValue.toString,
-        s"$qropsDateKey.year"  -> startDate.getYear.toString
+        s"$qropsDateKey.day"   -> QUARTER_START_DATE.getDayOfMonth.toString,
+        s"$qropsDateKey.month" -> QUARTER_START_DATE.getMonthValue.toString,
+        s"$qropsDateKey.year"  -> QUARTER_START_DATE.getYear.toString
       )
       )
-      res.get mustEqual ChargeDetails("123123", startDate)
+      res.get mustEqual ChargeDetails("123123", QUARTER_START_DATE)
     }
   }
 }

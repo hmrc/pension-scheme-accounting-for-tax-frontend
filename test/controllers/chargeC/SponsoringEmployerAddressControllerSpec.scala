@@ -37,6 +37,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
@@ -47,9 +48,9 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private val form = new SponsoringEmployerAddressFormProvider()()
   private val index = 0
 
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
@@ -73,7 +74,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private def jsonToPassToTemplate(sponsorName: String): Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, index).url,
+      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "sponsorName" -> sponsorName
@@ -191,7 +192,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 

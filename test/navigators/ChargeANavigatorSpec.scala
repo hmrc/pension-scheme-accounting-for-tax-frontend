@@ -22,6 +22,8 @@ import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
+import models.LocalDateBinder._
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeANavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
@@ -32,26 +34,27 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn)),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, None))
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate)),
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
   }
 
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn))
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
   }
 
 }
 
 object ChargeANavigatorSpec {
   private val srn = "test-srn"
+  private val startDate = QUARTER_START_DATE
 }

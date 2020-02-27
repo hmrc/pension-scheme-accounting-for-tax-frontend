@@ -16,10 +16,11 @@
 
 package controllers.chargeA
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
-import controllers.DataRetrievals
 import controllers.actions._
 import javax.inject.Inject
 import models.{GenericViewModel, NormalMode}
@@ -48,12 +49,11 @@ class WhatYouWillNeedController @Inject()(
                                            navigator: CompoundNavigator
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
         val ua = request.userAnswers
         val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-        val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn)
+        val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
         val viewModel = GenericViewModel(
           submitUrl = "",
@@ -61,8 +61,8 @@ class WhatYouWillNeedController @Inject()(
           schemeName = schemeName)
 
         renderer.render(template = "chargeA/whatYouWillNeed.njk",
-          Json.obj(fields = "srn" -> srn, "schemeName" -> schemeName,
+          Json.obj(fields = "srn" -> srn,
+          "startDate" -> Some(startDate), "schemeName" -> schemeName,
             "nextPage" -> nextPage.url, "viewModel" -> viewModel)).map(Ok(_))
-      }
   }
 }

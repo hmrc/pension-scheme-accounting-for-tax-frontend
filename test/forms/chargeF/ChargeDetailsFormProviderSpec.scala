@@ -16,7 +16,6 @@
 
 package forms.chargeF
 
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import forms.behaviours._
@@ -26,11 +25,9 @@ import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  private val startDate = LocalDate.parse(QUARTER_START_DATE)
-  private val endDate = LocalDate.parse(QUARTER_END_DATE)
   private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
-    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
-  val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg, BigDecimal("0.01"))
+    s"${QUARTER_START_DATE.format(dateFormatter)} and ${QUARTER_END_DATE.format(dateFormatter)}"
+  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, dynamicErrorMsg, BigDecimal("0.01"))
   val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"
@@ -41,14 +38,14 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like dateFieldWithMin(
       form = form,
       key = deRegDateKey,
-      min = startDate,
+      min = QUARTER_START_DATE,
       formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 
     behave like dateFieldWithMax(
       form = form,
       key = deRegDateKey,
-      max = endDate,
+      max = QUARTER_END_DATE,
       formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 

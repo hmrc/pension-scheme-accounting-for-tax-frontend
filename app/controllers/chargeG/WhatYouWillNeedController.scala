@@ -16,6 +16,8 @@
 
 package controllers.chargeG
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -47,12 +49,12 @@ class WhatYouWillNeedController @Inject()(
                                            config: FrontendAppConfig
                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn).url,
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate).url,
         returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )

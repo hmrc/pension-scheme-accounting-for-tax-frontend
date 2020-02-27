@@ -16,9 +16,6 @@
 
 package controllers.chargeG
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -35,7 +32,8 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTConstants
+import utils.AFTConstants._
+import models.LocalDateBinder._
 
 import scala.concurrent.Future
 
@@ -44,8 +42,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeG.addMembers.error")
-  private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(srn).url
-  private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(srn).url
+  private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(srn, startDate).url
+  private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("true")
@@ -69,15 +67,15 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
         Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> "<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
@@ -92,12 +90,12 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn).url,
+      submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> LocalDate.parse(AFTConstants.QUARTER_START_DATE).format(dateFormatter),
-    "quarterEnd" -> LocalDate.parse(AFTConstants.QUARTER_END_DATE).format(dateFormatter),
+    "quarterStart" -> QUARTER_START_DATE.format(dateFormatter),
+    "quarterEnd" -> QUARTER_END_DATE.format(dateFormatter),
     "table" -> table
   )
 
@@ -144,7 +142,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddMembersPage), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddMembersPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
 

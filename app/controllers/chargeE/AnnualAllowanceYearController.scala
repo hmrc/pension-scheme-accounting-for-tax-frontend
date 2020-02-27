@@ -16,12 +16,15 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.YearRangeFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, Mode, YearRange}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
@@ -51,7 +54,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
   def form()(implicit messages: Messages): Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
 
-  def onPageLoad(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen allowAccess(srn) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -61,12 +64,13 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, index).url,
+          submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "radios" -> YearRange.radios(preparedForm),
           "viewModel" -> viewModel
@@ -76,19 +80,20 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, index: Index): Action[AnyContent] = (identify andThen getData(srn) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, index).url,
+              submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
           "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> formWithErrors,
               "radios" -> YearRange.radios(formWithErrors),
               "viewModel" -> viewModel
@@ -99,7 +104,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AnnualAllowanceYearPage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn))
+            } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
       }

@@ -39,13 +39,14 @@ import play.twirl.api.Html
 import utils.AFTConstants._
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
-  private val quarterEndDate = LocalDate.parse(QUARTER_END_DATE).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-  private val quarterStartDate = LocalDate.parse(QUARTER_START_DATE).format(DateTimeFormatter.ofPattern("d MMMM"))
+  private val quarterEndDate = QUARTER_END_DATE.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+  private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
 
-  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/sign-out/${SampleData.srn}")
+  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
 
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
@@ -72,7 +73,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn).url)
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 

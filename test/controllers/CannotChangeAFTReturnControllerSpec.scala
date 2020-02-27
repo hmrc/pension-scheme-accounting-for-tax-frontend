@@ -28,6 +28,7 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
 
@@ -43,7 +44,7 @@ class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, None).url)
+      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 

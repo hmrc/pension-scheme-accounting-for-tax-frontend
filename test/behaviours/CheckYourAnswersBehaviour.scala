@@ -34,6 +34,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
@@ -81,7 +82,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, None).url
+      redirectLocation(result).value mustBe controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None).url
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -105,7 +106,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 

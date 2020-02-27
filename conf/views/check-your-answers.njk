@@ -33,7 +33,7 @@
         {% else %}
             {{ govukButton({
                  text: messages("site.return_to_summary"),
-                 href: routes.controllers.AFTSummaryController.onPageLoad(srn, None).url,
+                 href: routes.controllers.AFTSummaryController.onPageLoad(srn, startDate).url,
                  attributes: {id: "submit"}
             }) }}
         {% endif %}

@@ -16,14 +16,19 @@
 
 package services
 
+import java.time.LocalDate
+
 import base.SpecBase
 import data.SampleData
-import models.{Member, MemberDetails, NormalMode, UserAnswers}
+import models.LocalDateBinder._
+import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeEServiceSpec extends SpecBase {
 
   val srn = "S1234567"
+  val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers().set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
@@ -34,9 +39,9 @@ class ChargeEServiceSpec extends SpecBase {
     .set(MemberDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
     .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, index).url
-  def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, index).url
-  def expectedMember(memberDetails: MemberDetails, index: Int) =
+  def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
+  def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
+  def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[Member] = Seq(
@@ -49,13 +54,13 @@ class ChargeEServiceSpec extends SpecBase {
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      ChargeEService.getAnnualAllowanceMembers(allMembers, srn) mustBe expectedAllMembers
+      ChargeEService.getAnnualAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn) mustBe expectedMembersIncludingDeleted
+      ChargeEService.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

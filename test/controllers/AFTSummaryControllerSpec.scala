@@ -24,7 +24,7 @@ import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
 import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito._
+import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -41,6 +41,7 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
   with Enumerable.Implicits with Results with ScalaFutures {
@@ -61,11 +62,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
 
-  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, None).url
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, None).url
 
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, Some(SampleData.version)).url
+  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -85,7 +86,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
   }
@@ -93,9 +94,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
-    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn),
+    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, version).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
       returnUrl = testManagePensionsUrl.url,
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
@@ -116,7 +117,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
       verify(mockAllowAccessService, times(1))
-        .filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(retrievedUA), Matchers.eq(Some(AFTSummaryPage)), any())(any())
+        .filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(AFTSummaryPage)), any())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
@@ -127,7 +128,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val alternativeLocation = Redirect(location)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       when(mockAllowAccessService
-        .filterForIllegalPageAccess(any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+        .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
       whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
         result.header.status mustEqual SEE_OTHER
@@ -149,6 +150,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockAllowAccessService, times(1))
         .filterForIllegalPageAccess(
           Matchers.eq(srn),
+          Matchers.eq(startDate),
           Matchers.eq(retrievedUA),
           Matchers.eq(Some(AFTSummaryPage)),
           Matchers.eq(Some(SampleData.version)))(any())
@@ -158,7 +160,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to next page when user selects yes" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -174,7 +176,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "redirect to next page when user selects no with submission enabled" in {
       when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

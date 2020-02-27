@@ -16,12 +16,14 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import javax.inject.Inject
-import models.{Mode, GenericViewModel}
+import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -30,6 +32,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,8 +52,8 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen
-    allowAccess(srn) andThen allowSubmission andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen
+    allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
@@ -59,12 +62,13 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn).url,
+          submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
           "radios" -> Radios.yesNo(preparedForm("value"))
@@ -74,20 +78,21 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
       }
   }
 
-  def onSubmit(mode: Mode, srn: String): Action[AnyContent] = (identify andThen getData(srn) andThen
-    allowAccess(srn) andThen allowSubmission andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen
+    allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn).url,
+              submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
             val json = Json.obj(
               fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(formWithErrors("value"))
@@ -104,7 +109,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn))
+              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate))
             }
         )
       }

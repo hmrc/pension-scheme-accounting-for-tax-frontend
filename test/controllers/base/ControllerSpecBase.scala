@@ -50,7 +50,7 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-    when(mockAllowAccessActionProvider.apply(any())).thenReturn(FakeActionFilter)
+    when(mockAllowAccessActionProvider.apply(any(), any())).thenReturn(FakeActionFilter)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]

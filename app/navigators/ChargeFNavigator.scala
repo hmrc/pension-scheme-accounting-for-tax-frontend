@@ -22,16 +22,18 @@ import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn)
-    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, None)
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+    case WhatYouWillNeedPage => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
+    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String): PartialFunction[Page, Call] = {
-    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn)
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
   }
 }

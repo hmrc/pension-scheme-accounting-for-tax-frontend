@@ -22,10 +22,12 @@ import play.api.i18n.Messages
 import play.api.mvc.Call
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
+import java.time.LocalDate
+import models.LocalDateBinder._
 
 object ChargeGService {
 
-  def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String): Seq[Member] = {
+  def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
     val members = for {
         (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeGDetails").zipWithIndex
@@ -36,8 +38,8 @@ object ChargeGService {
             member.fullName,
             member.nino,
             chargeAmounts.amountTaxDue,
-            viewUrl(index, srn).url,
-            removeUrl(index, srn).url,
+            viewUrl(index, srn, startDate).url,
+            removeUrl(index, srn, startDate).url,
             member.isDeleted
           )
         }
@@ -46,11 +48,11 @@ object ChargeGService {
     members.flatten
   }
 
-  def getOverseasTransferMembers(ua: UserAnswers, srn: String): Seq[Member] =
-    getOverseasTransferMembersIncludingDeleted(ua, srn).filterNot(_.isDeleted)
+  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
+    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String): Call = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, index)
-  def removeUrl(index: Int, srn: String): Call = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeG", members, canChange)
