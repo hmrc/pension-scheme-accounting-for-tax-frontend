@@ -36,7 +36,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.{ExecutionContext, Future}
 

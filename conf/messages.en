@@ -295,10 +295,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
-chargeC = Authorised surplus payments charge
 chargeD = Lifetime allowance charge
-chargeE = Annual allowance charge
-chargeF = De-registration charge
 chargeG = Overseas transfer charge
 
 memberDetails.title = Member’s details - {0}

@@ -25,7 +25,7 @@ import models.chargeC.ChargeCDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
@@ -37,8 +37,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = "chargeC.paymentDate.error.incomplete",
         requiredKey = "chargeC.paymentDate.error.required"
       ).verifying(
-        minDate(min, messages("chargeC.paymentDate.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
-        maxDate(max, messages("chargeC.paymentDate.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
+        minDate(min, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits("chargeC.paymentDate.error.invalid")
       ),
       "amountTaxDue" -> bigDecimal2DP(

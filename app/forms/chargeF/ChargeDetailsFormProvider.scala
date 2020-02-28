@@ -24,7 +24,7 @@ import models.chargeF.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
@@ -36,8 +36,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "chargeF.deregistrationDate.error.required.two",
         requiredKey = "chargeF.deregistrationDate.error.required.all"
       ).verifying(
-        minDate(min, messages("chargeF.deregistrationDate.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
-        maxDate(max, messages("chargeF.deregistrationDate.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY)))
+        minDate(min, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max)))
       ),
       "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "chargeF.amountTaxDue.error.required",

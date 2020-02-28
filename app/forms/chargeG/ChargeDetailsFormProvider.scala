@@ -24,7 +24,7 @@ import models.chargeG.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
@@ -45,10 +45,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = s"$qropsTransferDateKey.required.two",
         requiredKey = s"$qropsTransferDateKey.required"
       ).verifying(
-        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", min.format(dateFormatterDMY),
-          max.format(dateFormatterDMY))),
-        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", min.format(dateFormatterDMY),
-          max.format(dateFormatterDMY))),
+        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits(s"$qropsTransferDateKey.invalid")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
