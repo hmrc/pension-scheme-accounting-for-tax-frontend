@@ -25,7 +25,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import models.ChargeType._
-import utils.CheckYourAnswersHelper.formatBigDecimalAsString
+import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import java.time.LocalDate
 import models.LocalDateBinder._
 
@@ -79,7 +79,7 @@ class AFTSummaryHelper{
     val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatBigDecimalAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -98,7 +98,7 @@ class AFTSummaryHelper{
     val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatBigDecimalAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -115,7 +115,7 @@ class AFTSummaryHelper{
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"${formatBigDecimalAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = Nil
     ))
 
