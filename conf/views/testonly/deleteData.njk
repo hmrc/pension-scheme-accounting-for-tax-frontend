@@ -1,0 +1,71 @@
+{% extends "includes/layout.njk" %}
+
+{% from "macros/title.njk"  import title %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/date-input/macro.njk"    import govukDateInput %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+
+{% block pageTitle %}
+  {{ title("Test Only Clear Data Tool") }}
+{% endblock %}
+
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+      {% if form.errors.length > 0 %}
+                {{ govukErrorSummary({
+                  "titleText": messages("error.summary.title"),
+                  "errorList": form.errors
+                }) }}
+              {% endif %}
+
+        <h1 class="govuk-heading-xl">Test Only Clear Data Tool</h1>
+            <form action="{{ submitUrl }}" method="post" autocomplete="off">
+
+                      {{ csrf() | safe }}
+
+              {{ govukDateInput({
+                        id: "startDate",
+                          fieldset: {
+                            legend: {
+                              text: "Quarter Start Date",
+                              isPageHeading: false,
+                              classes: "govuk-fieldset__legend--s"
+                            }
+                          },
+                          errorMessage: date.error,
+                          items: date.items
+              }) }}
+
+           {{ govukInput({
+                         id: "srn",
+                         label: {
+                           text: "Scheme Reference Number",
+                           isPageHeading: false,
+                           classes: "govuk-label--s"
+                         },
+                         name: "srn",
+                         type: "text",
+                         value: form.srn.value,
+                         classes: "govuk-input--width-10",
+                         errorMessage: form.srn.error
+                       }) }}
+
+
+        {{ govukButton({
+            href: nextPage,
+            attributes: {id: "submit"},
+            text: "Clear Data"
+        }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+{% endblock %}
