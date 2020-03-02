@@ -168,7 +168,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"chargeC.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -196,7 +196,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeFAmount(answer: ChargeDetails): Row =
     Row(
       key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -223,7 +223,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -237,7 +237,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"£${formatBigDecimalAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -250,7 +250,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
   def total(total: BigDecimal): Row = Row(
     key = Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")),
-    value = Value(Literal(s"£${formatBigDecimalAsString(total)}"))
+    value = Value(Literal(s"${formatCurrencyAmountAsString(total)}"))
   )
 
   def chargeBDetails(answer: ChargeBDetails): Seq[Row] = {
@@ -268,7 +268,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -328,7 +328,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     Seq(
       Row(
         key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -404,7 +404,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -415,7 +415,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -496,7 +496,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     Seq(
       Row(
         key = Key(msg"chargeG.chargeAmount.transferred", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -507,7 +507,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"£${formatBigDecimalAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
           "")),
         actions = List(
           Action(
@@ -529,8 +529,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 }
 
 object CheckYourAnswersHelper {
-  private val decimalFormat = new DecimalFormat("0.00")
+  private val currencyFormatter = java.text.NumberFormat.getCurrencyInstance
   private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
-  def formatBigDecimalAsString(bd: BigDecimal): String = decimalFormat.format(bd)
+  def formatCurrencyAmountAsString(bd: BigDecimal): String = currencyFormatter.format(bd)
 }
