@@ -19,19 +19,21 @@ package forms.chargeG
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import base.SpecBase
 import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import models.chargeG.ChargeDetails
 import play.api.data.FormError
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with StringFieldBehaviours {
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
-    s"${QUARTER_START_DATE.format(dateFormatter)} and ${QUARTER_END_DATE.format(dateFormatter)}"
+  private val dynamicErrorMsg: String = messages("chargeG.chargeDetails.qropsTransferDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
+    QUARTER_END_DATE.format(dateFormatterDMY))
+
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
-  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, dynamicErrorMsg)
+  val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE)
   val qropsRefKey = "qropsReferenceNumber"
   val qropsDateKey = "qropsTransferDate"
 
@@ -42,13 +44,6 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
       key = qropsDateKey,
       min = QUARTER_START_DATE,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
-    )
-
-    behave like dateFieldWithMax(
-      form = form,
-      key = qropsDateKey,
-      max = DateHelper.today,
-      formError = FormError(qropsDateKey, futureErrorMsg)
     )
 
     behave like dateFieldWithMax(
@@ -80,9 +75,9 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with StringFieldBehav
       DateHelper.setDate(Some(QUARTER_START_DATE.plusDays(2)))
       val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
         qropsRefKey -> " 1 2 3 1 2 3 ",
-        s"$qropsDateKey.day"   -> QUARTER_START_DATE.getDayOfMonth.toString,
+        s"$qropsDateKey.day" -> QUARTER_START_DATE.getDayOfMonth.toString,
         s"$qropsDateKey.month" -> QUARTER_START_DATE.getMonthValue.toString,
-        s"$qropsDateKey.year"  -> QUARTER_START_DATE.getYear.toString
+        s"$qropsDateKey.year" -> QUARTER_START_DATE.getYear.toString
       )
       )
       res.get mustEqual ChargeDetails("123123", QUARTER_START_DATE)

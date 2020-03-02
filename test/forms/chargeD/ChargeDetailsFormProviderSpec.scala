@@ -17,22 +17,24 @@
 package forms.chargeD
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
   private val dateKey = "dateOfEvent"
   private val tax25PercentKey = "taxAt25Percent"
   private val tax55PercentKey = "taxAt55Percent"
-  private val maxDate = LocalDate.now()
+  private val dynamicErrorMsg: String = messages("dateOfEvent.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
+    QUARTER_END_DATE.format(dateFormatterDMY))
 
   private def chargeDetails(
-                             date: LocalDate = LocalDate.from(DateTimeFormatter.ofPattern("yyyy-MM-dd").parse("2020-01-01")),
+                             date: LocalDate = QUARTER_START_DATE,
                              tax25: String = "1.00",
                              tax55: String = "1.00"
                            ): Map[String, String] = {
@@ -47,15 +49,27 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   }
 
   "dateOfEvent" must {
-    s"fail to bind a date greater than ${maxDate.format(DateTimeFormatter.ISO_LOCAL_DATE)}" in {
-      val generator = datesBetween(maxDate.plusDays(1), maxDate.plusYears(10))
+    s"fail to bind a date less than $QUARTER_START_DATE" in {
+      val generator = datesBetween(QUARTER_START_DATE.minusYears(10), QUARTER_START_DATE.minusDays(1))
 
       forAll(generator -> "invalid dates") {
         date =>
 
           val result = form.bind(chargeDetails(date = date))
 
-          result.errors must contain(FormError(dateKey, s"$dateKey.error.future"))
+          result.errors must contain(FormError(dateKey, dynamicErrorMsg))
+      }
+    }
+
+    s"fail to bind a date greater than $QUARTER_END_DATE" in {
+      val generator = datesBetween(QUARTER_END_DATE.plusDays(1), QUARTER_END_DATE.plusYears(10))
+
+      forAll(generator -> "invalid dates") {
+        date =>
+
+          val result = form.bind(chargeDetails(date = date))
+
+          result.errors must contain(FormError(dateKey, dynamicErrorMsg))
       }
     }
 

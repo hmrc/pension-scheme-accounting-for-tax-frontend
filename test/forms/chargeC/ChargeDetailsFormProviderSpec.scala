@@ -16,30 +16,35 @@
 
 package forms.chargeC
 
-import java.time.LocalDate
-
+import base.SpecBase
 import forms.behaviours.{BigDecimalFieldBehaviours, DateBehaviours}
 import models.chargeC.ChargeCDetails
 import play.api.data.FormError
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.dateFormatterDMY
 
-class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours {
+class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  val form = new ChargeDetailsFormProvider().apply(
+    QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01")
+  )
   val amountTaxDueMsgKey = "chargeC.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
   val dateKey = "paymentDate"
+  private val dynamicErrorMsg: String = messages("chargeC.paymentDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
+    QUARTER_END_DATE.format(dateFormatterDMY))
 
   "paymentDate" must {
     "must bind valid data" in {
       val expectedResult = ChargeCDetails(
-        paymentDate = LocalDate.of(2000, 3, 12),
+        paymentDate = QUARTER_START_DATE,
         amountTaxDue = BigDecimal(12.33)
       )
 
       val data = Map(
-        "paymentDate.day" -> "12",
-        "paymentDate.month" -> "03",
-        "paymentDate.year" -> "2000",
+        "paymentDate.day" -> QUARTER_START_DATE.getDayOfMonth.toString,
+        "paymentDate.month" -> QUARTER_START_DATE.getMonthValue.toString,
+        "paymentDate.year" -> QUARTER_START_DATE.getYear.toString,
         "amountTaxDue" -> "12.33"
       )
 
@@ -49,11 +54,18 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
     behave like mandatoryDateField(form, dateKey, "chargeC.paymentDate.error.required")
 
+    behave like dateFieldWithMin(
+      form = form,
+      key = dateKey,
+      min = QUARTER_START_DATE,
+      formError = FormError(dateKey, dynamicErrorMsg)
+    )
+
     behave like dateFieldWithMax(
       form = form,
       key = dateKey,
-      max = LocalDate.now(),
-      formError = FormError(dateKey, "chargeC.paymentDate.error.future")
+      max = QUARTER_END_DATE,
+      formError = FormError(dateKey, dynamicErrorMsg)
     )
 
     behave like dateFieldInvalid(

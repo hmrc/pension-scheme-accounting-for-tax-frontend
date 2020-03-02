@@ -45,9 +45,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val templateToBeRendered = "chargeF/chargeDetails.njk"
   private val startDate = QUARTER_START_DATE
   private val endDate = QUARTER_END_DATE
-  private val dynamicErrorMsg: String = s"The date the scheme was de-registered must be between" +
-    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
-  private val form = new ChargeDetailsFormProvider()(startDate, endDate, dynamicErrorMsg, BigDecimal("0.01"))
+  private val form = new ChargeDetailsFormProvider()(startDate, endDate, BigDecimal("0.01"))
   private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
   private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
 

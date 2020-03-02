@@ -54,7 +54,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
     s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
 
-  private def form: Form[ChargeDetails] = formProvider(startDate, endDate, dynamicErrorMsg)
+  private def form: Form[ChargeDetails] = formProvider(startDate, endDate)
 
   private def onwardRoute: Call = Call("GET", "/foo")
 
