@@ -25,12 +25,13 @@ import models.chargeG.ChargeDetails
 import play.api.data.FormError
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with StringFieldBehaviours {
 
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-  private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
-    s"${QUARTER_START_DATE.format(dateFormatter)} and ${QUARTER_END_DATE.format(dateFormatter)}"
+  private val dynamicErrorMsg: String = messages("chargeG.chargeDetails.qropsTransferDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
+    QUARTER_END_DATE.format(dateFormatterDMY))
+
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
   val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE)
   val qropsRefKey = "qropsReferenceNumber"
@@ -43,13 +44,6 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with St
       key = qropsDateKey,
       min = QUARTER_START_DATE,
       formError = FormError(qropsDateKey, dynamicErrorMsg)
-    )
-
-    behave like dateFieldWithMax(
-      form = form,
-      key = qropsDateKey,
-      max = LocalDate.now(),
-      formError = FormError(qropsDateKey, futureErrorMsg)
     )
 
     behave like dateFieldWithMax(

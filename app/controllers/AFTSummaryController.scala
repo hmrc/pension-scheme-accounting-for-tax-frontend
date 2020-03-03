@@ -79,7 +79,7 @@ class AFTSummaryController @Inject()(
 
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+      implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
         form.bindFromRequest().fold(
           formWithErrors => {

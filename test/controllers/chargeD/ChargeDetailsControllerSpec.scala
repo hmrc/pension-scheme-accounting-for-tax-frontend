@@ -16,6 +16,8 @@
 
 package controllers.chargeD
 
+import java.time.LocalDate
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -49,17 +51,17 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesValid: Map[String, Seq[String]] = Map(
 
-  "dateOfEvent.day" -> Seq("3"),
-  "dateOfEvent.month" -> Seq("4"),
-  "dateOfEvent.year" -> Seq("2019"),
+  "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+  "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+  "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("50.00")
   )
 
   private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
-    "dateOfEvent.day" -> Seq("3"),
-    "dateOfEvent.month" -> Seq("4"),
-    "dateOfEvent.year" -> Seq("2019"),
+    "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+    "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+    "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "taxAt25Percent" -> Seq("0.00"),
     "taxAt55Percent" -> Seq("0.00")
   )

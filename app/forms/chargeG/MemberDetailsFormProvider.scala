@@ -21,6 +21,7 @@ import javax.inject.Inject
 import models.chargeG.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
+import utils.AFTConstants.MIN_DATE
 
 class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with Transforms {
 
@@ -38,6 +39,7 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dob.error.incomplete",
         requiredKey = "dob.error.required"
       ).verifying(
+        minDate(MIN_DATE, "dob.error.past"),
         futureDate("dob.error.future"),
         yearHas4Digits("dob.error.invalid")
       ),

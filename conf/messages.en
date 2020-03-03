@@ -143,6 +143,7 @@ dob.error.required = Enter the member’s date of birth
 dob.error.invalid = Enter a real date for the member’s date of birth
 dob.error.incomplete = The member’s date of birth must include a day, month and year
 dob.error.future = The member’s date of birth must be in the past
+dob.error.past = The member’s date of birth must be after 31 12 1899
 
 return.to.link = Return to {0}
 
@@ -294,10 +295,7 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
-chargeC = Authorised surplus payments charge
 chargeD = Lifetime allowance charge
-chargeE = Annual allowance charge
-chargeF = De-registration charge
 chargeG = Overseas transfer charge
 
 memberDetails.title = Member’s details - {0}

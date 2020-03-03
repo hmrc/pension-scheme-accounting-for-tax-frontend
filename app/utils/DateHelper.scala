@@ -30,4 +30,6 @@ object DateHelper {
 
   val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+  def formatDateDMY(date: LocalDate): String = date.format(dateFormatterDMY)
 }

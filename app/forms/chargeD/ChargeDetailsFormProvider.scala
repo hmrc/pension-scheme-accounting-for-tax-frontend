@@ -26,7 +26,7 @@ import play.api.data.Forms.mapping
 import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
@@ -49,8 +49,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dateOfEvent.error.incomplete",
         requiredKey = "dateOfEvent.error.required"
       ).verifying(
-        minDate(min, messages("dateOfEvent.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
-        maxDate(max, messages("dateOfEvent.error.date", min.format(dateFormatterDMY), max.format(dateFormatterDMY))),
+        minDate(min, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](

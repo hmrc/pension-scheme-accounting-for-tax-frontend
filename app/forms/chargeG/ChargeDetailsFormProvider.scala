@@ -24,7 +24,7 @@ import models.chargeG.ChargeDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
 import play.api.i18n.Messages
-import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
@@ -36,18 +36,17 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
       "qropsReferenceNumber" -> text(
         errorKey = s"$qropsReferenceNumberKey.required"
       ).transform(noSpaceWithUpperCaseTransform, noTransform)
-        .verifying(regexp("""^[0-9]{6}""", s"$qropsReferenceNumberKey.valid")),
+        .verifying(
+          regexp("""^[0-9]{6}""", s"$qropsReferenceNumberKey.valid")
+        ),
       "qropsTransferDate" -> localDate(
         invalidKey = s"$qropsTransferDateKey.invalid",
         allRequiredKey = s"$qropsTransferDateKey.required.all",
         twoRequiredKey = s"$qropsTransferDateKey.required.two",
         requiredKey = s"$qropsTransferDateKey.required"
       ).verifying(
-        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", min.format(dateFormatterDMY),
-          max.format(dateFormatterDMY))),
-        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", min.format(dateFormatterDMY),
-          max.format(dateFormatterDMY))),
-        futureDate(s"$qropsTransferDateKey.future"),
+        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits(s"$qropsTransferDateKey.invalid")
       )
     )(ChargeDetails.apply)(ChargeDetails.unapply))
