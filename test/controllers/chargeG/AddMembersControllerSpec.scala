@@ -87,7 +87,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     )
   )
 
-  private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
+  private def jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate).url,
