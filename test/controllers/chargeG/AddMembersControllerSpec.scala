@@ -34,6 +34,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants._
 import models.LocalDateBinder._
+import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 
 import scala.concurrent.Future
 
@@ -66,21 +67,21 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.arr(
         Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> cssQuarterWidth),
         Json.obj("html" -> s"<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
         Json.obj("html" -> s"<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
         Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "£50.00","classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> cssQuarterWidth),
         Json.obj("html" -> s"<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
         Json.obj("html" -> s"<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> "£100.00","classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(100.00)),"classes" -> cssQuarterWidth),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
