@@ -16,6 +16,8 @@
 
 package forms.chargeD
 
+import java.time.LocalDate
+
 import forms.mappings.{Constraints, Formatters, Mappings}
 import javax.inject.Inject
 import models.chargeD.ChargeDDetails
@@ -24,6 +26,7 @@ import play.api.data.Forms.mapping
 import play.api.i18n.Messages
 import uk.gov.voa.play.form.Condition
 import uk.gov.voa.play.form.ConditionalMappings._
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with Formatters {
   private def otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField: String): Condition =
@@ -38,7 +41,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
+  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
     Form(mapping(
       "dateOfEvent" -> localDate(
         invalidKey = "dateOfEvent.error.invalid",
@@ -46,7 +49,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dateOfEvent.error.incomplete",
         requiredKey = "dateOfEvent.error.required"
       ).verifying(
-        futureDate("dateOfEvent.error.future"),
+        minDate(min, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits("dateOfEvent.error.invalid")
       ),
       "taxAt25Percent" -> onlyIf[Option[BigDecimal]](

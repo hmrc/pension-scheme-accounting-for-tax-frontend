@@ -17,15 +17,19 @@
 package forms.chargeC
 
 
+import java.time.LocalDate
+
 import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeC.ChargeCDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+import play.api.i18n.Messages
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeCDetails] =
+  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeCDetails] =
     Form(mapping(
       "paymentDate" -> localDate(
         invalidKey = "chargeC.paymentDate.error.invalid",
@@ -33,7 +37,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
         twoRequiredKey = "chargeC.paymentDate.error.incomplete",
         requiredKey = "chargeC.paymentDate.error.required"
       ).verifying(
-        futureDate("chargeC.paymentDate.error.future"),
+        minDate(min, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+        maxDate(max, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
         yearHas4Digits("chargeC.paymentDate.error.invalid")
       ),
       "amountTaxDue" -> bigDecimal2DP(

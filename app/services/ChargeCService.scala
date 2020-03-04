@@ -25,7 +25,7 @@ import play.api.libs.json.Reads._
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import utils.CheckYourAnswersHelper.formatBigDecimalAsString
+import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
 import java.time.LocalDate
@@ -76,7 +76,7 @@ object ChargeCService {
     val rows = members.map { data =>
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"£${formatBigDecimalAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
         Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
       ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
     }
@@ -84,7 +84,7 @@ object ChargeCService {
 
     val totalRow = Seq(Seq(
       Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-      Cell(Literal(s"£${formatBigDecimalAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
     ) ++ (if(canChange) Seq(Cell(msg"")) else Nil) )
 

@@ -21,6 +21,7 @@ import java.time.LocalDate
 import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import models.chargeG.MemberDetails
 import play.api.data.FormError
+import utils.AFTConstants.MIN_DATE
 
 class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehaviours {
 
@@ -101,6 +102,20 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
   "dob" must {
 
     val dobKey = "dob"
+
+    behave like dateFieldWithMin(
+      form = form,
+      key = dobKey,
+      min = MIN_DATE,
+      formError = FormError(dobKey, "dob.error.past")
+    )
+
+    behave like dateFieldWithMax(
+      form = form,
+      key = dobKey,
+      max = LocalDate.now(),
+      formError = FormError(dobKey, "dob.error.future")
+    )
 
     behave like mandatoryDateField(
       form = form,

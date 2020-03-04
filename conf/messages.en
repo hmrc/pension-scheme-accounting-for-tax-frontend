@@ -143,6 +143,7 @@ dob.error.required = Enter the member’s date of birth
 dob.error.invalid = Enter a real date for the member’s date of birth
 dob.error.incomplete = The member’s date of birth must include a day, month and year
 dob.error.future = The member’s date of birth must be in the past
+dob.error.past = The member’s date of birth must be after 31 12 1899
 
 return.to.link = Return to {0}
 
@@ -294,8 +295,6 @@ totalTaxDue.checkYourAnswersLabel = Total amount of tax due
 
 chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
-chargeF = De-registration charge
-chargeE = Annual allowance charge
 chargeD = Lifetime allowance charge
 chargeG = Overseas transfer charge
 
@@ -360,10 +359,10 @@ chargeAmount.error.invalid = The charge amount must be an amount of money, like 
 chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
 chargeAmount.error.maximum = The charge amount must be £99999999999.99 or less
 dateNoticeReceived.error.required = Enter the date you received notice to pay the charge
+dateNoticeReceived.error.date = The date you received notice to pay the charge must be between {0} and {1}
 dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
 dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
 dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
-dateNoticeReceived.error.outsideTaxYear = The date you received notice to pay the charge must be between {0} and {1}
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 
 chargeEDetails.title = Annual allowance charge details for {0}
@@ -463,9 +462,9 @@ chargeD.amountTaxDue.error.decimal = The amount of tax due at {0}% must include 
 chargeD.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
+dateOfEvent.error.date = The date of the benefit crystallisation event giving rise to the charge must be between {0} and {1}
 dateOfEvent.error.incomplete = The date of the benefit crystallisation event must include a day, month and year
 dateOfEvent.error.invalid = Enter a real date for the benefit crystallisation event giving rise to the charge
-dateOfEvent.error.future = The date of the benefit crystallisation event giving rise to the charge must be today or in the past
 
 chargeDDetails.title = Lifetime allowance charge details for {0}
 chargeDDetails.heading = Lifetime allowance charge details for {0}
@@ -787,6 +786,7 @@ chargeG.whatYouWillNeed.li4 = the reference number given by HMRC to the QROPS to
 
 chargeC.paymentDate.error.invalid = Enter a real date for the date the authorised surplus payment was made
 chargeC.paymentDate.error.required = Enter the date the authorised surplus payment was made
+chargeC.paymentDate.error.date = The date the authorised surplus payment was made must be between {0} and {1}
 chargeC.paymentDate.error.incomplete = The date the authorised surplus payment was made must include a day, month and year
 chargeC.paymentDate.error.future = The date the authorised surplus payment was made must be today or in the past
 

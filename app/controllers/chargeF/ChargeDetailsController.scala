@@ -16,14 +16,17 @@
 
 package controllers.chargeF
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
-import models.{GenericViewModel, Mode, Quarter, UserAnswers}
+import models.{GenericViewModel, Mode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
@@ -33,9 +36,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-import utils.DateHelper.dateFormatterDMY
-import java.time.LocalDate
-import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -52,20 +52,23 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(ua: UserAnswers, quarter: Quarter)(implicit messages: Messages): Form[ChargeDetails] =
-    formProvider(quarter.startDate, quarter.endDate,
-      dateErrorMsg = messages("chargeF.deregistrationDate.error.date",
-        quarter.startDate.format(dateFormatterDMY),
-        quarter.endDate.format(dateFormatterDMY)),
-      minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+  private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDetails] = {
+    val endDate = Quarters.getQuarter(startDate).endDate
+    formProvider(
+      startDate,
+      endDate,
+      UserAnswers.deriveMinimumChargeValueAllowed(ua)
+    )
+  }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form(request.userAnswers, quarter).fill(value)
-          case None => form(request.userAnswers, quarter)
+          case Some(value) => form(request.userAnswers, startDate).fill(value)
+          case None => form(request.userAnswers, startDate)
         }
 
         val viewModel = GenericViewModel(
@@ -87,10 +90,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
 
 
-        form(request.userAnswers, quarter).bindFromRequest().fold(
+        form(request.userAnswers, startDate).bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
               submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
@@ -99,7 +102,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "srn" -> srn,
-          "startDate" -> Some(startDate),
+              "startDate" -> Some(startDate),
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "date" -> DateInput.localDate(formWithErrors("deregistrationDate"))
