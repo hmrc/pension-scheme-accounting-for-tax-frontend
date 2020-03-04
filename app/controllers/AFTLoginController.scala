@@ -52,8 +52,8 @@ class AFTLoginController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-      val defaultYear = Years.minYear
-      (Years.values.size, Quarters.values(defaultYear).size) match {
+      val defaultYear = Years.minYear(config)
+      (Years.values(config).size, Quarters.values(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
 
        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
@@ -63,7 +63,7 @@ class AFTLoginController @Inject()(
         Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
-        val defaultQuarter = Quarters.values(defaultYear).headOption.getOrElse(throw NoQuartersAvailableException)
+        val defaultQuarter = Quarters.values(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
         Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear))))
     }
   }

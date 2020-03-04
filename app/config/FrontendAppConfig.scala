@@ -64,6 +64,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
   lazy val minimalPsaDetailsUrl: String = s"$pensionsAdministratorUrl${configuration.get[String](path = "urls.minimalPsaDetails")}"
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
+  lazy val minimumYear: Int = configuration.get[Int]("minimumYear")
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)

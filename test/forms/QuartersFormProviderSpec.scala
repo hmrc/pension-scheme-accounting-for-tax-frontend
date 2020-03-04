@@ -16,14 +16,15 @@
 
 package forms
 
-import com.google.inject.Inject
+import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
 import models.Quarters
 import play.api.data.FormError
 
-class QuartersFormProviderSpec extends OptionFieldBehaviours {
+class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
+  implicit val config: FrontendAppConfig = frontendAppConfig
   private val testYear = 2021
   private val errorKey = "quarters.error.required"
   val form = new QuartersFormProvider()(errorKey, testYear)

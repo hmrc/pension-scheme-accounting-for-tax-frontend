@@ -18,6 +18,7 @@ package controllers
 
 import java.time.LocalDate
 
+import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -48,6 +49,7 @@ import models.LocalDateBinder._
 class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
+  implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)

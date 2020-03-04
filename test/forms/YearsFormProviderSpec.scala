@@ -16,12 +16,15 @@
 
 package forms
 
+import base.SpecBase
+import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
 import models.Years
 import play.api.data.FormError
 
-class YearsFormProviderSpec extends OptionFieldBehaviours {
+class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
+  implicit val config: FrontendAppConfig = frontendAppConfig
   val form = new YearsFormProvider()()
 
   ".value" must {
