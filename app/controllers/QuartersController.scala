@@ -54,7 +54,7 @@ class QuartersController @Inject()(
                                    allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(year: String)(implicit messages: Messages): Form[Quarters] =
+  private def form(year: String)(implicit messages: Messages, config: FrontendAppConfig): Form[Quarters] =
     formProvider(messages("quarters.error.required", year), year.toInt)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async {
@@ -65,8 +65,8 @@ class QuartersController @Inject()(
         val json = Json.obj(
           "srn" -> srn,
           "startDate" -> None,
-          "form" -> form(year),
-          "radios" -> Quarters.radios(form(year), year.toInt),
+          "form" -> form(year)(implicitly, config),
+          "radios" -> Quarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
           "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
           "year" -> year
         )
@@ -78,14 +78,14 @@ class QuartersController @Inject()(
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-            form(year).bindFromRequest().fold(
+            form(year)(implicitly, config).bindFromRequest().fold(
               formWithErrors => {
                 schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
                   val json = Json.obj(
                     fields = "srn" -> srn,
                     "startDate" -> None,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, year.toInt),
+                    "radios" -> Quarters.radios(formWithErrors, year.toInt)(implicitly, config),
                     "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
                     "year" -> year
                   )

@@ -17,6 +17,7 @@
 package models
 
 
+import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.libs.json.{JsString, JsValue, Writes}
@@ -34,23 +35,23 @@ object Years extends Enumerable.Implicits {
     DateHelper.today.getYear
   }
 
-  def minYear: Int = {
+  def minYear(implicit config: FrontendAppConfig): Int = {
     val earliestYear = currentYear - 6
-    if(earliestYear > 2020) {
+    if(earliestYear > config.minimumYear) {
       earliestYear
     }
     else {
-      2020
+      config.minimumYear
     }
   }
 
-  def values: Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
+  def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
+  def radios(form: Form[_])(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
-  implicit def enumerable: Enumerable[Years] =
+  implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Years] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }
 

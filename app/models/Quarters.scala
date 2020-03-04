@@ -18,6 +18,7 @@ package models
 
 import java.time.LocalDate
 
+import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
@@ -57,14 +58,14 @@ object Quarters extends Enumerable.Implicits {
     override def endMonth = 12
   }
 
-  def values(selectedYear: Int): Seq[Quarters] =
+  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
     selectedYear match {
       case _ if selectedYear == currentYear => getCurrentYearQuarters
-      case 2020 => Seq(Q2, Q3, Q4)
+      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
       case _ => Seq(Q1, Q2, Q3, Q4)
     }
 
-  def getCurrentYearQuarters: Seq[Quarters] ={
+  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] ={
     val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
@@ -72,7 +73,7 @@ object Quarters extends Enumerable.Implicits {
       case _ => Seq(Q1)
     }
 
-    if(currentYear == 2020) {
+    if(currentYear == config.minimumYear) {
       quartersCY.filter(_ != Q1)
     }
     else {
@@ -80,7 +81,7 @@ object Quarters extends Enumerable.Implicits {
     }
   }
 
-  def radios(form: Form[_], year: Int)(implicit messages: Messages): Seq[Radios.Item] = {
+  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values(year).map { quarter =>
       Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
     })
@@ -105,7 +106,7 @@ object Quarters extends Enumerable.Implicits {
       case 10 => Q4
     }
 
-  implicit def enumerable(year: Int): Enumerable[Quarters] =
+  implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
     Enumerable(values(year).map(v => v.toString -> v): _*)
 
 }

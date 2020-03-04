@@ -16,8 +16,6 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import audit.AuditService
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -55,7 +53,7 @@ class YearsController @Inject()(
                                  allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form: Form[Years] = formProvider()
+  private def form(implicit config: FrontendAppConfig): Form[Years] = formProvider()
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -65,8 +63,8 @@ class YearsController @Inject()(
         val json = Json.obj(
           "srn" -> srn,
           "startDate" -> None,
-          "form" -> form,
-          "radios" -> Years.radios(form),
+          "form" -> form(config),
+          "radios" -> Years.radios(form(config))(implicitly, config),
           "viewModel" -> viewModel(schemeDetails.schemeName, srn)
         )
 
@@ -77,14 +75,14 @@ class YearsController @Inject()(
   def onSubmit(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-        form.bindFromRequest().fold(
+        form(config).bindFromRequest().fold(
           formWithErrors =>
             schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
               "startDate" -> None,
               "form" -> formWithErrors,
-              "radios" -> Years.radios(formWithErrors),
+              "radios" -> Years.radios(formWithErrors)(implicitly, config),
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))
