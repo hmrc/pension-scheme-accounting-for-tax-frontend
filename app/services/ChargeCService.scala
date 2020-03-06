@@ -69,14 +69,14 @@ object ChargeCService {
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(
       Cell(msg"addEmployers.employer.header", classes = Seq("govuk-!-width-one-half")),
-      Cell(msg"addEmployers.amount.header", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"addEmployers.amount.header", classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
       Cell(msg"")
     ) ++ (if(canChange) Seq(Cell(msg"")) else Nil)
 
     val rows = members.map { data =>
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
       ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
     }
@@ -84,7 +84,7 @@ object ChargeCService {
 
     val totalRow = Seq(Seq(
       Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
       Cell(msg"")
     ) ++ (if(canChange) Seq(Cell(msg"")) else Nil) )
 
