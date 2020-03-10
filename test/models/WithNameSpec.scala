@@ -16,7 +16,8 @@
 
 package models
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
 
 class WithNameSpec extends FreeSpec with MustMatchers {
 

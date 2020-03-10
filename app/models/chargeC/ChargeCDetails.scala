@@ -18,10 +18,10 @@ package models.chargeC
 
 import java.time.LocalDate
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class ChargeCDetails(paymentDate: LocalDate, amountTaxDue: BigDecimal)
-
 
 object ChargeCDetails {
   implicit lazy val formats: Format[ChargeCDetails] =

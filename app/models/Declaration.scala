@@ -16,12 +16,11 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.Json
+import play.api.libs.json.OFormat
 
 case class Declaration(submittedBy: String, submittedID: String, hasAgreed: Boolean)
 
 object Declaration {
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
 }
-
-

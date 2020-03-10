@@ -19,7 +19,6 @@ package models
 import base.SpecBase
 import pages.IsNewReturn
 
-
 class UserAnswersSpec extends SpecBase with Enumerable.Implicits {
   "deriveMinimumChargeValueAllowed" must {
     "return 0.01 when IsNewReturn is true" in {

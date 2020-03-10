@@ -21,10 +21,11 @@ import play.api.mvc._
 object OptionBinder {
 
   implicit def optionBindable[T: PathBindable]: PathBindable[Option[T]] = new PathBindable[Option[T]] {
+
     def bind(key: String, value: String): Either[String, Option[T]] =
-      implicitly[PathBindable[T]].
-        bind(key, value).
-        fold(
+      implicitly[PathBindable[T]]
+        .bind(key, value)
+        .fold(
           left => Left(left),
           right => Right(Some(right))
         )

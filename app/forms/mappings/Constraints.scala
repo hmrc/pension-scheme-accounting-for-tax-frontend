@@ -18,35 +18,34 @@ package forms.mappings
 
 import java.time.LocalDate
 
-import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.data.validation.Constraint
+import play.api.data.validation.Invalid
+import play.api.data.validation.Valid
 import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
 trait Constraints {
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
-  private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
+  private val regexCrn = "^[A-Za-z0-9 -]{8}$"
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
-    Constraint {
-      input =>
-        constraints
-          .map(_.apply(input))
-          .find(_ != Valid)
-          .getOrElse(Valid)
+    Constraint { input =>
+      constraints
+        .map(_.apply(input))
+        .find(_ != Valid)
+        .getOrElse(Valid)
     }
 
   protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
-    Constraint {
-      input =>
+    Constraint { input =>
+      import ev._
 
-        import ev._
-
-        if (input >= minimum) {
-          Valid
-        } else {
-          Invalid(errorKey, minimum)
-        }
+      if (input >= minimum) {
+        Valid
+      } else {
+        Invalid(errorKey, minimum)
+      }
     }
 
   protected def minimumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
@@ -64,16 +63,14 @@ trait Constraints {
     }
 
   protected def maximumValue[A](maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
-    Constraint {
-      input =>
+    Constraint { input =>
+      import ev._
 
-        import ev._
-
-        if (input <= maximum) {
-          Valid
-        } else {
-          Invalid(errorKey, maximum)
-        }
+      if (input <= maximum) {
+        Valid
+      } else {
+        Invalid(errorKey, maximum)
+      }
     }
 
   protected def maximumValueOption[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[Option[A]] =
@@ -91,16 +88,14 @@ trait Constraints {
     }
 
   protected def inRange[A](minimum: A, maximum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
-    Constraint {
-      input =>
+    Constraint { input =>
+      import ev._
 
-        import ev._
-
-        if (input >= minimum && input <= maximum) {
-          Valid
-        } else {
-          Invalid(errorKey, minimum, maximum)
-        }
+      if (input >= minimum && input <= maximum) {
+        Valid
+      } else {
+        Invalid(errorKey, minimum, maximum)
+      }
     }
 
   protected def regexp(regex: String, errorKey: String): Constraint[String] =
@@ -163,7 +158,7 @@ trait Constraints {
   protected def yearHas4Digits(errorKey: String): Constraint[LocalDate] =
     Constraint {
       case date if date.getYear >= 1000 => Valid
-      case _ => Invalid(errorKey)
+      case _                            => Invalid(errorKey)
     }
 
   protected def nonEmptySet(errorKey: String): Constraint[Set[_]] =
@@ -177,13 +172,13 @@ trait Constraints {
   protected def validNino(invalidKey: String): Constraint[String] =
     Constraint {
       case nino if Nino.isValid(nino) => Valid
-      case _ => Invalid(invalidKey)
+      case _                          => Invalid(invalidKey)
     }
 
   protected def validCrn(invalidKey: String): Constraint[String] =
     Constraint {
       case crn if crn.matches(regexCrn) => Valid
-      case _ => Invalid(invalidKey)
+      case _                            => Invalid(invalidKey)
     }
 
   protected def validAddressLine(invalidKey: String): Constraint[String] = regexp(addressLineRegex, invalidKey)

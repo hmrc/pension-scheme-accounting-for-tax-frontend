@@ -18,7 +18,8 @@ package forms.chargeF
 
 import java.time.LocalDate
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.Constraints
+import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeF.ChargeDetails
 import play.api.data.Form
@@ -28,24 +29,25 @@ import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
-    Form(mapping(
-      "deregistrationDate" -> localDate(
-        invalidKey = "chargeF.deregistrationDate.error.invalid",
-        allRequiredKey = "chargeF.deregistrationDate.error.required.all",
-        twoRequiredKey = "chargeF.deregistrationDate.error.required.two",
-        requiredKey = "chargeF.deregistrationDate.error.required.all"
-      ).verifying(
-        minDate(min, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max)))
-      ),
-      "amountTaxDue" -> bigDecimal2DP(
-        requiredKey = "chargeF.amountTaxDue.error.required",
-        invalidKey = "chargeF.amountTaxDue.error.invalid",
-        decimalKey = "chargeF.amountTaxDue.error.decimal"
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeF.amountTaxDue.error.maximum"),
-        minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeF.amountTaxDue.error.minimum")
-      )
-    )(ChargeDetails.apply)(ChargeDetails.unapply))
+  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
+    Form(
+      mapping(
+        "deregistrationDate" -> localDate(
+          invalidKey = "chargeF.deregistrationDate.error.invalid",
+          allRequiredKey = "chargeF.deregistrationDate.error.required.all",
+          twoRequiredKey = "chargeF.deregistrationDate.error.required.two",
+          requiredKey = "chargeF.deregistrationDate.error.required.all"
+        ).verifying(
+          minDate(min, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+          maxDate(max, messages("chargeF.deregistrationDate.error.date", formatDateDMY(min), formatDateDMY(max)))
+        ),
+        "amountTaxDue" -> bigDecimal2DP(
+          requiredKey = "chargeF.amountTaxDue.error.required",
+          invalidKey = "chargeF.amountTaxDue.error.invalid",
+          decimalKey = "chargeF.amountTaxDue.error.decimal"
+        ).verifying(
+          maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeF.amountTaxDue.error.maximum"),
+          minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeF.amountTaxDue.error.minimum")
+        )
+      )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

@@ -21,11 +21,12 @@ import java.time.LocalDate
 import generators.Generators
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalatest.{FreeSpec, MustMatchers}
-import play.api.data.validation.{Invalid, Valid}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import play.api.data.validation.Invalid
+import play.api.data.validation.Valid
 
-class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with Generators  with Constraints {
-
+class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with Generators with Constraints {
 
   "firstError" - {
 
@@ -127,13 +128,12 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     "must return Valid for a date before or equal to the maximum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
-        max  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
+        max <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
         date <- datesBetween(LocalDate.of(2000, 1, 1), max)
       } yield (max, date)
 
       forAll(gen) {
         case (max, date) =>
-
           val result = maxDate(max, "error.future")(date)
           result mustEqual Valid
       }
@@ -142,13 +142,12 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     "must return Invalid for a date after the maximum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
-        max  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
+        max <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
         date <- datesBetween(max.plusDays(1), LocalDate.of(3000, 1, 2))
       } yield (max, date)
 
       forAll(gen) {
         case (max, date) =>
-
           val result = maxDate(max, "error.future", "foo")(date)
           result mustEqual Invalid("error.future", "foo")
       }
@@ -160,13 +159,12 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     "must return Valid for a date after or equal to the minimum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
-        min  <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
+        min <- datesBetween(LocalDate.of(2000, 1, 1), LocalDate.of(3000, 1, 1))
         date <- datesBetween(min, LocalDate.of(3000, 1, 1))
       } yield (min, date)
 
       forAll(gen) {
         case (min, date) =>
-
           val result = minDate(min, "error.past", "foo")(date)
           result mustEqual Valid
       }
@@ -175,13 +173,12 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     "must return Invalid for a date before the minimum" in {
 
       val gen: Gen[(LocalDate, LocalDate)] = for {
-        min  <- datesBetween(LocalDate.of(2000, 1, 2), LocalDate.of(3000, 1, 1))
+        min <- datesBetween(LocalDate.of(2000, 1, 2), LocalDate.of(3000, 1, 1))
         date <- datesBetween(LocalDate.of(2000, 1, 1), min.minusDays(1))
       } yield (min, date)
 
       forAll(gen) {
         case (min, date) =>
-
           val result = minDate(min, "error.past", "foo")(date)
           result mustEqual Invalid("error.past", "foo")
       }

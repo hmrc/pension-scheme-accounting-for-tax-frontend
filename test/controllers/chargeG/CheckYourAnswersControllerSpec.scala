@@ -21,8 +21,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
-import pages.chargeG.{ChargeAmountsPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
-import play.api.libs.json.{JsObject, Json}
+import pages.chargeG.ChargeAmountsPage
+import pages.chargeG.ChargeDetailsPage
+import pages.chargeG.CheckYourAnswersPage
+import pages.chargeG.MemberDetailsPage
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
@@ -30,25 +34,31 @@ import models.LocalDateBinder._
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
-
-  private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
-  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
-
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberGDetails).toOption.get
-    .set(ChargeDetailsPage(0), chargeGDetails).toOption.get
-    .set(ChargeAmountsPage(0), chargeAmounts).toOption.get
-
   private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
   private val rows = Seq(
     helper.chargeGMemberDetails(0, memberGDetails),
     helper.chargeGDetails(0, chargeGDetails),
     helper.chargeGAmounts(0, chargeAmounts)
   ).flatten
-
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> rows
   )
+
+  private def httpGETRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
+
+  private def httpOnClickRoute: String = controllers.chargeG.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
+
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(MemberDetailsPage(0), memberGDetails)
+      .toOption
+      .get
+      .set(ChargeDetailsPage(0), chargeGDetails)
+      .toOption
+      .get
+      .set(ChargeAmountsPage(0), chargeAmounts)
+      .toOption
+      .get
 
   "CheckYourAnswers Controller" must {
     behave like cyaController(

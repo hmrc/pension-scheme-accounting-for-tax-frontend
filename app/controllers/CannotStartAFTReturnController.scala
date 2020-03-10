@@ -19,11 +19,15 @@ package controllers
 import java.time.LocalDate
 
 import config.FrontendAppConfig
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.DataRequiredAction
+import controllers.actions.DataRetrievalAction
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -31,21 +35,24 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 
 class CannotStartAFTReturnController @Inject()(
-                                             identify: IdentifierAction,
-                                             getData: DataRetrievalAction,
-                                             requireData: DataRequiredAction,
-                                             val controllerComponents: MessagesControllerComponents,
-                                             renderer: Renderer,
-                                             config: FrontendAppConfig
-                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer.render("cannot-start-aft-return.njk",
-          Json.obj("schemeName" -> schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn))
-        ).map(Ok(_))
+        renderer
+          .render("cannot-start-aft-return.njk",
+                  Json.obj("schemeName" -> schemeName, "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)))
+          .map(Ok(_))
       }
-  }
+    }
 }

@@ -22,11 +22,15 @@ import data.SampleData
 import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.chargeF.WhatYouWillNeedPage
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -39,17 +43,16 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
-  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
-
-  private val jsonToPassToTemplate:JsObject = Json.obj(
-    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
+  private val jsonToPassToTemplate: JsObject =
+    Json.obj(fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
+  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {

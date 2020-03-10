@@ -21,45 +21,53 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.{OptionValues, TryValues}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.scalatest.OptionValues
+import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.IsSponsoringEmployerIndividualPage
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class IsSponsoringEmployerIndividualControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val index = 0
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
   private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(IsSponsoringEmployerIndividualPage(index), true).success.value
-
-  def onwardRoute: Call = Call("GET", "/foo")
-
   private val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   private val form = formProvider()
+
+  def onwardRoute: Call = Call("GET", "/foo")
 
   private def httpPathGET: String = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, index).url
 
   private def httpPathPOST: String = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, startDate, index).url
 
-  private def viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
-
+  private def viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 

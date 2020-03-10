@@ -19,11 +19,13 @@ package models
 import pages._
 import play.api.libs.json._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 final case class UserAnswers(
-                              data: JsObject = Json.obj()
-                            ) {
+    data: JsObject = Json.obj()
+) {
 
   def get[A](page: QuestionPage[A])(implicit rds: Reads[A]): Option[A] =
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
@@ -36,16 +38,6 @@ final case class UserAnswers(
       validate[A](member)
     }
 
-  private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
-    jsValue.validate[A].fold(
-      invalid =
-        errors =>
-          throw JsResultException(errors),
-      valid =
-        response => response
-    )
-  }
-
   def set[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): Try[UserAnswers] = {
 
     val updatedData = data.setObject(page.path, Json.toJson(value)) match {
@@ -55,10 +47,9 @@ final case class UserAnswers(
         Failure(JsResultException(errors))
     }
 
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(Some(value), updatedAnswers)
+    updatedData.flatMap { d =>
+      val updatedAnswers = copy(data = d)
+      page.cleanup(Some(value), updatedAnswers)
     }
   }
 
@@ -87,19 +78,28 @@ final case class UserAnswers(
         Success(data)
     }
 
-    updatedData.flatMap {
-      d =>
-        val updatedAnswers = copy(data = d)
-        page.cleanup(None, updatedAnswers)
+    updatedData.flatMap { d =>
+      val updatedAnswers = copy(data = d)
+      page.cleanup(None, updatedAnswers)
     }
+  }
+
+  private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
+    jsValue
+      .validate[A]
+      .fold(
+        invalid = errors => throw JsResultException(errors),
+        valid = response => response
+      )
   }
 }
 
 object UserAnswers {
+
   def deriveMinimumChargeValueAllowed(ua: UserAnswers): BigDecimal = {
     ua.get(IsNewReturn) match {
       case None => BigDecimal("0.00")
-      case _ => BigDecimal("0.01")
+      case _    => BigDecimal("0.01")
     }
   }
 }

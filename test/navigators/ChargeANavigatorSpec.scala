@@ -16,11 +16,16 @@
 
 package navigators
 
-import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
-import models.{CheckMode, NormalMode, UserAnswers}
+import controllers.chargeA.routes.ChargeDetailsController
+import controllers.chargeA.routes.CheckYourAnswersController
+import models.CheckMode
+import models.NormalMode
+import models.UserAnswers
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
+import pages.chargeA.ChargeDetailsPage
+import pages.chargeA.CheckYourAnswersPage
+import pages.chargeA.WhatYouWillNeedPage
 import play.api.mvc.Call
 import models.LocalDateBinder._
 import utils.AFTConstants.QUARTER_START_DATE
@@ -34,7 +39,7 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate)),
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)),
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate)),
         row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
       )
@@ -49,7 +54,7 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate)
   }
 
 }

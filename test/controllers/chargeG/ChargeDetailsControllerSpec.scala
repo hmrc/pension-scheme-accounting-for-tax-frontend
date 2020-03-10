@@ -25,20 +25,29 @@ import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.ChargeDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_END_DATE
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
@@ -53,6 +62,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   private val endDate = LocalDate.parse(QUARTER_END_DATE)
   private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
     s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
+  private val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter.set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
 
   private def form: Form[ChargeDetails] = formProvider(startDate, endDate)
 
@@ -80,9 +91,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
     schemeName = schemeName
   )
 
-  private val userAnswersWithSchemeNameAndMemberGName: UserAnswers =
-    userAnswersWithSchemeNamePstrQuarter.set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
-
   "ChargeGDetails Controller" must {
 
     "return OK and the correct view for a GET" in {
@@ -109,7 +117,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       )
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)}
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 

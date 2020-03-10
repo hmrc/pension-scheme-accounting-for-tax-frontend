@@ -22,16 +22,26 @@ import data.SampleData._
 import forms.chargeG.ChargeAmountsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.ChargeAmounts
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.IsNewReturn
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import pages.chargeG.ChargeAmountsPage
+import pages.chargeG.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.redirectLocation
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -39,13 +49,12 @@ import scala.concurrent.Future
 import models.LocalDateBinder._
 
 class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberGDetails).get
+  val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), chargeAmounts).get.data
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"
   private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, 0).url
-  private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "amountTransferred" -> Seq("33.44"),
     "amountTaxDue" -> Seq("50.00")
@@ -61,13 +70,14 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq.empty
   )
 
-  private val jsonToPassToTemplate:Form[ChargeAmounts]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "memberName" -> "first last"
+  private val jsonToPassToTemplate: Form[ChargeAmounts] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "memberName" -> "first last"
   )
 
   override def beforeEach: Unit = {
@@ -77,8 +87,9 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberGDetails).get
-  val expectedJson: JsObject = validData.set(ChargeAmountsPage(0), chargeAmounts).get.data
+  private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, 0).url
+
+  private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url
 
   "ChargeAmounts Controller" must {
     "return OK and the correct view for a GET" in {
@@ -151,7 +162,6 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
-
 
     "return a BAD REQUEST when zero amount is submitted and the new return flag is set" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData.setOrException(IsNewReturn, true)))

@@ -26,18 +26,26 @@ import forms.chargeC.SponsoringEmployerAddressFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, Index, Mode}
+import models.GenericViewModel
+import models.Index
+import models.Mode
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsArray, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
+import play.api.libs.json.JsArray
+import play.api.libs.json.Json
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class SponsoringEmployerAddressController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -49,10 +57,71 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
                                                     formProvider: SponsoringEmployerAddressFormProvider,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
-                                                    renderer: Renderer
-                                                   )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                    renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private val form = formProvider()
+
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
+          case None        => form
+          case Some(value) => form.fill(value)
+        }
+        val viewModel = GenericViewModel(
+          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "sponsorName" -> sponsorName,
+          "countries" -> jsonCountries(preparedForm.data.get("country"))
+        )
+
+        renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
+      }
+    }
+
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> addArgsToErrors(formWithErrors, sponsorName),
+                "viewModel" -> viewModel,
+                "sponsorName" -> sponsorName,
+                "countries" -> jsonCountries(formWithErrors.data.get("country"))
+              )
+
+              renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
+          )
+      }
+    }
 
   private def countryJsonElement(tuple: (String, String), isSelected: Boolean): JsArray = Json.arr(
     if (isSelected) {
@@ -72,65 +141,11 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   private def jsonCountries(countrySelected: Option[String])(implicit messages: Messages): JsArray =
     config.validCountryCodes
       .map(countryCode => (countryCode, messages(s"country.$countryCode")))
-      .sortWith(_._2 < _._2).foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
-      acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
-    }
-
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
-          case None => form
-          case Some(value) => form.fill(value)
-        }
-        val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName,
-          "countries" -> jsonCountries(preparedForm.data.get("country"))
-        )
-
-        renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
+      .sortWith(_._2 < _._2)
+      .foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
+        acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
       }
-  }
 
   private def addArgsToErrors(form: Form[SponsoringEmployerAddress], args: String*): Form[SponsoringEmployerAddress] =
     form copy (errors = form.errors.map(_ copy (args = args)))
-
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        form.bindFromRequest().fold(
-          formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
-            val json = Json.obj(
-              "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> addArgsToErrors(formWithErrors, sponsorName),
-              "viewModel" -> viewModel,
-              "sponsorName" -> sponsorName,
-              "countries" -> jsonCountries(formWithErrors.data.get("country"))
-            )
-
-            renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
-        )
-      }
-  }
 }

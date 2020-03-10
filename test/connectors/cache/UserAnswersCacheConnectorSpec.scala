@@ -19,9 +19,10 @@ package connectors.cache
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpException
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -29,11 +30,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-
-  override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
-
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
   private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft"
+
+  override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   ".fetch" must {
 
@@ -45,9 +45,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.fetch(cacheId = "testId") map {
-        result =>
-          result mustNot be(defined)
+      connector.fetch(cacheId = "testId") map { result =>
+        result mustNot be(defined)
       }
     }
 
@@ -59,9 +58,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.fetch(cacheId = "testId") map {
-        result =>
-          result.value mustEqual Json.obj(fields = "testId" -> "data")
+      connector.fetch(cacheId = "testId") map { result =>
+        result.value mustEqual Json.obj(fields = "testId" -> "data")
       }
     }
 
@@ -139,9 +137,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   ".removeAll" must {
 
     "return OK after removing all the data from the collection" in {
-      server.stubFor(delete(urlEqualTo(aftReturnUrl)).
-        willReturn(ok)
-      )
+      server.stubFor(delete(urlEqualTo(aftReturnUrl)).willReturn(ok))
       connector.removeAll(cacheId = "testId").map {
         _ mustEqual Ok
       }

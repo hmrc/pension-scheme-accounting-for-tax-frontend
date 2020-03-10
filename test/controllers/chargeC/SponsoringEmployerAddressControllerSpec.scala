@@ -22,16 +22,25 @@ import data.SampleData._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.scalatest.{OptionValues, TryValues}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import org.scalatest.OptionValues
+import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.IsSponsoringEmployerIndividualPage
+import pages.chargeC.SponsoringEmployerAddressPage
+import pages.chargeC.SponsoringOrganisationDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -39,7 +48,13 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringEmployerAddressControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -47,11 +62,6 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
   private val templateToBeRendered = "chargeC/sponsoringEmployerAddress.njk"
   private val form = new SponsoringEmployerAddressFormProvider()()
   private val index = 0
-
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
-
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "line1" -> Seq("line1"),
     "line2" -> Seq("line2"),
@@ -59,9 +69,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "line4" -> Seq("line4"),
     "country" -> Seq("UK"),
     "postcode" -> Seq("ZZ1 1ZZ")
-
   )
-
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "line1" -> Seq.empty,
     "line2" -> Seq("line2"),
@@ -69,15 +77,6 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "line4" -> Seq("line4"),
     "country" -> Seq("UK"),
     "postcode" -> Seq("ZZ1 1ZZ")
-  )
-
-  private def jsonToPassToTemplate(sponsorName: String): Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "sponsorName" -> sponsorName
   )
 
   override def beforeEach: Unit = {
@@ -88,6 +87,23 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("foo", "bar"))
   }
 
+  private def httpPathGET: String =
+    controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
+
+  private def httpPathPOST: String =
+    controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url
+
+  private def jsonToPassToTemplate(sponsorName: String): Form[SponsoringEmployerAddress] => JsObject =
+    form =>
+      Json.obj(
+        "form" -> form,
+        "viewModel" -> GenericViewModel(
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url,
+          returnUrl = dummyCall.url,
+          schemeName = schemeName
+        ),
+        "sponsorName" -> sponsorName
+    )
 
   "SponsoringEmployerAddress Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
@@ -192,7 +208,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressPage(index)), any(), any(), any(), any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 

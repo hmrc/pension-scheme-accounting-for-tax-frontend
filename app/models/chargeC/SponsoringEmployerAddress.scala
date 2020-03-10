@@ -16,7 +16,8 @@
 
 package models.chargeC
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class SponsoringEmployerAddress(line1: String,
                                      line2: String,

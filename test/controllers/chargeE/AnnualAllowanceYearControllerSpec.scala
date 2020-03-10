@@ -22,25 +22,43 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
+import models.Enumerable
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
+import models.YearRange
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
-import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
+import pages.chargeE.AnnualAllowanceMembersQuery
+import pages.chargeE.AnnualAllowanceYearPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, route, status, _}
+import play.api.test.Helpers.GET
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
+class AnnualAllowanceYearControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
@@ -57,20 +75,17 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
   )
-  private val jsonToTemplate: Form[YearRange] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> YearRange.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToTemplate: Form[YearRange] => JsObject = form =>
+    Json.obj(
+      fields = "form" -> form,
+      "radios" -> YearRange.radios(form),
+      "viewModel" -> GenericViewModel(
+        submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )
   )
-
-  private def form = new YearRangeFormProvider()()
-
-  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, 0).url
-
-  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -79,7 +94,11 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
+  private def form = new YearRangeFormProvider()()
+
+  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, 0).url
+
+  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url
 
   "AnnualAllowanceYear Controller" must {
 
@@ -118,7 +137,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange.currentYear)))
     }
-
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 

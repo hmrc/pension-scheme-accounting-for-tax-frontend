@@ -31,22 +31,27 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
 import scala.concurrent.Future
 
-class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
-
-  private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
-
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+class AFTLoginControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -57,6 +62,8 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }
+
+  private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
 
   "AFTLogin Controller" when {
     "on a GET" must {

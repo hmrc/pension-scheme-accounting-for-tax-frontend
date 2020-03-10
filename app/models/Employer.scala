@@ -16,21 +16,21 @@
 
 package models
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 import scala.language.implicitConversions
 
 case class Employer(index: Int, name: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"employer-$index"
+  def id = s"employer-$index"
 
-    def removeLinkId = s"$id-remove"
+  def removeLinkId = s"$id-remove"
 
-    def viewLinkId = s"$id-view"
+  def viewLinkId = s"$id-view"
 
 }
 
 object Employer {
-    implicit lazy val formats: Format[Employer] =
-        Json.format[Employer]
+  implicit lazy val formats: Format[Employer] =
+    Json.format[Employer]
 }
-

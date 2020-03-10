@@ -19,7 +19,7 @@ package pages.chargeD
 import pages.Page
 import play.api.libs.json.JsPath
 
-case class LifetimeAllowanceMembersQuery(index: Int) extends Page  {
+case class LifetimeAllowanceMembersQuery(index: Int) extends Page {
   def path: JsPath = JsPath \ "chargeDDetails" \ LifetimeAllowanceMembersQuery.toString \ index
 }
 

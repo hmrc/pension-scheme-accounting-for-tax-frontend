@@ -19,19 +19,20 @@ package forms.chargeF
 import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.QUARTER_END_DATE
+import utils.AFTConstants.QUARTER_START_DATE
 import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
-
-  private val dynamicErrorMsg: String = messages("chargeF.deregistrationDate.error.date",
-    QUARTER_START_DATE.format(dateFormatterDMY), QUARTER_END_DATE.format(dateFormatterDMY))
 
   val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE, BigDecimal("0.01"))
   val deRegDateMsgKey = "chargeF.deregistrationDate"
   val deRegDateKey = "deregistrationDate"
   val amountTaxDueMsgKey = "chargeF.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
+  private val dynamicErrorMsg: String = messages("chargeF.deregistrationDate.error.date",
+                                                 QUARTER_START_DATE.format(dateFormatterDMY),
+                                                 QUARTER_END_DATE.format(dateFormatterDMY))
 
   "deregistrationDate" must {
 
@@ -49,10 +50,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       formError = FormError(deRegDateKey, dynamicErrorMsg)
     )
 
-    behave like mandatoryDateField(
-      form = form,
-      key = deRegDateKey,
-      requiredAllKey = s"$deRegDateMsgKey.error.required.all")
+    behave like mandatoryDateField(form = form, key = deRegDateKey, requiredAllKey = s"$deRegDateMsgKey.error.required.all")
   }
 
   "amountTaxDue" must {

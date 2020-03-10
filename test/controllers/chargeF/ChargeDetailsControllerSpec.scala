@@ -23,18 +23,25 @@ import forms.chargeF.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.IsNewReturn
 import pages.chargeF.ChargeDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants._
 
 import scala.concurrent.Future
@@ -46,38 +53,34 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val startDate = QUARTER_START_DATE
   private val endDate = QUARTER_END_DATE
   private val form = new ChargeDetailsFormProvider()(startDate, endDate, BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
-  private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
     "deregistrationDate.month" -> Seq("4"),
     "deregistrationDate.year" -> Seq("2020"),
     "amountTaxDue" -> Seq("33.44")
   )
-
   private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("3"),
     "deregistrationDate.month" -> Seq("4"),
     "deregistrationDate.year" -> Seq("2020"),
     "amountTaxDue" -> Seq("0.00")
   )
-
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "deregistrationDate.day" -> Seq("32"),
     "deregistrationDate.month" -> Seq("13"),
     "deregistrationDate.year" -> Seq("2003"),
     "amountTaxDue" -> Seq("33.44")
   )
-
-  private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("deregistrationDate"))
+  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("deregistrationDate"))
   )
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -86,7 +89,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
+  private def httpPathGET: String = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
+
+  private def httpPathPOST: String = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

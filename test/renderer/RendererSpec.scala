@@ -17,10 +17,15 @@
 package renderer
 
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterEach, FreeSpec, MustMatchers}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
@@ -33,21 +38,19 @@ import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.Future
 
-class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite with MockitoSugar
-  with ScalaFutures with BeforeAndAfterEach {
+class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
   val mockNunjucksRenderer: NunjucksRenderer = mock[NunjucksRenderer]
+  val application: Application = new GuiceApplicationBuilder()
+    .overrides(
+      bind[NunjucksRenderer].toInstance(mockNunjucksRenderer)
+    )
+    .build()
+  implicit private val request: FakeRequest[_] = FakeRequest()
 
   override def beforeEach(): Unit = {
     Mockito.reset(mockNunjucksRenderer)
   }
-
-  implicit private val request: FakeRequest[_] = FakeRequest()
-
-  val application: Application = new GuiceApplicationBuilder()
-    .overrides(
-      bind[NunjucksRenderer].toInstance(mockNunjucksRenderer)
-    ).build()
 
   "render" - {
 

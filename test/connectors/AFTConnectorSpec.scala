@@ -31,14 +31,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-
-  override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
-
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return"
   private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
+
+  override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   "fileAFTReturn" must {
 
@@ -52,8 +51,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      connector.fileAFTReturn(pstr, UserAnswers(data)) map {
-        _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
+      connector.fileAFTReturn(pstr, UserAnswers(data)) map { _ =>
+        server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
 

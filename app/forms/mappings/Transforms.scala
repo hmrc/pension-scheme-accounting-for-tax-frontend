@@ -28,7 +28,7 @@ trait Transforms {
   protected def toUpperCaseAlphaOnly(value: String): String =
     value.map {
       case c if ('a' to 'z').contains(c) => c.toUpper
-      case c                                    => c
+      case c                             => c
     }
 
   protected def strip(value: String): String = {
@@ -45,6 +45,10 @@ trait Transforms {
     value.map(postCodeTransform).filter(_.nonEmpty)
   }
 
+  protected def countryDataTransform(value: Option[String]): Option[String] = {
+    value.map(s => strip(s).toUpperCase()).filter(_.nonEmpty)
+  }
+
   private[mappings] def postCodeTransform(value: String): String = {
     minimiseSpace(value.trim.toUpperCase)
   }
@@ -56,14 +60,9 @@ trait Transforms {
       } else {
         value.substring(0, value.length - 3) + " " + value.substring(value.length - 3, value.length)
       }
-    }
-    else {
+    } else {
       value
     }
-  }
-
-  protected def countryDataTransform(value: Option[String]): Option[String] = {
-    value.map(s => strip(s).toUpperCase()).filter(_.nonEmpty)
   }
 
 }

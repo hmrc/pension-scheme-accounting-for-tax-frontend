@@ -22,14 +22,15 @@ import java.util.concurrent.atomic.AtomicReference
 
 object DateHelper {
 
+  val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val mockDate: AtomicReference[Option[LocalDate]] = new AtomicReference(None)
 
   def today: LocalDate = mockDate.get().getOrElse(LocalDate.now())
-  def setDate(date: Option[LocalDate]): Unit = mockDate.set(date)
-  def overriddenDate: Option[LocalDate] = mockDate.get()
 
-  val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-  val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+  def setDate(date: Option[LocalDate]): Unit = mockDate.set(date)
+
+  def overriddenDate: Option[LocalDate] = mockDate.get()
 
   def formatDateDMY(date: LocalDate): String = date.format(dateFormatterDMY)
 }

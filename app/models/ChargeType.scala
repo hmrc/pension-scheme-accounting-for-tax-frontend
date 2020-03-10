@@ -18,20 +18,11 @@ package models
 
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json._
 import uk.gov.hmrc.viewmodels._
 
 sealed trait ChargeType
 
 object ChargeType extends Enumerable.Implicits {
-
-  case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
-  case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
-  case object ChargeTypeDeRegistration extends WithName("deRegistration") with ChargeType
-  case object ChargeTypeLifetimeAllowance extends WithName("lifeTimeAllowance") with ChargeType
-  case object ChargeTypeOverseasTransfer extends WithName("overseasTransfer") with ChargeType
-  case object ChargeTypeShortService extends WithName("shortService") with ChargeType
-  case object ChargeTypeLumpSumDeath extends WithName("lumpSumDeath") with ChargeType
 
   val values: Seq[ChargeType] = Seq(
     ChargeTypeAnnualAllowance,
@@ -42,6 +33,8 @@ object ChargeType extends Enumerable.Implicits {
     ChargeTypeShortService,
     ChargeTypeLumpSumDeath
   )
+  implicit val enumerable: Enumerable[ChargeType] =
+    Enumerable(values.map(v => v.toString -> v): _*)
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
 
@@ -59,6 +52,17 @@ object ChargeType extends Enumerable.Implicits {
     Radios(field, items)
   }
 
-  implicit val enumerable: Enumerable[ChargeType] =
-    Enumerable(values.map(v => v.toString -> v): _*)
+  case object ChargeTypeAnnualAllowance extends WithName("annualAllowance") with ChargeType
+
+  case object ChargeTypeAuthSurplus extends WithName("authSurplus") with ChargeType
+
+  case object ChargeTypeDeRegistration extends WithName("deRegistration") with ChargeType
+
+  case object ChargeTypeLifetimeAllowance extends WithName("lifeTimeAllowance") with ChargeType
+
+  case object ChargeTypeOverseasTransfer extends WithName("overseasTransfer") with ChargeType
+
+  case object ChargeTypeShortService extends WithName("shortService") with ChargeType
+
+  case object ChargeTypeLumpSumDeath extends WithName("lumpSumDeath") with ChargeType
 }

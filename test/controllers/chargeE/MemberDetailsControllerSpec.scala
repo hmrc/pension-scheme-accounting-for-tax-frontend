@@ -21,14 +21,21 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.MemberDetails
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -37,23 +44,22 @@ import scala.concurrent.Future
 import models.LocalDateBinder._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  val templateToBeRendered = "memberDetails.njk"
-  val formProvider = new MemberDetailsFormProvider()
-  val form: Form[MemberDetails] = formProvider()
-
   lazy val httpPathGET: String =
     controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
   lazy val httpPathPOST: String =
     controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
-
-  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  val templateToBeRendered = "memberDetails.njk"
+  val formProvider = new MemberDetailsFormProvider()
+  val form: Form[MemberDetails] = formProvider()
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -83,6 +89,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "lastName" -> Seq("***"),
     "nino" -> Seq("***")
   )
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -90,8 +97,6 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
-
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "MemberDetails Controller" must {
     "return OK and the correct view for a GET" in {

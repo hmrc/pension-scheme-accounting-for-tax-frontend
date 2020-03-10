@@ -16,59 +16,52 @@
 
 package controllers
 
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.AllowSubmissionAction
+import controllers.actions.FakeAllowSubmissionAction
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{never, times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTConstants.QUARTER_START_DATE
 import models.LocalDateBinder._
 
 import scala.concurrent.Future
 
 class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
-  private def onwardRoute = Call("GET", "/onward")
-
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
   private val form = formProvider()
-
-  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE).url
-
-  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE).url
-
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val templateToBeRendered = "confirmSubmitAFTReturn.njk"
-
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-  private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
-    fields = "srn" -> srn,
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = confirmSubmitAFTReturnSubmitRoute,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "radios" -> Radios.yesNo(form("value"))
-  )
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -77,7 +70,20 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private def onwardRoute = Call("GET", "/onward")
+
+  private def confirmSubmitAFTReturnRoute: String =
+    routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE).url
+
+  private def confirmSubmitAFTReturnSubmitRoute: String =
+    routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE).url
+
+  private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
+    fields = "srn" -> srn,
+    "form" -> form,
+    "viewModel" -> GenericViewModel(submitUrl = confirmSubmitAFTReturnSubmitRoute, returnUrl = dummyCall.url, schemeName = schemeName),
+    "radios" -> Radios.yesNo(form("value"))
+  )
 
   "ConfirmSubmitAFTReturn Controller" must {
 

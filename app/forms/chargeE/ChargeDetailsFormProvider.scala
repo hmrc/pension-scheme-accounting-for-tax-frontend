@@ -16,7 +16,8 @@
 
 package forms.chargeE
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.Constraints
+import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeE.ChargeEDetails
 import play.api.data.Form
@@ -24,26 +25,26 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeEDetails] =
-    Form(mapping(
-
-      "chargeAmount" -> bigDecimal2DP(
-        requiredKey = "chargeAmount.error.required",
-        invalidKey = "chargeAmount.error.invalid",
-        decimalKey = "chargeAmount.error.decimal"
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmount.error.maximum"),
-        minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmount.error.invalid")
-      ),
-      "dateNoticeReceived" -> localDate(
-        invalidKey = "dateNoticeReceived.error.invalid",
-        allRequiredKey = "dateNoticeReceived.error.required",
-        twoRequiredKey = "dateNoticeReceived.error.incomplete",
-        requiredKey = "dateNoticeReceived.error.required"
-      ).verifying(
-        futureDate("dateNoticeReceived.error.future"),
-        yearHas4Digits("dateNoticeReceived.error.invalid")
-      ),
-      "isPaymentMandatory" -> boolean("isPaymentMandatory.error")
-    )(ChargeEDetails.apply)(ChargeEDetails.unapply))
+  def apply(minimumChargeValueAllowed: BigDecimal): Form[ChargeEDetails] =
+    Form(
+      mapping(
+        "chargeAmount" -> bigDecimal2DP(
+          requiredKey = "chargeAmount.error.required",
+          invalidKey = "chargeAmount.error.invalid",
+          decimalKey = "chargeAmount.error.decimal"
+        ).verifying(
+          maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeAmount.error.maximum"),
+          minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeAmount.error.invalid")
+        ),
+        "dateNoticeReceived" -> localDate(
+          invalidKey = "dateNoticeReceived.error.invalid",
+          allRequiredKey = "dateNoticeReceived.error.required",
+          twoRequiredKey = "dateNoticeReceived.error.incomplete",
+          requiredKey = "dateNoticeReceived.error.required"
+        ).verifying(
+          futureDate("dateNoticeReceived.error.future"),
+          yearHas4Digits("dateNoticeReceived.error.invalid")
+        ),
+        "isPaymentMandatory" -> boolean("isPaymentMandatory.error")
+      )(ChargeEDetails.apply)(ChargeEDetails.unapply))
 }

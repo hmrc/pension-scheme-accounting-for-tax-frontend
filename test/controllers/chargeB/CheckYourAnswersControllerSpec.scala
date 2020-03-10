@@ -21,8 +21,10 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
-import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
-import play.api.libs.json.{JsObject, Json}
+import pages.chargeB.ChargeBDetailsPage
+import pages.chargeB.CheckYourAnswersPage
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
@@ -30,18 +32,20 @@ import models.LocalDateBinder._
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
   private val templateToBeRendered = "check-your-answers.njk"
-
-  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
-  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(srn, startDate).url
-
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeBDetailsPage, chargeBDetails).toOption.get
-
   private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
-
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> helper.chargeBDetails(chargeBDetails)
   )
+
+  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
+
+  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(srn, startDate).url
+
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeBDetailsPage, chargeBDetails)
+      .toOption
+      .get
 
   "CheckYourAnswers Controller" must {
     behave like cyaController(

@@ -16,7 +16,8 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.AuditService
+import audit.StartAFTAuditEvent
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -25,53 +26,65 @@ import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
+import models.ChargeType
+import models.Enumerable
+import models.GenericViewModel
+import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import pages.{ChargeTypePage, IsPsaSuspendedQuery}
+import pages.ChargeTypePage
+import pages.IsPsaSuspendedQuery
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService}
+import services.AFTService
+import services.AllowAccessService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class ChargeTypeControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   import ChargeTypeControllerSpec._
-
-  private val mockAuditService = mock[AuditService]
-  private val mockAllowAccessService = mock[AllowAccessService]
-  private val mockAFTService = mock[AFTService]
-  private val retrievedUA = userAnswersWithSchemeName
-    .setOrException(IsPsaSuspendedQuery, value = false)
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AuditService].toInstance(mockAuditService),
     bind[AllowAccessService].toInstance(mockAllowAccessService),
     bind[AFTService].toInstance(mockAFTService)
   )
-
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-
-  private val jsonToTemplate: Form[ChargeType] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> ChargeType.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = SampleData.schemeName)
+  private val mockAuditService = mock[AuditService]
+  private val mockAllowAccessService = mock[AllowAccessService]
+  private val mockAFTService = mock[AFTService]
+  private val retrievedUA = userAnswersWithSchemeName
+    .setOrException(IsPsaSuspendedQuery, value = false)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private val jsonToTemplate: Form[ChargeType] => JsObject = form =>
+    Json.obj(
+      fields = "form" -> form,
+      "radios" -> ChargeType.radios(form),
+      "viewModel" -> GenericViewModel(submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = SampleData.schemeName)
   )
 
   override def beforeEach: Unit = {
@@ -80,7 +93,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
-    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
+    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
 
   }
@@ -98,8 +112,14 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
+        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(),
+                                                                                                                                 any(),
+                                                                                                                                 any())
+        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn),
+                                                                            Matchers.eq(startDate),
+                                                                            Matchers.eq(retrievedUA),
+                                                                            Matchers.eq(Some(ChargeTypePage)),
+                                                                            any())(any())
 
         templateCaptor.getValue mustEqual template
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
@@ -109,7 +129,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val location = "redirect"
         val alternativeLocation = Redirect(location)
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any()))
+          .thenReturn(Future.successful(Some(alternativeLocation)))
 
         whenReady(route(application, httpGETRequest(httpPathGETVersion)).value) { result =>
           result.header.status mustEqual SEE_OTHER
@@ -124,7 +145,8 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, ua)))
+        when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any()))
+          .thenReturn(Future.successful((schemeDetails, ua)))
 
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
@@ -196,13 +218,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
 object ChargeTypeControllerSpec {
   private val template = "chargeType.njk"
-
-  private def form = new ChargeTypeFormProvider()()
-
-  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url
-
-  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)
   )
@@ -210,4 +225,10 @@ object ChargeTypeControllerSpec {
     "value" -> Seq("Unknown Charge")
   )
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
+
+  private def form = new ChargeTypeFormProvider()()
+
+  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url
+
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url
 }

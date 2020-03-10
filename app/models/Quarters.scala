@@ -33,8 +33,58 @@ sealed trait Quarters {
   def startMonth: Int
   def endMonth: Int
 }
+
 object Quarters extends Enumerable.Implicits {
+  implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
+    Enumerable(values(year).map(v => v.toString -> v): _*)
+
   def currentYear: Int = today.getYear
+
+  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
+    selectedYear match {
+      case _ if selectedYear == currentYear        => getCurrentYearQuarters
+      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
+      case _                                       => Seq(Q1, Q2, Q3, Q4)
+    }
+
+  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] = {
+    val quartersCY = today.getMonthValue match {
+      case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
+      case i if i > 6 => Seq(Q1, Q2, Q3)
+      case i if i > 3 => Seq(Q1, Q2)
+      case _          => Seq(Q1)
+    }
+
+    if (currentYear == config.minimumYear) {
+      quartersCY.filter(_ != Q1)
+    } else {
+      quartersCY
+    }
+  }
+
+  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
+    Radios(form("value"), values(year).map { quarter =>
+      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
+    })
+  }
+
+  def getQuarter(quarter: Quarters, year: Int): Quarter = {
+    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay), LocalDate.of(year, quarter.endMonth, quarter.endDay))
+  }
+
+  def getStartDate(quarter: Quarters, year: Int): LocalDate =
+    LocalDate.of(year, quarter.startMonth, quarter.startDay)
+
+  def getQuarter(startDate: LocalDate): Quarter =
+    getQuarter(getQuartersFromStartDate(startDate), startDate.getYear)
+
+  def getQuartersFromStartDate(startDate: LocalDate): Quarters =
+    startDate.getMonthValue match {
+      case 1  => Q1
+      case 4  => Q2
+      case 7  => Q3
+      case 10 => Q4
+    }
 
   case object Q1 extends WithName("q1") with Quarters {
     override def startMonth = 1
@@ -57,56 +107,5 @@ object Quarters extends Enumerable.Implicits {
     override def startMonth = 10
     override def endMonth = 12
   }
-
-  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
-    selectedYear match {
-      case _ if selectedYear == currentYear => getCurrentYearQuarters
-      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
-      case _ => Seq(Q1, Q2, Q3, Q4)
-    }
-
-  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] ={
-    val quartersCY = today.getMonthValue match {
-      case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
-      case i if i > 6 => Seq(Q1, Q2, Q3)
-      case i if i  > 3 => Seq(Q1, Q2)
-      case _ => Seq(Q1)
-    }
-
-    if(currentYear == config.minimumYear) {
-      quartersCY.filter(_ != Q1)
-    }
-    else {
-      quartersCY
-    }
-  }
-
-  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
-    Radios(form("value"), values(year).map { quarter =>
-      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
-    })
-  }
-
-  def getQuarter(quarter: Quarters, year: Int): Quarter = {
-    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
-      LocalDate.of(year, quarter.endMonth, quarter.endDay))
-  }
-
-  def getStartDate(quarter: Quarters, year: Int): LocalDate =
-    LocalDate.of(year, quarter.startMonth, quarter.startDay)
-
-  def getQuarter(startDate: LocalDate): Quarter =
-    getQuarter(getQuartersFromStartDate(startDate), startDate.getYear)
-
-  def getQuartersFromStartDate(startDate: LocalDate): Quarters =
-    startDate.getMonthValue match {
-      case 1 => Q1
-      case 4 => Q2
-      case 7 => Q3
-      case 10 => Q4
-    }
-
-  implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
-    Enumerable(values(year).map(v => v.toString -> v): _*)
 
 }

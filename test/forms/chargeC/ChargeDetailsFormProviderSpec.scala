@@ -17,22 +17,26 @@
 package forms.chargeC
 
 import base.SpecBase
-import forms.behaviours.{BigDecimalFieldBehaviours, DateBehaviours}
+import forms.behaviours.BigDecimalFieldBehaviours
+import forms.behaviours.DateBehaviours
 import models.chargeC.ChargeCDetails
 import play.api.data.FormError
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.QUARTER_END_DATE
+import utils.AFTConstants.QUARTER_START_DATE
 import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {
 
   val form = new ChargeDetailsFormProvider().apply(
-    QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01")
+    QUARTER_START_DATE,
+    QUARTER_END_DATE,
+    minimumChargeValueAllowed = BigDecimal("0.01")
   )
   val amountTaxDueMsgKey = "chargeC.amountTaxDue"
   val amountTaxDueKey = "amountTaxDue"
   val dateKey = "paymentDate"
-  private val dynamicErrorMsg: String = messages("chargeC.paymentDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
-    QUARTER_END_DATE.format(dateFormatterDMY))
+  private val dynamicErrorMsg: String =
+    messages("chargeC.paymentDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY), QUARTER_END_DATE.format(dateFormatterDMY))
 
   "paymentDate" must {
     "must bind valid data" in {

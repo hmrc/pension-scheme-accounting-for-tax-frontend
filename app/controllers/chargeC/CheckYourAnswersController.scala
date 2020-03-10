@@ -21,21 +21,29 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import models.{GenericViewModel, Index, NormalMode}
+import models.GenericViewModel
+import models.Index
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages.chargeC._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import services.ChargeCService._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.SummaryList
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
@@ -48,38 +56,46 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.cyaChargeC(index, srn, startDate) { (isSponsoringEmployerIndividual, sponsorDetails, address, chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.cyaChargeC(index, srn, startDate) {
+        (isSponsoringEmployerIndividual, sponsorDetails, address, chargeDetails, schemeName) =>
+          val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
-        val seqRows: Seq[SummaryList.Row] = Seq(
-          Seq(helper.chargeCIsSponsoringEmployerIndividual(index, isSponsoringEmployerIndividual)),
-          helper.chargeCEmployerDetails(index, sponsorDetails),
-          Seq(helper.chargeCAddress(index, address, sponsorDetails)),
-          helper.chargeCChargeDetails(index, chargeDetails)
-        ).flatten
+          val seqRows: Seq[SummaryList.Row] = Seq(
+            Seq(helper.chargeCIsSponsoringEmployerIndividual(index, isSponsoringEmployerIndividual)),
+            helper.chargeCEmployerDetails(index, sponsorDetails),
+            Seq(helper.chargeCAddress(index, address, sponsorDetails)),
+            helper.chargeCChargeDetails(index, chargeDetails)
+          ).flatten
 
-        renderer.render("check-your-answers.njk",
-          Json.obj(
-            "srn" -> srn,
-          "startDate" -> Some(startDate),
-            "list" -> helper.rows(request.viewOnly, seqRows),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName),
-            "chargeName" -> "chargeC",
-            "canChange" -> !request.viewOnly
-          )).map(Ok(_))
+          renderer
+            .render(
+              "check-your-answers.njk",
+              Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "list" -> helper.rows(request.viewOnly, seqRows),
+                "viewModel" -> GenericViewModel(
+                  submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
+                  returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                  schemeName = schemeName
+                ),
+                "chargeName" -> "chargeC",
+                "canChange" -> !request.viewOnly
+              )
+            )
+            .map(Ok(_))
       }
-  }
+    }
 
-  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
@@ -90,5 +106,5 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
-  }
+    }
 }

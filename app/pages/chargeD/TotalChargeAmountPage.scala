@@ -25,4 +25,3 @@ case object TotalChargeAmountPage extends QuestionPage[BigDecimal] {
 
   override def toString: String = "totalChargeAmount"
 }
-

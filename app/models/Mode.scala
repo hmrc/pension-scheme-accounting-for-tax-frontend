@@ -16,7 +16,6 @@
 
 package models
 
-import models.Mode.UnknownModeException
 import play.api.mvc.JavascriptLiteral
 
 sealed trait Mode
@@ -26,22 +25,22 @@ case object NormalMode extends Mode
 
 object Mode {
 
-  case class UnknownModeException() extends Exception
-
   implicit val jsLiteral: JavascriptLiteral[Mode] = new JavascriptLiteral[Mode] {
     override def to(value: Mode): String = value match {
       case NormalMode => "NormalMode"
-      case CheckMode => "CheckMode"
+      case CheckMode  => "CheckMode"
     }
   }
 
-  def checkMode(mode: Mode): Mode = mode match  {
+  def checkMode(mode: Mode): Mode = mode match {
     case NormalMode => CheckMode
-    case _ => throw UnknownModeException()
+    case _          => throw UnknownModeException()
   }
 
-  def journeyMode(mode: Mode): Mode = mode match  {
+  def journeyMode(mode: Mode): Mode = mode match {
     case CheckMode => NormalMode
-    case _ => mode
+    case _         => mode
   }
+
+  case class UnknownModeException() extends Exception
 }

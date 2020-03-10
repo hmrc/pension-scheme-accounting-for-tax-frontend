@@ -16,12 +16,17 @@
 
 package models.requests
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.mvc.Request
+import play.api.mvc.WrappedRequest
 import models.UserAnswers
 import uk.gov.hmrc.domain.PsaId
 
-case class OptionalDataRequest[A] (request: Request[A], internalId: String, psaId: PsaId,
-                                   userAnswers: Option[UserAnswers], viewOnly: Boolean = false) extends WrappedRequest[A](request)
+case class OptionalDataRequest[A](request: Request[A],
+                                  internalId: String,
+                                  psaId: PsaId,
+                                  userAnswers: Option[UserAnswers],
+                                  viewOnly: Boolean = false)
+    extends WrappedRequest[A](request)
 
-case class DataRequest[A] (request: Request[A], internalId: String, psaId: PsaId,
-                           userAnswers: UserAnswers, viewOnly: Boolean = false) extends WrappedRequest[A](request)
+case class DataRequest[A](request: Request[A], internalId: String, psaId: PsaId, userAnswers: UserAnswers, viewOnly: Boolean = false)
+    extends WrappedRequest[A](request)

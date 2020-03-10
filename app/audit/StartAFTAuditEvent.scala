@@ -17,9 +17,9 @@
 package audit
 
 case class StartAFTAuditEvent(
-                               psaIdentifier: String,
-                               pstr: String
-                             ) extends AuditEvent {
+    psaIdentifier: String,
+    pstr: String
+) extends AuditEvent {
   override def auditType: String = "AftStart"
 
   override def details: Map[String, String] = {

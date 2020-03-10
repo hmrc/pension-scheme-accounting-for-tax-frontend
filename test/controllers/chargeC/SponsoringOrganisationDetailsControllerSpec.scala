@@ -22,16 +22,23 @@ import data.SampleData._
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringOrganisationDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.scalatest.{OptionValues, TryValues}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import org.scalatest.OptionValues
+import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -39,34 +46,35 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringOrganisationDetailsControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/sponsoringOrganisationDetails.njk"
   private val form = new SponsoringOrganisationDetailsFormProvider()()
   private val index = 0
-
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
-
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "name" -> Seq("Big Company"),
     "crn" -> Seq("AB121212")
   )
-
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "name" -> Seq(""),
     "crn" -> Seq("V")
   )
-
-  private val jsonToPassToTemplate: Form[SponsoringOrganisationDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[SponsoringOrganisationDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(
+        submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )
   )
 
   override def beforeEach: Unit = {
@@ -76,6 +84,11 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
+  private def httpPathGET: String =
+    controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
+
+  private def httpPathPOST: String =
+    controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url
 
   "SponsoringOrganisationDetails Controller" must {
     "return OK and the correct view for a GET" in {
@@ -125,13 +138,15 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
-          "employers" -> Json.arr(Json.obj(
-            SponsoringOrganisationDetailsPage.toString -> Json.toJson(sponsoringOrganisationDetails)
-          ))
+          "employers" -> Json.arr(
+            Json.obj(
+              SponsoringOrganisationDetailsPage.toString -> Json.toJson(sponsoringOrganisationDetails)
+            ))
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

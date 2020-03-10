@@ -18,9 +18,12 @@ package models
 
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsError, JsString, Json}
+import play.api.libs.json.JsString
+import play.api.libs.json.Json
 
 class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with OptionValues {
 
@@ -30,10 +33,8 @@ class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCh
 
       val gen = Gen.oneOf(YearRange.values)
 
-      forAll(gen) {
-        yearRange =>
-
-          JsString(yearRange.toString).validate[YearRange].asOpt.value mustEqual yearRange
+      forAll(gen) { yearRange =>
+        JsString(yearRange.toString).validate[YearRange].asOpt.value mustEqual yearRange
       }
     }
 
@@ -41,12 +42,10 @@ class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCh
 
       val gen = arbitrary[String] suchThat (!YearRange.values.map(_.toString).contains(_))
 
-      forAll(gen) {
-        invalidValue =>
-
-          a [RuntimeException] shouldBe thrownBy {
-            JsString(invalidValue).validate[YearRange]
-          }
+      forAll(gen) { invalidValue =>
+        a[RuntimeException] shouldBe thrownBy {
+          JsString(invalidValue).validate[YearRange]
+        }
       }
     }
 
@@ -54,10 +53,8 @@ class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCh
 
       val gen = Gen.oneOf(YearRange.values)
 
-      forAll(gen) {
-        yearRange =>
-
-          Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
+      forAll(gen) { yearRange =>
+        Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
       }
     }
   }

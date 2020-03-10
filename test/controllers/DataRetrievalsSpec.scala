@@ -18,20 +18,25 @@ package controllers
 
 import models.UserAnswers
 import models.requests.DataRequest
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
 import pages.SchemeNameQuery
-import play.api.mvc.{AnyContent, Result}
+import play.api.mvc.AnyContent
+import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{OK, status, _}
+import play.api.test.Helpers.OK
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.Future
 
 class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
 
-  private val result: String => Future[Result] = {
-    _ => Future.successful(Ok("success result"))
+  private val result: String => Future[Result] = { _ =>
+    Future.successful(Ok("success result"))
   }
 
   "retrieveSchemeName must" - {

@@ -16,14 +16,16 @@
 
 package models.chargeA
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class ChargeDetails(
-                          numberOfMembers: Int,
-                          totalAmtOfTaxDueAtLowerRate: Option[BigDecimal],
-                          totalAmtOfTaxDueAtHigherRate: Option[BigDecimal],
-                          totalAmount: BigDecimal
-                        ) {
+    numberOfMembers: Int,
+    totalAmtOfTaxDueAtLowerRate: Option[BigDecimal],
+    totalAmtOfTaxDueAtHigherRate: Option[BigDecimal],
+    totalAmount: BigDecimal
+) {
+
   def calcTotalAmount: BigDecimal =
     totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)) + totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00))
 }

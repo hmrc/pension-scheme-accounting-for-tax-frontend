@@ -18,24 +18,17 @@ package generators
 
 import models.UserAnswers
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 import org.scalatest.TryValues
 import pages._
-import pages.chargeC._
 import pages.chargeE.DeleteMemberPage
 import pages.chargeF.ChargeDetailsPage
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 
 trait UserAnswersGenerator extends TryValues {
   self: Generators =>
-
-  val generators: Seq[Gen[(QuestionPage[_], JsValue)]] =
-    arbitrary[(ConfirmSubmitAFTReturnPage.type, JsValue)] ::
-    arbitrary[(AFTSummaryPage.type, JsValue)] ::
-    arbitrary[(DeleteMemberPage.type, JsValue)] ::
-    arbitrary[(ChargeTypePage.type, JsValue)] ::
-    arbitrary[(ChargeDetailsPage.type, JsValue)] ::
-    Nil
 
   implicit lazy val arbitraryUserData: Arbitrary[UserAnswers] = {
 
@@ -43,17 +36,25 @@ trait UserAnswersGenerator extends TryValues {
 
     Arbitrary {
       for {
-        id      <- nonEmptyString
-        data    <- generators match {
+        id <- nonEmptyString
+        data <- generators match {
           case Nil => Gen.const(Map[QuestionPage[_], JsValue]())
           case _   => Gen.mapOf(oneOf(generators))
         }
-      } yield UserAnswers (
-        data = data.foldLeft(Json.obj()) {
-          case (obj, (path, value)) =>
-            obj.setObject(path.path, value).get
-        }
-      )
+      } yield
+        UserAnswers(
+          data = data.foldLeft(Json.obj()) {
+            case (obj, (path, value)) =>
+              obj.setObject(path.path, value).get
+          }
+        )
     }
   }
+  val generators: Seq[Gen[(QuestionPage[_], JsValue)]] =
+    arbitrary[(ConfirmSubmitAFTReturnPage.type, JsValue)] ::
+      arbitrary[(AFTSummaryPage.type, JsValue)] ::
+      arbitrary[(DeleteMemberPage.type, JsValue)] ::
+      arbitrary[(ChargeTypePage.type, JsValue)] ::
+      arbitrary[(ChargeDetailsPage.type, JsValue)] ::
+      Nil
 }

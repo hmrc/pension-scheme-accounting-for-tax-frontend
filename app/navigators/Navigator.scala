@@ -23,14 +23,14 @@ import pages.Page
 import play.api.mvc.Call
 
 trait Navigator {
+  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+    mode match {
+      case NormalMode => routeMap(userAnswers, srn, startDate)
+      case CheckMode  => editRouteMap(userAnswers, srn, startDate)
+    }
+  }
+
   protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call]
 
   protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call]
-
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] =  {
-      mode match {
-        case NormalMode => routeMap(userAnswers, srn, startDate)
-        case CheckMode => editRouteMap(userAnswers, srn, startDate)
-      }
-  }
 }

@@ -19,13 +19,15 @@ package controllers.actions
 import com.google.inject.Inject
 import models.UserAnswers
 import models.requests.OptionalDataRequest
-import play.api.mvc.{ActionFilter, Result}
+import play.api.mvc.ActionFilter
+import play.api.mvc.Result
 import services.AllowAccessService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)
-                                         (implicit val executionContext: ExecutionContext) extends AllowSubmissionAction {
+class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)(implicit val executionContext: ExecutionContext)
+    extends AllowSubmissionAction {
 
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
     allowAccessService.allowSubmission(request.userAnswers.getOrElse(UserAnswers()))(request)

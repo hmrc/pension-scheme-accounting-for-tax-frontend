@@ -19,35 +19,41 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.chargeD.routes.{MemberDetailsController, _}
-import models.{NormalMode, UserAnswers}
+import controllers.chargeD.routes.MemberDetailsController
+import controllers.chargeD.routes._
+import models.NormalMode
+import models.UserAnswers
 import pages.Page
-import pages.chargeD.{AddMembersPage, _}
+import pages.chargeD.AddMembersPage
+import pages.chargeD._
 import play.api.mvc.Call
 import services.ChargeDService._
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 import services.AFTReturnTidyService
 
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  aftReturnTidyService: AFTReturnTidyService,
-                                 config: FrontendAppConfig) extends Navigator {
+                                 config: FrontendAppConfig)
+    extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
-    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate)
-    case AddMembersPage => addMembers(ua, srn, startDate)
+    case WhatYouWillNeedPage                                                          => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+    case MemberDetailsPage(index)                                                     => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
+    case ChargeDetailsPage(index)                                                     => CheckYourAnswersController.onPageLoad(srn, startDate, index)
+    case CheckYourAnswersPage                                                         => AddMembersController.onPageLoad(srn, startDate)
+    case AddMembersPage                                                               => addMembers(ua, srn, startDate)
     case DeleteMemberPage if getLifetimeAllowanceMembers(ua, srn, startDate).nonEmpty => AddMembersController.onPageLoad(srn, startDate)
-    case DeleteMemberPage if aftReturnTidyService.isAtLeastOneValidCharge(ua)  =>
+    case DeleteMemberPage if aftReturnTidyService.isAtLeastOneValidCharge(ua) =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     case DeleteMemberPage => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
   }

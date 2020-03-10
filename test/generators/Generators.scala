@@ -16,11 +16,10 @@
 
 package generators
 
-import java.time.{Instant, LocalDate, ZoneOffset}
-
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.{Gen, Shrink}
+import org.scalacheck.Gen
+import org.scalacheck.Shrink
 
 import scala.math.BigDecimal.RoundingMode
 
@@ -28,10 +27,7 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
 
   implicit val dontShrink: Shrink[String] = Shrink.shrinkAny
 
-  def genIntersperseString(gen: Gen[String],
-                           value: String,
-                           frequencyV: Int = 1,
-                           frequencyN: Int = 10): Gen[String] = {
+  def genIntersperseString(gen: Gen[String], value: String, frequencyV: Int = 1, frequencyN: Int = 10): Gen[String] = {
 
     val genValue: Gen[Option[String]] = Gen.frequency(frequencyN -> None, frequencyV -> Gen.const(Some(value)))
 
@@ -79,10 +75,11 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       .map[String](_.setScale(2, RoundingMode.FLOOR).toString())
 
   def longDecimalString(length: Int): Gen[String] =
-    Gen.listOfN(length, Gen.choose[Char](49.toChar, 57.toChar)).map(
-      list =>
-        BigDecimal(list.mkString).setScale(2, RoundingMode.FLOOR).toString
-    )
+    Gen
+      .listOfN(length, Gen.choose[Char](49.toChar, 57.toChar))
+      .map(
+        list => BigDecimal(list.mkString).setScale(2, RoundingMode.FLOOR).toString
+      )
 
   def decimalsOutsideRange(min: BigDecimal, max: BigDecimal): Gen[BigDecimal] =
     arbitrary[BigDecimal] suchThat (x => x < min || x > max)
@@ -111,16 +108,18 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       chars <- listOfN(length, arbitrary[Char])
     } yield chars.mkString
 
-  def stringsLongerThan(minLength: Int): Gen[String] = for {
-    maxLength <- (minLength * 2).max(100)
-    length <- Gen.chooseNum(minLength + 1, maxLength)
-    chars <- listOfN(length, arbitrary[Char])
-  } yield chars.mkString
+  def stringsLongerThan(minLength: Int): Gen[String] =
+    for {
+      maxLength <- (minLength * 2).max(100)
+      length <- Gen.chooseNum(minLength + 1, maxLength)
+      chars <- listOfN(length, arbitrary[Char])
+    } yield chars.mkString
 
-  def stringsShorterThan(minLength: Int): Gen[String] = for {
-    length <- Gen.chooseNum(1, minLength - 1)
-    chars <- listOfN(length, arbitrary[Char])
-  } yield chars.mkString
+  def stringsShorterThan(minLength: Int): Gen[String] =
+    for {
+      length <- Gen.chooseNum(1, minLength - 1)
+      chars <- listOfN(length, arbitrary[Char])
+    } yield chars.mkString
 
   def stringsExceptSpecificValues(excluded: Seq[String]): Gen[String] =
     nonEmptyString suchThat (!excluded.contains(_))
@@ -132,6 +131,5 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       val vector = xs.toVector
       choose(0, vector.size - 1).flatMap(vector(_))
     }
-
 
 }

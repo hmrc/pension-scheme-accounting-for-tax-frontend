@@ -18,7 +18,8 @@ package models.chargeE
 
 import java.time.LocalDate
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class ChargeEDetails(chargeAmount: BigDecimal, dateNoticeReceived: LocalDate, isPaymentMandatory: Boolean)
 

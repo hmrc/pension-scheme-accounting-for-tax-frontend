@@ -19,8 +19,11 @@ package models
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
-import play.api.libs.json.{JsError, JsString, Json}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
+import play.api.libs.json.JsString
+import play.api.libs.json.Json
 
 class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with OptionValues {
 
@@ -30,10 +33,8 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = Gen.oneOf(ChargeType.values)
 
-      forAll(gen) {
-        chargeType =>
-
-          JsString(chargeType.toString).validate[ChargeType].asOpt.value mustEqual chargeType
+      forAll(gen) { chargeType =>
+        JsString(chargeType.toString).validate[ChargeType].asOpt.value mustEqual chargeType
       }
     }
 
@@ -41,12 +42,10 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = arbitrary[String] suchThat (!ChargeType.values.map(_.toString).contains(_))
 
-      forAll(gen) {
-        invalidValue =>
-
-          a[RuntimeException] shouldBe thrownBy {
-            JsString(invalidValue).validate[ChargeType]
-          }
+      forAll(gen) { invalidValue =>
+        a[RuntimeException] shouldBe thrownBy {
+          JsString(invalidValue).validate[ChargeType]
+        }
       }
     }
 
@@ -54,10 +53,8 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = Gen.oneOf(ChargeType.values)
 
-      forAll(gen) {
-        chargeType =>
-
-          Json.toJson(chargeType) mustEqual JsString(chargeType.toString)
+      forAll(gen) { chargeType =>
+        Json.toJson(chargeType) mustEqual JsString(chargeType.toString)
       }
     }
   }

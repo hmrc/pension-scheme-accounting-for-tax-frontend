@@ -19,10 +19,13 @@ package controllers
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData.dummyCall
+import data.SampleData.userAnswersWithSchemeNamePstrQuarter
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html

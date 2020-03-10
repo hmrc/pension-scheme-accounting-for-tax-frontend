@@ -21,24 +21,26 @@ import config.FrontendAppConfig
 import play.api.Logger
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.audit.model.DataEvent
 import uk.gov.hmrc.play.audit.AuditExtensions._
-import scala.language.implicitConversions
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AuditService @Inject()(
-                              config: FrontendAppConfig,
-                              connector: AuditConnector
-                            ){
+    config: FrontendAppConfig,
+    connector: AuditConnector
+) {
 
   def sendEvent[T <: AuditEvent](event: T)(implicit
                                            rh: RequestHeader,
                                            ec: ExecutionContext): Unit = {
 
     implicit def toHc(request: RequestHeader): AuditHeaderCarrier =
-    auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
+      auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
 
     val details = rh.toAuditDetails() ++ event.details
 

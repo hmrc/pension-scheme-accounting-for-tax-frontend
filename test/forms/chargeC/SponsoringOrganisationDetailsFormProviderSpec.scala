@@ -21,20 +21,17 @@ import play.api.data.FormError
 
 class SponsoringOrganisationDetailsFormProviderSpec extends StringFieldBehaviours {
 
+  val form = new SponsoringOrganisationDetailsFormProvider()()
   private val nameKey = "name"
   private val crnKey = "crn"
-
   private val nameRequiredKey = "chargeC.sponsoringOrganisationDetails.name.error.required"
   private val nameLengthKey = "chargeC.sponsoringOrganisationDetails.name.error.length"
   private val nameMaxLength = 155
-
   private val crnRequiredKey = "chargeC.sponsoringOrganisationDetails.crn.error.required"
   private val crnMinLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length"
   private val crnMaxLengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length"
   private val crnMinLength = 8
   private val crnMaxLength = 8
-
-  val form = new SponsoringOrganisationDetailsFormProvider()()
 
   "name" must {
     behave like fieldThatBindsValidData(

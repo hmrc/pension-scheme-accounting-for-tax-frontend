@@ -16,11 +16,12 @@
 
 package models
 
-
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsString, JsValue, Writes}
+import play.api.libs.json.JsString
+import play.api.libs.json.JsValue
+import play.api.libs.json.Writes
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
@@ -31,16 +32,18 @@ sealed trait Years {
 
 object Years extends Enumerable.Implicits {
 
+  implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Years] =
+    Enumerable(values.map(v => v.toString -> v): _*)
+
   def currentYear: Int = {
     DateHelper.today.getYear
   }
 
   def minYear(implicit config: FrontendAppConfig): Int = {
     val earliestYear = currentYear - 6
-    if(earliestYear > config.minimumYear) {
+    if (earliestYear > config.minimumYear) {
       earliestYear
-    }
-    else {
+    } else {
       config.minimumYear
     }
   }
@@ -50,9 +53,6 @@ object Years extends Enumerable.Implicits {
   def radios(form: Form[_])(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
-
-  implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Years] =
-    Enumerable(values.map(v => v.toString -> v): _*)
 }
 
 case class Year(year: Int) extends Years {

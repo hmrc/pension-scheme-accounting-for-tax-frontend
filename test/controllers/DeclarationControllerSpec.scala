@@ -16,21 +16,31 @@
 
 package controllers
 
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.AllowSubmissionAction
+import controllers.actions.FakeAllowSubmissionAction
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{GenericViewModel, UserAnswers}
+import models.GenericViewModel
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{DeclarationPage, PSTRQuery}
+import pages.DeclarationPage
+import pages.PSTRQuery
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.AFTService
 import utils.AFTConstants.QUARTER_START_DATE
@@ -41,21 +51,18 @@ import scala.concurrent.Future
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   private val mockAFTService = mock[AFTService]
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService),
-    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService), bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val templateToBeRendered = "declaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
-
   private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
+                                             returnUrl = dummyCall.url,
+                                             schemeName = schemeName)
   )
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -63,7 +70,9 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
+
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
 
   "Declaration Controller" must {
     "return OK and the correct view for a GET" in {

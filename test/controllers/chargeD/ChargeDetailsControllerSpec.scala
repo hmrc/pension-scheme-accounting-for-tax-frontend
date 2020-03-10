@@ -16,44 +16,53 @@
 
 package controllers.chargeD
 
-import java.time.LocalDate
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeD.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.IsNewReturn
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeD.ChargeDetailsPage
+import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.redirectLocation
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.QUARTER_END_DATE
+import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get
+  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeDDetails).get.data
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeD/chargeDetails.njk"
-  private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
-  private def httpPathPOST: String = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
-
+  private val form =
+    new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
   private val valuesValid: Map[String, Seq[String]] = Map(
-
-  "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
-  "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
-  "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
+    "dateOfEvent.day" -> Seq(QUARTER_START_DATE.getDayOfMonth.toString),
+    "dateOfEvent.month" -> Seq(QUARTER_START_DATE.getMonthValue.toString),
+    "dateOfEvent.year" -> Seq(QUARTER_START_DATE.getYear.toString),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("50.00")
   )
@@ -67,21 +76,22 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-  "dateOfEvent.day" -> Seq("32"),
-  "dateOfEvent.month" -> Seq("13"),
-  "dateOfEvent.year" -> Seq("2003"),
+    "dateOfEvent.day" -> Seq("32"),
+    "dateOfEvent.month" -> Seq("13"),
+    "dateOfEvent.year" -> Seq("2003"),
     "taxAt25Percent" -> Seq("33.44"),
     "taxAt55Percent" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeDDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dateOfEvent")),
-    "memberName" -> "first last"
+  private val jsonToPassToTemplate: Form[ChargeDDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("dateOfEvent")),
+      "memberName" -> "first last"
   )
 
   override def beforeEach: Unit = {
@@ -91,8 +101,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get
-  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeDDetails).get.data
+  private def httpPathGET: String = controllers.chargeD.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
+
+  private def httpPathPOST: String = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

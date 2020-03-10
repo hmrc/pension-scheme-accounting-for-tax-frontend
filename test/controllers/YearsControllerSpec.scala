@@ -22,7 +22,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers, Years}
+import models.Enumerable
+import models.GenericViewModel
+import models.SchemeDetails
+import models.SchemeStatus
+import models.UserAnswers
+import models.Years
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -32,45 +37,52 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class YearsControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
+  lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
+  lazy val httpPathPOST: String = controllers.routes.YearsController.onSubmit(srn).url
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)
   )
-
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   val templateToBeRendered = "years.njk"
   val formProvider = new YearsFormProvider()
   val form: Form[Years] = formProvider()
-
-  lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
-  lazy val httpPathPOST: String = controllers.routes.YearsController.onSubmit(srn).url
-
-  private val jsonToPassToTemplate: Form[Years] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Years.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val jsonToPassToTemplate: Form[Years] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "radios" -> Years.radios(form),
+      "viewModel" -> GenericViewModel(submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   private val year = "2020"
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -80,8 +92,6 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
   }
-
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   "Year Controller" must {
     "return OK and the correct view for a GET" in {
@@ -120,4 +130,3 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     }
   }
 }
-

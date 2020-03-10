@@ -17,20 +17,26 @@
 package controllers
 
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
+import java.time.LocalDateTime
 
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.AllowSubmissionAction
+import controllers.actions.FakeAllowSubmissionAction
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData.dummyCall
+import data.SampleData.userAnswersWithSchemeNamePstrQuarter
 import matchers.JsonMatchers
 import models.GenericViewModel
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
@@ -45,9 +51,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
   private val quarterEndDate = QUARTER_END_DATE.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
   private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
-
-  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
-
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
     "pstr" -> SampleData.pstr,
@@ -55,11 +58,10 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "quarterStartDate" -> quarterStartDate,
     "quarterEndDate" -> quarterEndDate,
     "submittedDate" -> DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now()),
-    "viewModel" -> GenericViewModel(
-      submitUrl = submitUrl.url,
-      returnUrl = dummyCall.url,
-      schemeName = SampleData.schemeName)
+    "viewModel" -> GenericViewModel(submitUrl = submitUrl.url, returnUrl = dummyCall.url, schemeName = SampleData.schemeName)
   )
+
+  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
 
   "Confirmation Controller" must {
 

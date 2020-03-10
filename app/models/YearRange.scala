@@ -26,6 +26,8 @@ import utils.DateHelper
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
+  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
+
   def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[DynamicYearRange] = {
@@ -40,8 +42,6 @@ object YearRange extends Enumerable.Implicits {
 
   def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] =
     Radios(form("value"), values.map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
-
-  implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
 }
 
 case class DynamicYearRange(startYear: String) extends YearRange {

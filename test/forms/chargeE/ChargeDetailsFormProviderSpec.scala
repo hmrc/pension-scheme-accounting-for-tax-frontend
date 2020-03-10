@@ -29,17 +29,14 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
 
   "dateNoticeReceived" must {
 
-   behave like dateFieldWithMax(
+    behave like dateFieldWithMax(
       form = form,
       key = dateKey,
       max = QUARTER_START_DATE,
       formError = FormError(dateKey, s"$dateKey.error.future")
     )
 
-    behave like mandatoryDateField(
-      form = form,
-      key = dateKey,
-      requiredAllKey = s"$dateKey.error.required")
+    behave like mandatoryDateField(form = form, key = dateKey, requiredAllKey = s"$dateKey.error.required")
   }
 
   "chargeAmount" must {

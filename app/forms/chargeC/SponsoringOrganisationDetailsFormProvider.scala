@@ -16,7 +16,8 @@
 
 package forms.chargeC
 
-import forms.mappings.{CrnMapping, Mappings}
+import forms.mappings.CrnMapping
+import forms.mappings.Mappings
 import javax.inject.Inject
 import models.chargeC.SponsoringOrganisationDetails
 import play.api.data.Form
@@ -34,7 +35,6 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
           lengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length",
           invalidKey = "chargeC.sponsoringOrganisationDetails.crn.error.invalid"
         )
-      )
-      (SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
+      )(SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
     )
 }

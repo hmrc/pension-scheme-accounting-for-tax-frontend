@@ -16,7 +16,8 @@
 
 package models.chargeB
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class ChargeBDetails(numberOfDeceased: Int, amountTaxDue: BigDecimal)
 

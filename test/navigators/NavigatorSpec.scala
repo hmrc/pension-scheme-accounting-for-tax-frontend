@@ -27,32 +27,30 @@ import utils.AFTConstants.QUARTER_START_DATE
 
 class NavigatorSpec extends SpecBase {
   private val srn = "test-srn"
-
-  private case object DummyIdentifier extends Page
-
   private val call1: PartialFunction[Page, Call] = {
     case DummyIdentifier => Call("GET", "/page1")
   }
   private val call2: PartialFunction[Page, Call] = {
     case DummyIdentifier => Call("GET", "/page2")
   }
-
   private val dummyNavigator: Navigator = new Navigator {
     override protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = call1
 
     override protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = call2
   }
 
+  private case object DummyIdentifier extends Page
+
   "Navigator" when {
     "in Normal mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call1
+        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()), srn, QUARTER_START_DATE) mustBe call1
       }
     }
 
     "in Check mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call2
+        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()), srn, QUARTER_START_DATE) mustBe call2
       }
     }
   }

@@ -23,19 +23,27 @@ import controllers.actions._
 import forms.chargeB.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.chargeB.ChargeBDetails
-import models.{GenericViewModel, Mode, UserAnswers}
+import models.GenericViewModel
+import models.Mode
+import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
@@ -48,27 +56,17 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
-
-  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeBDetails] =
-    formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
-
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
-    GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-      schemeName = schemeName
-    )
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)  andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
         val preparedForm: Form[ChargeBDetails] = request.userAnswers.get(ChargeBDetailsPage) match {
           case Some(value) => form(request.userAnswers).fill(value)
-          case None => form(request.userAnswers)
+          case None        => form(request.userAnswers)
         }
 
         val json = Json.obj(
@@ -80,29 +78,39 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
       }
-  }
+    }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
-        form(request.userAnswers).bindFromRequest().fold(
-          formWithErrors => {
-            val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, startDate, schemeName)
-            )
-            renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
-        )
+        form(request.userAnswers)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+              )
+              renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
+          )
       }
-  }
+    }
+
+  private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeBDetails] =
+    formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
+    GenericViewModel(
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    )
 }

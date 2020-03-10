@@ -18,9 +18,8 @@ package models
 
 import java.time.LocalDate
 
-import models.Quarters.{Q1, Q2, Q3, Q4}
-import play.api.libs.json.{Format, Json}
-import utils.DateHelper.dateFormatterYMD
+import play.api.libs.json.Format
+import play.api.libs.json.Json
 
 case class Quarter(startDate: LocalDate, endDate: LocalDate)
 
@@ -29,4 +28,3 @@ object Quarter {
   implicit lazy val formats: Format[Quarter] =
     Json.format[Quarter]
 }
-

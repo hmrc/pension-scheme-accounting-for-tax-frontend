@@ -22,37 +22,46 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{Declaration, GenericViewModel, NormalMode}
+import models.Declaration
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, DeclarationPage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.AFTStatusQuery
+import pages.DeclarationPage
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import models.LocalDateBinder._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class DeclarationController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       requireData: DataRequiredAction,
-                                       allowAccess: AllowAccessActionProvider,
-                                       allowSubmission: AllowSubmissionAction,
-                                       aftService: AFTService,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       navigator: CompoundNavigator,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    allowAccess: AllowAccessActionProvider,
+    allowSubmission: AllowSubmissionAction,
+    aftService: AFTService,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    val controllerComponents: MessagesControllerComponents,
+    config: FrontendAppConfig,
+    renderer: Renderer
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-    andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
+      andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeclarationController.onSubmit(srn, startDate).url,
@@ -62,14 +71,15 @@ class DeclarationController @Inject()(
 
         renderer.render(template = "declaration.njk", Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
-  }
+    }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-    andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
+      andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         for {
-          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
+          answersWithDeclaration <- Future.fromTry(
+            request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
           updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
@@ -77,5 +87,5 @@ class DeclarationController @Inject()(
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
-  }
+    }
 }

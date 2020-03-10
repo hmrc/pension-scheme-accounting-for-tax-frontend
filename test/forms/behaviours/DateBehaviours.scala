@@ -20,7 +20,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import org.scalacheck.Gen
-import play.api.data.{Form, FormError}
+import play.api.data.Form
+import play.api.data.FormError
 
 trait DateBehaviours extends FieldBehaviours {
 
@@ -28,18 +29,16 @@ trait DateBehaviours extends FieldBehaviours {
 
     "must bind valid data" in {
 
-      forAll(validData -> "valid date") {
-        date =>
+      forAll(validData -> "valid date") { date =>
+        val data = Map(
+          s"$key.day" -> date.getDayOfMonth.toString,
+          s"$key.month" -> date.getMonthValue.toString,
+          s"$key.year" -> date.getYear.toString
+        )
 
-          val data = Map(
-            s"$key.day" -> date.getDayOfMonth.toString,
-            s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year" -> date.getYear.toString
-          )
+        val result = form.bind(data)
 
-          val result = form.bind(data)
-
-          result.value.value mustEqual date
+        result.value.value mustEqual date
       }
     }
   }
@@ -108,18 +107,16 @@ trait DateBehaviours extends FieldBehaviours {
 
       val generator = datesBetween(max.plusDays(1), max.plusYears(10))
 
-      forAll(generator -> "invalid dates") {
-        date =>
+      forAll(generator -> "invalid dates") { date =>
+        val data = Map(
+          s"$key.day" -> date.getDayOfMonth.toString,
+          s"$key.month" -> date.getMonthValue.toString,
+          s"$key.year" -> date.getYear.toString
+        )
 
-          val data = Map(
-            s"$key.day" -> date.getDayOfMonth.toString,
-            s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year" -> date.getYear.toString
-          )
+        val result = form.bind(data)
 
-          val result = form.bind(data)
-
-          result.errors must contain(formError)
+        result.errors must contain(formError)
       }
     }
   }
@@ -130,18 +127,16 @@ trait DateBehaviours extends FieldBehaviours {
 
       val generator = datesBetween(min.minusYears(10), min.minusDays(1))
 
-      forAll(generator -> "invalid dates") {
-        date =>
+      forAll(generator -> "invalid dates") { date =>
+        val data = Map(
+          s"$key.day" -> date.getDayOfMonth.toString,
+          s"$key.month" -> date.getMonthValue.toString,
+          s"$key.year" -> date.getYear.toString
+        )
 
-          val data = Map(
-            s"$key.day" -> date.getDayOfMonth.toString,
-            s"$key.month" -> date.getMonthValue.toString,
-            s"$key.year" -> date.getYear.toString
-          )
+        val result = form.bind(data)
 
-          val result = form.bind(data)
-
-          result.errors must contain(formError)
+        result.errors must contain(formError)
       }
     }
   }

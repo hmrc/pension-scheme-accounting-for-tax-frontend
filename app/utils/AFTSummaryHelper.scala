@@ -18,20 +18,24 @@ package utils
 
 import controllers._
 import controllers.chargeB.{routes => _}
-import models.{ChargeType, UserAnswers}
+import models.ChargeType
+import models.UserAnswers
 import play.api.i18n.Messages
 import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.Action
+import uk.gov.hmrc.viewmodels.SummaryList.Key
+import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.Value
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{SummaryList, _}
+import uk.gov.hmrc.viewmodels.SummaryList
+import uk.gov.hmrc.viewmodels._
 import models.ChargeType._
 import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
-class AFTSummaryHelper{
-
-  case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
+class AFTSummaryHelper {
 
   def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages): Seq[Row] = {
 
@@ -69,11 +73,11 @@ class AFTSummaryHelper{
     )
 
     val summaryDataNonUK: Seq[SummaryDetails] = Seq(
-            SummaryDetails(
-              chargeType = ChargeTypeOverseasTransfer,
-              totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-              href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
-            )
+      SummaryDetails(
+        chargeType = ChargeTypeOverseasTransfer,
+        totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+        href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
+      )
     )
 
     val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
@@ -94,7 +98,6 @@ class AFTSummaryHelper{
       )
     }
 
-
     val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
@@ -113,12 +116,16 @@ class AFTSummaryHelper{
       )
     }
 
-    val totalRow: Seq[SummaryList.Row] = Seq(Row(
-      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
-      actions = Nil
-    ))
+    val totalRow: Seq[SummaryList.Row] = Seq(
+      Row(
+        key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"),
+                      classes = Seq("govuk-!-width-one-quarter")),
+        actions = Nil
+      ))
 
     summaryRowsUK ++ totalRow ++ summaryRowsNonUK
   }
+
+  case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 }

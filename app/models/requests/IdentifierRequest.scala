@@ -16,7 +16,8 @@
 
 package models.requests
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.mvc.Request
+import play.api.mvc.WrappedRequest
 import uk.gov.hmrc.domain.PsaId
 
-case class IdentifierRequest[A] (request: Request[A], psaId: PsaId) extends WrappedRequest[A](request)
+case class IdentifierRequest[A](request: Request[A], psaId: PsaId) extends WrappedRequest[A](request)

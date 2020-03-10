@@ -25,21 +25,31 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Quarter}
+import models.GenericViewModel
+import models.NormalMode
+import models.Quarter
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
-import pages.{QuarterPage, SchemeNameQuery}
+import pages.QuarterPage
+import pages.SchemeNameQuery
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.ChargeCService.{getSponsoringEmployers, mapToTable}
+import services.ChargeCService.getSponsoringEmployers
+import services.ChargeCService.mapToTable
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 import utils.DateHelper.dateFormatterDMY
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -51,33 +61,34 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        formProvider: AddMembersFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
-                                       renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                       renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-
-          renderer.render(template = "chargeC/addEmployers.njk",
-            getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
+          renderer.render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
-  }
+    }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-        form.bindFromRequest().fold(
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      form
+        .bindFromRequest()
+        .fold(
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-
-                renderer.render(
-                  template = "chargeC/addEmployers.njk",
-                  getJson(srn, startDate, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+                renderer
+                  .render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter))
+                  .map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
@@ -89,31 +100,29 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
             } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn, startDate))
           }
         )
-      }
-
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter
-                     )(implicit request: DataRequest[AnyContent]): JsObject = {
-
-        val viewModel = GenericViewModel(
-          submitUrl = routes.AddEmployersController.onSubmit(srn, startDate).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
-
-        val members = getSponsoringEmployers(request.userAnswers, srn, startDate)
-
-        Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> form,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(form("value")),
-          "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
-          "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-          "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
-          "canChange" -> !request.viewOnly
-        )
-
-
     }
+
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter)(
+      implicit request: DataRequest[AnyContent]): JsObject = {
+
+    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate).url,
+                                     returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                                     schemeName = schemeName)
+
+    val members = getSponsoringEmployers(request.userAnswers, srn, startDate)
+
+    Json.obj(
+      "srn" -> srn,
+      "startDate" -> Some(startDate),
+      "form" -> form,
+      "viewModel" -> viewModel,
+      "radios" -> Radios.yesNo(form("value")),
+      "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+      "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+      "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
+      "canChange" -> !request.viewOnly
+    )
+
+  }
 
 }

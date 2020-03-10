@@ -16,10 +16,13 @@
 
 package matchers
 
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.matchers.MatchResult
+import org.scalatest.matchers.Matcher
 import play.api.libs.json._
 
 trait JsonMatchers {
+
+  def containJson(expectedJson: JsObject) = new JsonContains(expectedJson)
 
   class JsonContains(json: JsObject) extends Matcher[JsObject] {
 
@@ -33,8 +36,6 @@ trait JsonMatchers {
       )
     }
   }
-
-  def containJson(expectedJson: JsObject) = new JsonContains(expectedJson)
 }
 
 object JsonMatchers extends JsonMatchers

@@ -20,16 +20,21 @@ import java.util.UUID
 
 import akka.stream.Materializer
 import com.google.inject.Inject
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
 import org.scalatestplus.play.components.OneAppPerSuiteWithComponents
-import play.api.{Application, BuiltInComponents, BuiltInComponentsFromContext, NoHttpFiltersComponents}
+import play.api.Application
+import play.api.BuiltInComponents
+import play.api.BuiltInComponentsFromContext
+import play.api.NoHttpFiltersComponents
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{Action, Results, SessionCookieBaker}
-import play.api.routing.Router
+import play.api.mvc.SessionCookieBaker
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.{HeaderNames, SessionKeys}
+import uk.gov.hmrc.http.HeaderNames
+import uk.gov.hmrc.http.SessionKeys
 
 import scala.concurrent.ExecutionContext
 
@@ -38,41 +43,14 @@ object SessionIdFilterSpec {
   val sessionId = "28836767-a008-46be-ac18-695ab140e705"
 
   class TestSessionIdFilter @Inject()(
-                                       override val mat: Materializer,
-                                       sessionCookieBaker: SessionCookieBaker,
-                                       ec: ExecutionContext
-                                     ) extends SessionIdFilter(mat, UUID.fromString(sessionId), sessionCookieBaker, ec)
+      override val mat: Materializer,
+      sessionCookieBaker: SessionCookieBaker,
+      ec: ExecutionContext
+  ) extends SessionIdFilter(mat, UUID.fromString(sessionId), sessionCookieBaker, ec)
 
 }
 
 class SessionIdFilterSpec extends FreeSpec with MustMatchers with OptionValues with OneAppPerSuiteWithComponents {
-
-  override def components: BuiltInComponents = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
-
-    import play.api.mvc.Results
-    import play.api.routing.Router
-    import play.api.routing.sird._
-
-    lazy val router: Router = Router.from {
-      case GET(p"/test") => defaultActionBuilder.apply {
-        request =>
-          val fromHeader = request.headers.get(HeaderNames.xSessionId).getOrElse("")
-          val fromSession = request.session.get(SessionKeys.sessionId).getOrElse("")
-          Results.Ok(
-            Json.obj(
-              "fromHeader" -> fromHeader,
-              "fromSession" -> fromSession
-            )
-          )
-      }
-      case GET(p"/test2") => defaultActionBuilder.apply {
-        implicit request =>
-          Results.Ok.addingToSession("foo" -> "bar")
-      }
-    }
-  }
-
-  import SessionIdFilterSpec._
 
   override lazy val app: Application = {
 
@@ -87,6 +65,33 @@ class SessionIdFilterSpec extends FreeSpec with MustMatchers with OptionValues w
       )
       .router(components.router)
       .build()
+  }
+
+  import SessionIdFilterSpec._
+
+  override def components: BuiltInComponents = new BuiltInComponentsFromContext(context) with NoHttpFiltersComponents {
+
+    import play.api.mvc.Results
+    import play.api.routing.Router
+    import play.api.routing.sird._
+
+    lazy val router: Router = Router.from {
+      case GET(p"/test") =>
+        defaultActionBuilder.apply { request =>
+          val fromHeader = request.headers.get(HeaderNames.xSessionId).getOrElse("")
+          val fromSession = request.session.get(SessionKeys.sessionId).getOrElse("")
+          Results.Ok(
+            Json.obj(
+              "fromHeader" -> fromHeader,
+              "fromSession" -> fromSession
+            )
+          )
+        }
+      case GET(p"/test2") =>
+        defaultActionBuilder.apply { implicit request =>
+          Results.Ok.addingToSession("foo" -> "bar")
+        }
+    }
   }
 
   "session id filter" - {

@@ -19,13 +19,21 @@ package controllers.chargeB
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import models.{GenericViewModel, NormalMode}
+import controllers.actions.AllowAccessActionProvider
+import controllers.actions.DataRequiredAction
+import controllers.actions.DataRetrievalAction
+import controllers.actions.IdentifierAction
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
-import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.chargeB.ChargeBDetailsPage
+import pages.chargeB.CheckYourAnswersPage
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -34,6 +42,7 @@ import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
@@ -45,36 +54,43 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            aftService: AFTService,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
         val seqRows = helper.chargeBDetails(chargeDetails)
 
-        renderer.render("check-your-answers.njk",
-          Json.obj(
-            "srn" -> srn,
-          "startDate" -> Some(startDate),
-            "list" -> helper.rows(request.viewOnly, seqRows),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName),
-            "chargeName" -> "chargeB",
-            "canChange" -> !request.viewOnly
-          )).map(Ok(_))
+        renderer
+          .render(
+            "check-your-answers.njk",
+            Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "list" -> helper.rows(request.viewOnly, seqRows),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              ),
+              "chargeName" -> "chargeB",
+              "canChange" -> !request.viewOnly
+            )
+          )
+          .map(Ok(_))
       }
-  }
+    }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileAFTReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
-  }
+    }
 }

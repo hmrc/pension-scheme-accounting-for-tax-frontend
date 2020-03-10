@@ -22,23 +22,32 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
-import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.AllowAccessActionProvider
+import controllers.actions.DataRequiredAction
+import controllers.actions.DataRetrievalAction
+import controllers.actions.IdentifierAction
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
-import models.{GenericViewModel, NormalMode}
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages.PSTRQuery
-import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.chargeA.ChargeDetailsPage
+import pages.chargeA.CheckYourAnswersPage
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -50,11 +59,13 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
@@ -65,29 +76,30 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.total(chargeDetails.totalAmount)
         )
 
-        renderer.render(
-          template = "check-your-answers.njk",
-          ctx = Json.obj(
-            "srn" -> srn,
-          "startDate" -> Some(startDate),
-            "list" -> helper.rows(request.viewOnly, seqRows),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName
-            ),
-            "chargeName" -> "chargeA",
-            "canChange" -> !request.viewOnly
+        renderer
+          .render(
+            template = "check-your-answers.njk",
+            ctx = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "list" -> helper.rows(request.viewOnly, seqRows),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              ),
+              "chargeName" -> "chargeA",
+              "canChange" -> !request.viewOnly
+            )
           )
-        ).map(Ok(_))
+          .map(Ok(_))
       }
-  }
+    }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>
-
           val updatedChargeDetails: ChargeDetails = chargeDetails.copy(
             totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
             totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))
@@ -101,5 +113,5 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
-  }
+    }
 }

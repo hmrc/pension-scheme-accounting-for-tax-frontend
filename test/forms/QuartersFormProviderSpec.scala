@@ -25,9 +25,9 @@ import play.api.data.FormError
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
   implicit val config: FrontendAppConfig = frontendAppConfig
+  val form = new QuartersFormProvider()(errorKey, testYear)
   private val testYear = 2021
   private val errorKey = "quarters.error.required"
-  val form = new QuartersFormProvider()(errorKey, testYear)
 
   ".value" must {
 
@@ -37,7 +37,7 @@ class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Quarters](
       form,
       fieldName,
-      validValues  = Quarters.values(2020),
+      validValues = Quarters.values(2020),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

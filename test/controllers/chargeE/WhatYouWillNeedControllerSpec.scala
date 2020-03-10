@@ -20,13 +20,18 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{GenericViewModel, UserAnswers}
+import models.GenericViewModel
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.chargeE.WhatYouWillNeedPage
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -38,14 +43,10 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/whatYouWillNeed.njk"
-  private def httpPathGET: String = controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
-
   private val jsonToPassToTemplate = Json.obj(
-    "viewModel" -> GenericViewModel(
-      submitUrl = dummyCall.url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+    "viewModel" -> GenericViewModel(submitUrl = dummyCall.url, returnUrl = dummyCall.url, schemeName = schemeName)
   )
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -53,7 +54,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
+  private def httpPathGET: String = controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {

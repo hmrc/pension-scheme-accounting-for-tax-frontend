@@ -22,29 +22,49 @@ import data.SampleData
 import data.SampleData._
 import forms.AFTSummaryFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
+import models.Enumerable
+import models.GenericViewModel
+import models.Quarter
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{never, reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.never
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.Call
+import play.api.mvc.Results
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import services.AFTService
+import services.AllowAccessService
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
-  with Enumerable.Implicits with Results with ScalaFutures {
+class AFTSummaryControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
@@ -61,25 +81,14 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val templateToBeRendered = "aftSummary.njk"
   private val form = new AFTSummaryFormProvider()()
-
-  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, None).url
-
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
-
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
-
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
-
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("xyz"))
-
   private val summaryHelper = new AFTSummaryHelper
-
   private val retrievedUA = userAnswersWithSchemeNamePstrQuarter
     .setOrException(IsPsaSuspendedQuery, value = false)
-
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
-
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
+  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   override def beforeEach: Unit = {
     super.beforeEach()
@@ -87,22 +96,30 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
-    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
+    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
   }
 
+  private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, None).url
 
-  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
-    "form" -> form,
-    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
-    "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
-      returnUrl = testManagePensionsUrl.url,
-      schemeName = SampleData.schemeName),
-    "radios" -> Radios.yesNo(form("value"))
-  )
+  private def httpPathGETVersion: String =
+    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
 
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
+
+  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject =
+    form =>
+      Json.obj(
+        "form" -> form,
+        "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
+        "viewModel" -> GenericViewModel(
+          submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
+          returnUrl = testManagePensionsUrl.url,
+          schemeName = SampleData.schemeName
+        ),
+        "radios" -> Radios.yesNo(form("value"))
+    )
 
   "AFTSummary Controller" must {
     "return OK and the correct view for a GET where no version is present in the request and call the aft service" in {
@@ -115,9 +132,15 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
+      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(),
+                                                                                                                               any(),
+                                                                                                                               any())
       verify(mockAllowAccessService, times(1))
-        .filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(AFTSummaryPage)), any())(any())
+        .filterForIllegalPageAccess(Matchers.eq(srn),
+                                    Matchers.eq(startDate),
+                                    Matchers.eq(retrievedUA),
+                                    Matchers.eq(Some(AFTSummaryPage)),
+                                    any())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
@@ -127,8 +150,10 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val location = "redirect"
       val alternativeLocation = Redirect(location)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-      when(mockAllowAccessService
-        .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+      when(
+        mockAllowAccessService
+          .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any()))
+        .thenReturn(Future.successful(Some(alternativeLocation)))
 
       whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
         result.header.status mustEqual SEE_OTHER
@@ -146,14 +171,14 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(Some(version)))(any(), any(), any())
+      verify(mockAFTService, times(1))
+        .retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(Some(version)))(any(), any(), any())
       verify(mockAllowAccessService, times(1))
-        .filterForIllegalPageAccess(
-          Matchers.eq(srn),
-          Matchers.eq(startDate),
-          Matchers.eq(retrievedUA),
-          Matchers.eq(Some(AFTSummaryPage)),
-          Matchers.eq(Some(SampleData.version)))(any())
+        .filterForIllegalPageAccess(Matchers.eq(srn),
+                                    Matchers.eq(startDate),
+                                    Matchers.eq(retrievedUA),
+                                    Matchers.eq(Some(AFTSummaryPage)),
+                                    Matchers.eq(Some(SampleData.version)))(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(version)).apply(form))

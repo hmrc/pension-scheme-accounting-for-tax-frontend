@@ -17,7 +17,6 @@
 package pages
 
 import play.api.libs.json.JsPath
-import queries.Gettable
 
 case object SchemeNameQuery extends QuestionPage[String] {
 

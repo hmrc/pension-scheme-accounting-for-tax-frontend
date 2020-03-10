@@ -22,53 +22,58 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, Years}
+import models.Quarters
+import models.Years
 import navigators.CompoundNavigator
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.AFTService
+import services.AllowAccessService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AFTLoginController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
-                                      config: FrontendAppConfig,
-                                      auditService: AuditService,
-                                      aftService: AFTService,
-                                      allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig,
+    auditService: AuditService,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-      val defaultYear = Years.minYear(config)
-      (Years.values(config).size, Quarters.values(defaultYear)(config).size) match {
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    val defaultYear = Years.minYear(config)
+    (Years.values(config).size, Quarters.values(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
-
-       Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
+        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 
       case (_, quarters) if quarters > 1 =>
-
         Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
         val defaultQuarter = Quarters.values(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
-        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear))))
+        Future.successful(
+          Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear))))
     }
   }
 
   case object NoQuartersAvailableException extends Exception("No quarters are available to be be selected from")
-
 
 }

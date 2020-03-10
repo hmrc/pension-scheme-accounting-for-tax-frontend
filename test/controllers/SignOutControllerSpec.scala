@@ -19,7 +19,9 @@ package controllers
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
@@ -32,11 +34,12 @@ class SignOutControllerSpec extends ControllerSpecBase {
 
   private val srn = "srn"
   private val startDate = Some(QUARTER_START_DATE.toString)
-  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn, startDate).url
-  private val userAnswers = UserAnswers(Json.obj(
-    "test-key" -> "test-value"
-  ))
+  private val userAnswers = UserAnswers(
+    Json.obj(
+      "test-key" -> "test-value"
+    ))
 
+  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn, startDate).url
 
   "SignOut Controller" must {
 

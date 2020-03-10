@@ -22,19 +22,23 @@ import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
 import models.UserAnswers
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.IdentifierRequest
+import models.requests.OptionalDataRequest
 import pages.IsPsaSuspendedQuery
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class DataRetrievalImpl(
-                         srn: String, startDate: LocalDate,
-                         val userAnswersCacheConnector: UserAnswersCacheConnector
-                       )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
+    srn: String,
+    startDate: LocalDate,
+    val userAnswersCacheConnector: UserAnswersCacheConnector
+)(implicit val executionContext: ExecutionContext)
+    extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -49,16 +53,16 @@ class DataRetrievalImpl(
           OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
         case Some(uaJsValue) =>
           val ua = UserAnswers(uaJsValue.as[JsObject])
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua),
-            isLocked || ua.get(IsPsaSuspendedQuery).getOrElse(true))
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua), isLocked || ua.get(IsPsaSuspendedQuery).getOrElse(true))
       }
     }
   }
 }
 
 class DataRetrievalActionImpl @Inject()(
-                                         userAnswersCacheConnector: UserAnswersCacheConnector
-                                       )(implicit val executionContext: ExecutionContext) extends DataRetrievalAction {
+    userAnswersCacheConnector: UserAnswersCacheConnector
+)(implicit val executionContext: ExecutionContext)
+    extends DataRetrievalAction {
   override def apply(srn: String, startDate: LocalDate): DataRetrieval = new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }
 

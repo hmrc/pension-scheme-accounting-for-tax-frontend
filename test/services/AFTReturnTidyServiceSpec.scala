@@ -23,13 +23,14 @@ import models.UserAnswers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.ChargeCDetailsPage
+import pages.chargeC.IsSponsoringEmployerIndividualPage
+import pages.chargeC.SponsoringIndividualDetailsPage
+import pages.chargeC.SponsoringOrganisationDetailsPage
 import play.api.mvc.Results
 
 class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
-  private val zeroCurrencyValue = BigDecimal(0.00)
   val aftReturnTidyService = new AFTReturnTidyService()
-
   val uaWithAllMemberBasedCharges: UserAnswers = userAnswersWithSchemeName
     .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
     .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetails)
@@ -40,6 +41,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
     .setOrException(IsSponsoringEmployerIndividualPage(0), true)
     .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+  private val zeroCurrencyValue = BigDecimal(0.00)
 
   "isAtLeastOneValidCharge" must {
     "return true where there is only a charge type A present" in {
@@ -139,7 +141,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       (result.data \ "chargeEDetails").toOption mustBe None
     }
 
-
     "remove charge D where it has no non-deleted members and another valid charge is present" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
@@ -150,7 +151,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       (result.data \ "chargeDDetails").toOption mustBe None
     }
 
-
     "remove charge G where it has no non-deleted members and another valid charge is present" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
@@ -159,7 +159,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeGDetails").toOption mustBe None
     }
-
 
     "remove charge C where it has no non-deleted members and another valid charge is present for individual" in {
       val ua: UserAnswers = userAnswersWithSchemeName
@@ -170,7 +169,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
       (result.data \ "chargeCDetails").toOption mustBe None
     }
-
 
     "remove charge C where it has no non-deleted members and another valid charge is present for organisation" in {
       val ua: UserAnswers = userAnswersWithSchemeName
@@ -207,7 +205,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
         .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeD.MemberDetailsPage(1), memberDetailsDeleted)
 
-
       val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeD.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeD.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
@@ -224,7 +221,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
         .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsDeleted)
         .setOrException(pages.chargeE.MemberDetailsPage(1), memberDetailsDeleted)
 
-
       val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeE.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)
       result.get(pages.chargeE.MemberDetailsPage(1)).map(_.isDeleted) mustBe Some(false)
@@ -238,7 +234,6 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
         .setOrException(pages.chargeG.ChargeAmountsPage(1), chargeAmounts)
         .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetailsDeleted)
         .setOrException(pages.chargeG.MemberDetailsPage(1), memberGDetailsDeleted)
-
 
       val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)
       result.get(pages.chargeG.MemberDetailsPage(0)).map(_.isDeleted) mustBe Some(true)

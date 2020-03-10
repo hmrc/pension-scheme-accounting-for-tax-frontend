@@ -16,7 +16,6 @@
 
 package forms.chargeC
 
-
 import java.time.LocalDate
 
 import forms.mappings.Mappings
@@ -30,24 +29,25 @@ import utils.DateHelper.formatDateDMY
 class ChargeDetailsFormProvider @Inject() extends Mappings {
 
   def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeCDetails] =
-    Form(mapping(
-      "paymentDate" -> localDate(
-        invalidKey = "chargeC.paymentDate.error.invalid",
-        allRequiredKey = "chargeC.paymentDate.error.required",
-        twoRequiredKey = "chargeC.paymentDate.error.incomplete",
-        requiredKey = "chargeC.paymentDate.error.required"
-      ).verifying(
-        minDate(min, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        yearHas4Digits("chargeC.paymentDate.error.invalid")
-      ),
-      "amountTaxDue" -> bigDecimal2DP(
-        requiredKey = "chargeC.amountTaxDue.error.required",
-        invalidKey = "chargeC.amountTaxDue.error.invalid",
-        decimalKey = "chargeC.amountTaxDue.error.decimal"
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeC.amountTaxDue.error.invalid"),
-        minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeC.amountTaxDue.error.invalid")
-      )
-    )(ChargeCDetails.apply)(ChargeCDetails.unapply))
+    Form(
+      mapping(
+        "paymentDate" -> localDate(
+          invalidKey = "chargeC.paymentDate.error.invalid",
+          allRequiredKey = "chargeC.paymentDate.error.required",
+          twoRequiredKey = "chargeC.paymentDate.error.incomplete",
+          requiredKey = "chargeC.paymentDate.error.required"
+        ).verifying(
+          minDate(min, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+          maxDate(max, messages("chargeC.paymentDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+          yearHas4Digits("chargeC.paymentDate.error.invalid")
+        ),
+        "amountTaxDue" -> bigDecimal2DP(
+          requiredKey = "chargeC.amountTaxDue.error.required",
+          invalidKey = "chargeC.amountTaxDue.error.invalid",
+          decimalKey = "chargeC.amountTaxDue.error.decimal"
+        ).verifying(
+          maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeC.amountTaxDue.error.invalid"),
+          minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeC.amountTaxDue.error.invalid")
+        )
+      )(ChargeCDetails.apply)(ChargeCDetails.unapply))
 }

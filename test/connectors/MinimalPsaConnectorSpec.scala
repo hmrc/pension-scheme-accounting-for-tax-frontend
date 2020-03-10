@@ -27,14 +27,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-
-  override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
-
   private lazy val connector: MinimalPsaConnector = injector.instanceOf[MinimalPsaConnector]
   private val psaId = "test-psa"
   private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
 
-  private def validResponse(b:Boolean) =
+  override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
+
+  private def validResponse(b: Boolean) =
     Json.stringify(
       Json.obj(
         "isPsaSuspended" -> b
@@ -73,7 +72,6 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
 
     "return BadRequestException when the backend has returned anything other than ok" in {
       val data = Json.obj(fields = "psaId" -> psaId)
-
 
       server.stubFor(
         get(urlEqualTo(minimalPsaDetailsUrl))

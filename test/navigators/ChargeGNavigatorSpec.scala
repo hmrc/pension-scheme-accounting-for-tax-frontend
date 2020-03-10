@@ -19,8 +19,9 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeG.routes._
 import data.SampleData
-import models.{CheckMode, NormalMode, UserAnswers}
-import navigators.ChargeENavigatorSpec.srn
+import models.CheckMode
+import models.NormalMode
+import models.UserAnswers
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeG._
@@ -31,25 +32,26 @@ import models.LocalDateBinder._
 class ChargeGNavigatorSpec extends NavigatorBehaviour {
 
   import ChargeGNavigatorSpec._
-  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
+
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(ChargeDetailsPage(index))(ChargeAmountsController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(WhatYouWillNeedPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, index)),
+        row(MemberDetailsPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)),
+        row(ChargeDetailsPage(index))(ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, index)),
         row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
-        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
+        row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), Some(SampleData.chargeCEmployer)),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeGMember))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
   }
 
   "CheckMode" must {
@@ -61,7 +63,7 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(ChargeAmountsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate)
   }
 
 }

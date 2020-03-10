@@ -18,7 +18,8 @@ package forms.chargeG
 
 import java.time.LocalDate
 
-import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
+import forms.behaviours.DateBehaviours
+import forms.behaviours.StringFieldBehaviours
 import models.chargeG.MemberDetails
 import play.api.data.FormError
 import utils.AFTConstants.MIN_DATE
@@ -90,11 +91,13 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
     )
 
     "successfully bind when yes is selected and valid NINO with spaces is provided" in {
-      val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
-        "dob.day" -> "20",
-        "dob.month" -> "02",
-        "dob.year" -> "2002",
-        "nino" -> " a b 0 2 0 2 0 2 a "))
+      val res = form.bind(
+        Map("firstName" -> "Jane",
+            "lastName" -> "Doe",
+            "dob.day" -> "20",
+            "dob.month" -> "02",
+            "dob.year" -> "2002",
+            "nino" -> " a b 0 2 0 2 0 2 a "))
       res.get mustEqual MemberDetails("Jane", "Doe", LocalDate.of(2002, 2, 20), "AB020202A")
     }
   }
@@ -117,9 +120,6 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
       formError = FormError(dobKey, "dob.error.future")
     )
 
-    behave like mandatoryDateField(
-      form = form,
-      key = dobKey,
-      requiredAllKey = "dob.error.required")
+    behave like mandatoryDateField(form = form, key = dobKey, requiredAllKey = "dob.error.required")
   }
 }

@@ -22,8 +22,10 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeC._
-import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.SummaryList
 import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
 
@@ -31,36 +33,54 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, index).url
-
-  private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
-    .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
-
-  private def uaOrg: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(index), false).toOption.get
-    .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
-
-  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
-  
   private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(IsSponsoringEmployerIndividualPage(index)).get)),
     helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
     Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
     helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
-
   private val answersOrg: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaOrg).chargeCIsSponsoringEmployerIndividual(index, uaOrg.get(IsSponsoringEmployerIndividualPage(index)).get)),
     helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
     Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
     helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
+
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
+
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, index).url
+
+  private def uaInd: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeCDetailsPage(index), chargeCDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(index), true)
+      .toOption
+      .get
+      .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails)
+      .toOption
+      .get
+      .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)
+      .toOption
+      .get
+
+  private def uaOrg: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeCDetailsPage(index), chargeCDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(index), false)
+      .toOption
+      .get
+      .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails)
+      .toOption
+      .get
+      .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)
+      .toOption
+      .get
+
+  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
 
   private def jsonToPassToTemplate(answers: Seq[SummaryList.Row]): JsObject =
     Json.obj("list" -> Json.toJson(answers))

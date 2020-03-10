@@ -16,13 +16,18 @@
 
 package generators
 
-import java.time.{Instant, LocalDate, ZoneOffset}
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 import models._
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.ChargeCDetails
+import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import models.chargeF.ChargeDetails
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Arbitrary
+import org.scalacheck.Gen
 
 trait ModelGenerators {
 
@@ -49,7 +54,7 @@ trait ModelGenerators {
         line4 <- arbitrary[String]
         country <- arbitrary[String]
         postcode <- arbitrary[String]
-      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,Some(postcode))
+      } yield SponsoringEmployerAddress(line1, line2, Some(line3), Some(line4), country, Some(postcode))
     }
 
   implicit lazy val arbitrarySponsoringOrganisationDetails: Arbitrary[SponsoringOrganisationDetails] =
@@ -57,29 +62,16 @@ trait ModelGenerators {
       for {
         name <- arbitrary[String]
         crn <- arbitrary[String]
-      } yield SponsoringOrganisationDetails(name,crn)
+      } yield SponsoringOrganisationDetails(name, crn)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =
     Arbitrary {
       Gen.oneOf(YearRange.values.toSeq)
     }
-
-  def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {
-
-    def toMillis(date: LocalDate): Long =
-      date.atStartOfDay.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
-
-    Gen.choose(toMillis(min), toMillis(max)).map {
-      millis =>
-        Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
-    }
-  }
-
   implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
     datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
   }
-
   implicit lazy val arbitraryChargeCDetails: Arbitrary[ChargeCDetails] =
     Arbitrary {
       for {
@@ -87,7 +79,6 @@ trait ModelGenerators {
         amountTaxDue <- arbitrary[BigDecimal]
       } yield ChargeCDetails(paymentDate, amountTaxDue)
     }
-
   implicit lazy val arbitraryChargeFDetails: Arbitrary[ChargeDetails] =
     Arbitrary {
       for {
@@ -95,4 +86,14 @@ trait ModelGenerators {
         amountTaxDue <- arbitrary[BigDecimal]
       } yield ChargeDetails(deregDate, amountTaxDue)
     }
+
+  def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {
+
+    def toMillis(date: LocalDate): Long =
+      date.atStartOfDay.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
+
+    Gen.choose(toMillis(min), toMillis(max)).map { millis =>
+      Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
+    }
+  }
 }

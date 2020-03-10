@@ -29,22 +29,24 @@ object Enumerable {
     new Enumerable[A] {
       override def withName(str: String): Option[A] =
         entries.toMap.get(str)
-     }
+    }
 
   trait Implicits {
 
     implicit def reads[A](implicit ev: Enumerable[A]): Reads[A] = {
       Reads {
         case JsString(str) =>
-          ev.withName(str).map {
-            s => JsSuccess(s)
-          }.getOrElse(throw new RuntimeException("Enumerable item not found:" + str))
+          ev.withName(str)
+            .map { s =>
+              JsSuccess(s)
+            }
+            .getOrElse(throw new RuntimeException("Enumerable item not found:" + str))
         case _ =>
           JsError("error.invalid")
-       }
+      }
     }
 
-    implicit def writes[A : Enumerable]: Writes[A] = {
+    implicit def writes[A: Enumerable]: Writes[A] = {
       Writes(value => JsString(value.toString))
     }
   }

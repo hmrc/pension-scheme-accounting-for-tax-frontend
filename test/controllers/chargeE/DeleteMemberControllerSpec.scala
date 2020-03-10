@@ -23,53 +23,68 @@ import data.SampleData._
 import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, UserAnswers}
+import models.GenericViewModel
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.scalatest.{OptionValues, TryValues}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import org.scalatest.OptionValues
+import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeE.MemberDetailsPage
+import pages.chargeE.TotalChargeAmountPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 
 import scala.concurrent.Future
 
-class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteMemberControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
-
-  private def onwardRoute = Call("GET", "/foo")
-
   private val memberName = "first last"
   private val formProvider = new DeleteMemberFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.error.required", memberName))
+  private val viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
+  private val answers: UserAnswers = userAnswers
+    .set(PSTRQuery, pstr)
+    .success
+    .value
+
+  private def onwardRoute = Call("GET", "/foo")
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, 0).url
 
   private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, 0).url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
-
-  private def userAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).success.value
-    .set(MemberDetailsPage(1), memberDetails).success.value
-
-  private val answers: UserAnswers = userAnswers
-    .set(PSTRQuery, pstr).success.value
+  private def userAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(MemberDetailsPage(0), memberDetails)
+      .success
+      .value
+      .set(MemberDetailsPage(1), memberDetails)
+      .success
+      .value
 
   "DeleteMember Controller" must {
 
@@ -117,8 +132,13 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answers.set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+      val expectedUA = answers
+        .set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true))
+        .toOption
+        .get
+        .set(TotalChargeAmountPage, BigDecimal(0.00))
+        .toOption
+        .get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }

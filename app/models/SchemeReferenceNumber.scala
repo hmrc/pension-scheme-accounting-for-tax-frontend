@@ -16,8 +16,10 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.Json
+import play.api.libs.json.OFormat
 import play.api.mvc.PathBindable
+
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
@@ -25,21 +27,22 @@ case class SchemeReferenceNumber(id: String)
 
 object SchemeReferenceNumber {
 
-  implicit def srnPathBindable(implicit stringBinder: PathBindable[String]): PathBindable[SchemeReferenceNumber] = new PathBindable[SchemeReferenceNumber] {
+  implicit def srnPathBindable(implicit stringBinder: PathBindable[String]): PathBindable[SchemeReferenceNumber] =
+    new PathBindable[SchemeReferenceNumber] {
 
-    val regexSRN: Regex = "^S[0-9]{10}$".r
+      val regexSRN: Regex = "^S[0-9]{10}$".r
 
-    override def bind(key: String, value: String): Either[String, SchemeReferenceNumber] = {
-      stringBinder.bind(key, value) match {
-        case Right(srn@regexSRN(_*)) => Right(SchemeReferenceNumber(srn))
-        case _ => Left("SchemeReferenceNumber binding failed")
+      override def bind(key: String, value: String): Either[String, SchemeReferenceNumber] = {
+        stringBinder.bind(key, value) match {
+          case Right(srn @ regexSRN(_*)) => Right(SchemeReferenceNumber(srn))
+          case _                         => Left("SchemeReferenceNumber binding failed")
+        }
+      }
+
+      override def unbind(key: String, value: SchemeReferenceNumber): String = {
+        stringBinder.unbind(key, value.id)
       }
     }
-
-    override def unbind(key: String, value: SchemeReferenceNumber): String = {
-      stringBinder.unbind(key, value.id)
-    }
-  }
 
   implicit def schemeReferenceNumberToString(srn: SchemeReferenceNumber): String =
     srn.id
@@ -47,8 +50,8 @@ object SchemeReferenceNumber {
   implicit def stringToSchemeReferenceNumber(srn: String): SchemeReferenceNumber =
     SchemeReferenceNumber(srn)
 
-  case class InvalidSchemeReferenceNumberException() extends Exception
-
   implicit val format: OFormat[SchemeReferenceNumber] = Json.format[SchemeReferenceNumber]
+
+  case class InvalidSchemeReferenceNumberException() extends Exception
 
 }

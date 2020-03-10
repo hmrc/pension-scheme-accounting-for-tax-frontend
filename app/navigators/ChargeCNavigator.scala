@@ -19,7 +19,9 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.CheckMode
+import models.NormalMode
+import models.UserAnswers
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
@@ -27,17 +29,19 @@ import controllers.chargeC.routes._
 import services.ChargeCService._
 import services.AFTReturnTidyService
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  aftReturnTidyService: AFTReturnTidyService,
-                                 config: FrontendAppConfig) extends Navigator {
+                                 config: FrontendAppConfig)
+    extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddEmployersPage) match {
     case Some(true) => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   //scalastyle:off cyclomatic.complexity
@@ -106,14 +110,14 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {
       case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-      case _ => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index)
+      case _       => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index)
     }
   }
 
   private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(ChargeCDetailsPage(index)) match {
       case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-      case _ => ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index)
+      case _       => ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index)
     }
   }
 

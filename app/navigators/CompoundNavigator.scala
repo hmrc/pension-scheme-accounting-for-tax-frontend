@@ -19,7 +19,8 @@ package navigators
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import models.{Mode, UserAnswers}
+import models.Mode
+import models.UserAnswers
 import pages.Page
 import play.api.Logger
 import play.api.mvc.Call
@@ -30,21 +31,22 @@ trait CompoundNavigator {
   def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Call
 }
 
-
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
-  private def defaultPage(id: Page, mode: Mode): Call = {
-    Logger.warn(message = s"No navigation defined for id $id in mode $mode")
-    controllers.routes.IndexController.onPageLoad()
-  }
-
   def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Call = {
     nextPageOptional(id, mode, userAnswers, srn, startDate)
       .getOrElse(defaultPage(id, mode))
   }
 
+  private def defaultPage(id: Page, mode: Mode): Call = {
+    Logger.warn(message = s"No navigation defined for id $id in mode $mode")
+    controllers.routes.IndexController.onPageLoad()
+  }
+
   private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Option[Call] = {
-    navigators.asScala.find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id)).map(
-      _.nextPageOptional(mode, userAnswers, srn, startDate)(id)
-    )
+    navigators.asScala
+      .find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id))
+      .map(
+        _.nextPageOptional(mode, userAnswers, srn, startDate)(id)
+      )
   }
 }

@@ -16,13 +16,16 @@
 
 package services
 
-import models.{Member, MemberDetails, UserAnswers}
+import models.Member
+import models.MemberDetails
+import models.UserAnswers
 import pages.chargeG.ChargeAmountsPage
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 object ChargeGService {
@@ -30,20 +33,20 @@ object ChargeGService {
   def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
     val members = for {
-        (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeGDetails").zipWithIndex
-      } yield {
-        ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            chargeAmounts.amountTaxDue,
-            viewUrl(index, srn, startDate).url,
-            removeUrl(index, srn, startDate).url,
-            member.isDeleted
-          )
-        }
+      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeGDetails").zipWithIndex
+    } yield {
+      ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
+        Member(
+          index,
+          member.fullName,
+          member.nino,
+          chargeAmounts.amountTaxDue,
+          viewUrl(index, srn, startDate).url,
+          removeUrl(index, srn, startDate).url,
+          member.isDeleted
+        )
       }
+    }
 
     members.flatten
   }
@@ -51,8 +54,11 @@ object ChargeGService {
   def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
     getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeG", members, canChange)

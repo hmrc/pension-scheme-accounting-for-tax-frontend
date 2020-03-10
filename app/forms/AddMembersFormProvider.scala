@@ -16,7 +16,8 @@
 
 package forms
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.Constraints
+import forms.mappings.Mappings
 import javax.inject.Inject
 import play.api.data.Form
 

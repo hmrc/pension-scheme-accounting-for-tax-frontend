@@ -20,7 +20,8 @@ import java.time.LocalDate
 
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.IdentifierRequest
+import models.requests.OptionalDataRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -40,6 +41,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
   override def beforeEach: Unit = {
     reset(dataCacheConnector)
   }
+
   class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalImpl(srn, startDate, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }

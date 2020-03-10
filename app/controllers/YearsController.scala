@@ -22,62 +22,67 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Years}
+import models.GenericViewModel
+import models.Years
 import navigators.CompoundNavigator
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.AFTService
+import services.AllowAccessService
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class YearsController @Inject()(
-                                 override val messagesApi: MessagesApi,
-                                 userAnswersCacheConnector: UserAnswersCacheConnector,
-                                 navigator: CompoundNavigator,
-                                 identify: IdentifierAction,
-                                 getData: DataRetrievalAction,
-                                 allowAccess: AllowAccessActionProvider,
-                                 requireData: DataRequiredAction,
-                                 formProvider: YearsFormProvider,
-                                 val controllerComponents: MessagesControllerComponents,
-                                 renderer: Renderer,
-                                 config: FrontendAppConfig,
-                                 schemeService: SchemeService,
-                                 auditService: AuditService,
-                                 aftService: AFTService,
-                                 allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    formProvider: YearsFormProvider,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig,
+    schemeService: SchemeService,
+    auditService: AuditService,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Years] = formProvider()
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      val json = Json.obj(
+        "srn" -> srn,
+        "startDate" -> None,
+        "form" -> form(config),
+        "radios" -> Years.radios(form(config))(implicitly, config),
+        "viewModel" -> viewModel(schemeDetails.schemeName, srn)
+      )
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> None,
-          "form" -> form(config),
-          "radios" -> Years.radios(form(config))(implicitly, config),
-          "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-        )
-
-        renderer.render(template = "years.njk", json).map(Ok(_))
-      }
+      renderer.render(template = "years.njk", json).map(Ok(_))
+    }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-        form(config).bindFromRequest().fold(
-          formWithErrors =>
-            schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    form(config)
+      .bindFromRequest()
+      .fold(
+        formWithErrors =>
+          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
               "startDate" -> None,
@@ -86,11 +91,12 @@ class YearsController @Inject()(
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))
-          },
-          value =>
-            Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
-        )
+        },
+        value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
+      )
   }
+
+  private def form(implicit config: FrontendAppConfig): Form[Years] = formProvider()
 
   private def viewModel(schemeName: String, srn: String): GenericViewModel = {
     GenericViewModel(

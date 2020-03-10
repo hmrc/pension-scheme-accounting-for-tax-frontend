@@ -16,11 +16,10 @@
 
 package models
 
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.Json
+import play.api.libs.json.OWrites
 
-case class GenericViewModel(submitUrl: String,
-                            returnUrl: String,
-                            schemeName: String)
+case class GenericViewModel(submitUrl: String, returnUrl: String, schemeName: String)
 
 object GenericViewModel {
   implicit lazy val writes: OWrites[GenericViewModel] =

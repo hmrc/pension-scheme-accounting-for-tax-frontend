@@ -18,17 +18,16 @@ package utils
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.Suite
 import play.api.Application
 import play.api.inject.Injector
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.GuiceableModule
 
 trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
   this: Suite =>
-
-  protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
-
-  protected def portConfigKey: String
 
   protected lazy val app: Application =
     new GuiceApplicationBuilder()
@@ -39,10 +38,8 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
       )
       .overrides(bindings: _*)
       .build()
-
-  protected def bindings: Seq[GuiceableModule] = Seq.empty[GuiceableModule]
-
   protected lazy val injector: Injector = app.injector
+  protected val server: WireMockServer = new WireMockServer(wireMockConfig().dynamicPort())
 
   override def beforeAll(): Unit = {
     server.start()
@@ -58,4 +55,8 @@ trait WireMockHelper extends BeforeAndAfterAll with BeforeAndAfterEach {
     super.afterAll()
     server.stop()
   }
+
+  protected def portConfigKey: String
+
+  protected def bindings: Seq[GuiceableModule] = Seq.empty[GuiceableModule]
 }

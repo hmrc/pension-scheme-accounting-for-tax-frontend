@@ -21,7 +21,8 @@ import data.SampleData
 import models.requests.OptionalDataRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
@@ -30,15 +31,17 @@ import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   private val allowAccessService = mock[AllowAccessService]
 
   class TestHarness(
-                     srn: String
-                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService) {
+      srn: String
+  )(implicit ec: ExecutionContext)
+      extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService) {
     def test(optionalDataRequest: OptionalDataRequest[_]): Future[Option[Result]] = this.filter(optionalDataRequest)
   }
 
@@ -46,11 +49,13 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "delegate to the allow access service with the correct srn, startDate" in {
       reset(allowAccessService)
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
-      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any(), any())(any()))
+      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(), any(), any(), any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
-          .set(IsPsaSuspendedQuery, value = false).toOption.get
+        .set(IsPsaSuspendedQuery, value = false)
+        .toOption
+        .get
 
       val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))
 

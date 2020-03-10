@@ -26,18 +26,29 @@ import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, Index, Mode, Quarters, UserAnswers}
+import models.GenericViewModel
+import models.Index
+import models.Mode
+import models.Quarters
+import models.UserAnswers
 import navigators.CompoundNavigator
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeD.ChargeDetailsPage
+import pages.chargeD.MemberDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -49,8 +60,59 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
+
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+        val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
+          case Some(value) => form(request.userAnswers, startDate).fill(value)
+          case None        => form(request.userAnswers, startDate)
+        }
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
+          "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
+          "memberName" -> memberName
+        )
+
+        renderer.render(template = "chargeD/chargeDetails.njk", json).map(Ok(_))
+      }
+    }
+
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+        form(request.userAnswers, startDate)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
+                "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
+                "memberName" -> memberName
+              )
+              renderer.render(template = "chargeD/chargeDetails.njk", json).map(BadRequest(_))
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
+            }
+          )
+      }
+    }
 
   private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -67,55 +129,4 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
-
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-
-        val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
-          case Some(value) => form(request.userAnswers, startDate).fill(value)
-          case None => form(request.userAnswers, startDate)
-        }
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
-          "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
-          "memberName" -> memberName
-        )
-
-        renderer.render(template = "chargeD/chargeDetails.njk", json).map(Ok(_))
-      }
-  }
-
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-
-        form(request.userAnswers, startDate).bindFromRequest().fold(
-          formWithErrors => {
-
-            val json = Json.obj(
-              "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
-              "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
-              "memberName" -> memberName
-            )
-            renderer.render(template = "chargeD/chargeDetails.njk", json).map(BadRequest(_))
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
-          }
-        )
-      }
-  }
 }

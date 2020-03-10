@@ -23,13 +23,22 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import org.mockito.Mockito
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json, Writes}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.libs.json.Writes
+import play.api.test.Helpers.redirectLocation
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -96,10 +105,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     }
   }
 
-  def controllerWithOnClick[A](httpPath: => String,
-                               page: Page,
-                               userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter)
-                              (implicit writes: Writes[A]): Unit = {
+  def controllerWithOnClick[A](httpPath: => String, page: Page, userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter)(
+      implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))

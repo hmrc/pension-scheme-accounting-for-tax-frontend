@@ -23,34 +23,45 @@ import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.IsNewReturn
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.redirectLocation
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 
 import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get
+  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeEDetails).get.data
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
-  private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("3"),
-  "dateNoticeReceived.month" -> Seq("4"),
-  "dateNoticeReceived.year" -> Seq("2019"),
+    "dateNoticeReceived.day" -> Seq("3"),
+    "dateNoticeReceived.month" -> Seq("4"),
+    "dateNoticeReceived.year" -> Seq("2019"),
     "isPaymentMandatory" -> Seq("true")
   )
 
@@ -64,21 +75,22 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("32"),
-  "dateNoticeReceived.month" -> Seq("13"),
-  "dateNoticeReceived.year" -> Seq("2003"),
+    "dateNoticeReceived.day" -> Seq("32"),
+    "dateNoticeReceived.month" -> Seq("13"),
+    "dateNoticeReceived.year" -> Seq("2003"),
     "isPaymentMandatory" -> Seq("false")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dateNoticeReceived")),
-    "radios" -> Radios.yesNo(form("isPaymentMandatory")),
-    "memberName" -> "first last"
+  private val jsonToPassToTemplate: Form[ChargeEDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("dateNoticeReceived")),
+      "radios" -> Radios.yesNo(form("isPaymentMandatory")),
+      "memberName" -> "first last"
   )
 
   override def beforeEach: Unit = {
@@ -88,8 +100,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get
-  val expectedJson: JsObject = validData.set(ChargeDetailsPage(0), chargeEDetails).get.data
+  private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
+
+  private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

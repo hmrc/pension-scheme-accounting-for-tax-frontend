@@ -24,7 +24,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import models.Enumerable
+import models.GenericViewModel
+import models.Quarters
+import models.SchemeDetails
+import models.SchemeStatus
+import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -34,9 +39,12 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -46,40 +54,44 @@ import scala.concurrent.Future
 import utils.AFTConstants.QUARTER_START_DATE
 import models.LocalDateBinder._
 
-class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class QuartersControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
+  lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
+  lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)
   )
-
+  val templateToBeRendered = "quarters.njk"
+  val formProvider = new QuartersFormProvider()
+  val form: Form[Quarters] = formProvider(messages(errorKey, testYear), testYear)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val testYear = 2020
   private val startDate = QUARTER_START_DATE
   private val errorKey = "quarters.error.required"
-  val templateToBeRendered = "quarters.njk"
-  val formProvider = new QuartersFormProvider()
-  val form: Form[Quarters] = formProvider(messages(errorKey, testYear), testYear)
-
-  lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
-  lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
-
-  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, testYear),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "year" -> testYear.toString
+  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "radios" -> Quarters.radios(form, testYear),
+      "viewModel" -> GenericViewModel(submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "year" -> testYear.toString
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q2"))
 
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("q5"))
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -90,8 +102,6 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
     DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
   }
-
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
 
   "Quarters Controller" must {
 
@@ -131,4 +141,3 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     }
   }
 }
-

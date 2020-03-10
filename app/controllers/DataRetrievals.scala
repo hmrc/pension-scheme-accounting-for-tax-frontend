@@ -16,89 +16,93 @@
 
 package controllers
 
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.ChargeCDetails
+import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import models.requests.DataRequest
-import models.{Index, MemberDetails, Quarter, YearRange}
+import models.Index
+import models.MemberDetails
+import models.Quarter
+import models.YearRange
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.{PSTRQuery, QuarterPage, QuestionPage, SchemeNameQuery}
+import pages.PSTRQuery
+import pages.QuarterPage
+import pages.QuestionPage
+import pages.SchemeNameQuery
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
-import play.api.mvc.{AnyContent, Result}
+import play.api.mvc.AnyContent
+import play.api.mvc.Result
 
 import scala.concurrent.Future
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 object DataRetrievals {
 
-  def retrieveSchemeName(block: String => Future[Result])
-                        (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeName(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(SchemeNameQuery) match {
       case Some(schemeName) => block(schemeName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])
-                                          (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(pstr), Some(quarter)) => block(schemeName, pstr, quarter)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                             => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])
-                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
-      case (Some(schemeName), Some(quarter)) => block(schemeName,quarter)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
+      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-
-  def retrievePSTR(block: String => Future[Result])
-                  (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrievePSTR(block: String => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     request.userAnswers.get(PSTRQuery) match {
       case Some(pstr) => block(pstr)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])
-                             (block: (String, String) => Future[Result])
-                             (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndMember(memberPage: QuestionPage[MemberDetails])(block: (String, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])
-                                    (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeMemberChargeG(memberPage: QuestionPage[models.chargeG.MemberDetails])(block: (String, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(memberPage)) match {
       case (Some(schemeName), Some(memberDetails)) => block(schemeName, memberDetails.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                       => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def retrieveSchemeAndSponsoringEmployer(index: Int)
-                                         (block: (String, String) => Future[Result])
-                                         (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def retrieveSchemeAndSponsoringEmployer(index: Int)(block: (String, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
-    (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringOrganisationDetailsPage(index)),
-      ua.get(SponsoringIndividualDetailsPage(index)), ua.get(SchemeNameQuery)) match {
-      case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
+    (ua.get(IsSponsoringEmployerIndividualPage(index)),
+     ua.get(SponsoringOrganisationDetailsPage(index)),
+     ua.get(SponsoringIndividualDetailsPage(index)),
+     ua.get(SchemeNameQuery)) match {
+      case (Some(false), Some(company), _, Some(schemeName))   => block(schemeName, company.name)
       case (Some(true), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
-      case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                                   => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
-  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A],
-                          srn: String, startDate: LocalDate)
-                         (block: (A, String) => Future[Result])
-                         (implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate)(
+      block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
       request.userAnswers.get(chargeDetailsPage),
       request.userAnswers.get(SchemeNameQuery)
@@ -110,9 +114,12 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeC(index: Index, srn: String, startDate: LocalDate)
-                (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def cyaChargeC(index: Index, srn: String, startDate: LocalDate)(
+      block: (Boolean,
+              Either[models.MemberDetails, SponsoringOrganisationDetails],
+              SponsoringEmployerAddress,
+              ChargeCDetails,
+              String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     (
       request.userAnswers.get(IsSponsoringEmployerIndividualPage(index)),
@@ -137,9 +144,9 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeD(index: Index, srn: String, startDate: LocalDate)
-                (block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def cyaChargeD(index: Index, srn: String, startDate: LocalDate)(
+      block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeD.MemberDetailsPage(index)),
       request.userAnswers.get(ChargeDetailsPage(index)),
@@ -152,9 +159,9 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeE(index: Index, srn: String, startDate: LocalDate)
-                (block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def cyaChargeE(index: Index, srn: String, startDate: LocalDate)(
+      block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeE.MemberDetailsPage(index)),
       request.userAnswers.get(AnnualAllowanceYearPage(index)),
@@ -168,9 +175,9 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeG(index: Index, srn: String, startDate: LocalDate)
-                (block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])
-                (implicit request: DataRequest[AnyContent]): Future[Result] = {
+  def cyaChargeG(index: Index, srn: String, startDate: LocalDate)(
+      block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
       request.userAnswers.get(pages.chargeG.ChargeDetailsPage(index)),
       request.userAnswers.get(pages.chargeG.MemberDetailsPage(index)),

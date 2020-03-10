@@ -19,12 +19,10 @@ package pages.chargeC
 import pages.Page
 import play.api.libs.json.JsPath
 
-case class SponsoringEmployersQuery(index: Int) extends Page  {
+case class SponsoringEmployersQuery(index: Int) extends Page {
   def path: JsPath = JsPath \ "chargeCDetails" \ SponsoringEmployersQuery.toString \ index
 }
 
 object SponsoringEmployersQuery {
   override def toString: String = "employers"
 }
-
-

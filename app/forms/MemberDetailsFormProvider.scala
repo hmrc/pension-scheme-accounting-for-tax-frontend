@@ -16,7 +16,8 @@
 
 package forms
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.Constraints
+import forms.mappings.Mappings
 import javax.inject.Inject
 import models.MemberDetails
 import play.api.data.Form
@@ -33,8 +34,8 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
         .verifying(maxLength(35, "memberDetails.error.lastName.length"))
         .verifying(regexp(nameRegex, "memberDetails.error.lastName.invalid")),
       "nino" -> text("memberDetails.error.nino.required")
-        .transform(noSpaceWithUpperCaseTransform, noTransform).
-        verifying(validNino("memberDetails.error.nino.invalid"))
+        .transform(noSpaceWithUpperCaseTransform, noTransform)
+        .verifying(validNino("memberDetails.error.nino.invalid"))
     )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
   )
 }

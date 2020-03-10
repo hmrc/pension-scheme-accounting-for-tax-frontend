@@ -21,7 +21,8 @@ import data.SampleData
 import models.UserAnswers
 import models.requests.OptionalDataRequest
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.mvc.Result

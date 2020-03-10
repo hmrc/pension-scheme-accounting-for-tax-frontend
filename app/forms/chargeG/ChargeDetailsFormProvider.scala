@@ -32,22 +32,23 @@ class ChargeDetailsFormProvider @Inject() extends Mappings {
   val qropsTransferDateKey: String = "chargeG.chargeDetails.qropsTransferDate.error"
 
   def apply(min: LocalDate, max: LocalDate)(implicit messages: Messages): Form[ChargeDetails] =
-    Form(mapping(
-      "qropsReferenceNumber" -> text(
-        errorKey = s"$qropsReferenceNumberKey.required"
-      ).transform(noSpaceWithUpperCaseTransform, noTransform)
-        .verifying(
-          regexp("""^[0-9]{6}""", s"$qropsReferenceNumberKey.valid")
-        ),
-      "qropsTransferDate" -> localDate(
-        invalidKey = s"$qropsTransferDateKey.invalid",
-        allRequiredKey = s"$qropsTransferDateKey.required.all",
-        twoRequiredKey = s"$qropsTransferDateKey.required.two",
-        requiredKey = s"$qropsTransferDateKey.required"
-      ).verifying(
-        minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
-        yearHas4Digits(s"$qropsTransferDateKey.invalid")
-      )
-    )(ChargeDetails.apply)(ChargeDetails.unapply))
+    Form(
+      mapping(
+        "qropsReferenceNumber" -> text(
+          errorKey = s"$qropsReferenceNumberKey.required"
+        ).transform(noSpaceWithUpperCaseTransform, noTransform)
+          .verifying(
+            regexp("""^[0-9]{6}""", s"$qropsReferenceNumberKey.valid")
+          ),
+        "qropsTransferDate" -> localDate(
+          invalidKey = s"$qropsTransferDateKey.invalid",
+          allRequiredKey = s"$qropsTransferDateKey.required.all",
+          twoRequiredKey = s"$qropsTransferDateKey.required.two",
+          requiredKey = s"$qropsTransferDateKey.required"
+        ).verifying(
+          minDate(min, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+          maxDate(max, messages("chargeG.chargeDetails.qropsTransferDate.error.date", formatDateDMY(min), formatDateDMY(max))),
+          yearHas4Digits(s"$qropsTransferDateKey.invalid")
+        )
+      )(ChargeDetails.apply)(ChargeDetails.unapply))
 }

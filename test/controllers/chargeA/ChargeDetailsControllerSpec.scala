@@ -22,16 +22,24 @@ import data.SampleData._
 import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeA.ChargeDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.IsNewReturn
 import pages.chargeA.ChargeDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -44,35 +52,28 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeA/chargeDetails.njk"
   private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
-
-  private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
-
-  private def httpPathPOST: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
-
   private val valuesValid: Map[String, Seq[String]] = Map(
     "numberOfMembers" -> Seq("44"),
     "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
     "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
   )
-
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "numberOfMembers" -> Seq("999999999999999999999999999999999999999"),
     "totalAmtOfTaxDueAtLowerRate" -> Seq("33.44"),
     "totalAmtOfTaxDueAtHigherRate" -> Seq("34.34")
   )
-
   private val valuesWithZeroAmount: Map[String, Seq[String]] = Map(
     "numberOfMembers" -> Seq("44"),
     "totalAmtOfTaxDueAtLowerRate" -> Seq("0.00"),
     "totalAmtOfTaxDueAtHigherRate" -> Seq("0.00")
   )
-
-  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
@@ -83,6 +84,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
   }
 
+  private def httpPathGET: String = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate).url
+
+  private def httpPathPOST: String = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

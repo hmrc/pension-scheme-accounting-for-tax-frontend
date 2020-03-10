@@ -26,18 +26,28 @@ import forms.chargeC.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeC.ChargeCDetails
-import models.{GenericViewModel, Index, Mode, Quarters, UserAnswers}
+import models.GenericViewModel
+import models.Index
+import models.Mode
+import models.Quarters
+import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -49,56 +59,51 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
-
-  private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
-    val endDate = Quarters.getQuarter(startDate).endDate
-    formProvider(
-      startDate,
-      endDate,
-      UserAnswers.deriveMinimumChargeValueAllowed(ua)
-    )
-  }
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-          val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
-            case Some(value) => form(request.userAnswers, startDate).fill(value)
-            case None => form(request.userAnswers, startDate)
-          }
-
-          val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-            schemeName = schemeName)
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "date" -> DateInput.localDate(preparedForm("paymentDate")),
-            "sponsorName" -> sponsorName
-          )
-
-          renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
+          case Some(value) => form(request.userAnswers, startDate).fill(value)
+          case None        => form(request.userAnswers, startDate)
         }
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("paymentDate")),
+          "sponsorName" -> sponsorName
+        )
+
+        renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
+      }
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-          form(request.userAnswers, startDate).bindFromRequest().fold(
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        form(request.userAnswers, startDate)
+          .bindFromRequest()
+          .fold(
             formWithErrors => {
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                schemeName = schemeName)
+                schemeName = schemeName
+              )
 
               val json = Json.obj(
                 "srn" -> srn,
@@ -117,6 +122,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate))
           )
-        }
+      }
     }
+
+  private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
+    val endDate = Quarters.getQuarter(startDate).endDate
+    formProvider(
+      startDate,
+      endDate,
+      UserAnswers.deriveMinimumChargeValueAllowed(ua)
+    )
+  }
 }

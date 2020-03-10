@@ -22,41 +22,47 @@ import data.SampleData._
 import forms.chargeG.MemberDetailsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.MemberDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.chargeG.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+  private lazy val httpPathGET: String =
+    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
+  private lazy val httpPathPOST: String =
+    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/memberDetails.njk"
   private val formProvider = new MemberDetailsFormProvider()
   private val form: Form[MemberDetails] = formProvider()
-
-  private lazy val httpPathGET: String =
-    controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
-  private lazy val httpPathPOST: String =
-    controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
-
-  private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dob"))
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("dob"))
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -71,17 +77,17 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
     "chargeGDetails" -> Json.obj(
-    "members" -> Json.arr(
-      Json.obj(
-        "memberDetails" -> Json.obj(
-          "firstName" -> "first",
-          "lastName" -> "last",
-          "dob" -> "2019-04-03",
-          "nino" -> "AB123456C",
-          "isDeleted" -> false
+      "members" -> Json.arr(
+        Json.obj(
+          "memberDetails" -> Json.obj(
+            "firstName" -> "first",
+            "lastName" -> "last",
+            "dob" -> "2019-04-03",
+            "nino" -> "AB123456C",
+            "isDeleted" -> false
+          )
         )
-      )
-    )),
+      )),
     "schemeName" -> "Big Scheme"
   )
 
@@ -167,7 +173,6 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
-
 
     "redirect to Session Expired page for a GET when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(None)
