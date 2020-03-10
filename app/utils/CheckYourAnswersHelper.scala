@@ -531,15 +531,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     if (answer) msg"site.yes" else msg"site.no"
 
   def rows(viewOnly: Boolean, rows: Seq[SummaryList.Row]): Seq[SummaryList.Row] = {
-    if(viewOnly) rows.map(_.copy(actions = Nil)) else rows
+    if (viewOnly) rows.map(_.copy(actions = Nil)) else rows
   }
 }
 
 object CheckYourAnswersHelper {
-  private val gb = Currency.getInstance(new Locale("en", "GB"))
   private val currencyFormatter: NumberFormat = {
     val cf = java.text.NumberFormat.getCurrencyInstance
-    cf.setCurrency(gb)
+    cf.setCurrency(Currency.getInstance(new Locale("en", "GB")))
     cf
   }
   private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
