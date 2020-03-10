@@ -43,7 +43,9 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/addMembers.njk"
   private val form = new AddMembersFormProvider()("chargeG.addMembers.error")
+
   private def httpPathGET: String = controllers.chargeG.routes.AddMembersController.onPageLoad(srn, startDate).url
+
   private def httpPathPOST: String = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -53,6 +55,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
+  private val cssTableCellNumeric = "govuk-table__cell--numeric"
 
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
@@ -65,30 +68,30 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "first last","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "first last", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)), "classes" -> Seq(cssQuarterWidth, cssTableCellNumeric).mkString(" ")),
+        Json.obj("html" -> s"<a id=member-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/check-your-answers> View<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=member-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>first last’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("text" -> "Joe Bloggs","classes" -> cssQuarterWidth),
-        Json.obj("text" -> "AB123456C","classes" -> cssQuarterWidth),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)),"classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "Joe Bloggs", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> "AB123456C", "classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(50.00)), "classes" -> Seq(cssQuarterWidth, cssTableCellNumeric).mkString(" ")),
+        Json.obj("html" -> s"<a id=member-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a id=member-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/overseas-transfer-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Joe Bloggs’s overseas transfer charge</span> </a>", "classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> ""),
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(100.00)),"classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(100.00)), "classes" -> Seq(cssQuarterWidth, cssTableCellNumeric).mkString(" ")),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
     )
   )
 
-  private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[Boolean] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeG.routes.AddMembersController.onSubmit(srn, startDate).url,
@@ -113,6 +116,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     .set(ChargeAmountsPage(0), chargeAmounts).toOption.get
     .set(ChargeAmountsPage(1), chargeAmounts2).toOption.get
     .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
+
   val expectedJson: JsObject = ua.set(AddMembersPage, true).get.data
 
   "AddMembers Controller" must {

@@ -29,7 +29,7 @@ import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import java.time.LocalDate
 import models.LocalDateBinder._
 
-class AFTSummaryHelper{
+class AFTSummaryHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
@@ -69,17 +69,20 @@ class AFTSummaryHelper{
     )
 
     val summaryDataNonUK: Seq[SummaryDetails] = Seq(
-            SummaryDetails(
-              chargeType = ChargeTypeOverseasTransfer,
-              totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-              href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
-            )
+      SummaryDetails(
+        chargeType = ChargeTypeOverseasTransfer,
+        totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+        href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
+      )
     )
 
     val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
       Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-one-half")),
+        value = Value(
+          content = Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+        ),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -97,8 +100,11 @@ class AFTSummaryHelper{
 
     val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
       Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-one-half")),
+        value = Value(
+          content = Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+        ),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -115,7 +121,10 @@ class AFTSummaryHelper{
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(
+        content = Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+      ),
       actions = Nil
     ))
 

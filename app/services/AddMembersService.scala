@@ -40,7 +40,7 @@ object AddMembersService {
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
         Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
       ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
     }
@@ -48,7 +48,7 @@ object AddMembersService {
 
     val totalRow = Seq(Seq(
       Cell(msg""), Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       Cell(msg"")
     ) ++ (if(canChange) Seq(Cell(msg"")) else Nil))
 

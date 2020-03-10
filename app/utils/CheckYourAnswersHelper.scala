@@ -18,7 +18,7 @@ package utils
 
 import java.util.Currency
 import java.util.Locale
-import java.text.NumberFormat
+import java.text.{DecimalFormat, NumberFormat}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -514,7 +514,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-third" +
           "")),
         actions = List(
           Action(
@@ -536,12 +536,9 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 }
 
 object CheckYourAnswersHelper {
-  private val currencyFormatter: NumberFormat = {
-    val cf = java.text.NumberFormat.getCurrencyInstance
-    cf.setCurrency(Currency.getInstance(new Locale("en", "GB")))
-    cf
-  }
+
+  private val currencyFormatter: DecimalFormat = new DecimalFormat("#,###.00")
   private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
-  def formatCurrencyAmountAsString(bd: BigDecimal): String = currencyFormatter.format(bd)
+  def formatCurrencyAmountAsString(bd: BigDecimal): String = s"\u00A3${if (bd == BigDecimal(0.00)) "0.00" else currencyFormatter.format(bd)}"
 }
