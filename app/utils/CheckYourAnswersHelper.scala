@@ -16,18 +16,25 @@
 
 package utils
 
-import java.text.DecimalFormat
+import java.util.Currency
+import java.util.Locale
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import models.LocalDateBinder._
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.ChargeCDetails
+import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
-import models.chargeG.{ChargeAmounts, MemberDetails}
-import models.{CheckMode, UserAnswers, YearRange}
+import models.chargeG.ChargeAmounts
+import models.chargeG.MemberDetails
+import models.CheckMode
+import models.UserAnswers
+import models.YearRange
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -524,12 +531,16 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     if (answer) msg"site.yes" else msg"site.no"
 
   def rows(viewOnly: Boolean, rows: Seq[SummaryList.Row]): Seq[SummaryList.Row] = {
-    if(viewOnly) rows.map(_.copy(actions = Nil)) else rows
+    if (viewOnly) rows.map(_.copy(actions = Nil)) else rows
   }
 }
 
 object CheckYourAnswersHelper {
-  private val currencyFormatter = java.text.NumberFormat.getCurrencyInstance
+  private val currencyFormatter: NumberFormat = {
+    val cf = java.text.NumberFormat.getCurrencyInstance
+    cf.setCurrency(Currency.getInstance(new Locale("en", "GB")))
+    cf
+  }
   private val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
   def formatCurrencyAmountAsString(bd: BigDecimal): String = currencyFormatter.format(bd)
