@@ -45,8 +45,8 @@ trait PageGenerators {
   implicit lazy val arbitrarySponsoringOrganisationDetailsPage: Arbitrary[SponsoringOrganisationDetailsPage.type] =
     Arbitrary(SponsoringOrganisationDetailsPage)
 
-  implicit lazy val arbitraryIsSponsoringEmployerIndividualPage: Arbitrary[IsSponsoringEmployerIndividualPage.type] =
-    Arbitrary(IsSponsoringEmployerIndividualPage)
+  implicit lazy val arbitraryIsSponsoringEmployerIndividualPage: Arbitrary[WhichTypeOfSponsoringEmployerPage.type] =
+    Arbitrary(WhichTypeOfSponsoringEmployerPage)
 
   implicit lazy val arbitraryAFTSummaryPage: Arbitrary[AFTSummaryPage.type] =
     Arbitrary(AFTSummaryPage)

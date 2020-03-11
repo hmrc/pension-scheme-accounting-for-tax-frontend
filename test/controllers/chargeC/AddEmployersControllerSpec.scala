@@ -107,8 +107,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   }
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), false).toOption.get
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get

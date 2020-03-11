@@ -122,7 +122,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       }
   }
   private def saveDeletion(ua: UserAnswers, index: Int): Try[UserAnswers] =
-    ( ua.get(IsSponsoringEmployerIndividualPage(index)),
+    ( ua.get(WhichTypeOfSponsoringEmployerPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
       case (Some(true), Some(individualDetails), _) =>

@@ -80,13 +80,13 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
   def chargeCIsSponsoringEmployerIndividual(index: Int, answer: Boolean): Row =
     Row(
-      key = Key(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+      key = Key(msg"chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
       value = Value(yesOrNo(answer)),
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, startDate, index).url,
-          visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel"))
+          href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, index).url,
+          visuallyHiddenText = Some(msg"chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel"))
       )
     )
 

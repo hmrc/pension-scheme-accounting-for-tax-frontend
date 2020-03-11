@@ -18,7 +18,7 @@ package services
 
 import controllers.chargeB.{routes => _}
 import models.{Employer, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
 import play.api.libs.json.Reads._
@@ -38,7 +38,7 @@ object ChargeCService {
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(IsSponsoringEmployerIndividualPage(index)) flatMap {
+    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
         case true => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
         case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
       }

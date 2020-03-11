@@ -21,13 +21,14 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.IsSponsoringEmployerIndividualPage
+import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
@@ -37,29 +38,30 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
-class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class WhichTypeOfSponsoringEmployerControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val index = 0
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(IsSponsoringEmployerIndividualPage(index), true).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(WhichTypeOfSponsoringEmployerPage(index), true).success.value
 
   def onwardRoute: Call = Call("GET", "/foo")
 
   private val formProvider = new IsSponsoringEmployerIndividualFormProvider()
   private val form = formProvider()
 
-  private def httpPathGET: String = routes.IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String = routes.WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, index).url
 
-  private def viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
-
+  private def viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 
@@ -85,7 +87,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(form("value"))
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
 
       jsonCaptor.getValue must containJson(expectedJson)
     }
@@ -114,7 +116,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(filledForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
@@ -160,7 +162,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
         "radios" -> Radios.yesNo(boundForm("value"))
       )
 
-      templateCaptor.getValue mustEqual "chargeC/isSponsoringEmployerIndividual.njk"
+      templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 

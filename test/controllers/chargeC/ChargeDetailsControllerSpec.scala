@@ -27,7 +27,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import pages.IsNewReturn
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringOrganisationDetailsPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -140,7 +140,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
           SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-          IsSponsoringEmployerIndividualPage.toString -> false,
+          WhichTypeOfSponsoringEmployerPage.toString -> false,
           ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
             )
           )

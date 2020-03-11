@@ -47,9 +47,9 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), true).toOption.get
     .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), true).toOption.get
 
   private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndTwoIndividuals
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value
@@ -59,8 +59,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
   private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), false).toOption.get
 
   private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndTwoOrganisations
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value

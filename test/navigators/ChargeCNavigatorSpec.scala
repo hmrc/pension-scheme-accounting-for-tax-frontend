@@ -38,15 +38,15 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(IsSponsoringEmployerIndividualPage(index))(SponsoringOrganisationDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
-        row(IsSponsoringEmployerIndividualPage(index))(SponsoringIndividualDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
+        row(WhatYouWillNeedPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringOrganisationDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringIndividualDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
         row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode,srn, startDate, index)),
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode,srn, startDate, index)),
         row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
         row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn, startDate)),
-        row(AddEmployersPage)(IsSponsoringEmployerIndividualController.onPageLoad(NormalMode,srn, startDate, index), addEmployersYes),
+        row(AddEmployersPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index), addEmployersYes),
         row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addEmployersNo),
         row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), Some(SampleData.chargeDMember)),
         row(DeleteEmployerPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))),
@@ -60,8 +60,8 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(IsSponsoringEmployerIndividualPage(index))(SponsoringOrganisationDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
-        row(IsSponsoringEmployerIndividualPage(index))(SponsoringIndividualDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringOrganisationDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringIndividualDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
         row(SponsoringOrganisationDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index), Some(sponsoringEmployerAddress)),
         row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode,srn, startDate, index)),
         row(SponsoringIndividualDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index), Some(sponsoringEmployerAddress)),
@@ -86,7 +86,7 @@ object ChargeCNavigatorSpec {
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
       "employers" -> Json.arr(Json.obj(
-      IsSponsoringEmployerIndividualPage.toString -> false
+      WhichTypeOfSponsoringEmployerPage.toString -> false
       ))
     )
   ))
@@ -94,7 +94,7 @@ object ChargeCNavigatorSpec {
   private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
       "employers" -> Json.arr(Json.obj(
-      IsSponsoringEmployerIndividualPage.toString -> true
+      WhichTypeOfSponsoringEmployerPage.toString -> true
       ))
     )
   ))

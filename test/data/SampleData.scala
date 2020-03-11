@@ -25,7 +25,7 @@ import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
@@ -90,11 +90,11 @@ object SampleData {
 
   def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), false).toOption.get
 
   def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), true).toOption.get
 
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)

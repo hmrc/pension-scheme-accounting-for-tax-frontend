@@ -22,9 +22,9 @@ import play.api.libs.json.JsPath
 
 import scala.util.Try
 
-case class IsSponsoringEmployerIndividualPage(index: Int) extends QuestionPage[Boolean] {
+case class WhichTypeOfSponsoringEmployerPage(index: Int) extends QuestionPage[Boolean] {
 
-  override def path: JsPath = SponsoringEmployersQuery(index).path \ IsSponsoringEmployerIndividualPage.toString
+  override def path: JsPath = SponsoringEmployersQuery(index).path \ WhichTypeOfSponsoringEmployerPage.toString
 
   override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
     val tidyResult = value match {
@@ -44,6 +44,6 @@ case class IsSponsoringEmployerIndividualPage(index: Int) extends QuestionPage[B
   }
 }
 
-object IsSponsoringEmployerIndividualPage {
-  override lazy val toString: String = "isSponsoringEmployerIndividual"
+object WhichTypeOfSponsoringEmployerPage {
+  override lazy val toString: String = "whichTypeOfSponsoringEmployer"
 }
