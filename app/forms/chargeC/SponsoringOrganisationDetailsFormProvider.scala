@@ -34,7 +34,6 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
           lengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length",
           invalidKey = "chargeC.sponsoringOrganisationDetails.crn.error.invalid"
         )
-      )
-      (SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
+      )(SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
     )
 }

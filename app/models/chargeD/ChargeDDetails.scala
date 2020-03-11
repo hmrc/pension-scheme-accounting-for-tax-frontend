@@ -21,10 +21,10 @@ import java.time.LocalDate
 import play.api.libs.json.{Format, Json}
 
 case class ChargeDDetails(
-                           dateOfEvent: LocalDate,
-                           taxAt25Percent: Option[BigDecimal],
-                           taxAt55Percent: Option[BigDecimal]
-                         ){
+    dateOfEvent: LocalDate,
+    taxAt25Percent: Option[BigDecimal],
+    taxAt55Percent: Option[BigDecimal]
+) {
 
   def total: BigDecimal = taxAt25Percent.getOrElse(BigDecimal(0.00)) + taxAt55Percent.getOrElse(BigDecimal(0.00))
 }

@@ -29,4 +29,3 @@ object Quarter {
   implicit lazy val formats: Format[Quarter] =
     Json.format[Quarter]
 }
-

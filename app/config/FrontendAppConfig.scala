@@ -24,9 +24,10 @@ import play.api.mvc.Call
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig: ServicesConfig) {
+class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: ServicesConfig) {
 
-  private def loadConfig(key: String): String = configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
+  private def loadConfig(key: String): String =
+    configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
 
   private val contactHost = configuration.get[String]("contact-frontend.host")
   private val contactFormServiceIdentifier = "pensionSchemeAccountingForTaxFrontend"
@@ -54,7 +55,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
-  lazy val pensionsAdministratorUrl:String = servicesConfig.baseUrl("pension-administrator")
+  lazy val pensionsAdministratorUrl: String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
   lazy val aftListOfVersions: String = s"$aftUrl${configuration.get[String](path = "urls.aftListOfVersions")}"
   lazy val getAftDetails: String = s"$aftUrl${configuration.get[String](path = "urls.getAFTDetails")}"

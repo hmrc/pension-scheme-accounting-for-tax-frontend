@@ -43,8 +43,9 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with
         futureDate("dob.error.future"),
         yearHas4Digits("dob.error.invalid")
       ),
-      "nino" -> text("memberDetails.error.nino.required").transform(noSpaceWithUpperCaseTransform, noTransform).
-        verifying(validNino("memberDetails.error.nino.invalid"))
+      "nino" -> text("memberDetails.error.nino.required")
+        .transform(noSpaceWithUpperCaseTransform, noTransform)
+        .verifying(validNino("memberDetails.error.nino.invalid"))
     )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
   )
 }

@@ -33,10 +33,10 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   private val messageKeyAmountTaxDueHigherRateKey = "chargeA.totalAmtOfTaxDueAtHigherRate"
 
   private def chargeADetails(
-                      members: String = "12",
-                      lowerTax: String = "1.00",
-                      higherTax: String = "1.00"
-                    ): Map[String, String] =
+      members: String = "12",
+      lowerTax: String = "1.00",
+      higherTax: String = "1.00"
+  ): Map[String, String] =
     Map(
       totalNumberOfMembersKey -> members,
       totalAmtOfTaxDueAtLowerRateKey -> lowerTax,
@@ -46,18 +46,16 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   "numberOfMembers" must {
 
     "must not bind non-numeric numbers" in {
-      forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric: String =>
-          val result = form.bind(chargeADetails(members = nonNumeric))
-          result.errors mustEqual Seq(FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.nonNumeric"))
+      forAll(nonNumerics -> "nonNumeric") { nonNumeric: String =>
+        val result = form.bind(chargeADetails(members = nonNumeric))
+        result.errors mustEqual Seq(FormError(totalNumberOfMembersKey, s"$messageKeyNumberOfMembersKey.error.nonNumeric"))
       }
     }
 
     "must not bind ints outside the range 0 to 999999" in {
-      forAll(intsOutsideRange(0, 999999) -> "intOutsideRange") {
-        number: Int =>
-          val result = form.bind(chargeADetails(members = number.toString))
-          result.errors.head.key mustEqual totalNumberOfMembersKey
+      forAll(intsOutsideRange(0, 999999) -> "intOutsideRange") { number: Int =>
+        val result = form.bind(chargeADetails(members = number.toString))
+        result.errors.head.key mustEqual totalNumberOfMembersKey
       }
     }
   }
@@ -65,36 +63,32 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   "totalAmtOfTaxDueAtLowerRate" must {
 
     "not bind non-numeric numbers" in {
-      forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric: String =>
-          val result = form.bind(chargeADetails(lowerTax = nonNumeric))
-          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.invalid"))
+      forAll(nonNumerics -> "nonNumeric") { nonNumeric: String =>
+        val result = form.bind(chargeADetails(lowerTax = nonNumeric))
+        result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.invalid"))
       }
     }
 
     "not bind decimals that are not 2 dp" in {
-      forAll(decimals -> "decimal") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(lowerTax = decimal))
-          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.decimal"))
+      forAll(decimals -> "decimal") { decimal: String =>
+        val result = form.bind(chargeADetails(lowerTax = decimal))
+        result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtLowerRateKey, s"$messageKeyAmountTaxDueLowerRateKey.error.decimal"))
       }
     }
 
     "not bind decimals below 0.00" in {
-      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(lowerTax = decimal))
-          result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
-          result.errors.head.message mustEqual messages(s"$messageKeyAmountTaxDueLowerRateKey.error.minimum", "0.01")
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") { decimal: String =>
+        val result = form.bind(chargeADetails(lowerTax = decimal))
+        result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
+        result.errors.head.message mustEqual messages(s"$messageKeyAmountTaxDueLowerRateKey.error.minimum", "0.01")
       }
     }
 
     "not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(12) -> "decimalAboveMax") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(lowerTax = decimal))
-          result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
-          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueLowerRateKey.error.maximum"
+      forAll(longDecimalString(12) -> "decimalAboveMax") { decimal: String =>
+        val result = form.bind(chargeADetails(lowerTax = decimal))
+        result.errors.head.key mustEqual totalAmtOfTaxDueAtLowerRateKey
+        result.errors.head.message mustEqual s"$messageKeyAmountTaxDueLowerRateKey.error.maximum"
       }
     }
 
@@ -107,36 +101,32 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
   "totalAmtOfTaxDueAtHigherRate" must {
 
     "not bind non-numeric numbers" in {
-      forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric: String =>
-          val result = form.bind(chargeADetails(higherTax = nonNumeric))
-          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.invalid"))
+      forAll(nonNumerics -> "nonNumeric") { nonNumeric: String =>
+        val result = form.bind(chargeADetails(higherTax = nonNumeric))
+        result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.invalid"))
       }
     }
 
     "not bind decimals that are not 2 dp" in {
-      forAll(decimals -> "decimal") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(higherTax = decimal))
-          result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.decimal"))
+      forAll(decimals -> "decimal") { decimal: String =>
+        val result = form.bind(chargeADetails(higherTax = decimal))
+        result.errors mustEqual Seq(FormError(totalAmtOfTaxDueAtHigherRateKey, s"$messageKeyAmountTaxDueHigherRateKey.error.decimal"))
       }
     }
 
     "not bind decimals below 0.00" in {
-      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(higherTax = decimal))
-          result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
-          result.errors.head.message mustEqual messages(s"$messageKeyAmountTaxDueHigherRateKey.error.minimum", "0.01")
+      forAll(decimalsBelowValue(BigDecimal("0.00")) -> "decimalBelowMin") { decimal: String =>
+        val result = form.bind(chargeADetails(higherTax = decimal))
+        result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
+        result.errors.head.message mustEqual messages(s"$messageKeyAmountTaxDueHigherRateKey.error.minimum", "0.01")
       }
     }
 
     "not bind decimals longer than 11 characters" in {
-      forAll(longDecimalString(12) -> "decimalAboveMax") {
-        decimal: String =>
-          val result = form.bind(chargeADetails(higherTax = decimal))
-          result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
-          result.errors.head.message mustEqual s"$messageKeyAmountTaxDueHigherRateKey.error.maximum"
+      forAll(longDecimalString(12) -> "decimalAboveMax") { decimal: String =>
+        val result = form.bind(chargeADetails(higherTax = decimal))
+        result.errors.head.key mustEqual totalAmtOfTaxDueAtHigherRateKey
+        result.errors.head.message mustEqual s"$messageKeyAmountTaxDueHigherRateKey.error.maximum"
       }
     }
 

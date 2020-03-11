@@ -49,7 +49,7 @@ trait ModelGenerators {
         line4 <- arbitrary[String]
         country <- arbitrary[String]
         postcode <- arbitrary[String]
-      } yield SponsoringEmployerAddress(line1,line2,Some(line3),Some(line4),country,Some(postcode))
+      } yield SponsoringEmployerAddress(line1, line2, Some(line3), Some(line4), country, Some(postcode))
     }
 
   implicit lazy val arbitrarySponsoringOrganisationDetails: Arbitrary[SponsoringOrganisationDetails] =
@@ -57,7 +57,7 @@ trait ModelGenerators {
       for {
         name <- arbitrary[String]
         crn <- arbitrary[String]
-      } yield SponsoringOrganisationDetails(name,crn)
+      } yield SponsoringOrganisationDetails(name, crn)
     }
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =
@@ -70,9 +70,8 @@ trait ModelGenerators {
     def toMillis(date: LocalDate): Long =
       date.atStartOfDay.atZone(ZoneOffset.UTC).toInstant.toEpochMilli
 
-    Gen.choose(toMillis(min), toMillis(max)).map {
-      millis =>
-        Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
+    Gen.choose(toMillis(min), toMillis(max)).map { millis =>
+      Instant.ofEpochMilli(millis).atOffset(ZoneOffset.UTC).toLocalDate
     }
   }
 

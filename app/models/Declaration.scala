@@ -23,5 +23,3 @@ case class Declaration(submittedBy: String, submittedID: String, hasAgreed: Bool
 object Declaration {
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
 }
-
-

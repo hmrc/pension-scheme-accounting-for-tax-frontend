@@ -16,7 +16,6 @@
 
 package controllers.actions
 
-
 import java.time.LocalDate
 
 import com.google.inject.{ImplementedBy, Inject}
@@ -27,7 +26,9 @@ import services.AllowAccessService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService)(implicit val executionContext: ExecutionContext) extends ActionFilter[OptionalDataRequest] {
+class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService)(
+    implicit val executionContext: ExecutionContext)
+    extends ActionFilter[OptionalDataRequest] {
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
     allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers.getOrElse(UserAnswers()))(request)
 }
@@ -37,7 +38,7 @@ trait AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate): ActionFilter[OptionalDataRequest]
 }
 
-class AllowAccessActionProviderImpl @Inject()(allowService: AllowAccessService
-                                             )(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
+class AllowAccessActionProviderImpl @Inject()(allowService: AllowAccessService)(implicit ec: ExecutionContext)
+    extends AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate) = new AllowAccessAction(srn, startDate, allowService)
 }

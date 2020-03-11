@@ -49,8 +49,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -62,43 +64,45 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   }
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-          val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
-            case Some(value) => form(request.userAnswers, startDate).fill(value)
-            case None => form(request.userAnswers, startDate)
-          }
-
-          val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-            schemeName = schemeName)
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "date" -> DateInput.localDate(preparedForm("paymentDate")),
-            "sponsorName" -> sponsorName
-          )
-
-          renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        val preparedForm = request.userAnswers.get(ChargeCDetailsPage(index)) match {
+          case Some(value) => form(request.userAnswers, startDate).fill(value)
+          case None        => form(request.userAnswers, startDate)
         }
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("paymentDate")),
+          "sponsorName" -> sponsorName
+        )
+
+        renderer.render("chargeC/chargeDetails.njk", json).map(Ok(_))
+      }
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-          form(request.userAnswers, startDate).bindFromRequest().fold(
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        form(request.userAnswers, startDate)
+          .bindFromRequest()
+          .fold(
             formWithErrors => {
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                schemeName = schemeName)
+                schemeName = schemeName
+              )
 
               val json = Json.obj(
                 "srn" -> srn,
@@ -117,6 +121,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate))
           )
-        }
+      }
     }
 }

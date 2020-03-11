@@ -37,70 +37,76 @@ import java.time.LocalDate
 import models.LocalDateBinder._
 
 class IsSponsoringEmployerIndividualController @Inject()(override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: IsSponsoringEmployerIndividualFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      config: FrontendAppConfig,
-                                      renderer: Renderer
-                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                         navigator: CompoundNavigator,
+                                                         identify: IdentifierAction,
+                                                         getData: DataRetrievalAction,
+                                                         allowAccess: AllowAccessActionProvider,
+                                                         requireData: DataRequiredAction,
+                                                         formProvider: IsSponsoringEmployerIndividualFormProvider,
+                                                         val controllerComponents: MessagesControllerComponents,
+                                                         config: FrontendAppConfig,
+                                                         renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val preparedForm = request.userAnswers.get (IsSponsoringEmployerIndividualPage(index)) match {
-          case None => form
-          case Some (value) => form.fill (value)
+        val preparedForm = request.userAnswers.get(IsSponsoringEmployerIndividualPage(index)) match {
+          case None        => form
+          case Some(value) => form.fill(value)
         }
 
         val viewModel = GenericViewModel(
           submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
 
         val json = Json.obj(
           "srn" -> srn,
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo (preparedForm("value"))
+          "radios" -> Radios.yesNo(preparedForm("value"))
         )
 
-      renderer.render ("chargeC/isSponsoringEmployerIndividual.njk", json).map(Ok (_))
-    }
-  }
-
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        form.bindFromRequest().fold(
-          formWithErrors => {
-
-            val viewModel = GenericViewModel(
-              submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
-            val json = Json.obj(
-              "form"   -> formWithErrors,
-              "viewModel"   -> viewModel,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
-            )
-
-            renderer.render("chargeC/isSponsoringEmployerIndividual.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(IsSponsoringEmployerIndividualPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn, startDate))
-        )
+        renderer.render("chargeC/isSponsoringEmployerIndividual.njk", json).map(Ok(_))
       }
-  }
+    }
+
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeName { schemeName =>
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+
+              val viewModel = GenericViewModel(
+                submitUrl = routes.IsSponsoringEmployerIndividualController.onSubmit(mode, srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value"))
+              )
+
+              renderer.render("chargeC/isSponsoringEmployerIndividual.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(IsSponsoringEmployerIndividualPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(IsSponsoringEmployerIndividualPage(index), mode, updatedAnswers, srn, startDate))
+          )
+      }
+    }
 }

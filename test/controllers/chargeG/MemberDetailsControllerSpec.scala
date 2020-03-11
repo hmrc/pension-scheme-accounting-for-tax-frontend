@@ -50,13 +50,14 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private lazy val httpPathPOST: String =
     controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
-  private val jsonToPassToTemplate: Form[MemberDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dob"))
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeG.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("dob"))
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map(
@@ -71,17 +72,17 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val expectedJson: JsObject = Json.obj(
     "pstr" -> "pstr",
     "chargeGDetails" -> Json.obj(
-    "members" -> Json.arr(
-      Json.obj(
-        "memberDetails" -> Json.obj(
-          "firstName" -> "first",
-          "lastName" -> "last",
-          "dob" -> "2019-04-03",
-          "nino" -> "AB123456C",
-          "isDeleted" -> false
+      "members" -> Json.arr(
+        Json.obj(
+          "memberDetails" -> Json.obj(
+            "firstName" -> "first",
+            "lastName" -> "last",
+            "dob" -> "2019-04-03",
+            "nino" -> "AB123456C",
+            "isDeleted" -> false
+          )
         )
-      )
-    )),
+      )),
     "schemeName" -> "Big Scheme"
   )
 
@@ -167,7 +168,6 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
-
 
     "redirect to Session Expired page for a GET when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(None)

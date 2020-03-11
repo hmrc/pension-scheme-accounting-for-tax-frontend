@@ -34,20 +34,38 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, index).url
 
-  private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(index), true).toOption.get
-    .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
+  private def uaInd: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeCDetailsPage(index), chargeCDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(index), true)
+      .toOption
+      .get
+      .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails)
+      .toOption
+      .get
+      .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)
+      .toOption
+      .get
 
-  private def uaOrg: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(index), false).toOption.get
-    .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
-    .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
+  private def uaOrg: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeCDetailsPage(index), chargeCDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(index), false)
+      .toOption
+      .get
+      .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails)
+      .toOption
+      .get
+      .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress)
+      .toOption
+      .get
 
   private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
-  
+
   private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(IsSponsoringEmployerIndividualPage(index)).get)),
     helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),

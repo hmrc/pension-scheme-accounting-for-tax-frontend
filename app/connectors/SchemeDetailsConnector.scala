@@ -29,10 +29,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
 
-  def getSchemeDetails(psaId: String,
-                    schemeIdType: String,
-                    idNumber: String)(implicit hc: HeaderCarrier,
-                                      ec: ExecutionContext): Future[SchemeDetails] = {
+  def getSchemeDetails(psaId: String, schemeIdType: String, idNumber: String)(implicit hc: HeaderCarrier,
+                                                                              ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.schemeDetailsUrl
     val schemeHc = hc.withExtraHeaders(headers = "schemeIdType" -> schemeIdType, "idNumber" -> idNumber, "PSAId" -> psaId)
@@ -54,9 +52,8 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
 
       json.validate[Boolean] match {
         case JsSuccess(value, _) => value
-        case JsError(errors) => throw JsResultException(errors)
+        case JsError(errors)     => throw JsResultException(errors)
       }
     }
   }
 }
-

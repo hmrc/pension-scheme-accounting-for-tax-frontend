@@ -33,6 +33,7 @@ sealed trait Quarters {
   def startMonth: Int
   def endMonth: Int
 }
+
 object Quarters extends Enumerable.Implicits {
   def currentYear: Int = today.getYear
 
@@ -60,23 +61,22 @@ object Quarters extends Enumerable.Implicits {
 
   def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
     selectedYear match {
-      case _ if selectedYear == currentYear => getCurrentYearQuarters
+      case _ if selectedYear == currentYear        => getCurrentYearQuarters
       case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
-      case _ => Seq(Q1, Q2, Q3, Q4)
+      case _                                       => Seq(Q1, Q2, Q3, Q4)
     }
 
-  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] ={
+  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] = {
     val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
-      case i if i  > 3 => Seq(Q1, Q2)
-      case _ => Seq(Q1)
+      case i if i > 3 => Seq(Q1, Q2)
+      case _          => Seq(Q1)
     }
 
-    if(currentYear == config.minimumYear) {
+    if (currentYear == config.minimumYear) {
       quartersCY.filter(_ != Q1)
-    }
-    else {
+    } else {
       quartersCY
     }
   }
@@ -88,8 +88,7 @@ object Quarters extends Enumerable.Implicits {
   }
 
   def getQuarter(quarter: Quarters, year: Int): Quarter = {
-    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
-      LocalDate.of(year, quarter.endMonth, quarter.endDay))
+    Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay), LocalDate.of(year, quarter.endMonth, quarter.endDay))
   }
 
   def getStartDate(quarter: Quarters, year: Int): LocalDate =
@@ -100,9 +99,9 @@ object Quarters extends Enumerable.Implicits {
 
   def getQuartersFromStartDate(startDate: LocalDate): Quarters =
     startDate.getMonthValue match {
-      case 1 => Q1
-      case 4 => Q2
-      case 7 => Q3
+      case 1  => Q1
+      case 4  => Q2
+      case 7  => Q3
       case 10 => Q4
     }
 

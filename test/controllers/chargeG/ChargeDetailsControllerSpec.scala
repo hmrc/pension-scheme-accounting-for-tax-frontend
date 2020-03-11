@@ -109,7 +109,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       )
 
       templateCaptor.getValue mustEqual "chargeG/chargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson)}
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 

@@ -49,8 +49,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
     val endDate = Quarters.getQuarter(startDate).endDate
@@ -69,13 +71,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-
         val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
           case Some(value) => form(request.userAnswers, startDate).fill(value)
-          case None => form(request.userAnswers, startDate)
+          case None        => form(request.userAnswers, startDate)
         }
 
         val json = Json.obj(
@@ -89,33 +89,33 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         renderer.render(template = "chargeD/chargeDetails.njk", json).map(Ok(_))
       }
-  }
+    }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+        form(request.userAnswers, startDate)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-        form(request.userAnswers, startDate).bindFromRequest().fold(
-          formWithErrors => {
-
-            val json = Json.obj(
-              "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
-              "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
-              "memberName" -> memberName
-            )
-            renderer.render(template = "chargeD/chargeDetails.njk", json).map(BadRequest(_))
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
-          }
-        )
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
+                "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
+                "memberName" -> memberName
+              )
+              renderer.render(template = "chargeD/chargeDetails.njk", json).map(BadRequest(_))
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
+            }
+          )
       }
-  }
+    }
 }

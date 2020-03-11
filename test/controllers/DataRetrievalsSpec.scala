@@ -30,8 +30,8 @@ import scala.concurrent.Future
 
 class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
 
-  private val result: String => Future[Result] = {
-    _ => Future.successful(Ok("success result"))
+  private val result: String => Future[Result] = { _ =>
+    Future.successful(Ok("success result"))
   }
 
   "retrieveSchemeName must" - {

@@ -43,29 +43,63 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteEmployerControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
 
   val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
-    .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), true).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+    .toOption
+    .get
+    .set(IsSponsoringEmployerIndividualPage(0), true)
+    .toOption
+    .get
+    .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails)
+    .toOption
+    .get
+    .set(IsSponsoringEmployerIndividualPage(1), true)
+    .toOption
+    .get
 
   private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndTwoIndividuals
-    .set(ChargeCDetailsPage(0), chargeCDetails).success.value
-    .set(ChargeCDetailsPage(1), chargeCDetails).success.value
-    .set(PSTRQuery, pstr).success.value
+    .set(ChargeCDetailsPage(0), chargeCDetails)
+    .success
+    .value
+    .set(ChargeCDetailsPage(1), chargeCDetails)
+    .success
+    .value
+    .set(PSTRQuery, pstr)
+    .success
+    .value
 
   private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
-    .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails)
+    .toOption
+    .get
+    .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails)
+    .toOption
+    .get
+    .set(IsSponsoringEmployerIndividualPage(0), false)
+    .toOption
+    .get
+    .set(IsSponsoringEmployerIndividualPage(1), false)
+    .toOption
+    .get
 
   private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndTwoOrganisations
-    .set(ChargeCDetailsPage(0), chargeCDetails).success.value
-    .set(ChargeCDetailsPage(1), chargeCDetails).success.value
-    .set(PSTRQuery, pstr).success.value
+    .set(ChargeCDetailsPage(0), chargeCDetails)
+    .success
+    .value
+    .set(ChargeCDetailsPage(1), chargeCDetails)
+    .success
+    .value
+    .set(PSTRQuery, pstr)
+    .success
+    .value
 
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
 
@@ -73,7 +107,6 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
-
 
   private def onwardRoute = Call("GET", "/foo")
 
@@ -86,10 +119,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private def httpPathPOST: String = routes.DeleteEmployerController.onSubmit(srn, startDate, 0).url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
+  private val viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
 
   "DeleteEmployer Controller" must {
 
@@ -174,9 +204,12 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       redirectLocation(result).value mustEqual onwardRoute.url
 
       val expectedUA = answersIndividual
-        .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
-
+        .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true))
+        .toOption
+        .get
+        .set(TotalChargeAmountPage, BigDecimal(33.44))
+        .toOption
+        .get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }
@@ -200,8 +233,12 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       redirectLocation(result).value mustEqual onwardRoute.url
 
       val expectedUA = answersOrg
-        .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
+        .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true))
+        .toOption
+        .get
+        .set(TotalChargeAmountPage, BigDecimal(33.44))
+        .toOption
+        .get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }

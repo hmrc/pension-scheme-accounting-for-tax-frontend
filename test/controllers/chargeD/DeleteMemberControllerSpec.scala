@@ -43,7 +43,13 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteMemberControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val application: Application =
@@ -59,17 +65,20 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, 0).url
 
-  private val viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
+  private val viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).success.value
-    .set(MemberDetailsPage(1), memberDetails).success.value
+    .set(MemberDetailsPage(0), memberDetails)
+    .success
+    .value
+    .set(MemberDetailsPage(1), memberDetails)
+    .success
+    .value
 
   private val answers: UserAnswers = userAnswers
-    .set(PSTRQuery, pstr).success.value
+    .set(PSTRQuery, pstr)
+    .success
+    .value
 
   "DeleteMember Controller" must {
 
@@ -117,8 +126,12 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
       redirectLocation(result).value mustEqual onwardRoute.url
 
       val expectedUA = answers
-        .set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
+        .set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true))
+        .toOption
+        .get
+        .set(TotalChargeAmountPage, BigDecimal(0.00))
+        .toOption
+        .get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }

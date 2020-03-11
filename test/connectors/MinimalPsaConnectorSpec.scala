@@ -34,7 +34,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
   private val psaId = "test-psa"
   private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
 
-  private def validResponse(b:Boolean) =
+  private def validResponse(b: Boolean) =
     Json.stringify(
       Json.obj(
         "isPsaSuspended" -> b
@@ -73,7 +73,6 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
 
     "return BadRequestException when the backend has returned anything other than ok" in {
       val data = Json.obj(fields = "psaId" -> psaId)
-
 
       server.stubFor(
         get(urlEqualTo(minimalPsaDetailsUrl))

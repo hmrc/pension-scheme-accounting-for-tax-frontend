@@ -30,23 +30,41 @@ class ChargeEServiceSpec extends SpecBase {
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
-  val allMembers: UserAnswers = UserAnswers().set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
-    .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
+  val allMembers: UserAnswers = UserAnswers()
+    .set(MemberDetailsPage(0), SampleData.memberDetails)
+    .toOption
+    .get
+    .set(ChargeDetailsPage(0), SampleData.chargeEDetails)
+    .toOption
+    .get
+    .set(MemberDetailsPage(1), SampleData.memberDetails2)
+    .toOption
+    .get
+    .set(ChargeDetailsPage(1), SampleData.chargeEDetails)
+    .toOption
+    .get
 
   val allMembersIncludingDeleted: UserAnswers = allMembers
-    .set(MemberDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
-    .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
+    .set(MemberDetailsPage(2), SampleData.memberDetailsDeleted)
+    .toOption
+    .get
+    .set(ChargeDetailsPage(2), SampleData.chargeEDetails)
+    .toOption
+    .get
 
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
-  def expectedMember(memberDetails: MemberDetails, index: Int): Member =
-    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
-  def expectedAllMembers: Seq[Member] = Seq(
-    expectedMember(SampleData.memberDetails, 0),
-    expectedMember(SampleData.memberDetails2, 1))
+  def expectedMember(memberDetails: MemberDetails, index: Int): Member =
+    Member(index,
+           memberDetails.fullName,
+           memberDetails.nino,
+           SampleData.chargeAmount1,
+           viewLink(index),
+           removeLink(index),
+           memberDetails.isDeleted)
+
+  def expectedAllMembers: Seq[Member] = Seq(expectedMember(SampleData.memberDetails, 0), expectedMember(SampleData.memberDetails2, 1))
 
   def expectedMembersIncludingDeleted: Seq[Member] = expectedAllMembers ++ Seq(
     expectedMember(SampleData.memberDetailsDeleted, 2)

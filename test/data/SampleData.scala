@@ -25,7 +25,12 @@ import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.{MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{
+  ChargeCDetailsPage,
+  IsSponsoringEmployerIndividualPage,
+  SponsoringIndividualDetailsPage,
+  SponsoringOrganisationDetailsPage
+}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
@@ -49,7 +54,7 @@ object SampleData {
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
   val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
-  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE,amountTaxDue = BigDecimal(33.44))
+  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE, amountTaxDue = BigDecimal(33.44))
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
@@ -57,11 +62,13 @@ object SampleData {
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)
+
   val sponsoringIndividualDetails: MemberDetails =
     MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C")
 
   val sponsoringIndividualDetailsDeleted: MemberDetails =
     MemberDetails(firstName = "First", lastName = "Last", nino = "CS121212C", isDeleted = true)
+
   val sponsoringOrganisationDetailsDeleted: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn, isDeleted = true)
 
@@ -76,26 +83,28 @@ object SampleData {
     )
 
   def userAnswersWithSchemeName: UserAnswers =
-    UserAnswers(Json.obj(
-      "schemeName" -> schemeName,
-      "pstr" -> pstr)
-    )
+    UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr))
 
   def userAnswersWithSchemeNamePstrQuarter: UserAnswers =
-    UserAnswers(Json.obj(
-      "schemeName" -> schemeName,
-      "pstr" -> pstr,
-      "quarter" -> Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
-    )
+    UserAnswers(Json.obj("schemeName" -> schemeName, "pstr" -> pstr, "quarter" -> Quarter(QUARTER_START_DATE, QUARTER_END_DATE)))
 
-  def userAnswersWithSchemeNameAndOrganisation: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
+  def userAnswersWithSchemeNameAndOrganisation: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(0), false)
+      .toOption
+      .get
 
-  def userAnswersWithSchemeNameAndIndividual: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
-
+  def userAnswersWithSchemeNameAndIndividual: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(0), true)
+      .toOption
+      .get
 
   val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
   val memberDetails: MemberDetails = MemberDetails("first", "last", "AB123456C")
@@ -106,20 +115,36 @@ object SampleData {
   val memberGDetailsDeleted: MemberDetailsG = MemberDetailsG("Jill", "Bloggs", LocalDate.now(), "AB123456C", isDeleted = true)
 
   val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
-    .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
+    .set(ChargeCDetailsPage(0), chargeCDetails)
+    .toOption
+    .get
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
+    .set(MemberDetailsPage(0), memberDetails)
+    .toOption
+    .get
+    .set(ChargeDetailsPage(0), chargeEDetails)
+    .toOption
+    .get
 
   val chargeGMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
-    .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
-    .set(pages.chargeG.ChargeAmountsPage(0), chargeAmounts).toOption.get
+    .set(pages.chargeG.MemberDetailsPage(0), memberGDetails)
+    .toOption
+    .get
+    .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
+    .toOption
+    .get
+    .set(pages.chargeG.ChargeAmountsPage(0), chargeAmounts)
+    .toOption
+    .get
 
   val chargeDMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
-    .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
+    .set(ChargeDMemberDetailsPAge(0), memberDetails)
+    .toOption
+    .get
+    .set(ChargeDDetailsPage(0), chargeDDetails)
+    .toOption
+    .get
 
   val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 }

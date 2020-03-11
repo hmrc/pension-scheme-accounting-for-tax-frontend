@@ -40,7 +40,12 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
+class AnnualAllowanceYearControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
 
@@ -57,13 +62,15 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
   )
-  private val jsonToTemplate: Form[YearRange] => JsObject = form => Json.obj(
-    fields = "form" -> form,
-    "radios" -> YearRange.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToTemplate: Form[YearRange] => JsObject = form =>
+    Json.obj(
+      fields = "form" -> form,
+      "radios" -> YearRange.radios(form),
+      "viewModel" -> GenericViewModel(
+        submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )
   )
 
   private def form = new YearRangeFormProvider()()
@@ -118,7 +125,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange.currentYear)))
     }
-
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 

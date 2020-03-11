@@ -28,7 +28,7 @@ trait Transforms {
   protected def toUpperCaseAlphaOnly(value: String): String =
     value.map {
       case c if ('a' to 'z').contains(c) => c.toUpper
-      case c                                    => c
+      case c                             => c
     }
 
   protected def strip(value: String): String = {
@@ -56,8 +56,7 @@ trait Transforms {
       } else {
         value.substring(0, value.length - 3) + " " + value.substring(value.length - 3, value.length)
       }
-    }
-    else {
+    } else {
       value
     }
   }

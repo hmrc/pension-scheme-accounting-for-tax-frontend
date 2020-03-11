@@ -56,18 +56,26 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val psaId = PsaId(SampleData.psaId)
   private val internalId = "internal id"
 
-  private val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector,
-    mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
+  private val aftService = new AFTService(mockAFTConnector,
+                                          mockUserAnswersCacheConnector,
+                                          mockSchemeService,
+                                          mockMinimalPsaConnector,
+                                          mockUserAnswersValidationService)
 
   private val emptyUserAnswers = UserAnswers()
 
-  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers))
+  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+    OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers))
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
 
   private def optionalDataRequest(viewOnly: Boolean): OptionalDataRequest[_] = OptionalDataRequest(
-    fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), viewOnly
+    fakeRequest,
+    "",
+    PsaId(SampleData.psaId),
+    Some(UserAnswers()),
+    viewOnly
   )
 
   override def beforeEach(): Unit = {
@@ -148,25 +156,28 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "save all of these with a lock" in {
         when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)(implicitly, implicitly,
-          optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-          verify(mockAFTConnector, times(1)).getListOfVersions(any(), any())(any(), any())
+        whenReady(
+          aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)(implicitly,
+                                                                               implicitly,
+                                                                               optionalDataRequest(viewOnly = false))) {
+          case (resultScheme, _) =>
+            verify(mockAFTConnector, times(1)).getListOfVersions(any(), any())(any(), any())
 
-          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
+            verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
 
-          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-          resultScheme mustBe schemeDetails
+            verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+            resultScheme mustBe schemeDetails
 
-          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+            verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
 
-          verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          val expectedUAAfterSave = userAnswersWithSchemeName
-            .setOrException(IsPsaSuspendedQuery, value = false)
-            .setOrException(IsNewReturn, value = true)
-            .setOrException(AFTStatusQuery, value = aftStatus)
-            .setOrException(SchemeStatusQuery, Open)
+            verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+            val expectedUAAfterSave = userAnswersWithSchemeName
+              .setOrException(IsPsaSuspendedQuery, value = false)
+              .setOrException(IsNewReturn, value = true)
+              .setOrException(AFTStatusQuery, value = aftStatus)
+              .setOrException(SchemeStatusQuery, Open)
               .setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
+            verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
@@ -179,19 +190,21 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "save with a lock" in {
         when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (resultScheme, _) =>
-          verify(mockAFTConnector, times(1)).getListOfVersions(any(), any())(any(), any())
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) {
+          case (resultScheme, _) =>
+            verify(mockAFTConnector, times(1)).getListOfVersions(any(), any())(any(), any())
 
-          verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
+            verify(mockAFTConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
 
-          resultScheme mustBe schemeDetails
-          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+            resultScheme mustBe schemeDetails
+            verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
 
-          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+            verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
 
-          verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
+            verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+            val expectedUAAfterSave =
+              emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
+            verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
@@ -205,17 +218,22 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-          verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
+        whenReady(
+          aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly,
+                                                                                        implicitly,
+                                                                                        optionalDataRequest(viewOnly = false))) {
+          case (resultScheme, _) =>
+            verify(mockAFTConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
 
-          resultScheme mustBe schemeDetails
-          verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
+            resultScheme mustBe schemeDetails
+            verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
 
-          verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
+            verify(mockMinimalPsaConnector, times(1)).isPsaSuspended(Matchers.eq(psaId.id))(any(), any())
 
-          verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-          val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
+            verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+            val expectedUAAfterSave =
+              emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
+            verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
     }
@@ -225,8 +243,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(true))
         when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (_, _) =>
-          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) {
+          case (_, _) =>
+            verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
         }
       }
     }
@@ -234,14 +253,19 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "viewOnly flag in the request is set to true" must {
       "NOT call saveAndLock but should call save" in {
         val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false).setOrException(SchemeStatusQuery, Open)
-        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+          .setOrException(IsPsaSuspendedQuery, value = false)
+          .setOrException(SchemeStatusQuery, Open)
+        when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
-        (implicitly, implicitly, optionalDataRequest(viewOnly = true))) { case (resultScheme, _) =>
-          resultScheme mustBe schemeDetails
-          verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
+        whenReady(
+          aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly,
+                                                                                        implicitly,
+                                                                                        optionalDataRequest(viewOnly = true))) {
+          case (resultScheme, _) =>
+            resultScheme mustBe schemeDetails
+            verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
+            verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
 
         }
       }
@@ -252,11 +276,14 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
 
-        whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))
-        (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-          resultScheme mustBe schemeDetails
-          verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
-          verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+        whenReady(
+          aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))(implicitly,
+                                                                                        implicitly,
+                                                                                        optionalDataRequest(viewOnly = false))) {
+          case (resultScheme, _) =>
+            resultScheme mustBe schemeDetails
+            verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
+            verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
         }
       }
     }

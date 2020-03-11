@@ -32,15 +32,13 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
     Tuple3(page, ua.getOrElse(UserAnswers()), call)
   }
 
-  protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
-                                                       routes: TableFor3[Page, UserAnswers, Call],
-                                                       srn: String, startDate: LocalDate): Unit = {
-    forAll(routes) {
-      (page: Page, userAnswers: UserAnswers, call: Call) =>
-        s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
-          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)
-          result mustBe call
-        }
+  protected def navigatorWithRoutesForMode(
+      mode: Mode)(navigator: CompoundNavigator, routes: TableFor3[Page, UserAnswers, Call], srn: String, startDate: LocalDate): Unit = {
+    forAll(routes) { (page: Page, userAnswers: UserAnswers, call: Call) =>
+      s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
+        val result = navigator.nextPage(page, mode, userAnswers, srn, startDate)
+        result mustBe call
+      }
     }
   }
 }

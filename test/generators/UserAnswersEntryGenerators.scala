@@ -31,7 +31,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryConfirmSubmitAFTReturnUserAnswersEntry: Arbitrary[(ConfirmSubmitAFTReturnPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[ConfirmSubmitAFTReturnPage.type]
+        page <- arbitrary[ConfirmSubmitAFTReturnPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -39,7 +39,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryChargeDetailsUserAnswersEntry: Arbitrary[(ChargeDetailsPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[ChargeDetailsPage.type]
+        page <- arbitrary[ChargeDetailsPage.type]
         value <- arbitrary[Int].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -47,7 +47,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitrarySponsoringIndividualDetailsUserAnswersEntry: Arbitrary[(SponsoringIndividualDetailsPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[SponsoringIndividualDetailsPage.type]
+        page <- arbitrary[SponsoringIndividualDetailsPage.type]
         value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
       } yield (page, value)
     }
@@ -55,7 +55,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitrarySponsoringEmployerAddressUserAnswersEntry: Arbitrary[(SponsoringEmployerAddressPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[SponsoringEmployerAddressPage.type]
+        page <- arbitrary[SponsoringEmployerAddressPage.type]
         value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
       } yield (page, value)
     }
@@ -63,7 +63,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitrarySponsoringOrganisationDetailsUserAnswersEntry: Arbitrary[(SponsoringOrganisationDetailsPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[SponsoringOrganisationDetailsPage.type]
+        page <- arbitrary[SponsoringOrganisationDetailsPage.type]
         value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))
       } yield (page, value)
     }
@@ -71,7 +71,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryIsSponsoringEmployerIndividualUserAnswersEntry: Arbitrary[(IsSponsoringEmployerIndividualPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[IsSponsoringEmployerIndividualPage.type]
+        page <- arbitrary[IsSponsoringEmployerIndividualPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -79,7 +79,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryAFTSummaryUserAnswersEntry: Arbitrary[(AFTSummaryPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[AFTSummaryPage.type]
+        page <- arbitrary[AFTSummaryPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -87,7 +87,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryDeleteMemberUserAnswersEntry: Arbitrary[(DeleteMemberPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[DeleteMemberPage.type]
+        page <- arbitrary[DeleteMemberPage.type]
         value <- arbitrary[Boolean].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -95,7 +95,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryMemberDetailsUserAnswersEntry: Arbitrary[(MemberDetailsPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[MemberDetailsPage.type]
+        page <- arbitrary[MemberDetailsPage.type]
         value <- arbitrary[MemberDetails].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -103,7 +103,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryChargeTypeUserAnswersEntry: Arbitrary[(ChargeTypePage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[ChargeTypePage.type]
+        page <- arbitrary[ChargeTypePage.type]
         value <- arbitrary[ChargeType].map(Json.toJson(_))
       } yield (page, value)
     }
@@ -111,7 +111,7 @@ trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
   implicit lazy val arbitraryChargeGDetailsUserAnswersEntry: Arbitrary[(pages.chargeG.ChargeDetailsPage.type, JsValue)] =
     Arbitrary {
       for {
-        page  <- arbitrary[pages.chargeG.ChargeDetailsPage.type]
+        page <- arbitrary[pages.chargeG.ChargeDetailsPage.type]
         value <- arbitrary[Int].map(Json.toJson(_))
       } yield (page, value)
     }

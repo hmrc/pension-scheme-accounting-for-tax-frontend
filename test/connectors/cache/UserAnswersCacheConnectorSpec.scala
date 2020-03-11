@@ -45,9 +45,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.fetch(cacheId = "testId") map {
-        result =>
-          result mustNot be(defined)
+      connector.fetch(cacheId = "testId") map { result =>
+        result mustNot be(defined)
       }
     }
 
@@ -59,9 +58,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.fetch(cacheId = "testId") map {
-        result =>
-          result.value mustEqual Json.obj(fields = "testId" -> "data")
+      connector.fetch(cacheId = "testId") map { result =>
+        result.value mustEqual Json.obj(fields = "testId" -> "data")
       }
     }
 
@@ -139,9 +137,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   ".removeAll" must {
 
     "return OK after removing all the data from the collection" in {
-      server.stubFor(delete(urlEqualTo(aftReturnUrl)).
-        willReturn(ok)
-      )
+      server.stubFor(delete(urlEqualTo(aftReturnUrl)).willReturn(ok))
       connector.removeAll(cacheId = "testId").map {
         _ mustEqual Ok
       }

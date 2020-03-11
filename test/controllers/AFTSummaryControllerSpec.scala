@@ -43,8 +43,14 @@ import utils.AFTSummaryHelper
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
-  with Enumerable.Implicits with Results with ScalaFutures {
+class AFTSummaryControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
@@ -64,7 +70,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private def httpPathGETNoVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, None).url
 
-  private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
+  private def httpPathGETVersion: String =
+    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
 
@@ -87,20 +94,23 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
-    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
+    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
   }
 
-
-  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject = form => Json.obj(
-    "form" -> form,
-    "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
-    "viewModel" -> GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
-      returnUrl = testManagePensionsUrl.url,
-      schemeName = SampleData.schemeName),
-    "radios" -> Radios.yesNo(form("value"))
-  )
+  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject =
+    form =>
+      Json.obj(
+        "form" -> form,
+        "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
+        "viewModel" -> GenericViewModel(
+          submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
+          returnUrl = testManagePensionsUrl.url,
+          schemeName = SampleData.schemeName
+        ),
+        "radios" -> Radios.yesNo(form("value"))
+    )
 
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
@@ -115,9 +125,15 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
+      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(),
+                                                                                                                               any(),
+                                                                                                                               any())
       verify(mockAllowAccessService, times(1))
-        .filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(AFTSummaryPage)), any())(any())
+        .filterForIllegalPageAccess(Matchers.eq(srn),
+                                    Matchers.eq(startDate),
+                                    Matchers.eq(retrievedUA),
+                                    Matchers.eq(Some(AFTSummaryPage)),
+                                    any())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
@@ -127,8 +143,10 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val location = "redirect"
       val alternativeLocation = Redirect(location)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-      when(mockAllowAccessService
-        .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
+      when(
+        mockAllowAccessService
+          .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any()))
+        .thenReturn(Future.successful(Some(alternativeLocation)))
 
       whenReady(route(application, httpGETRequest(httpPathGETNoVersion)).value) { result =>
         result.header.status mustEqual SEE_OTHER
@@ -146,14 +164,14 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(Some(version)))(any(), any(), any())
+      verify(mockAFTService, times(1))
+        .retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(Some(version)))(any(), any(), any())
       verify(mockAllowAccessService, times(1))
-        .filterForIllegalPageAccess(
-          Matchers.eq(srn),
-          Matchers.eq(startDate),
-          Matchers.eq(retrievedUA),
-          Matchers.eq(Some(AFTSummaryPage)),
-          Matchers.eq(Some(SampleData.version)))(any())
+        .filterForIllegalPageAccess(Matchers.eq(srn),
+                                    Matchers.eq(startDate),
+                                    Matchers.eq(retrievedUA),
+                                    Matchers.eq(Some(AFTSummaryPage)),
+                                    Matchers.eq(Some(SampleData.version)))(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(version)).apply(form))

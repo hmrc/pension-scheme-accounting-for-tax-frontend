@@ -29,8 +29,9 @@ import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with StringFieldBehaviours {
 
-  private val dynamicErrorMsg: String = messages("chargeG.chargeDetails.qropsTransferDate.error.date", QUARTER_START_DATE.format(dateFormatterDMY),
-    QUARTER_END_DATE.format(dateFormatterDMY))
+  private val dynamicErrorMsg: String = messages("chargeG.chargeDetails.qropsTransferDate.error.date",
+                                                 QUARTER_START_DATE.format(dateFormatterDMY),
+                                                 QUARTER_END_DATE.format(dateFormatterDMY))
 
   val futureErrorMsg: String = "chargeG.chargeDetails.qropsTransferDate.error.future"
   val form = new ChargeDetailsFormProvider()(QUARTER_START_DATE, QUARTER_END_DATE)
@@ -73,13 +74,15 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with St
 
     "successfully bind when valid QROPS with spaces is provided" in {
       DateHelper.setDate(Some(QUARTER_START_DATE.plusDays(2)))
-      val res = form.bind(Map("firstName" -> "Jane", "lastName" -> "Doe",
-        qropsRefKey -> " 1 2 3 1 2 3 ",
-        s"$qropsDateKey.day" -> QUARTER_START_DATE.getDayOfMonth.toString,
-        s"$qropsDateKey.month" -> QUARTER_START_DATE.getMonthValue.toString,
-        s"$qropsDateKey.year" -> QUARTER_START_DATE.getYear.toString
-      )
-      )
+      val res = form.bind(
+        Map(
+          "firstName" -> "Jane",
+          "lastName" -> "Doe",
+          qropsRefKey -> " 1 2 3 1 2 3 ",
+          s"$qropsDateKey.day" -> QUARTER_START_DATE.getDayOfMonth.toString,
+          s"$qropsDateKey.month" -> QUARTER_START_DATE.getMonthValue.toString,
+          s"$qropsDateKey.year" -> QUARTER_START_DATE.getYear.toString
+        ))
       res.get mustEqual ChargeDetails("123123", QUARTER_START_DATE)
     }
   }

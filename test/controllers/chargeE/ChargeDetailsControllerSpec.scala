@@ -48,9 +48,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("3"),
-  "dateNoticeReceived.month" -> Seq("4"),
-  "dateNoticeReceived.year" -> Seq("2019"),
+    "dateNoticeReceived.day" -> Seq("3"),
+    "dateNoticeReceived.month" -> Seq("4"),
+    "dateNoticeReceived.year" -> Seq("2019"),
     "isPaymentMandatory" -> Seq("true")
   )
 
@@ -64,21 +64,22 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "chargeAmount" -> Seq("33.44"),
-  "dateNoticeReceived.day" -> Seq("32"),
-  "dateNoticeReceived.month" -> Seq("13"),
-  "dateNoticeReceived.year" -> Seq("2003"),
+    "dateNoticeReceived.day" -> Seq("32"),
+    "dateNoticeReceived.month" -> Seq("13"),
+    "dateNoticeReceived.year" -> Seq("2003"),
     "isPaymentMandatory" -> Seq("false")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeEDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("dateNoticeReceived")),
-    "radios" -> Radios.yesNo(form("isPaymentMandatory")),
-    "memberName" -> "first last"
+  private val jsonToPassToTemplate: Form[ChargeEDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("dateNoticeReceived")),
+      "radios" -> Radios.yesNo(form("isPaymentMandatory")),
+      "memberName" -> "first last"
   )
 
   override def beforeEach: Unit = {

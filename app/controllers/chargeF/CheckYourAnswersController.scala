@@ -46,11 +46,13 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            aftService: AFTService,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
@@ -59,28 +61,32 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           helper.chargeFAmount(chargeDetails)
         )
 
-        renderer.render("check-your-answers.njk",
-          Json.obj(
-            "srn" -> srn,
-          "startDate" -> Some(startDate),
-            "list" -> helper.rows(request.viewOnly, seqRows),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName),
-            "chargeName" -> "chargeF",
-            "canChange" -> !request.viewOnly
+        renderer
+          .render(
+            "check-your-answers.njk",
+            Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "list" -> helper.rows(request.viewOnly, seqRows),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              ),
+              "chargeName" -> "chargeF",
+              "canChange" -> !request.viewOnly
+            )
           )
-        ).map(Ok(_))
+          .map(Ok(_))
       }
-  }
+    }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileAFTReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
-  }
+    }
 }

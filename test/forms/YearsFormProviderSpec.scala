@@ -35,7 +35,7 @@ class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Years](
       form,
       fieldName,
-      validValues  = Years.values,
+      validValues = Years.values,
       invalidError = FormError(fieldName, "error.invalid")
     )
 

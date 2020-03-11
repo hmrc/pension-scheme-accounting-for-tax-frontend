@@ -64,7 +64,6 @@ class SponsoringEmployerAddressFormProvider @Inject() extends Mappings {
           nonUkLengthKey = "address.postcode.error.length",
           countryFieldName = "country"
         )
-      )
-      (SponsoringEmployerAddress.apply)(SponsoringEmployerAddress.unapply)
+      )(SponsoringEmployerAddress.apply)(SponsoringEmployerAddress.unapply)
     )
 }

@@ -20,12 +20,9 @@ import play.api.data.Mapping
 import play.api.data.validation.{Constraint, Valid}
 
 trait CrnMapping extends Mappings with Transforms {
-  def crnMapping(requiredCRNKey: String,
-                 lengthKey: String,
-                 invalidKey: String): Mapping[String] = text(requiredCRNKey)
-    .transform(noSpaceWithUpperCaseTransform, noTransform)
-    .verifying(firstError(
-      exactLength(8, lengthKey),
-      validCrn(invalidKey))
-    )
+
+  def crnMapping(requiredCRNKey: String, lengthKey: String, invalidKey: String): Mapping[String] =
+    text(requiredCRNKey)
+      .transform(noSpaceWithUpperCaseTransform, noTransform)
+      .verifying(firstError(exactLength(8, lengthKey), validCrn(invalidKey)))
 }

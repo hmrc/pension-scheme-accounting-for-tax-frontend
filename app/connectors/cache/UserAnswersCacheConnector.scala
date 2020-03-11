@@ -29,30 +29,29 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
-                                               config: FrontendAppConfig,
-                                               http: WSClient
-                                             ) extends UserAnswersCacheConnector {
+    config: FrontendAppConfig,
+    http: WSClient
+) extends UserAnswersCacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
   override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
-                                 hc: HeaderCarrier
-  ): Future[Option[JsValue]] = {
-    http.url(url)
+                                 hc: HeaderCarrier): Future[Option[JsValue]] = {
+    http
+      .url(url)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
-      .flatMap {
-        response =>
-          response.status match {
-            case NOT_FOUND =>
-              Future.successful(None)
-            case OK =>
-              Future.successful(Some(Json.parse(response.body)))
-            case _ =>
-              Future.failed(new HttpException(response.body, response.status))
-          }
+      .flatMap { response =>
+        response.status match {
+          case NOT_FOUND =>
+            Future.successful(None)
+          case OK =>
+            Future.successful(Some(Json.parse(response.body)))
+          case _ =>
+            Future.failed(new HttpException(response.body, response.status))
+        }
       }
   }
 
@@ -65,42 +64,43 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   private def save(id: String, value: JsValue, url: String)(implicit
-                                                    ec: ExecutionContext,
-                                                    hc: HeaderCarrier
-  ): Future[JsValue] = {
-    http.url(url)
+                                                            ec: ExecutionContext,
+                                                            hc: HeaderCarrier): Future[JsValue] = {
+    http
+      .url(url)
       .withHttpHeaders(hc.withExtraHeaders(("id", id), ("content-type", "application/json")).headers: _*)
-      .post(PlainText(Json.stringify(value)).value).flatMap {
-      response =>
+      .post(PlainText(Json.stringify(value)).value)
+      .flatMap { response =>
         response.status match {
           case CREATED =>
             Future.successful(value)
           case _ =>
             Future.failed(new HttpException(response.body, response.status))
         }
-    }
+      }
   }
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http.url(url)
+    http
+      .url(url)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
-      .delete().map(_ => Ok)
+      .delete()
+      .map(_ => Ok)
   }
 
   override def isLocked(id: String)(implicit
                                     ec: ExecutionContext,
-                                    hc: HeaderCarrier
-  ): Future[Boolean] = {
-    http.url(lockUrl)
+                                    hc: HeaderCarrier): Future[Boolean] = {
+    http
+      .url(lockUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
-      .flatMap {
-        response =>
-          response.status match {
-            case NOT_FOUND => Future.successful(false)
-            case OK => Future.successful(true)
-            case _ => Future.failed(new HttpException(response.body, response.status))
-          }
+      .flatMap { response =>
+        response.status match {
+          case NOT_FOUND => Future.successful(false)
+          case OK        => Future.successful(true)
+          case _         => Future.failed(new HttpException(response.body, response.status))
+        }
       }
   }
 }
@@ -120,5 +120,3 @@ trait UserAnswersCacheConnector {
 
   def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
 }
-
-

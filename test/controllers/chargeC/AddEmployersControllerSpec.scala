@@ -67,36 +67,48 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("text" -> "First Last","classes" -> cssHalfWidth),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "First Last", "classes" -> cssHalfWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> cssQuarterWidth),
+        Json.obj(
+          "html" -> s"<a id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/check-your-answers> View<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>",
+          "classes" -> cssQuarterWidth
+        ),
+        Json.obj(
+          "html" -> s"<a id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/1/remove-charge> Remove<span class= govuk-visually-hidden>First Last’s authorised surplus payments charge</span> </a>",
+          "classes" -> cssQuarterWidth
+        )
       ),
       Json.arr(
-        Json.obj("text" -> "Big Company","classes" -> cssHalfWidth),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("text" -> "Big Company", "classes" -> cssHalfWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(33.44)), "classes" -> cssQuarterWidth),
+        Json.obj(
+          "html" -> s"<a id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/check-your-answers> View<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>",
+          "classes" -> cssQuarterWidth
+        ),
+        Json.obj(
+          "html" -> s"<a id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/authorised-surplus-payments-charge/2/remove-charge> Remove<span class= govuk-visually-hidden>Big Company’s authorised surplus payments charge</span> </a>",
+          "classes" -> cssQuarterWidth
+        )
       ),
       Json.arr(
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> cssQuarterWidth),
+        Json.obj("text" -> formatCurrencyAmountAsString(BigDecimal(66.88)), "classes" -> cssQuarterWidth),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
     )
   )
 
-  private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatter),
-    "quarterEnd" -> LocalDate.parse(QUARTER_END_DATE).format(dateFormatter),
-    "table" -> table
+  private val jsonToPassToTemplate: Form[Boolean] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl = controllers.chargeC.routes.AddEmployersController.onSubmit(srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "radios" -> Radios.yesNo(form("value")),
+      "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatter),
+      "quarterEnd" -> LocalDate.parse(QUARTER_END_DATE).format(dateFormatter),
+      "table" -> table
   )
 
   override def beforeEach: Unit = {
@@ -106,14 +118,29 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
-    .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
-    .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
-    .set(ChargeCDetailsPage(1), chargeCDetails).toOption.get
-    .set(TotalChargeAmountPage, BigDecimal(66.88)).toOption.get
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(IsSponsoringEmployerIndividualPage(0), true)
+      .toOption
+      .get
+      .set(IsSponsoringEmployerIndividualPage(1), false)
+      .toOption
+      .get
+      .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
+      .toOption
+      .get
+      .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails)
+      .toOption
+      .get
+      .set(ChargeCDetailsPage(0), chargeCDetails)
+      .toOption
+      .get
+      .set(ChargeCDetailsPage(1), chargeCDetails)
+      .toOption
+      .get
+      .set(TotalChargeAmountPage, BigDecimal(66.88))
+      .toOption
+      .get
   val expectedJson: JsObject = ua.set(AddEmployersPage, true).get.data
 
   "AddEmployers Controller" must {

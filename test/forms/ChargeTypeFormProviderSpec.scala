@@ -32,7 +32,7 @@ class ChargeTypeFormProviderSpec extends OptionFieldBehaviours {
     behave like optionsField[ChargeType](
       form,
       fieldName,
-      validValues  = ChargeType.values,
+      validValues = ChargeType.values,
       invalidError = FormError(fieldName, "error.invalid")
     )
 

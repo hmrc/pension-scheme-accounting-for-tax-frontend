@@ -24,13 +24,12 @@ import scala.language.implicitConversions
 
 object LocalDateBinder {
 
-  implicit def datePathBindable(implicit stringBinder: PathBindable[String]):
-  PathBindable[LocalDate] = new PathBindable[LocalDate] {
+  implicit def datePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[LocalDate] = new PathBindable[LocalDate] {
 
     override def bind(key: String, value: String): Either[String, LocalDate] = {
       stringBinder.bind(key, value) match {
         case Right(right) => Right(LocalDate.from(dateFormatterYMD.parse(right)))
-        case _ => Left("LocalDate binding failed")
+        case _            => Left("LocalDate binding failed")
       }
     }
 
@@ -44,5 +43,3 @@ object LocalDateBinder {
   implicit def stringToLocalDate(date: String): LocalDate =
     LocalDate.from(dateFormatterYMD.parse(date))
 }
-
-

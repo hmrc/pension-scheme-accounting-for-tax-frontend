@@ -40,6 +40,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
   override def beforeEach: Unit = {
     reset(dataCacheConnector)
   }
+
   class Harness(dataCacheConnector: UserAnswersCacheConnector) extends DataRetrievalImpl(srn, startDate, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
   }

@@ -55,10 +55,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "quarterStartDate" -> quarterStartDate,
     "quarterEndDate" -> quarterEndDate,
     "submittedDate" -> DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now()),
-    "viewModel" -> GenericViewModel(
-      submitUrl = submitUrl.url,
-      returnUrl = dummyCall.url,
-      schemeName = SampleData.schemeName)
+    "viewModel" -> GenericViewModel(submitUrl = submitUrl.url, returnUrl = dummyCall.url, schemeName = SampleData.schemeName)
   )
 
   "Confirmation Controller" must {

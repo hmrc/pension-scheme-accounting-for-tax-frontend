@@ -48,12 +48,13 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   lazy val httpPathPOST: String =
     controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
-  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map(

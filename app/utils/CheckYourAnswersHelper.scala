@@ -50,7 +50,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
     def optionalAddrLineToHtml(optionalAddrLine: Option[String]): String = optionalAddrLine match {
       case Some(l) => addrLineToHtml(l)
-      case None => ""
+      case None    => ""
     }
 
     Html(
@@ -63,16 +63,14 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     )
   }
 
-  def chargeCEmployerDetails(index: Int,
-                             sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]
-                            )(implicit messages: Messages): Seq[Row] =
+  def chargeCEmployerDetails(index: Int, sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])(
+      implicit messages: Messages): Seq[Row] =
     sponsorDetails.fold(
       individual => chargeCIndividualDetails(index, individual),
       organisation => chargeCOrganisationDetails(index, organisation)
     )
 
-  private def getEmployerName(index: Int,
-                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]): String =
+  private def getEmployerName(index: Int, sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]): String =
     sponsorDetails.fold(
       individual => individual.fullName,
       organisation => organisation.name
@@ -86,7 +84,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
         Action(
           content = msg"site.edit",
           href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, startDate, index).url,
-          visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel"))
+          visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel")
+        )
       )
     )
 
@@ -104,7 +103,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
         )
       ),
       Row(
-        key = Key(msg"chargeC.sponsoringIndividualNino.checkYourAnswersLabel".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+        key = Key(msg"chargeC.sponsoringIndividualNino.checkYourAnswersLabel".withArgs(answer.fullName),
+                  classes = Seq("govuk-!-width-one-half")),
         value = Value(lit"${answer.nino}"),
         actions = List(
           Action(
@@ -131,7 +131,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
         )
       ),
       Row(
-        key = Key(msg"chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel".withArgs(answer.name), classes = Seq("govuk-!-width-one-half")),
+        key =
+          Key(msg"chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel".withArgs(answer.name), classes = Seq("govuk-!-width-one-half")),
         value = Value(lit"${answer.crn}"),
         actions = List(
           Action(
@@ -146,16 +147,17 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
   def chargeCAddress(index: Int,
                      address: SponsoringEmployerAddress,
-                     sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])
-                    (implicit messages: Messages): Row =
+                     sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])(implicit messages: Messages): Row =
     Row(
-      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)), classes = Seq("govuk-!-width-one-half")),
+      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)),
+                classes = Seq("govuk-!-width-one-half")),
       value = Value(addressAnswer(address)),
       actions = List(
         Action(
           content = msg"site.edit",
           href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index).url,
-          visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
+          visuallyHiddenText =
+            Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
         )
       )
     )
@@ -199,7 +201,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       )
     )
 
-
   def chargeFAmount(answer: ChargeDetails): Row =
     Row(
       key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
@@ -230,7 +231,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
+                    classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -244,7 +246,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
+                    classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -330,7 +333,6 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
     )
   }
 
-
   def chargeEDetails(index: Int, answer: ChargeEDetails): Seq[Row] = {
     Seq(
       Row(
@@ -411,7 +413,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"),
+                      classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -422,7 +425,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"),
+                      classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -514,8 +518,10 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       ),
       Row(
         key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
-          "")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"),
+                      classes = Seq(
+                        "govuk-!-width-one-thirdt run" +
+                          "")),
         actions = List(
           Action(
             content = msg"site.edit",

@@ -44,10 +44,9 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
-    fields = "schemeName" -> schemeName, "nextPage" -> dummyCall.url, "viewModel" -> GenericViewModel(
-      submitUrl = "",
-      returnUrl = dummyCall.url,
-      schemeName = schemeName))
+    fields = "schemeName" -> schemeName,
+    "nextPage" -> dummyCall.url,
+    "viewModel" -> GenericViewModel(submitUrl = "", returnUrl = dummyCall.url, schemeName = schemeName))
 
   override def beforeEach: Unit = {
     super.beforeEach

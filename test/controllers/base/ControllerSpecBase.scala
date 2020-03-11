@@ -95,9 +95,8 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
 
   protected def httpPOSTRequest(path: String, values: Map[String, Seq[String]]): FakeRequest[AnyContentAsFormUrlEncoded] =
     FakeRequest
-      .apply(
-        method = POST,
-        uri = path,
-        headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
-        body = AnyContentAsFormUrlEncoded(values))
+      .apply(method = POST,
+             uri = path,
+             headers = FakeHeaders(Seq(HeaderNames.HOST -> "localhost")),
+             body = AnyContentAsFormUrlEncoded(values))
 }

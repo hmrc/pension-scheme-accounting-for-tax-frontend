@@ -48,9 +48,11 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
   private val form = formProvider()
 
-  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE).url
+  private def confirmSubmitAFTReturnRoute: String =
+    routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE).url
 
-  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE).url
+  private def confirmSubmitAFTReturnSubmitRoute: String =
+    routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
@@ -63,10 +65,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private def jsonToBePassed(form: Form[Boolean]): JsObject = Json.obj(
     fields = "srn" -> srn,
     "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = confirmSubmitAFTReturnSubmitRoute,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
+    "viewModel" -> GenericViewModel(submitUrl = confirmSubmitAFTReturnSubmitRoute, returnUrl = dummyCall.url, schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
 

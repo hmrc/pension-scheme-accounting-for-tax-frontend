@@ -44,7 +44,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/chargeDetails.njk"
-  private val form = new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
+  private val form =
+    new ChargeDetailsFormProvider().apply(QUARTER_START_DATE, QUARTER_END_DATE, minimumChargeValueAllowed = BigDecimal("0.01"))
   private val index = 0
   private def httpPathGET: String = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
   private def httpPathPOST: String = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url
@@ -70,12 +71,14 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeCDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[ChargeCDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(
+        submitUrl = controllers.chargeC.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )
   )
 
   override def beforeEach: Unit = {
@@ -84,7 +87,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
-
 
   "ChargeDetails Controller" must {
 
@@ -106,7 +108,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       val ua = userAnswers.map(_.set(ChargeCDetailsPage(index), chargeCDetails)).get.toOption.get
-      
+
       mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -139,11 +141,10 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
-          SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-          IsSponsoringEmployerIndividualPage.toString -> false,
-          ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
-            )
-          )
+            SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
+            IsSponsoringEmployerIndividualPage.toString -> false,
+            ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
+          ))
         )
       )
 

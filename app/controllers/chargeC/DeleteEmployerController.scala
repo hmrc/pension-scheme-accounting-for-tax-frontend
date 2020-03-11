@@ -42,89 +42,92 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       navigator: CompoundNavigator,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       allowAccess: AllowAccessActionProvider,
-                                       requireData: DataRequiredAction,
-                                       aftService: AFTService,
-                                       formProvider: DeleteMemberFormProvider,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer
-                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                         navigator: CompoundNavigator,
+                                         identify: IdentifierAction,
+                                         getData: DataRetrievalAction,
+                                         allowAccess: AllowAccessActionProvider,
+                                         requireData: DataRequiredAction,
+                                         aftService: AFTService,
+                                         formProvider: DeleteMemberFormProvider,
+                                         val controllerComponents: MessagesControllerComponents,
+                                         config: FrontendAppConfig,
+                                         renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
+        val viewModel = GenericViewModel(
+          submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName
+        )
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
-            val json = Json.obj(
+        val json = Json.obj(
           "srn" -> srn,
           "startDate" -> Some(startDate),
           "form" -> form(employerName),
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
-              "employerName" -> employerName
-            )
+          "viewModel" -> viewModel,
+          "radios" -> Radios.yesNo(form(employerName)(implicitly)("value")),
+          "employerName" -> employerName
+        )
 
-            renderer.render("chargeC/deleteEmployer.njk", json).map(Ok(_))
-        }
-  }
-
-  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
-
-            form(employerName).bindFromRequest().fold(
-              formWithErrors => {
-
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-                  returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                  schemeName = schemeName)
-
-                val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> formWithErrors,
-                  "viewModel" -> viewModel,
-                  "radios" -> Radios.yesNo(formWithErrors("value")),
-                  "employerName" -> employerName
-                )
-
-                renderer.render("chargeC/deleteEmployer.njk", json).map(BadRequest(_))
-
-              },
-              value =>
-                if(value) {
-                  DataRetrievals.retrievePSTR { pstr =>
-
-                    for {
-                      interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
-                      _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
-                  }
-                } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate)))
-                }
-            )
+        renderer.render("chargeC/deleteEmployer.njk", json).map(Ok(_))
       }
-  }
+    }
+
+  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
+        form(employerName)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+
+              val viewModel = GenericViewModel(
+                submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value")),
+                "employerName" -> employerName
+              )
+
+              renderer.render("chargeC/deleteEmployer.njk", json).map(BadRequest(_))
+
+            },
+            value =>
+              if (value) {
+                DataRetrievals.retrievePSTR { pstr =>
+                  for {
+                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
+                    updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
+                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                    _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                  } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
+                }
+              } else {
+                Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate)))
+            }
+          )
+      }
+    }
   private def saveDeletion(ua: UserAnswers, index: Int): Try[UserAnswers] =
-    ( ua.get(IsSponsoringEmployerIndividualPage(index)),
-      ua.get(SponsoringIndividualDetailsPage(index)),
-      ua.get(SponsoringOrganisationDetailsPage(index))) match {
+    (ua.get(IsSponsoringEmployerIndividualPage(index)),
+     ua.get(SponsoringIndividualDetailsPage(index)),
+     ua.get(SponsoringOrganisationDetailsPage(index))) match {
       case (Some(true), Some(individualDetails), _) =>
         ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
       case (Some(false), _, Some(orgDetails)) =>
@@ -132,5 +135,6 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       case _ => Try(ua)
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal =
+    getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
 }

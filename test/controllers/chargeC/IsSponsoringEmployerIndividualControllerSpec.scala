@@ -39,7 +39,13 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class IsSponsoringEmployerIndividualControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val index = 0
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
@@ -55,11 +61,7 @@ class IsSponsoringEmployerIndividualControllerSpec extends ControllerSpecBase wi
 
   private def httpPathPOST: String = routes.IsSponsoringEmployerIndividualController.onSubmit(NormalMode, srn, startDate, index).url
 
-  private def viewModel = GenericViewModel(
-    submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
-    schemeName = schemeName)
-
+  private def viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 

@@ -22,7 +22,6 @@ import play.api.libs.json.{Format, Json}
 
 case class ChargeCDetails(paymentDate: LocalDate, amountTaxDue: BigDecimal)
 
-
 object ChargeCDetails {
   implicit lazy val formats: Format[ChargeCDetails] =
     Json.format[ChargeCDetails]

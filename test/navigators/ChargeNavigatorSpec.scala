@@ -31,7 +31,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
 
-  private def optUA(ct:ChargeType):Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
+  private def optUA(ct: ChargeType): Option[UserAnswers] = SampleData.userAnswersWithSchemeNamePstrQuarter.set(ChargeTypePage, ct).toOption
   private def chargeEMemberExists: Option[UserAnswers] = SampleData.chargeEMember.set(ChargeTypePage, ChargeTypeAnnualAllowance).toOption
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
@@ -45,13 +45,20 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeShortService)),
         row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeLumpSumDeath)),
         row(ChargeTypePage)(controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeAuthSurplus)),
-        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeAnnualAllowance)),
-        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeEMemberExists),
-        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeLifetimeAllowance)),
-        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeDMemberExists),
-        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeOverseasTransfer)),
-        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeGMemberExists),
+        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate),
+                            optUA(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 1),
+                            chargeEMemberExists),
+        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate),
+                            optUA(ChargeTypeDeRegistration)),
+        row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate),
+                            optUA(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 1),
+                            chargeDMemberExists),
+        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate),
+                            optUA(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 1),
+                            chargeGMemberExists),
         row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate), aftSummaryNo),
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes),
         row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
@@ -59,6 +66,6 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
   }
 }

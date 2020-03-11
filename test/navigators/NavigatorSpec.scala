@@ -46,13 +46,13 @@ class NavigatorSpec extends SpecBase {
   "Navigator" when {
     "in Normal mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call1
+        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()), srn, QUARTER_START_DATE) mustBe call1
       }
     }
 
     "in Check mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call2
+        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()), srn, QUARTER_START_DATE) mustBe call2
       }
     }
   }

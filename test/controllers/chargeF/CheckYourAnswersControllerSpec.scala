@@ -34,8 +34,11 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
   private def httpOnClickRoute: String = controllers.chargeF.routes.CheckYourAnswersController.onClick(srn, startDate).url
 
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(ChargeDetailsPage, chargeFChargeDetails).toOption.get
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(ChargeDetailsPage, chargeFChargeDetails)
+      .toOption
+      .get
 
   private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
 

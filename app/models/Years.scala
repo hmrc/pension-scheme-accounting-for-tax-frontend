@@ -16,7 +16,6 @@
 
 package models
 
-
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -37,10 +36,9 @@ object Years extends Enumerable.Implicits {
 
   def minYear(implicit config: FrontendAppConfig): Int = {
     val earliestYear = currentYear - 6
-    if(earliestYear > config.minimumYear) {
+    if (earliestYear > config.minimumYear) {
       earliestYear
-    }
-    else {
+    } else {
       config.minimumYear
     }
   }

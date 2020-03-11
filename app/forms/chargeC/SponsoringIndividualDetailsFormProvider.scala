@@ -31,18 +31,19 @@ class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
           .verifying(
             firstError(
               maxLength(35, "chargeC.sponsoringIndividualDetails.firstName.error.length"),
-              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.firstName.error.invalid"))
+              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.firstName.error.invalid")
+            )
           ),
         "lastName" -> text("chargeC.sponsoringIndividualDetails.lastName.error.required")
           .verifying(
             firstError(
               maxLength(35, "chargeC.sponsoringIndividualDetails.lastName.error.length"),
-              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.lastName.error.invalid"))
+              regexp(nameRegex, "chargeC.sponsoringIndividualDetails.lastName.error.invalid")
+            )
           ),
         "nino" -> text("chargeC.sponsoringIndividualDetails.nino.error.required")
-          .transform(noSpaceWithUpperCaseTransform, noTransform).
-          verifying(validNino("chargeC.sponsoringIndividualDetails.nino.error.invalid"))
-      )
-      (MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
+          .transform(noSpaceWithUpperCaseTransform, noTransform)
+          .verifying(validNino("chargeC.sponsoringIndividualDetails.nino.error.invalid"))
+      )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
     )
 }

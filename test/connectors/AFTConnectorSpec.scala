@@ -52,8 +52,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      connector.fileAFTReturn(pstr, UserAnswers(data)) map {
-        _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
+      connector.fileAFTReturn(pstr, UserAnswers(data)) map { _ =>
+        server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
 

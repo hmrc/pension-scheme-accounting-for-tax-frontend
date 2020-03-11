@@ -37,7 +37,9 @@ class ErrorHandler @Inject()(
     renderer: Renderer,
     val messagesApi: MessagesApi,
     config: FrontendAppConfig
-)(implicit ec: ExecutionContext) extends HttpErrorHandler with I18nSupport {
+)(implicit ec: ExecutionContext)
+    extends HttpErrorHandler
+    with I18nSupport {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
@@ -46,12 +48,11 @@ class ErrorHandler @Inject()(
     statusCode match {
       case BAD_REQUEST =>
         renderer.render("badRequest.njk").map(BadRequest(_))
-      case NOT_FOUND   =>
+      case NOT_FOUND =>
         renderer.render("notFound.njk", Json.obj("yourPensionSchemesUrl" -> config.yourPensionSchemesUrl)).map(NotFound(_))
-      case _           =>
-        renderer.render("error.njk", Json.obj()).map {
-          content =>
-            Results.Status(statusCode)(content)
+      case _ =>
+        renderer.render("error.njk", Json.obj()).map { content =>
+          Results.Status(statusCode)(content)
         }
     }
   }
@@ -65,9 +66,8 @@ class ErrorHandler @Inject()(
       case ApplicationException(result, _) =>
         Future.successful(result)
       case _ =>
-        renderer.render("internalServerError.njk").map {
-          content =>
-            InternalServerError(content).withHeaders(CACHE_CONTROL -> "no-cache")
+        renderer.render("internalServerError.njk").map { content =>
+          InternalServerError(content).withHeaders(CACHE_CONTROL -> "no-cache")
         }
     }
   }

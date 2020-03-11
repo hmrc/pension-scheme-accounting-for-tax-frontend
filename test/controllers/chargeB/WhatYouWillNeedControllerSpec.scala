@@ -42,14 +42,13 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val templateToBeRendered = "chargeB/whatYouWillNeed.njk"
   private def httpPathGET: String = controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
 
-  private val jsonToPassToTemplate:JsObject = Json.obj(
-    fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
+  private val jsonToPassToTemplate: JsObject =
+    Json.obj(fields = "schemeName" -> SampleData.schemeName, "nextPage" -> SampleData.dummyCall.url)
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
-
 
   "whatYouWillNeed Controller" must {
     "return OK and the correct view for a GET" in {

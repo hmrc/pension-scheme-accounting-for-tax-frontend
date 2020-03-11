@@ -34,46 +34,47 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
       (
         (map(otherField).isEmpty | map(otherField) == "0.00")
           |
-        ((map("taxAt25Percent").nonEmpty && map("taxAt25Percent") != "0.00")
-          &&
-        (map("taxAt55Percent").nonEmpty && map("taxAt55Percent") != "0.00"))
-      )
+            ((map("taxAt25Percent").nonEmpty && map("taxAt25Percent") != "0.00")
+              &&
+                (map("taxAt55Percent").nonEmpty && map("taxAt55Percent") != "0.00"))
+    )
 
   implicit private val ignoredParam: Option[BigDecimal] = None
 
-  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed:BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
-    Form(mapping(
-      "dateOfEvent" -> localDate(
-        invalidKey = "dateOfEvent.error.invalid",
-        allRequiredKey = "dateOfEvent.error.required",
-        twoRequiredKey = "dateOfEvent.error.incomplete",
-        requiredKey = "dateOfEvent.error.required"
-      ).verifying(
-        minDate(min, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
-        maxDate(max, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
-        yearHas4Digits("dateOfEvent.error.invalid")
-      ),
-      "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt55Percent"),
-        optionBigDecimal2DP(
-          requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
-          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
-          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
+  def apply(min: LocalDate, max: LocalDate, minimumChargeValueAllowed: BigDecimal)(implicit messages: Messages): Form[ChargeDDetails] =
+    Form(
+      mapping(
+        "dateOfEvent" -> localDate(
+          invalidKey = "dateOfEvent.error.invalid",
+          allRequiredKey = "dateOfEvent.error.required",
+          twoRequiredKey = "dateOfEvent.error.incomplete",
+          requiredKey = "dateOfEvent.error.required"
         ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
-          minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "25"))
+          minDate(min, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
+          maxDate(max, messages("dateOfEvent.error.date", formatDateDMY(min), formatDateDMY(max))),
+          yearHas4Digits("dateOfEvent.error.invalid")
+        ),
+        "taxAt25Percent" -> onlyIf[Option[BigDecimal]](
+          otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt55Percent"),
+          optionBigDecimal2DP(
+            requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
+            invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
+            decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
+          ).verifying(
+            maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
+            minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "25"))
+          )
+        ),
+        "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
+          otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt25Percent"),
+          optionBigDecimal2DP(
+            requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
+            invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
+            decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
+          ).verifying(
+            maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
+            minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "55"))
+          )
         )
-      ),
-      "taxAt55Percent" -> onlyIf[Option[BigDecimal]](
-        otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt25Percent"),
-        optionBigDecimal2DP(
-          requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
-          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
-          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
-        ).verifying(
-          maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
-          minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "55"))
-        )
-      )
-    )(ChargeDDetails.apply)(ChargeDDetails.unapply))
+      )(ChargeDDetails.apply)(ChargeDDetails.unapply))
 }

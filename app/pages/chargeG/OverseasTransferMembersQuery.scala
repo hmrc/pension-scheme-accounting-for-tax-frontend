@@ -19,11 +19,10 @@ package pages.chargeG
 import pages.Page
 import play.api.libs.json.JsPath
 
-case class OverseasTransferMembersQuery(index: Int) extends Page  {
+case class OverseasTransferMembersQuery(index: Int) extends Page {
   def path: JsPath = JsPath \ "chargeGDetails" \ OverseasTransferMembersQuery.toString \ index
 }
 
 object OverseasTransferMembersQuery {
   override def toString: String = "members"
 }
-

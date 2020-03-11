@@ -22,58 +22,45 @@ import scala.math.BigDecimal.RoundingMode
 
 trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
-  def bigDecimalField(form: Form[_],
-                      fieldName: String,
-                      nonNumericError: FormError,
-                      decimalsError: FormError): Unit = {
+  def bigDecimalField(form: Form[_], fieldName: String, nonNumericError: FormError, decimalsError: FormError): Unit = {
 
     "must not bind non-numeric numbers" in {
 
-      forAll(nonNumerics -> "nonNumeric") {
-        nonNumeric =>
-          val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
-          result.errors mustEqual Seq(nonNumericError)
+      forAll(nonNumerics -> "nonNumeric") { nonNumeric =>
+        val result = form.bind(Map(fieldName -> nonNumeric)).apply(fieldName)
+        result.errors mustEqual Seq(nonNumericError)
       }
     }
 
     "must not bind decimals that are not 2 dp" in {
 
-      forAll(decimals -> "decimal") {
-        decimal =>
-          val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors mustEqual Seq(decimalsError)
+      forAll(decimals -> "decimal") { decimal =>
+        val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
+        result.errors mustEqual Seq(decimalsError)
       }
     }
   }
 
-  def bigDecimalFieldWithMinimum(form: Form[_],
-                                 fieldName: String,
-                                 minimum: BigDecimal,
-                                 expectedError: FormError): Unit = {
+  def bigDecimalFieldWithMinimum(form: Form[_], fieldName: String, minimum: BigDecimal, expectedError: FormError): Unit = {
 
     s"must not bind decimals below $minimum" in {
 
-      forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") {
-        decimal: String =>
-          val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors.head.key mustEqual expectedError.key
-          result.errors.head.message mustEqual expectedError.message
+      forAll(decimalsBelowValue(minimum) -> "decimalBelowMin") { decimal: String =>
+        val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
+        result.errors.head.key mustEqual expectedError.key
+        result.errors.head.message mustEqual expectedError.message
       }
     }
   }
 
-  def longBigDecimal(form: Form[_],
-                     fieldName: String,
-                     length: Int,
-                     expectedError: FormError): Unit = {
+  def longBigDecimal(form: Form[_], fieldName: String, length: Int, expectedError: FormError): Unit = {
 
     s"must not bind decimals longer than $length characters" in {
 
-      forAll(longDecimalString(length) -> "decimalAboveMax") {
-        decimal: String =>
-          val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
-          result.errors.head.key mustEqual expectedError.key
-          result.errors.head.message mustEqual expectedError.message
+      forAll(longDecimalString(length) -> "decimalAboveMax") { decimal: String =>
+        val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
+        result.errors.head.key mustEqual expectedError.key
+        result.errors.head.message mustEqual expectedError.message
       }
     }
   }
@@ -86,10 +73,9 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
 
     s"must not bind decimals outside the range $minimum to $maximum" in {
 
-      forAll(decimalsOutsideRange(minimum, maximum) -> "decimalOutsideRange") {
-        number =>
-          val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
-          result.errors mustEqual Seq(expectedError)
+      forAll(decimalsOutsideRange(minimum, maximum) -> "decimalOutsideRange") { number =>
+        val result = form.bind(Map(fieldName -> number.toString)).apply(fieldName)
+        result.errors mustEqual Seq(expectedError)
       }
     }
   }

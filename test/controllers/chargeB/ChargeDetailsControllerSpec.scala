@@ -62,12 +62,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeBDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeB.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[ChargeBDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeB.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
@@ -152,7 +153,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
-
 
   }
 }

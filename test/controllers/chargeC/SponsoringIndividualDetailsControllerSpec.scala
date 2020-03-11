@@ -38,7 +38,13 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringIndividualDetailsControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
@@ -46,9 +52,11 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
   private val form = new SponsoringIndividualDetailsFormProvider()()
   private val index = 0
 
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String =
+    controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String =
+    controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "firstName" -> Seq("First"),
@@ -62,12 +70,14 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     "nino" -> Seq("CS121212C")
   )
 
-  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(
+        submitUrl = controllers.chargeC.routes.SponsoringIndividualDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
+        returnUrl = dummyCall.url,
+        schemeName = schemeName
+      )
   )
 
   override def beforeEach: Unit = {
@@ -125,13 +135,15 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
-          "employers" -> Json.arr(Json.obj(
-            SponsoringIndividualDetailsPage.toString -> Json.toJson(sponsoringIndividualDetails)
-          ))
+          "employers" -> Json.arr(
+            Json.obj(
+              SponsoringIndividualDetailsPage.toString -> Json.toJson(sponsoringIndividualDetails)
+            ))
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage(index)), any(), any(), any(), any()))
+        .thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

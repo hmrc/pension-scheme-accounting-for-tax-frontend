@@ -33,10 +33,10 @@ class SignOutControllerSpec extends ControllerSpecBase {
   private val srn = "srn"
   private val startDate = Some(QUARTER_START_DATE.toString)
   private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn, startDate).url
-  private val userAnswers = UserAnswers(Json.obj(
-    "test-key" -> "test-value"
-  ))
-
+  private val userAnswers = UserAnswers(
+    Json.obj(
+      "test-key" -> "test-value"
+    ))
 
   "SignOut Controller" must {
 

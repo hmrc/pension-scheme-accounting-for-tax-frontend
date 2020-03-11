@@ -33,8 +33,7 @@ import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.Future
 
-class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite with MockitoSugar
-  with ScalaFutures with BeforeAndAfterEach {
+class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
   val mockNunjucksRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
@@ -47,7 +46,8 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
   val application: Application = new GuiceApplicationBuilder()
     .overrides(
       bind[NunjucksRenderer].toInstance(mockNunjucksRenderer)
-    ).build()
+    )
+    .build()
 
   "render" - {
 

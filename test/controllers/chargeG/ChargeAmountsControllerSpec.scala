@@ -61,13 +61,14 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq.empty
   )
 
-  private val jsonToPassToTemplate:Form[ChargeAmounts]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "memberName" -> "first last"
+  private val jsonToPassToTemplate: Form[ChargeAmounts] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "memberName" -> "first last"
   )
 
   override def beforeEach: Unit = {
@@ -151,7 +152,6 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
-
 
     "return a BAD REQUEST when zero amount is submitted and the new return flag is set" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData.setOrException(IsNewReturn, true)))

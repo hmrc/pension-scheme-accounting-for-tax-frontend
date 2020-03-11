@@ -49,51 +49,54 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  private def form(ua:UserAnswers): Form[ChargeEDetails] = formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
+  private def form(ua: UserAnswers): Form[ChargeEDetails] =
+    formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-
-          val preparedForm: Form[ChargeEDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
-            case Some(value) => form(request.userAnswers).fill(value)
-            case None => form(request.userAnswers)
-          }
-
-          val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-            schemeName = schemeName)
-
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "form" -> preparedForm,
-            "viewModel" -> viewModel,
-            "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
-            "radios" -> Radios.yesNo(preparedForm("isPaymentMandatory")),
-            "memberName" -> memberName
-          )
-
-          renderer.render(template = "chargeE/chargeDetails.njk", json).map(Ok(_))
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+        val preparedForm: Form[ChargeEDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
+          case Some(value) => form(request.userAnswers).fill(value)
+          case None        => form(request.userAnswers)
         }
+
+        val viewModel = GenericViewModel(
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
+          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          schemeName = schemeName
+        )
+
+        val json = Json.obj(
+          "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "viewModel" -> viewModel,
+          "date" -> DateInput.localDate(preparedForm("dateNoticeReceived")),
+          "radios" -> Radios.yesNo(preparedForm("isPaymentMandatory")),
+          "memberName" -> memberName
+        )
+
+        renderer.render(template = "chargeE/chargeDetails.njk", json).map(Ok(_))
+      }
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-      implicit request =>
-        DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-
-          form(request.userAnswers).bindFromRequest().fold(
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+      DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+        form(request.userAnswers)
+          .bindFromRequest()
+          .fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                schemeName = schemeName)
+                schemeName = schemeName
+              )
 
               val json = Json.obj(
                 "srn" -> srn,
@@ -113,6 +116,6 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
             }
           )
-        }
+      }
     }
 }

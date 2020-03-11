@@ -30,10 +30,8 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = Gen.oneOf(ChargeType.values)
 
-      forAll(gen) {
-        chargeType =>
-
-          JsString(chargeType.toString).validate[ChargeType].asOpt.value mustEqual chargeType
+      forAll(gen) { chargeType =>
+        JsString(chargeType.toString).validate[ChargeType].asOpt.value mustEqual chargeType
       }
     }
 
@@ -41,12 +39,10 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = arbitrary[String] suchThat (!ChargeType.values.map(_.toString).contains(_))
 
-      forAll(gen) {
-        invalidValue =>
-
-          a[RuntimeException] shouldBe thrownBy {
-            JsString(invalidValue).validate[ChargeType]
-          }
+      forAll(gen) { invalidValue =>
+        a[RuntimeException] shouldBe thrownBy {
+          JsString(invalidValue).validate[ChargeType]
+        }
       }
     }
 
@@ -54,10 +50,8 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
       val gen = Gen.oneOf(ChargeType.values)
 
-      forAll(gen) {
-        chargeType =>
-
-          Json.toJson(chargeType) mustEqual JsString(chargeType.toString)
+      forAll(gen) { chargeType =>
+        Json.toJson(chargeType) mustEqual JsString(chargeType.toString)
       }
     }
   }

@@ -34,7 +34,7 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate)),
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)),
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate)),
         row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
       )
@@ -49,7 +49,7 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
         row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes, srn, startDate)
   }
 
 }

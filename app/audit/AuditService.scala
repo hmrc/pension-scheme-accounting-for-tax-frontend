@@ -29,16 +29,16 @@ import scala.language.implicitConversions
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuditService @Inject()(
-                              config: FrontendAppConfig,
-                              connector: AuditConnector
-                            ){
+    config: FrontendAppConfig,
+    connector: AuditConnector
+) {
 
   def sendEvent[T <: AuditEvent](event: T)(implicit
                                            rh: RequestHeader,
                                            ec: ExecutionContext): Unit = {
 
     implicit def toHc(request: RequestHeader): AuditHeaderCarrier =
-    auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
+      auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
 
     val details = rh.toAuditDetails() ++ event.details
 

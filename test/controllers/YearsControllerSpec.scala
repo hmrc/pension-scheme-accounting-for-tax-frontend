@@ -41,11 +41,18 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class YearsControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
+
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)
   )
@@ -59,13 +66,13 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
   lazy val httpPathPOST: String = controllers.routes.YearsController.onSubmit(srn).url
 
-  private val jsonToPassToTemplate: Form[Years] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Years.radios(form),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[Years] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "radios" -> Years.radios(form),
+      "viewModel" -> GenericViewModel(submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   private val year = "2020"
@@ -120,4 +127,3 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
     }
   }
 }
-

@@ -34,7 +34,8 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
   }
 
-  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext,
+                                                                         hc: HeaderCarrier): Future[JsValue] = {
     val url = config.getAftDetails
     val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
     http.GET[JsValue](url)(implicitly, aftHc, implicitly)

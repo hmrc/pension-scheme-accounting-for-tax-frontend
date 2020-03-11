@@ -20,16 +20,22 @@ import play.api.libs.json.{Format, Json}
 
 import scala.language.implicitConversions
 
-case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
+case class Member(index: Int,
+                  name: String,
+                  nino: String,
+                  amount: BigDecimal,
+                  viewLink: String,
+                  removeLink: String,
+                  isDeleted: Boolean = false) {
+  def id = s"member-$index"
 
-    def removeLinkId = s"$id-remove"
+  def removeLinkId = s"$id-remove"
 
-    def viewLinkId = s"$id-view"
+  def viewLinkId = s"$id-view"
 
 }
 
 object Member {
-    implicit lazy val formats: Format[Member] =
-        Json.format[Member]
+  implicit lazy val formats: Format[Member] =
+    Json.format[Member]
 }

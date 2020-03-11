@@ -37,7 +37,7 @@ class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Quarters](
       form,
       fieldName,
-      validValues  = Quarters.values(2020),
+      validValues = Quarters.values(2020),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

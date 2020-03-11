@@ -38,8 +38,14 @@ import utils.DateHelper
 
 import scala.concurrent.Future
 
-class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class AFTLoginControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
 

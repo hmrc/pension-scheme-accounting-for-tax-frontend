@@ -34,9 +34,14 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
   private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
   private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
 
-  private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(MemberDetailsPage(0), memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
+  private def ua: UserAnswers =
+    userAnswersWithSchemeNamePstrQuarter
+      .set(MemberDetailsPage(0), memberDetails)
+      .toOption
+      .get
+      .set(ChargeDetailsPage(0), chargeDDetails)
+      .toOption
+      .get
 
   private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
   private val rows = Seq(

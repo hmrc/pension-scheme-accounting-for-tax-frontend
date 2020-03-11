@@ -36,48 +36,48 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class YearsController @Inject()(
-                                 override val messagesApi: MessagesApi,
-                                 userAnswersCacheConnector: UserAnswersCacheConnector,
-                                 navigator: CompoundNavigator,
-                                 identify: IdentifierAction,
-                                 getData: DataRetrievalAction,
-                                 allowAccess: AllowAccessActionProvider,
-                                 requireData: DataRequiredAction,
-                                 formProvider: YearsFormProvider,
-                                 val controllerComponents: MessagesControllerComponents,
-                                 renderer: Renderer,
-                                 config: FrontendAppConfig,
-                                 schemeService: SchemeService,
-                                 auditService: AuditService,
-                                 aftService: AFTService,
-                                 allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    formProvider: YearsFormProvider,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig,
+    schemeService: SchemeService,
+    auditService: AuditService,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(implicit config: FrontendAppConfig): Form[Years] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      val json = Json.obj(
+        "srn" -> srn,
+        "startDate" -> None,
+        "form" -> form(config),
+        "radios" -> Years.radios(form(config))(implicitly, config),
+        "viewModel" -> viewModel(schemeDetails.schemeName, srn)
+      )
 
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> None,
-          "form" -> form(config),
-          "radios" -> Years.radios(form(config))(implicitly, config),
-          "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-        )
-
-        renderer.render(template = "years.njk", json).map(Ok(_))
-      }
+      renderer.render(template = "years.njk", json).map(Ok(_))
+    }
   }
 
-  def onSubmit(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-        form(config).bindFromRequest().fold(
-          formWithErrors =>
-            schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    form(config)
+      .bindFromRequest()
+      .fold(
+        formWithErrors =>
+          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
               "startDate" -> None,
@@ -86,10 +86,9 @@ class YearsController @Inject()(
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))
-          },
-          value =>
-            Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
-        )
+        },
+        value => Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.getYear.toString)))
+      )
   }
 
   private def viewModel(schemeName: String, srn: String): GenericViewModel = {

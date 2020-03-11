@@ -143,7 +143,6 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
     )
   }
 
-
   "country" must {
     val requiredKey = "address.country.error.required"
     val fieldName = "country"

@@ -20,42 +20,31 @@ import play.api.data.{Form, FormError}
 
 trait StringFieldBehaviours extends FieldBehaviours {
 
-  def fieldWithMaxLength(form: Form[_],
-                         fieldName: String,
-                         maxLength: Int,
-                         lengthError: FormError): Unit = {
+  def fieldWithMaxLength(form: Form[_], fieldName: String, maxLength: Int, lengthError: FormError): Unit = {
 
     s"must not bind strings longer than $maxLength characters" in {
 
-      forAll(stringsLongerThan(maxLength) -> "longString") {
-        string =>
-          val result = form.bind(Map(fieldName -> string)).apply(fieldName)
-          result.errors.head.message mustEqual lengthError.message
-          result.errors.head.key mustEqual lengthError.key
+      forAll(stringsLongerThan(maxLength) -> "longString") { string =>
+        val result = form.bind(Map(fieldName -> string)).apply(fieldName)
+        result.errors.head.message mustEqual lengthError.message
+        result.errors.head.key mustEqual lengthError.key
       }
     }
   }
 
-  def fieldWithMinLength(form: Form[_],
-                         fieldName: String,
-                         minLength: Int,
-                         lengthError: FormError): Unit = {
+  def fieldWithMinLength(form: Form[_], fieldName: String, minLength: Int, lengthError: FormError): Unit = {
 
     s"must not bind strings shorter than $minLength characters" in {
 
-      forAll(stringsShorterThan(minLength) -> "longString") {
-        string =>
-          val result = form.bind(Map(fieldName -> string)).apply(fieldName)
-          result.errors.head.message mustEqual lengthError.message
-          result.errors.head.key mustEqual lengthError.key
+      forAll(stringsShorterThan(minLength) -> "longString") { string =>
+        val result = form.bind(Map(fieldName -> string)).apply(fieldName)
+        result.errors.head.message mustEqual lengthError.message
+        result.errors.head.key mustEqual lengthError.key
       }
     }
   }
 
-  def fieldWithRegex(form: Form[_],
-                     fieldName: String,
-                     invalidValues: Seq[String],
-                     invalidError: FormError): Unit = {
+  def fieldWithRegex(form: Form[_], fieldName: String, invalidValues: Seq[String], invalidError: FormError): Unit = {
 
     invalidValues.foreach { invalidVal =>
       s"not bind string $invalidVal invalidated by regex" in {
@@ -65,10 +54,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def nino(form: Form[_],
-           fieldName: String,
-           requiredKey: String,
-           invalidKey: String): Unit = {
+  def nino(form: Form[_], fieldName: String, requiredKey: String, invalidKey: String): Unit = {
 
     behave like mandatoryField(
       form,
@@ -89,10 +75,7 @@ trait StringFieldBehaviours extends FieldBehaviours {
     }
   }
 
-  def qrOps(form: Form[_],
-            fieldName: String,
-            requiredKey: String,
-            invalidKey: String): Unit = {
+  def qrOps(form: Form[_], fieldName: String, requiredKey: String, invalidKey: String): Unit = {
 
     behave like mandatoryField(
       form,

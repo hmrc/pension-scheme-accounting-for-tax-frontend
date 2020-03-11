@@ -18,13 +18,13 @@ package models.chargeC
 
 import play.api.libs.json.{Format, Json}
 
-case class SponsoringOrganisationDetails(name:String, crn:String, isDeleted: Boolean = false)
+case class SponsoringOrganisationDetails(name: String, crn: String, isDeleted: Boolean = false)
 
 object SponsoringOrganisationDetails {
   implicit lazy val formats: Format[SponsoringOrganisationDetails] =
     Json.format[SponsoringOrganisationDetails]
 
-  def applyDelete(name:String, crn:String): SponsoringOrganisationDetails = {
+  def applyDelete(name: String, crn: String): SponsoringOrganisationDetails = {
     SponsoringOrganisationDetails(name, crn)
   }
 

@@ -27,30 +27,30 @@ class AFTReturnTidyService {
   private case class ChargeInfo(jsonNode: String,
                                 memberOrEmployerJsonNode: String,
                                 isDeleted: (UserAnswers, Int) => Boolean,
-                                reinstate: (UserAnswers, Int) => UserAnswers
-                               )
+                                reinstate: (UserAnswers, Int) => UserAnswers)
 
   private val chargeInfoC = ChargeInfo(
     jsonNode = "chargeCDetails",
     memberOrEmployerJsonNode = "employers",
     isDeleted = (ua, index) =>
-      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
-        case (Some(true), Some(individual), _) => individual.isDeleted
+      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)),
+       ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)),
+       ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+        case (Some(true), Some(individual), _)    => individual.isDeleted
         case (Some(false), _, Some(organisation)) => organisation.isDeleted
-        case _ => true
-      },
+        case _                                    => true
+    },
     reinstate = (ua, index) => {
       val uaWithEmployerReinstated = if (ua.getOrException(pages.chargeC.IsSponsoringEmployerIndividualPage(index))) {
         ua.setOrException(pages.chargeC.SponsoringIndividualDetailsPage(index),
-          ua.getOrException(pages.chargeC.SponsoringIndividualDetailsPage(index)) copy (isDeleted = false)
-        )
+                          ua.getOrException(pages.chargeC.SponsoringIndividualDetailsPage(index)) copy (isDeleted = false))
       } else {
         ua.setOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index),
-          ua.getOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index)) copy (isDeleted = false)
-        )
+                          ua.getOrException(pages.chargeC.SponsoringOrganisationDetailsPage(index)) copy (isDeleted = false))
       }
       uaWithEmployerReinstated
-        .setOrException(pages.chargeC.ChargeCDetailsPage(index),
+        .setOrException(
+          pages.chargeC.ChargeCDetailsPage(index),
           uaWithEmployerReinstated.getOrException(pages.chargeC.ChargeCDetailsPage(index)) copy (amountTaxDue = zeroCurrencyValue)
         )
     }
@@ -62,12 +62,11 @@ class AFTReturnTidyService {
     isDeleted = (ua, index) => ua.get(pages.chargeD.MemberDetailsPage(index)).forall(_.isDeleted),
     reinstate = (ua, index) => {
       val memberDetails = ua.getOrException(pages.chargeD.MemberDetailsPage(index)) copy (isDeleted = false)
-      val chargeDetails = ua.getOrException(pages.chargeD.ChargeDetailsPage(index)) copy(
+      val chargeDetails = ua.getOrException(pages.chargeD.ChargeDetailsPage(index)) copy (
         taxAt25Percent = Option(zeroCurrencyValue),
         taxAt55Percent = Option(zeroCurrencyValue)
       )
-      ua
-        .setOrException(pages.chargeD.MemberDetailsPage(index), memberDetails)
+      ua.setOrException(pages.chargeD.MemberDetailsPage(index), memberDetails)
         .setOrException(pages.chargeD.ChargeDetailsPage(index), chargeDetails)
     }
   )
@@ -79,8 +78,7 @@ class AFTReturnTidyService {
     reinstate = (ua, index) => {
       val memberDetails = ua.getOrException(pages.chargeE.MemberDetailsPage(index)) copy (isDeleted = false)
       val chargeDetails = ua.getOrException(pages.chargeE.ChargeDetailsPage(index)) copy (chargeAmount = zeroCurrencyValue)
-      ua
-        .setOrException(pages.chargeE.MemberDetailsPage(index), memberDetails)
+      ua.setOrException(pages.chargeE.MemberDetailsPage(index), memberDetails)
         .setOrException(pages.chargeE.ChargeDetailsPage(index), chargeDetails)
     }
   )
@@ -91,12 +89,11 @@ class AFTReturnTidyService {
     isDeleted = (ua, index) => ua.get(pages.chargeG.MemberDetailsPage(index)).forall(_.isDeleted),
     reinstate = (ua, index) => {
       val memberDetails = ua.getOrException(pages.chargeG.MemberDetailsPage(index)) copy (isDeleted = false)
-      val chargeAmounts = ua.getOrException(pages.chargeG.ChargeAmountsPage(index)) copy(
+      val chargeAmounts = ua.getOrException(pages.chargeG.ChargeAmountsPage(index)) copy (
         amountTransferred = zeroCurrencyValue,
         amountTaxDue = zeroCurrencyValue
       )
-      ua
-        .setOrException(pages.chargeG.MemberDetailsPage(index), memberDetails)
+      ua.setOrException(pages.chargeG.MemberDetailsPage(index), memberDetails)
         .setOrException(pages.chargeG.ChargeAmountsPage(index), chargeAmounts)
     }
   )
@@ -126,15 +123,18 @@ class AFTReturnTidyService {
       if (countMembersOrEmployers(ua, ci) == 0 && countMembersOrEmployers(ua, ci, isDeleted = true) > 0) Seq(ci) else Seq.empty
     }.headOption
 
-    optionChargeToReinstate.map{ chargeInfo =>
-      val updatedUA = (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
-        case JsSuccess(array, _) if array.value.nonEmpty =>
-          val itemToReinstate = array.value.size - 1
-          chargeInfo.reinstate(ua, itemToReinstate)
-        case JsError(_) => throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + chargeInfo)
+    optionChargeToReinstate
+      .map { chargeInfo =>
+        val updatedUA = (ua.data \ chargeInfo.jsonNode \ chargeInfo.memberOrEmployerJsonNode).validate[JsArray] match {
+          case JsSuccess(array, _) if array.value.nonEmpty =>
+            val itemToReinstate = array.value.size - 1
+            chargeInfo.reinstate(ua, itemToReinstate)
+          case JsError(_) =>
+            throw new RuntimeException("No members/ employers found when trying to reinstate deleted item for " + chargeInfo)
+        }
+        updatedUA
       }
-      updatedUA
-    }.getOrElse(ua)
+      .getOrElse(ua)
   }
 
   private def countMembersOrEmployers(ua: UserAnswers, chargeInfo: ChargeInfo, isDeleted: Boolean = false): Int =

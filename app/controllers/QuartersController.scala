@@ -37,71 +37,71 @@ import scala.concurrent.{ExecutionContext, Future}
 import models.LocalDateBinder._
 
 class QuartersController @Inject()(
-                                   override val messagesApi: MessagesApi,
-                                   userAnswersCacheConnector: UserAnswersCacheConnector,
-                                   navigator: CompoundNavigator,
-                                   identify: IdentifierAction,
-                                   getData: DataRetrievalAction,
-                                   allowAccess: AllowAccessActionProvider,
-                                   requireData: DataRequiredAction,
-                                   formProvider: QuartersFormProvider,
-                                   val controllerComponents: MessagesControllerComponents,
-                                   renderer: Renderer,
-                                   config: FrontendAppConfig,
-                                   schemeService: SchemeService,
-                                   auditService: AuditService,
-                                   aftService: AFTService,
-                                   allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    formProvider: QuartersFormProvider,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig,
+    schemeService: SchemeService,
+    auditService: AuditService,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(year: String)(implicit messages: Messages, config: FrontendAppConfig): Form[Quarters] =
     formProvider(messages("quarters.error.required", year), year.toInt)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async {
-    implicit request =>
+  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      val json = Json.obj(
+        "srn" -> srn,
+        "startDate" -> None,
+        "form" -> form(year)(implicitly, config),
+        "radios" -> Quarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
+        "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+        "year" -> year
+      )
 
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-
-        val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> None,
-          "form" -> form(year)(implicitly, config),
-          "radios" -> Quarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
-          "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-          "year" -> year
-        )
-
-        renderer.render(template = "quarters.njk", json).map(Ok(_))
-      }
+      renderer.render(template = "quarters.njk", json).map(Ok(_))
+    }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-            form(year)(implicitly, config).bindFromRequest().fold(
-              formWithErrors => {
-                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-                  val json = Json.obj(
-                    fields = "srn" -> srn,
-                    "startDate" -> None,
-                    "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, year.toInt)(implicitly, config),
-                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-                    "year" -> year
-                  )
-                  renderer.render(template = "quarters.njk", json).map(BadRequest(_))
-                }
-              },
-              value =>
-                Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(value, year.toInt))))
+  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+    form(year)(implicitly, config)
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+            val json = Json.obj(
+              fields = "srn" -> srn,
+              "startDate" -> None,
+              "form" -> formWithErrors,
+              "radios" -> Quarters.radios(formWithErrors, year.toInt)(implicitly, config),
+              "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+              "year" -> year
             )
+            renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+          }
+        },
+        value =>
+          Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(value, year.toInt))))
+      )
 
   }
 
   private def viewModel(srn: String, year: String, schemeName: String): GenericViewModel =
-      GenericViewModel(
-        submitUrl = routes.QuartersController.onSubmit(srn, year).url,
-        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName
-      )
+    GenericViewModel(
+      submitUrl = routes.QuartersController.onSubmit(srn, year).url,
+      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      schemeName = schemeName
+    )
 }

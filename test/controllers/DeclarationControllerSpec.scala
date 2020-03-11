@@ -41,8 +41,8 @@ import scala.concurrent.Future
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   private val mockAFTService = mock[AFTService]
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService),
-    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService), bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
@@ -51,10 +51,9 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
 
   private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
+                                             returnUrl = dummyCall.url,
+                                             schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {

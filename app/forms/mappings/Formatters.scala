@@ -57,19 +57,19 @@ trait Formatters extends Transforms with Constraints {
       val maxLengthNonUKPostCode = 10
 
       (postCode, country) match {
-        case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp) => Right(Some(postCodeValidTransform(zip)))
-        case (Some(_), Some("GB")) => Left(Seq(FormError(key, invalidKey)))
+        case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp)       => Right(Some(postCodeValidTransform(zip)))
+        case (Some(_), Some("GB"))                                        => Left(Seq(FormError(key, invalidKey)))
         case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostCode => Right(Some(zip))
-        case (Some(_), Some(_)) => Left(Seq(FormError(key, nonUkLengthKey)))
-        case (Some(zip), None) => Right(Some(zip))
-        case (None, Some("GB")) => Left(Seq(FormError(key, requiredKey)))
-        case _ => Right(None)
+        case (Some(_), Some(_))                                           => Left(Seq(FormError(key, nonUkLengthKey)))
+        case (Some(zip), None)                                            => Right(Some(zip))
+        case (None, Some("GB"))                                           => Left(Seq(FormError(key, requiredKey)))
+        case _                                                            => Right(None)
       }
     }
 
-      override def unbind(key: String, value: Option[String]): Map[String, String] =
-        Map(key -> value.getOrElse(""))
-    }
+    override def unbind(key: String, value: Option[String]): Map[String, String] =
+      Map(key -> value.getOrElse(""))
+  }
 
   private[mappings] def stringFormatter(errorKey: String): Formatter[String] =
     new Formatter[String] {
@@ -77,7 +77,7 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
         data.get(key) match {
           case None | Some("") => Left(Seq(FormError(key, errorKey)))
-          case Some(s) => Right(s)
+          case Some(s)         => Right(s)
         }
 
       override def unbind(key: String, value: String): Map[String, String] =
@@ -92,11 +92,12 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Boolean] =
         baseFormatter
           .bind(key, data)
-          .right.flatMap {
-          case "true" => Right(true)
-          case "false" => Right(false)
-          case _ => Left(Seq(FormError(key, invalidKey)))
-        }
+          .right
+          .flatMap {
+            case "true"  => Right(true)
+            case "false" => Right(false)
+            case _       => Left(Seq(FormError(key, invalidKey)))
+          }
 
       def unbind(key: String, value: Boolean) = Map(key -> value.toString)
     }
@@ -114,41 +115,44 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Int] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", ""))
-          .right.flatMap {
-          case s if s.matches(decimalRegexp) =>
-            Left(Seq(FormError(key, wholeNumberKey, args)))
-          case s =>
-            Try(BigInt(s)).toOption match {
-              case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
-              case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
-              case _ =>
-                nonFatalCatch
-                  .either(s.toInt)
-                  .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
-            }
-        }
+          .right
+          .map(_.replace(",", ""))
+          .right
+          .flatMap {
+            case s if s.matches(decimalRegexp) =>
+              Left(Seq(FormError(key, wholeNumberKey, args)))
+            case s =>
+              Try(BigInt(s)).toOption match {
+                case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
+                case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
+                case _ =>
+                  nonFatalCatch
+                    .either(s.toInt)
+                    .left
+                    .map(_ => Seq(FormError(key, nonNumericKey, args)))
+              }
+          }
 
       override def unbind(key: String, value: Int): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
     }
 
-  private[mappings] def bigDecimalFormatter(requiredKey: String,
-                                            invalidKey: String,
-                                            args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
+  private[mappings] def bigDecimalFormatter(requiredKey: String, invalidKey: String, args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
       private val baseFormatter = stringFormatter(requiredKey)
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", ""))
-          .right.flatMap { s =>
-          Try(BigDecimal(s)) match {
-            case Success(x) => Right(x)
-            case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+          .right
+          .map(_.replace(",", ""))
+          .right
+          .flatMap { s =>
+            Try(BigDecimal(s)) match {
+              case Success(x) => Right(x)
+              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+            }
           }
-        }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
@@ -165,18 +169,20 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", "").replace(" ", ""))
-          .right.flatMap {
-          case s if !s.matches(numericRegexp) =>
-            Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
-          case s =>
-            Try(BigDecimal(s)) match {
-              case Success(x) => Right(x)
-              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
-            }
-        }
+          .right
+          .map(_.replace(",", "").replace(" ", ""))
+          .right
+          .flatMap {
+            case s if !s.matches(numericRegexp) =>
+              Left(Seq(FormError(key, invalidKey, args)))
+            case s if !s.matches(decimal2DPRegexp) =>
+              Left(Seq(FormError(key, decimalKey, args)))
+            case s =>
+              Try(BigDecimal(s)) match {
+                case Success(x) => Right(x)
+                case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+              }
+          }
 
       override def unbind(key: String, value: BigDecimal): Map[String, String] =
         baseFormatter.unbind(key, decimalFormat.format(value))
@@ -193,20 +199,22 @@ trait Formatters extends Transforms with Constraints {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[BigDecimal]] =
         baseFormatter
           .bind(key, data)
-          .right.map(_.replace(",", "").replace(" ", ""))
-          .right.flatMap {
-          case s if s.isEmpty =>
-            Right(None)
-          case s if !s.matches(numericRegexp) =>
-            Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
-          case s =>
-            Try(Option(BigDecimal(s))) match {
-              case Success(x) => Right(x)
-              case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
-            }
-        }
+          .right
+          .map(_.replace(",", "").replace(" ", ""))
+          .right
+          .flatMap {
+            case s if s.isEmpty =>
+              Right(None)
+            case s if !s.matches(numericRegexp) =>
+              Left(Seq(FormError(key, invalidKey, args)))
+            case s if !s.matches(decimal2DPRegexp) =>
+              Left(Seq(FormError(key, decimalKey, args)))
+            case s =>
+              Try(Option(BigDecimal(s))) match {
+                case Success(x) => Right(x)
+                case Failure(_) => Left(Seq(FormError(key, invalidKey, args)))
+              }
+          }
 
       override def unbind(key: String, value: Option[BigDecimal]): Map[String, String] =
         value match {
@@ -235,16 +243,14 @@ trait Formatters extends Transforms with Constraints {
       override def unbind(key: String, value: BigDecimal): Map[String, String] = Map(key -> decimalFormat.format(value))
     }
 
-  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)
-                                              (implicit ev: Enumerable[A]): Formatter[A] =
+  private[mappings] def enumerableFormatter[A](requiredKey: String, invalidKey: String)(implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
 
       private val baseFormatter = stringFormatter(requiredKey)
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
-        baseFormatter.bind(key, data).right.flatMap {
-          str =>
-            ev.withName(str).map(Right.apply).getOrElse(Left(Seq(FormError(key, invalidKey))))
+        baseFormatter.bind(key, data).right.flatMap { str =>
+          ev.withName(str).map(Right.apply).getOrElse(Left(Seq(FormError(key, invalidKey))))
         }
 
       override def unbind(key: String, value: A): Map[String, String] =

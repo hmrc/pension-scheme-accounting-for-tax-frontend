@@ -24,22 +24,23 @@ import play.api.data.Forms.mapping
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeBDetails] =
-    Form(mapping(
-      "numberOfDeceased" -> int(
-        requiredKey = "numberOfDeceased.error.required",
-        wholeNumberKey = "numberOfDeceased.error.wholeNumber",
-        nonNumericKey = "numberOfDeceased.error.wholeNumber",
-        min = Some(Tuple2("numberOfDeceased.error.wholeNumber", 0)),
-        max = Some(Tuple2("numberOfDeceased.error.maxLength", 999999))
-      ),
-      "amountTaxDue" -> bigDecimal2DP(
-        requiredKey = "totalTaxDue.error.required",
-        invalidKey = "totalTaxDue.error.invalid",
-        decimalKey = "totalTaxDue.error.decimal"
-      ).verifying(
-        maximumValue[BigDecimal](BigDecimal("99999999999.99"), "totalTaxDue.error.maximum"),
-        minimumValue[BigDecimal](minimumChargeValueAllowed, "totalTaxDue.error.minimum")
-      )
-    )(ChargeBDetails.apply)(ChargeBDetails.unapply))
+  def apply(minimumChargeValueAllowed: BigDecimal): Form[ChargeBDetails] =
+    Form(
+      mapping(
+        "numberOfDeceased" -> int(
+          requiredKey = "numberOfDeceased.error.required",
+          wholeNumberKey = "numberOfDeceased.error.wholeNumber",
+          nonNumericKey = "numberOfDeceased.error.wholeNumber",
+          min = Some(Tuple2("numberOfDeceased.error.wholeNumber", 0)),
+          max = Some(Tuple2("numberOfDeceased.error.maxLength", 999999))
+        ),
+        "amountTaxDue" -> bigDecimal2DP(
+          requiredKey = "totalTaxDue.error.required",
+          invalidKey = "totalTaxDue.error.invalid",
+          decimalKey = "totalTaxDue.error.decimal"
+        ).verifying(
+          maximumValue[BigDecimal](BigDecimal("99999999999.99"), "totalTaxDue.error.maximum"),
+          minimumValue[BigDecimal](minimumChargeValueAllowed, "totalTaxDue.error.minimum")
+        )
+      )(ChargeBDetails.apply)(ChargeBDetails.unapply))
 }

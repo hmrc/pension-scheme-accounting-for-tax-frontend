@@ -46,11 +46,18 @@ import scala.concurrent.Future
 import utils.AFTConstants.QUARTER_START_DATE
 import models.LocalDateBinder._
 
-class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class QuartersControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
   val mockSchemeService: SchemeService = mock[SchemeService]
+
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService)
   )
@@ -67,14 +74,14 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
   lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
 
-  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, testYear),
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "year" -> testYear.toString
+  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "radios" -> Quarters.radios(form, testYear),
+      "viewModel" -> GenericViewModel(submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "year" -> testYear.toString
   )
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q2"))
@@ -131,4 +138,3 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     }
   }
 }
-

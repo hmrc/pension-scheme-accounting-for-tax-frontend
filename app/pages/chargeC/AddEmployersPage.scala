@@ -25,4 +25,3 @@ case object AddEmployersPage extends QuestionPage[Boolean] {
 
   override def toString: String = "addEmployers"
 }
-

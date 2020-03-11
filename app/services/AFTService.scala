@@ -36,16 +36,17 @@ import scala.util.{Failure, Success}
 
 @Singleton
 class AFTService @Inject()(
-                            aftConnector: AFTConnector,
-                            userAnswersCacheConnector: UserAnswersCacheConnector,
-                            schemeService: SchemeService,
-                            minimalPsaConnector: MinimalPsaConnector,
-                            aftReturnTidyService: AFTReturnTidyService
-                          ) {
+    aftConnector: AFTConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    schemeService: SchemeService,
+    minimalPsaConnector: MinimalPsaConnector,
+    aftReturnTidyService: AFTReturnTidyService
+) {
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+  def fileAFTReturn(pstr: String,
+                    answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
-    val hasDeletedLastMemberOrEmployerFromLastCharge = ! aftReturnTidyService.isAtLeastOneValidCharge(answers)
+    val hasDeletedLastMemberOrEmployerFromLastCharge = !aftReturnTidyService.isAtLeastOneValidCharge(answers)
 
     val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
       aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
@@ -54,7 +55,6 @@ class AFTService @Inject()(
     }
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-
       if (hasDeletedLastMemberOrEmployerFromLastCharge) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
@@ -67,10 +67,14 @@ class AFTService @Inject()(
     }
   }
 
-  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
+  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext,
+                                                                         hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
-  def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Option[String])(implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
+  def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Option[String])(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext,
+      request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
@@ -80,7 +84,8 @@ class AFTService @Inject()(
     }
   }
 
-  private def save(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+  private def save(
+      ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
     val savedJson = if (request.viewOnly || ua.get(IsPsaSuspendedQuery).getOrElse(true)) {
       userAnswersCacheConnector.save(request.internalId, ua.data)
     } else {
@@ -89,8 +94,10 @@ class AFTService @Inject()(
     savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
   }
 
-  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)
-                                             (implicit hc: HeaderCarrier, ec: ExecutionContext, request: OptionalDataRequest[_]): Future[UserAnswers] = {
+  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)(
+      implicit hc: HeaderCarrier,
+      ec: ExecutionContext,
+      request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
     val futureUserAnswers = optionVersion match {

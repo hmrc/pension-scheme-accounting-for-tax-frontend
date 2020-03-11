@@ -27,7 +27,10 @@ trait Mappings extends Formatters with Constraints with Transforms {
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
 
-  protected def optionalPostcode(requiredKey: String, invalidKey: String, nonUkLengthKey: String, countryFieldName: String): FieldMapping[Option[String]] =
+  protected def optionalPostcode(requiredKey: String,
+                                 invalidKey: String,
+                                 nonUkLengthKey: String,
+                                 countryFieldName: String): FieldMapping[Option[String]] =
     of(optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName))
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
@@ -37,37 +40,30 @@ trait Mappings extends Formatters with Constraints with Transforms {
                     wholeNumberKey: String = "error.wholeNumber",
                     nonNumericKey: String = "error.nonNumeric",
                     min: Option[(String, Int)] = None,
-                    max: Option[(String, Int)] = None
-                   ): FieldMapping[Int] =
+                    max: Option[(String, Int)] = None): FieldMapping[Int] =
     of(intFormatter(requiredKey, wholeNumberKey, nonNumericKey, min, max))
 
-  protected def bigDecimal(requiredKey: String = "error.required",
-                           invalidKey: String = "error.invalid"
-                          ): FieldMapping[BigDecimal] =
+  protected def bigDecimal(requiredKey: String = "error.required", invalidKey: String = "error.invalid"): FieldMapping[BigDecimal] =
     of(bigDecimalFormatter(requiredKey, invalidKey))
 
   protected def bigDecimal2DP(requiredKey: String = "error.required",
                               invalidKey: String = "error.invalid",
-                              decimalKey: String = "error.decimal"
-                             ): FieldMapping[BigDecimal] =
+                              decimalKey: String = "error.decimal"): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
   protected def optionBigDecimal2DP(requiredKey: String = "error.required",
                                     invalidKey: String = "error.invalid",
-                                    decimalKey: String = "error.decimal"
-                                   ): FieldMapping[Option[BigDecimal]] =
+                                    decimalKey: String = "error.decimal"): FieldMapping[Option[BigDecimal]] =
     of(optionBigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
   protected def bigDecimalTotal(itemsToTotal: String*): FieldMapping[BigDecimal] =
     of(bigDecimalTotalFormatter(itemsToTotal: _*))
 
-  protected def boolean(requiredKey: String = "error.required",
-                        invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
+  protected def boolean(requiredKey: String = "error.required", invalidKey: String = "error.boolean"): FieldMapping[Boolean] =
     of(booleanFormatter(requiredKey, invalidKey))
 
-
-  protected def enumerable[A](requiredKey: String = "error.required",
-                              invalidKey: String = "error.invalid")(implicit ev: Enumerable[A]): FieldMapping[A] =
+  protected def enumerable[A](requiredKey: String = "error.required", invalidKey: String = "error.invalid")(
+      implicit ev: Enumerable[A]): FieldMapping[A] =
     of(enumerableFormatter[A](requiredKey, invalidKey))
 
   protected def localDate(invalidKey: String,

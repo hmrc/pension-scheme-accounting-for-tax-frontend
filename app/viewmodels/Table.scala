@@ -32,39 +32,40 @@ final case class Table(caption: Option[String] = None,
 
 object Table {
 
-  implicit def writes(implicit messages: Messages): OWrites[Table] = (
-    (__ \ "caption").writeNullable[String] and
-      (__ \ "captionClasses").writeNullable[String] and
-      (__ \ "firstCellIsHeader").write[Boolean] and
-      (__ \ "head").writeNullable[Seq[Cell]] and
-      (__ \ "rows").write[Seq[Seq[Cell]]] and
-      (__ \ "classes").writeNullable[String] and
-      (__ \ "attributes").writeNullable[Map[String, String]]
+  implicit def writes(implicit messages: Messages): OWrites[Table] =
+    (
+      (__ \ "caption").writeNullable[String] and
+        (__ \ "captionClasses").writeNullable[String] and
+        (__ \ "firstCellIsHeader").write[Boolean] and
+        (__ \ "head").writeNullable[Seq[Cell]] and
+        (__ \ "rows").write[Seq[Seq[Cell]]] and
+        (__ \ "classes").writeNullable[String] and
+        (__ \ "attributes").writeNullable[Map[String, String]]
     ) { table =>
-    val head = Some(table.head).filter(_.nonEmpty)
-    val attributes = Some(table.attributes).filter(_.nonEmpty)
-    (table.caption, classes(table.captionClasses), table.firstCellIsHeader,
-      head, table.rows, classes(table.classes), attributes)
-  }
+      val head = Some(table.head).filter(_.nonEmpty)
+      val attributes = Some(table.attributes).filter(_.nonEmpty)
+      (table.caption, classes(table.captionClasses), table.firstCellIsHeader, head, table.rows, classes(table.classes), attributes)
+    }
 
   final case class Cell(content: Content,
                         classes: Seq[String] = Seq.empty,
                         format: Option[String] = None,
-                        attributes: Map[String, String] = Map.empty
-                       ) extends WithContent
+                        attributes: Map[String, String] = Map.empty)
+      extends WithContent
 
   object Cell {
 
-    implicit def writes(implicit messages: Messages): OWrites[Cell] = (
-      (__ \ "text").writeNullable[Text] and
-        (__ \ "html").writeNullable[Html] and
-        (__ \ "classes").writeNullable[String] and
-        (__ \ "format").writeNullable[String] and
-        (__ \ "attributes").writeNullable[Map[String, String]]
+    implicit def writes(implicit messages: Messages): OWrites[Cell] =
+      (
+        (__ \ "text").writeNullable[Text] and
+          (__ \ "html").writeNullable[Html] and
+          (__ \ "classes").writeNullable[String] and
+          (__ \ "format").writeNullable[String] and
+          (__ \ "attributes").writeNullable[Map[String, String]]
       ) { cell =>
-      val attributes = Some(cell.attributes).filter(_.nonEmpty)
-      (cell.text, cell.html, classes(cell.classes), cell.format, attributes)
-    }
+        val attributes = Some(cell.attributes).filter(_.nonEmpty)
+        (cell.text, cell.html, classes(cell.classes), cell.format, attributes)
+      }
   }
 
   private def classes(classes: Seq[String]): Option[String] =

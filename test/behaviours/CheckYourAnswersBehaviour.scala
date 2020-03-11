@@ -96,10 +96,8 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     }
   }
 
-  def controllerWithOnClick[A](httpPath: => String,
-                               page: Page,
-                               userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter)
-                              (implicit writes: Writes[A]): Unit = {
+  def controllerWithOnClick[A](httpPath: => String, page: Page, userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter)(
+      implicit writes: Writes[A]): Unit = {
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))

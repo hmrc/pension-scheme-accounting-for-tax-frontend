@@ -67,12 +67,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "totalAmtOfTaxDueAtHigherRate" -> Seq("0.00")
   )
 
-  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
+  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
@@ -82,7 +83,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
   }
-
 
   "ChargeDetails Controller" must {
     "return OK and the correct view for a GET" in {

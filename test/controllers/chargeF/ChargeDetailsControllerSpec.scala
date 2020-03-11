@@ -70,13 +70,14 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "amountTaxDue" -> Seq("33.44")
   )
 
-  private val jsonToPassToTemplate:Form[ChargeDetails]=>JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "date" -> DateInput.localDate(form("deregistrationDate"))
+  private val jsonToPassToTemplate: Form[ChargeDetails] => JsObject = form =>
+    Json.obj(
+      "form" -> form,
+      "viewModel" -> GenericViewModel(submitUrl =
+                                        controllers.chargeF.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
+                                      returnUrl = dummyCall.url,
+                                      schemeName = schemeName),
+      "date" -> DateInput.localDate(form("deregistrationDate"))
   )
 
   override def beforeEach: Unit = {

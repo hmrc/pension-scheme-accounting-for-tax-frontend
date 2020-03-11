@@ -33,14 +33,14 @@ import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
 import models.LocalDateBinder._
 
-class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
-                                   aftService: AFTService,
-                                   errorHandler: ErrorHandler)
-                                  (implicit val executionContext: ExecutionContext) extends Results {
+class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector, aftService: AFTService, errorHandler: ErrorHandler)(
+    implicit val executionContext: ExecutionContext)
+    extends Results {
 
   private val validStatuses = Seq(Open, WoundUp, Deregistered)
 
-  private def retrieveSuspendedFlagAndSchemeStatus(ua: UserAnswers)(block: (Boolean, SchemeStatus) => Future[Option[Result]]): Future[Option[Result]] = {
+  private def retrieveSuspendedFlagAndSchemeStatus(ua: UserAnswers)(
+      block: (Boolean, SchemeStatus) => Future[Option[Result]]): Future[Option[Result]] = {
     (ua.get(IsPsaSuspendedQuery), ua.get(SchemeStatusQuery)) match {
       case (Some(isSuspended), Some(schemeStatus)) =>
         block(isSuspended, schemeStatus)
@@ -49,17 +49,22 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     }
   }
 
-  private def isPreviousPageWithinAFT(implicit request: OptionalDataRequest[_]):Boolean =
+  private def isPreviousPageWithinAFT(implicit request: OptionalDataRequest[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def filterForIllegalPageAccess(srn: String, startDate: LocalDate, ua: UserAnswers, optionCurrentPage: Option[Page] = None, optionVersion: Option[String] = None)
-                                (implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+  def filterForIllegalPageAccess(srn: String,
+                                 startDate: LocalDate,
+                                 ua: UserAnswers,
+                                 optionCurrentPage: Option[Page] = None,
+                                 optionVersion: Option[String] = None)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     retrieveSuspendedFlagAndSchemeStatus(ua) {
       case (_, schemeStatus) if !validStatuses.contains(schemeStatus) =>
-        errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
+        errorHandler
+          .onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString)
+          .map(Option(_))
       case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
