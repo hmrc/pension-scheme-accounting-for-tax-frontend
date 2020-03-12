@@ -851,7 +851,7 @@ pageCannotStartAFTReturn.title = You cannot start a new AFT return
 pageCannotStartAFTReturn.heading = You cannot start a new AFT return
 pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 123 1079.
 
-confirmation.title = The AFT return has been sent to HMRC
+confirmation.title = The Accounting for tax return has been sent to HMRC
 confirmation.p1 = We have sent a confirmation email to the email address you gave us.
 confirmation.aft.return = AFT return submitted for {0} to {1}
 confirmation.aft.date.submitted = Date submitted: {0}
@@ -861,7 +861,7 @@ confirmation.whatNext.p1 = If you need to make a payment for this return, you wi
 confirmation.whatNext.item1 = the Pension Scheme Tax Reference
 confirmation.whatNext.item2 = the name of the pension scheme
 confirmation.whatNext.item3 = your pension scheme administrator ID
-confirmation.whatNext.item4 = the version of the return - for example 'Submission 2' - if it is not the original version 
+confirmation.whatNext.item4 = the version of the return - for example ''Submission 2'' - if it is not the original version
 confirmation.saveOrPrint.h2 = Print
 confirmation.li1 = Return to Smith Harper pension scheme
 confirmation.li2 = View your other pension schemes
