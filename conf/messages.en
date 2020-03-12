@@ -223,11 +223,13 @@ chargeC.whatYouWillNeed.li4 = their registered address
 chargeC.whatYouWillNeed.li5 = the date of payment of the authorised surplus payment
 chargeC.whatYouWillNeed.li6 = the amount of tax due at 35% for this payment
 
-chargeC.whichTypeOfSponsoringEmployer.title = Is the sponsoring employer an individual?
-chargeC.whichTypeOfSponsoringEmployer.heading = Is the sponsoring employer an individual?
-chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel = Is the sponsoring employer an individual?
-chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel = whether the sponsoring employer is an individual
-chargeC.whichTypeOfSponsoringEmployer.error.required = Select yes if the sponsoring employer is an individual
+chargeC.whichTypeOfSponsoringEmployer.title = Which type of sponsoring employer received the authorised surplus payment?
+chargeC.whichTypeOfSponsoringEmployer.heading = Which type of sponsoring employer received the authorised surplus payment?
+chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel = Which type of sponsoring employer received the authorised surplus payment?
+chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel = which type of sponsoring employer received the authorised surplus payment
+chargeC.whichTypeOfSponsoringEmployer.error.required = Select which type of sponsoring employer received the authorised surplus payment
+chargeC.whichTypeOfSponsoringEmployer.item1 = An individual
+chargeC.whichTypeOfSponsoringEmployer.item2 = A company or organisation
 
 chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details
 chargeC.sponsoringOrganisationDetails.heading = Sponsoring company or organisation’s details

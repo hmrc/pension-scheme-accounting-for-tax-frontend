@@ -19,7 +19,7 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeC.routes._
 import data.SampleData
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeC._
@@ -86,7 +86,7 @@ object ChargeCNavigatorSpec {
   private val sponsoringEmployerIsOrganisation = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
       "employers" -> Json.arr(Json.obj(
-      WhichTypeOfSponsoringEmployerPage.toString -> false
+      WhichTypeOfSponsoringEmployerPage.toString -> SponsoringEmployerType.SponsoringEmployerTypeOrganisation.toString
       ))
     )
   ))
@@ -94,7 +94,7 @@ object ChargeCNavigatorSpec {
   private val sponsoringEmployerIsIndividual = UserAnswers(Json.obj(
     "chargeCDetails" -> Json.obj(
       "employers" -> Json.arr(Json.obj(
-      WhichTypeOfSponsoringEmployerPage.toString -> true
+      WhichTypeOfSponsoringEmployerPage.toString -> SponsoringEmployerType.SponsoringEmployerTypeIndividual.toString
       ))
     )
   ))

@@ -25,6 +25,7 @@ import controllers.actions._
 import forms.DeleteMemberFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
@@ -125,9 +126,9 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
     ( ua.get(WhichTypeOfSponsoringEmployerPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
-      case (Some(true), Some(individualDetails), _) =>
+      case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
         ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
-      case (Some(false), _, Some(orgDetails)) =>
+      case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
         ua.set(SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true))
       case _ => Try(ua)
     }

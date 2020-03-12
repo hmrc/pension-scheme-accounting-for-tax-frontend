@@ -16,24 +16,24 @@
 
 package pages.chargeC
 
-import models.UserAnswers
+import models.{SponsoringEmployerType, UserAnswers}
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
 import scala.util.Try
 
-case class WhichTypeOfSponsoringEmployerPage(index: Int) extends QuestionPage[Boolean] {
+case class WhichTypeOfSponsoringEmployerPage(index: Int) extends QuestionPage[SponsoringEmployerType] {
 
   override def path: JsPath = SponsoringEmployersQuery(index).path \ WhichTypeOfSponsoringEmployerPage.toString
 
-  override def cleanup(value: Option[Boolean], userAnswers: UserAnswers): Try[UserAnswers] = {
+  override def cleanup(value: Option[SponsoringEmployerType], userAnswers: UserAnswers): Try[UserAnswers] = {
     val tidyResult = value match {
-      case Some(true) if userAnswers.get(SponsoringOrganisationDetailsPage(index)).isDefined =>
+      case Some(SponsoringEmployerType.SponsoringEmployerTypeIndividual) if userAnswers.get(SponsoringOrganisationDetailsPage(index)).isDefined =>
         userAnswers
           .remove(SponsoringOrganisationDetailsPage(index)).toOption.getOrElse(userAnswers)
           .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)
           .remove(ChargeCDetailsPage(index)).toOption
-      case Some(false) if userAnswers.get(SponsoringIndividualDetailsPage(index)).isDefined =>
+      case Some(SponsoringEmployerType.SponsoringEmployerTypeOrganisation) if userAnswers.get(SponsoringIndividualDetailsPage(index)).isDefined =>
         userAnswers
           .remove(SponsoringIndividualDetailsPage(index)).toOption.getOrElse(userAnswers)
           .remove(SponsoringEmployerAddressPage(index)).toOption.getOrElse(userAnswers)

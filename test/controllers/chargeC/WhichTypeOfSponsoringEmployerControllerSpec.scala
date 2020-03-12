@@ -22,7 +22,8 @@ import data.SampleData._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.{GenericViewModel, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -50,7 +51,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(WhichTypeOfSponsoringEmployerPage(index), true).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeIndividual).success.value
 
   def onwardRoute: Call = Call("GET", "/foo")
 
@@ -84,7 +85,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
       val expectedJson = Json.obj(
         "form" -> form,
         "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(form("value"))
+        "radios" -> SponsoringEmployerType.radios(form)
       )
 
       templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
@@ -108,12 +109,12 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val filledForm = form.bind(Map("value" -> "true"))
+      val filledForm = form.bind(Map("value" -> "individual"))
 
       val expectedJson = Json.obj(
         "form" -> filledForm,
         "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(filledForm("value"))
+        "radios" -> SponsoringEmployerType.radios(filledForm)
       )
 
       templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"
@@ -129,7 +130,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
       val request =
         FakeRequest(POST, httpPathGET)
-          .withFormUrlEncodedBody(("value", "true"))
+          .withFormUrlEncodedBody(("value", "individual"))
 
       val result = route(application, request).value
 
@@ -159,7 +160,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
       val expectedJson = Json.obj(
         "form" -> boundForm,
         "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(boundForm("value"))
+        "radios" -> SponsoringEmployerType.radios(boundForm)
       )
 
       templateCaptor.getValue mustEqual "chargeC/whichTypeOfSponsoringEmployer.njk"

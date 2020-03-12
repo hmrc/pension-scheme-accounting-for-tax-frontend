@@ -21,26 +21,27 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import models.{Employer, MemberDetails, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 
 import scala.collection.mutable.ArrayBuffer
 import utils.AFTConstants.QUARTER_START_DATE
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 class ChargeCServiceSpec extends SpecBase {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
   val allEmployers: UserAnswers = UserAnswers()
-    .set(WhichTypeOfSponsoringEmployerPage(0), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
     .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
     .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(1), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
 
   val allEmployersIncludingDeleted: UserAnswers = allEmployers
-    .set(WhichTypeOfSponsoringEmployerPage(2), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(2), SponsoringEmployerTypeIndividual).toOption.get
     .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
     .set(ChargeCDetailsPage(2), SampleData.chargeCDetails).toOption.get
 

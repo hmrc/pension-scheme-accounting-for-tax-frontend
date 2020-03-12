@@ -140,7 +140,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
           SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-          WhichTypeOfSponsoringEmployerPage.toString -> false,
+          WhichTypeOfSponsoringEmployerPage.toString -> "organisation",
           ChargeCDetailsPage.toString -> Json.toJson(chargeCDetails)
             )
           )

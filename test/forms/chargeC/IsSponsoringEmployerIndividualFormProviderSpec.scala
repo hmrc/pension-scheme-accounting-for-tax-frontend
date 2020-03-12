@@ -16,10 +16,11 @@
 
 package forms.chargeC
 
-import forms.behaviours.BooleanFieldBehaviours
+import forms.behaviours.OptionFieldBehaviours
+import models.SponsoringEmployerType
 import play.api.data.FormError
 
-class IsSponsoringEmployerIndividualFormProviderSpec extends BooleanFieldBehaviours {
+class IsSponsoringEmployerIndividualFormProviderSpec extends OptionFieldBehaviours {
 
   val requiredKey = "chargeC.whichTypeOfSponsoringEmployer.error.required"
   val invalidKey = "error.boolean"
@@ -30,10 +31,11 @@ class IsSponsoringEmployerIndividualFormProviderSpec extends BooleanFieldBehavio
 
     val fieldName = "value"
 
-    behave like booleanField(
+    behave like optionsField[SponsoringEmployerType](
       form,
       fieldName,
-      invalidError = FormError(fieldName, invalidKey)
+      validValues = SponsoringEmployerType.values,
+      invalidError = FormError(fieldName, "error.invalid")
     )
 
     behave like mandatoryField(

@@ -19,7 +19,7 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
@@ -27,6 +27,7 @@ import controllers.chargeC.routes._
 import services.ChargeCService._
 import services.AFTReturnTidyService
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -101,7 +102,8 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       CheckYourAnswersController.onPageLoad(srn, startDate, index)
   }
 
-  private def isIndividualOrOrg(index: Int, ua: UserAnswers): Option[Boolean] = ua.get(WhichTypeOfSponsoringEmployerPage(index))
+  private def isIndividualOrOrg(index: Int, ua: UserAnswers): Option[Boolean] =
+    ua.get(WhichTypeOfSponsoringEmployerPage(index)).map(_ == SponsoringEmployerType.SponsoringEmployerTypeIndividual)
 
   private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {

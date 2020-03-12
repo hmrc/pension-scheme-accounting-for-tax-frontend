@@ -57,7 +57,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
-          Seq(helper.chargeCIsSponsoringEmployerIndividual(index, whichTypeOfSponsoringEmployer)),
+          Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, whichTypeOfSponsoringEmployer)),
           helper.chargeCEmployerDetails(index, sponsorDetails),
           Seq(helper.chargeCAddress(index, address, sponsorDetails)),
           helper.chargeCChargeDetails(index, chargeDetails)

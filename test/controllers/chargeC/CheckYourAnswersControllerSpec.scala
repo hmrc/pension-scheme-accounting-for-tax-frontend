@@ -26,6 +26,7 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
@@ -36,27 +37,27 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(index), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeIndividual).toOption.get
     .set(SponsoringIndividualDetailsPage(index), sponsoringIndividualDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
   private def uaOrg: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
-    .set(WhichTypeOfSponsoringEmployerPage(index), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeOrganisation).toOption.get
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
   private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
   
   private val answersInd: Seq[SummaryList.Row] = Seq(
-    Seq(helper(uaInd).chargeCIsSponsoringEmployerIndividual(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
+    Seq(helper(uaInd).chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
     helper(uaInd).chargeCEmployerDetails(index, Left(sponsoringIndividualDetails)),
     Seq(helper(uaInd).chargeCAddress(index, sponsoringEmployerAddress, Left(sponsoringIndividualDetails))),
     helper(uaInd).chargeCChargeDetails(index, chargeCDetails)
   ).flatten
 
   private val answersOrg: Seq[SummaryList.Row] = Seq(
-    Seq(helper(uaOrg).chargeCIsSponsoringEmployerIndividual(index, uaOrg.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
+    Seq(helper(uaOrg).chargeCWhichTypeOfSponsoringEmployer(index, uaOrg.get(WhichTypeOfSponsoringEmployerPage(index)).get)),
     helper(uaOrg).chargeCEmployerDetails(index, Right(sponsoringOrganisationDetails)),
     Seq(helper(uaOrg).chargeCAddress(index, sponsoringEmployerAddress, Right(sponsoringOrganisationDetails))),
     helper(uaOrg).chargeCChargeDetails(index, chargeCDetails)

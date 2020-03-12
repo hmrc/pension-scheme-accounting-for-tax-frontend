@@ -25,14 +25,16 @@ import controllers.actions._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, Mode}
+import models.{GenericViewModel, Index, Mode, SponsoringEmployerType}
 import navigators.CompoundNavigator
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.data.Field
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.Radios.Item
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -73,7 +75,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(preparedForm("value"))
+          "radios" -> SponsoringEmployerType.radios(preparedForm)
         )
 
         renderer.render("chargeC/whichTypeOfSponsoringEmployer.njk", json).map(Ok(_))
@@ -97,7 +99,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
               val json = Json.obj(
                 "form" -> formWithErrors,
                 "viewModel" -> viewModel,
-                "radios" -> Radios.yesNo(formWithErrors("value"))
+                "radios" -> SponsoringEmployerType.radios(formWithErrors)
               )
 
               renderer.render("chargeC/whichTypeOfSponsoringEmployer.njk", json).map(BadRequest(_))

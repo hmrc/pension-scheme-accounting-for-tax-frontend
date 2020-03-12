@@ -186,7 +186,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
             SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-            WhichTypeOfSponsoringEmployerPage.toString -> false,
+            WhichTypeOfSponsoringEmployerPage.toString -> "organisation",
             SponsoringEmployerAddressPage.toString -> Json.toJson(sponsoringEmployerAddress)
           ))
         )
