@@ -228,20 +228,20 @@ chargeC.whichTypeOfSponsoringEmployer.heading = Which type of sponsoring employe
 chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel = Which type of sponsoring employer received the authorised surplus payment?
 chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel = which type of sponsoring employer received the authorised surplus payment
 chargeC.whichTypeOfSponsoringEmployer.error.required = Select which type of sponsoring employer received the authorised surplus payment
-chargeC.whichTypeOfSponsoringEmployer.item1 = An individual
-chargeC.whichTypeOfSponsoringEmployer.item2 = A company or organisation
+chargeC.whichTypeOfSponsoringEmployer.individual = An individual
+chargeC.whichTypeOfSponsoringEmployer.organisation = A company or organisation
 
-chargeC.sponsoringOrganisationDetails.title = Sponsoring company or organisation’s details
-chargeC.sponsoringOrganisationDetails.heading = Sponsoring company or organisation’s details
+chargeC.sponsoringOrganisationDetails.title = Company or organisation’s details
+chargeC.sponsoringOrganisationDetails.heading = Company or organisation’s details
 chargeC.sponsoringOrganisationDetails.name.label = Company or organisation name
 chargeC.sponsoringOrganisationDetails.crn.label = Company number
-chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Sponsoring company or organisation’s details
-chargeC.sponsoringOrganisationDetails.name.error.required = Enter the sponsoring company or organisation’s name
-chargeC.sponsoringOrganisationDetails.name.error.length = The sponsoring company or organisation’s name must be 155 characters or fewer
+chargeC.sponsoringOrganisationDetails.checkYourAnswersLabel = Company or organisation’s details
+chargeC.sponsoringOrganisationDetails.name.error.required = Enter the company or organisation’s name
+chargeC.sponsoringOrganisationDetails.name.error.length = The company or organisation’s name must be 155 characters or fewer
 
-chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the sponsoring company or organisation’s company number
-chargeC.sponsoringOrganisationDetails.crn.error.length = The sponsoring company or organisation’s company number must be 8 characters, like 01234567 or AB123456
-chargeC.sponsoringOrganisationDetails.crn.error.invalid = The sponsoring company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
+chargeC.sponsoringOrganisationDetails.crn.error.required = Enter the company or organisation’s company number
+chargeC.sponsoringOrganisationDetails.crn.error.length = The company or organisation’s company number must be 8 characters, like 01234567 or AB123456
+chargeC.sponsoringOrganisationDetails.crn.error.invalid = The company or organisation’s company number must only include letters and numbers, like 01234567 or AB123456
 
 chargeC.sponsoringEmployerAddress.title = Enter {0}’s address
 chargeC.sponsoringEmployerAddress.heading = Enter {0}’s address
@@ -267,19 +267,19 @@ address.postcode.error.required = Enter {0}’s postcode
 address.postcode.error.invalid = Enter a real postcode
 address.postcode.error.length = Enter postcode length less than 10
 
-chargeC.sponsoringIndividualDetails.title = Sponsoring individual’s details
-chargeC.sponsoringIndividualDetails.heading = Sponsoring individual’s details
+chargeC.sponsoringIndividualDetails.title = Individual’s details
+chargeC.sponsoringIndividualDetails.heading = Individual’s details
 chargeC.sponsoringIndividualDetails.firstName.label = First name
 chargeC.sponsoringIndividualDetails.lastName.label = Last name
 chargeC.sponsoringIndividualDetails.nino.label = National Insurance number
 
-chargeC.sponsoringIndividualDetails.firstName.error.required = Enter the sponsoring individual’s first name
-chargeC.sponsoringIndividualDetails.firstName.error.length = The sponsoring individual’s first name must be 35 characters or fewer
-chargeC.sponsoringIndividualDetails.firstName.error.invalid = The sponsoring individual’s first name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
+chargeC.sponsoringIndividualDetails.firstName.error.required = Enter the individual’s first name
+chargeC.sponsoringIndividualDetails.firstName.error.length = The individual’s first name must be 35 characters or fewer
+chargeC.sponsoringIndividualDetails.firstName.error.invalid = The individual’s first name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 
-chargeC.sponsoringIndividualDetails.lastName.error.required = Enter the sponsoring individual’s last name
-chargeC.sponsoringIndividualDetails.lastName.error.length = The sponsoring individual’s last name must be 35 characters or fewer
-chargeC.sponsoringIndividualDetails.lastName.error.invalid = The sponsoring individual’s last name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
+chargeC.sponsoringIndividualDetails.lastName.error.required = Enter the individual’s last name
+chargeC.sponsoringIndividualDetails.lastName.error.length = The individual’s last name must be 35 characters or fewer
+chargeC.sponsoringIndividualDetails.lastName.error.invalid = The individual’s last name must only include letters, spaces, ampersands, grave accents, apostrophes, backslashes, full stops and carets
 
 chargeC.sponsoringIndividualDetails.nino.error.required = Enter the sponsoring individual’s National Insurance number
 chargeC.sponsoringIndividualDetails.nino.error.invalid = Enter a National Insurance number that is 2 letters, 6 numbers, then A, B, C or D, like QQ123456C
@@ -808,8 +808,8 @@ chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel = the date when the aut
 chargeC.totalTaxDue.checkYourAnswersLabel = Amount of tax due at 35%
 chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel = the amount of tax due at 35%
 
-chargeC.sponsoringIndividualName.checkYourAnswersLabel = Sponsoring individual’s name
-chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the sponsoring individual’s name
+chargeC.sponsoringIndividualName.checkYourAnswersLabel = Individual’s name
+chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel = the individual’s name
 
 chargeC.sponsoringIndividualNino.checkYourAnswersLabel = {0}’s National Insurance number
 chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel = {0}’s National Insurance number
@@ -817,8 +817,8 @@ chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel = {0}’s 
 chargeC.sponsoringEmployerAddress.checkYourAnswersLabel = {0}’s address
 chargeC.sponsoringEmployerAddress.visuallyHidden.checkYourAnswersLabel = {0}’s address
 
-chargeC.sponsoringOrganisationName.checkYourAnswersLabel = Sponsoring company or organisation’s name
-chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the sponsoring company or organisation’s name
+chargeC.sponsoringOrganisationName.checkYourAnswersLabel = Company or organisation’s name
+chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel = the company or organisation’s name
 
 chargeC.sponsoringOrganisationCrn.checkYourAnswersLabel = {0}’s company number
 chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel = {0}’s company number

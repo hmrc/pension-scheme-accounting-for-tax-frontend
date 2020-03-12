@@ -27,6 +27,7 @@ import controllers.chargeC.routes._
 import services.ChargeCService._
 import services.AFTReturnTidyService
 import java.time.LocalDate
+import SponsoringEmployerType._
 
 import models.LocalDateBinder._
 
@@ -46,10 +47,10 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage =>
       WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
 
-    case WhichTypeOfSponsoringEmployerPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
-    case WhichTypeOfSponsoringEmployerPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
       SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
@@ -83,10 +84,10 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   //scalastyle:on cyclomatic.complexity
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
-    case WhichTypeOfSponsoringEmployerPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index)
 
-    case WhichTypeOfSponsoringEmployerPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
       SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
@@ -101,9 +102,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case ChargeCDetailsPage(index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, index)
   }
-
-  private def isIndividualOrOrg(index: Int, ua: UserAnswers): Option[Boolean] =
-    ua.get(WhichTypeOfSponsoringEmployerPage(index)).map(_ == SponsoringEmployerType.SponsoringEmployerTypeIndividual)
 
   private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {

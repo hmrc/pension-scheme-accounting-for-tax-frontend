@@ -37,8 +37,8 @@ object SponsoringEmployerType extends Enumerable.Implicits {
 
     val field = form("value")
     val items = Seq(
-      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.item1", SponsoringEmployerTypeIndividual.toString),
-      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.item2", SponsoringEmployerTypeOrganisation.toString)
+      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.individual", SponsoringEmployerTypeIndividual.toString),
+      Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.organisation", SponsoringEmployerTypeOrganisation.toString)
     )
 
     Radios(field, items)

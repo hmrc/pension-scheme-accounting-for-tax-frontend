@@ -528,8 +528,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
   private def typeOfSponsoringEmployer(answer: SponsoringEmployerType): Content =
     answer match {
-    case SponsoringEmployerTypeIndividual => msg"chargeC.whichTypeOfSponsoringEmployer.item1"
-    case SponsoringEmployerTypeOrganisation => msg"chargeC.whichTypeOfSponsoringEmployer.item2"
+    case SponsoringEmployerTypeIndividual => msg"chargeC.whichTypeOfSponsoringEmployer.individual"
+    case SponsoringEmployerTypeOrganisation => msg"chargeC.whichTypeOfSponsoringEmployer.organisation"
   }
 
   private def yesOrNo(answer: Boolean): Content =
