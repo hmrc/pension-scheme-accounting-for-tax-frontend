@@ -81,8 +81,9 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
   }
+
+  DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
 

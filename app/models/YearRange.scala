@@ -31,7 +31,6 @@ object YearRange extends Enumerable.Implicits {
   def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[DynamicYearRange] = {
-    //val maxYear = if (DateHelper.today.getMonthValue > 3) DateHelper.today.getYear + 1 else DateHelper.today.getYear
     val currentYear = DateHelper.today.getYear
     val newTaxYearStart = LocalDate.of(currentYear, 4, 6)
 
