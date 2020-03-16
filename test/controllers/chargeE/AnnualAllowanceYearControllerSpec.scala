@@ -16,29 +16,33 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import connectors.SchemeDetailsConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
+import models.DynamicYearRange
+import models.{YearRange, GenericViewModel, UserAnswers, NormalMode, Enumerable}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.{times, reset, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{GET, route, status, _}
+import play.api.test.Helpers.{route, status, GET, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import utils.DateHelper
 
 class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -52,7 +56,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
   private val template = "chargeE/annualAllowanceYear.njk"
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq(YearRange.currentYear.toString)
+    "value" -> Seq("2019")
   )
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("Unknown Year")
@@ -77,6 +81,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    DateHelper.setDate(Some(LocalDate.of(2020, 4, 5)))
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -102,7 +107,9 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
-      val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), YearRange.currentYear).get
+      val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), DynamicYearRange("2019"))(
+        writes(YearRange.enumerable)
+      ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
       when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -116,7 +123,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       templateCaptor.getValue mustEqual template
 
-      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange.currentYear)))
+      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(DynamicYearRange("2019"))))
     }
 
 
@@ -126,7 +133,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         "chargeEDetails" -> Json.obj(
           AnnualAllowanceMembersQuery.toString -> Json.arr(
             Json.obj(
-              AnnualAllowanceYearPage.toString -> Json.toJson(YearRange.currentYear.toString)
+              AnnualAllowanceYearPage.toString -> Json.toJson("2019")
             )
           )
         )
