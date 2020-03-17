@@ -25,12 +25,12 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Quarter}
+import models.{AFTVersion, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeD.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer

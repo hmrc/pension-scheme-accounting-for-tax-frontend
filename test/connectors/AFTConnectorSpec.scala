@@ -16,9 +16,11 @@
 
 package connectors
 
+import java.time.LocalDate
+
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.UserAnswers
+import models.{AFTVersion, UserAnswers}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -184,18 +186,22 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   "getListOfVersions" must {
     "return successfully when the backend has returned OK" in {
-      val expectedResult = Seq(1)
+      val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17))
+      val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
+      val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
+      val versions = Seq(version1, version2, version3)
+
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))
           .withHeader("pstr", equalTo(pstr))
           .withHeader("startDate", equalTo(SampleData.startDate))
           .willReturn(
-            ok(Json.stringify(Json.toJson(expectedResult)))
+            ok(Json.stringify(Json.toJson(versions)))
           )
       )
 
       connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
-        result mustBe expectedResult
+        result mustBe versions
       }
     }
 
