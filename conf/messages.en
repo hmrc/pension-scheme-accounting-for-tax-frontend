@@ -851,12 +851,17 @@ pageCannotStartAFTReturn.title = You cannot start a new AFT return
 pageCannotStartAFTReturn.heading = You cannot start a new AFT return
 pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 123 1079.
 
-confirmation.title = The AFT return has been sent to HMRC
+confirmation.title = The Accounting for tax return has been sent to HMRC
 confirmation.p1 = We have sent a confirmation email to the email address you gave us.
 confirmation.aft.return = AFT return submitted for {0} to {1}
 confirmation.aft.date.submitted = Date submitted: {0}
 confirmation.aft.pstr = Pension Scheme Tax Reference: {0}
 confirmation.whatNext.h2 = What you can do next
+confirmation.whatNext.p1 = If you need to make a payment for this return, you will need to include a charge reference with your payment. To get the charge reference, you should email pensions.administration@hmrc.gov.uk. In your email you need to include:
+confirmation.whatNext.item1 = the Pension Scheme Tax Reference
+confirmation.whatNext.item2 = the name of the pension scheme
+confirmation.whatNext.item3 = your pension scheme administrator ID
+confirmation.whatNext.item4 = the version of the return - for example ''Submission 2'' - if it is not the original version
 confirmation.saveOrPrint.h2 = Print
 confirmation.li1 = Return to Smith Harper pension scheme
 confirmation.li2 = View your other pension schemes
@@ -869,7 +874,7 @@ confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AF
 
 declaration.title = Declaration
 declaration.heading = Declaration
-declaration.p1 = By submitting this AFT return, you declare that:
+declaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that:
 declaration.li1 = to the best of your knowledge and belief, the information given in this tax return is correct and complete
 declaration.li2 = you understand that if you have made a false statement in this tax return, you may be liable to a penalty, and that false statements may also lead to prosecution
 
