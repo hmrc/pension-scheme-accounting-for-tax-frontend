@@ -96,14 +96,14 @@ object Quarters extends Enumerable.Implicits {
     LocalDate.of(year, quarter.startMonth, quarter.startDay)
 
   def getQuarter(startDate: LocalDate): Quarter =
-    getQuarter(getQuartersFromStartDate(startDate), startDate.getYear)
+    getQuarter(getQuartersFromDate(startDate), startDate.getYear)
 
-  def getQuartersFromStartDate(startDate: LocalDate): Quarters =
-    startDate.getMonthValue match {
-      case 1 => Q1
-      case 4 => Q2
-      case 7 => Q3
-      case 10 => Q4
+  def getQuartersFromDate(date: LocalDate): Quarters =
+    date.getMonthValue match {
+      case i if i <= 3 => Q1
+      case i if i <= 6 => Q2
+      case i if i <= 9 => Q3
+      case _ => Q4
     }
 
   implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
