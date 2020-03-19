@@ -18,12 +18,13 @@ package forms.chargeC
 
 import forms.mappings.Mappings
 import javax.inject.Inject
+import models.SponsoringEmployerType
 import play.api.data.Form
 
 class IsSponsoringEmployerIndividualFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[Boolean] =
+  def apply(): Form[SponsoringEmployerType] =
     Form(
-      "value" -> boolean("chargeC.isSponsoringEmployerIndividual.error.required")
+      "value" -> enumerable[SponsoringEmployerType]("chargeC.whichTypeOfSponsoringEmployer.error.required")
     )
 }

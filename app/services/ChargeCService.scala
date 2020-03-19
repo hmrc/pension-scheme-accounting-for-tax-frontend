@@ -18,7 +18,7 @@ package services
 
 import controllers.chargeB.{routes => _}
 import models.{Employer, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
 import play.api.libs.json.Reads._
@@ -29,7 +29,9 @@ import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
 import java.time.LocalDate
+
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 
 object ChargeCService {
 
@@ -38,8 +40,8 @@ object ChargeCService {
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(IsSponsoringEmployerIndividualPage(index)) flatMap {
-        case true => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
+    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
+        case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
         case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
       }
 

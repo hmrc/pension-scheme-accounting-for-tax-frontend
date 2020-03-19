@@ -17,6 +17,7 @@
 package services
 
 import javax.inject.Singleton
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.UserAnswers
 import play.api.libs.json.{JsArray, JsError, JsPath, JsSuccess}
 
@@ -34,13 +35,13 @@ class AFTReturnTidyService {
     jsonNode = "chargeCDetails",
     memberOrEmployerJsonNode = "employers",
     isDeleted = (ua, index) =>
-      (ua.get(pages.chargeC.IsSponsoringEmployerIndividualPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
-        case (Some(true), Some(individual), _) => individual.isDeleted
-        case (Some(false), _, Some(organisation)) => organisation.isDeleted
+      (ua.get(pages.chargeC.WhichTypeOfSponsoringEmployerPage(index)), ua.get(pages.chargeC.SponsoringIndividualDetailsPage(index)), ua.get(pages.chargeC.SponsoringOrganisationDetailsPage(index))) match {
+        case (Some(SponsoringEmployerTypeIndividual), Some(individual), _) => individual.isDeleted
+        case (Some(SponsoringEmployerTypeOrganisation), _, Some(organisation)) => organisation.isDeleted
         case _ => true
       },
     reinstate = (ua, index) => {
-      val uaWithEmployerReinstated = if (ua.getOrException(pages.chargeC.IsSponsoringEmployerIndividualPage(index))) {
+      val uaWithEmployerReinstated = if (ua.getOrException(pages.chargeC.WhichTypeOfSponsoringEmployerPage(index)) == SponsoringEmployerTypeIndividual) {
         ua.setOrException(pages.chargeC.SponsoringIndividualDetailsPage(index),
           ua.getOrException(pages.chargeC.SponsoringIndividualDetailsPage(index)) copy (isDeleted = false)
         )

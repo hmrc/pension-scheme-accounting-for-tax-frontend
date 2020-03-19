@@ -23,6 +23,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeB.ChargeBDetails
 import models.chargeC.ChargeCDetails
 import models.chargeC.SponsoringEmployerAddress
@@ -32,9 +33,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeF.ChargeDetails
 import models.chargeG.ChargeAmounts
 import models.chargeG.MemberDetails
-import models.CheckMode
-import models.UserAnswers
-import models.YearRange
+import models.{CheckMode, SponsoringEmployerType, UserAnswers, YearRange}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -78,15 +77,15 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
       organisation => organisation.name
     )
 
-  def chargeCIsSponsoringEmployerIndividual(index: Int, answer: Boolean): Row =
+  def chargeCWhichTypeOfSponsoringEmployer(index: Int, answer: SponsoringEmployerType): Row =
     Row(
-      key = Key(msg"chargeC.isSponsoringEmployerIndividual.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(yesOrNo(answer)),
+      key = Key(msg"chargeC.whichTypeOfSponsoringEmployer.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+      value = Value(typeOfSponsoringEmployer(answer)),
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.IsSponsoringEmployerIndividualController.onPageLoad(CheckMode, srn, startDate, index).url,
-          visuallyHiddenText = Some(msg"chargeC.isSponsoringEmployerIndividual.visuallyHidden.checkYourAnswersLabel"))
+          href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, index).url,
+          visuallyHiddenText = Some(msg"chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel"))
       )
     )
 
@@ -525,6 +524,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
         )
       )
     )
+  }
+
+  private def typeOfSponsoringEmployer(answer: SponsoringEmployerType): Content =
+    answer match {
+    case SponsoringEmployerTypeIndividual => msg"chargeC.whichTypeOfSponsoringEmployer.individual"
+    case SponsoringEmployerTypeOrganisation => msg"chargeC.whichTypeOfSponsoringEmployer.organisation"
   }
 
   private def yesOrNo(answer: Boolean): Content =

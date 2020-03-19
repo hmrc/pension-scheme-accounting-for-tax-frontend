@@ -38,6 +38,7 @@ import utils.AFTConstants._
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
 
 class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
@@ -107,8 +108,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   }
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
