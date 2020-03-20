@@ -16,18 +16,31 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import behaviours.CheckYourAnswersBehaviour
+import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{UserAnswers, YearRange}
-import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
-import play.api.libs.json.{JsObject, Json}
+import models.DynamicYearRange
+import models.{YearRange, UserAnswers}
+import pages.chargeE.{CheckYourAnswersPage, ChargeDetailsPage, AnnualAllowanceYearPage, MemberDetailsPage}
+import play.api.libs.json.{Json, JsObject}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
+import org.mockito.Matchers.any
+import org.mockito.Mockito.when
+import play.api.Application
+import play.twirl.api.Html
+import utils.DateHelper
+
+import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
+
+  private val dynamicYearRange = DynamicYearRange("2019")
 
   private val templateToBeRendered = "check-your-answers.njk"
 
@@ -36,19 +49,21 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
-    .set(AnnualAllowanceYearPage(0), YearRange.currentYear).toOption.get
+    .set(AnnualAllowanceYearPage(0), dynamicYearRange).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
   private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
   private val rows = Seq(
     helper.chargeEMemberDetails(0, memberDetails),
-    helper.chargeETaxYear(0, YearRange.currentYear),
+    helper.chargeETaxYear(0, dynamicYearRange),
     helper.chargeEDetails(0, chargeEDetails)
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> rows
   )
+
+  DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
 
   "CheckYourAnswers Controller" must {
     behave like cyaController(
