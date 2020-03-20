@@ -16,48 +16,87 @@
 
 package models
 
+import java.time.LocalDate
+
+import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.AsyncWordSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsError, JsString, Json}
+import play.api.libs.json.JsString
+import play.api.libs.json.Json
+import utils.DateHelper
 
-class YearRangeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with OptionValues {
+class YearRangeSpec
+    extends AsyncWordSpec
+    with MustMatchers
+    with ScalaCheckPropertyChecks
+    with Generators
+    with OptionValues
+    with Enumerable.Implicits
+    with MockitoSugar {
 
-  "YearRange" - {
+  private def genYear: Gen[Int] =
+    Gen.oneOf(Seq(2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028))
+
+  "YearRange" must {
 
     "must deserialise valid values" in {
 
       val gen = Gen.oneOf(YearRange.values)
 
-      forAll(gen) {
-        yearRange =>
-
-          JsString(yearRange.toString).validate[YearRange].asOpt.value mustEqual yearRange
+      forAll(gen) { yearRange =>
+        JsString(yearRange.toString)
+          .validate[YearRange](reads(YearRange.enumerable))
+          .asOpt
+          .value mustEqual yearRange
       }
     }
 
     "must fail to deserialise invalid values" in {
 
-      val gen = arbitrary[String] suchThat (!YearRange.values.map(_.toString).contains(_))
+      val gen = arbitrary[String] suchThat (!YearRange.values
+        .map(_.toString)
+        .contains(_))
 
-      forAll(gen) {
-        invalidValue =>
-
-          a [RuntimeException] shouldBe thrownBy {
-            JsString(invalidValue).validate[YearRange]
-          }
+      forAll(gen) { invalidValue =>
+        a[RuntimeException] shouldBe thrownBy {
+          JsString(invalidValue)
+            .validate[YearRange](reads(YearRange.enumerable))
+        }
       }
     }
 
     "must serialise" in {
-
       val gen = Gen.oneOf(YearRange.values)
 
-      forAll(gen) {
-        yearRange =>
+      forAll(gen) { yearRange =>
+        Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
+      }
+    }
+  }
 
-          Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
+  "values" must {
+    "yield seq of tax year start years for all years up to BUT NOT INCLUDING current calendar year " +
+      "where current calendar date is set to 5th April (end of old tax year) of a random year" in {
+      forAll(genYear -> "valid years") { year =>
+        DateHelper.setDate(Some(LocalDate.of(year, 4, 5)))
+        val expectedResult =
+          (2018 until year).reverse.map(yr => DynamicYearRange(yr.toString))
+        YearRange.values mustBe expectedResult
+      }
+    }
+
+    "yield tax year start years for all years up to AND INCLUDING current calendar year " +
+      "where current calendar date is set to 6th April (start of new tax year) of a random year" in {
+      forAll(genYear -> "valid years") { year =>
+        DateHelper.setDate(Some(LocalDate.of(year, 4, 6)))
+        val expectedResult =
+          (2018 to year).reverse.map(yr => DynamicYearRange(yr.toString))
+        YearRange.values mustBe expectedResult
       }
     }
   }
