@@ -52,7 +52,6 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     super.beforeEach
     reset(mockUserAnswersCacheConnector, mockRenderer, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)

@@ -50,10 +50,10 @@ class AFTAmendController @Inject()(
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
           if (aftOverview.nonEmpty) {
-            val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct
+            val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
 
             if (yearsSeq.nonEmpty && yearsSeq.size > 1)
-              Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
+              Future.successful(Redirect(controllers.amend.routes.AmendYearsController.onPageLoad(srn)))
 
             else {
               val quartersSeq = aftOverview.filter(_.periodStartDate.getYear == yearsSeq.head).map { overviewElement =>
@@ -63,7 +63,7 @@ class AFTAmendController @Inject()(
               if (quartersSeq.nonEmpty && quartersSeq.size > 1)
                 Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, yearsSeq.head.toString)))
               else {
-                Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, quartersSeq.head.startDate)))
+                Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quartersSeq.head.startDate)))
               }
             }
           } else
