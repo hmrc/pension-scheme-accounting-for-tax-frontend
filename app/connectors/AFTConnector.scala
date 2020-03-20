@@ -16,17 +16,23 @@
 
 package connectors
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.UserAnswers
+import models.{AFTOverview, Quarters, UserAnswers}
+import play.api.Logger
 import play.api.http.Status
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.http.Status.OK
+import play.api.libs.json.{JsError, JsObject, JsResultException, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import utils.{DateHelper, HttpResponseHelper}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Failure
 
-class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
+class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = config.aftFileReturn
@@ -46,6 +52,40 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
       response.json.as[Seq[Int]]
+    }
+  }
+
+  def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
+    val url = config.aftOverviewUrl
+
+    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate.toString, "endDate" -> endDate.toString)
+
+    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+      response.status match {
+        case OK =>
+          val json = Json.parse(response.body)
+          json.validate[Seq[AFTOverview]] match {
+            case JsSuccess(value, _) => value
+            case JsError(errors) => throw JsResultException(errors)
+          }
+        case _ => handleErrorResponse("GET", url)(response)
+      }
+    } andThen {
+      case Failure(t: Throwable) => Logger.warn("Unable to get aft overview", t)
+    }
+  }
+
+  def endDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
+
+  def startDate: LocalDate =  {
+    val earliestStartDate = LocalDate.parse(config.earliestStartDate)
+    val calculatedStartYear = endDate.minusYears(config.aftNoOfYearsDisplayed).getYear
+    val calculatedStartDate = LocalDate.of(calculatedStartYear, 1, 1)
+
+    if(calculatedStartDate.isAfter(earliestStartDate)) {
+      calculatedStartDate
+    } else {
+      earliestStartDate
     }
   }
 }
