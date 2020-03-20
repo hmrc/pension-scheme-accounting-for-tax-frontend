@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers, Years}
+import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Years}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -61,7 +61,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
 
   private val jsonToPassToTemplate: Form[Years] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> Years.radios(form),
+    "radios" -> StartYears.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.YearsController.onSubmit(srn).url,
       returnUrl = dummyCall.url,

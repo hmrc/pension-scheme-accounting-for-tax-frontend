@@ -21,8 +21,7 @@ import connectors.AFTConnector
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
 import javax.inject.Inject
-import models.amend.AmendYears
-import models.{GenericViewModel, Years}
+import models.{AmendYears, GenericViewModel, Years}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -45,7 +44,7 @@ class AmendYearsController @Inject()(
                                  schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
-  private def form(years: Seq[Int]): Form[AmendYears] = formProvider(years)
+  private def form(years: Seq[Int]): Form[Years] = formProvider(years)
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -84,7 +83,7 @@ class AmendYearsController @Inject()(
                     fields = "srn" -> srn,
                     "startDate" -> None,
                     "form" -> formWithErrors,
-                    "radios" -> Years.radios(formWithErrors)(implicitly, config),
+                    "radios" -> AmendYears.radios(formWithErrors, yearsSeq),
                     "viewModel" -> viewModel(schemeDetails.schemeName, srn)
                   )
                   renderer.render(template = "years.njk", json).map(BadRequest(_))

@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Years}
+import models.{GenericViewModel, StartYears, Years}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -64,7 +64,7 @@ class YearsController @Inject()(
           "srn" -> srn,
           "startDate" -> None,
           "form" -> form(config),
-          "radios" -> Years.radios(form(config))(implicitly, config),
+          "radios" -> StartYears.radios(form(config))(implicitly, config),
           "viewModel" -> viewModel(schemeDetails.schemeName, srn)
         )
 
@@ -82,7 +82,7 @@ class YearsController @Inject()(
               fields = "srn" -> srn,
               "startDate" -> None,
               "form" -> formWithErrors,
-              "radios" -> Years.radios(formWithErrors)(implicitly, config),
+              "radios" -> StartYears.radios(formWithErrors)(implicitly, config),
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))

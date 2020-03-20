@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{StartQuarters, Years}
+import models.{StartQuarters, StartYears}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -52,8 +52,8 @@ class AFTLoginController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-      val defaultYear = Years.minYear(config)
-      (Years.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
+      val defaultYear = StartYears.minYear(config)
+      (StartYears.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
 
        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))

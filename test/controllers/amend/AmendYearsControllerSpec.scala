@@ -22,8 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.amend.AmendYearsFormProvider
 import matchers.JsonMatchers
-import models.amend.AmendYears
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Years}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -56,12 +55,12 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
   val templateToBeRendered = "years.njk"
   val formProvider = new AmendYearsFormProvider()
-  def form(years: Seq[Int]): Form[AmendYears] = formProvider(years)
+  def form(years: Seq[Int]): Form[Years] = formProvider(years)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendYearsController.onPageLoad(srn).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendYearsController.onSubmit(srn).url
 
-  private def jsonToPassToTemplate(years: Seq[Int]): Form[AmendYears] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(years: Seq[Int]): Form[Years] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> AmendYears.radios(form, years),
     "viewModel" -> GenericViewModel(

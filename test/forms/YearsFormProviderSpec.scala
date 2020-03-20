@@ -19,7 +19,7 @@ package forms
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.Years
+import models.{StartYears, Years}
 import play.api.data.FormError
 
 class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
@@ -35,7 +35,7 @@ class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Years](
       form,
       fieldName,
-      validValues  = Years.values,
+      validValues  = StartYears.values,
       invalidError = FormError(fieldName, "error.invalid")
     )
 
