@@ -16,18 +16,14 @@
 
 package controllers.amend
 
-import audit.AuditService
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, Years}
-import navigators.CompoundNavigator
+import models.Quarters
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -38,15 +34,12 @@ class AFTAmendController @Inject()(
                                     override val messagesApi: MessagesApi,
                                     aftConnector: AFTConnector,
                                     schemeService: SchemeService,
-                                    navigator: CompoundNavigator,
                                     identify: IdentifierAction,
                                     getData: DataRetrievalAction,
                                     allowAccess: AllowAccessActionProvider,
                                     requireData: DataRequiredAction,
                                     val controllerComponents: MessagesControllerComponents,
-                                    renderer: Renderer,
                                     config: FrontendAppConfig,
-                                    auditService: AuditService,
                                     aftService: AFTService,
                                     allowService: AllowAccessService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
