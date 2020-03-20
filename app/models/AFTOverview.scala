@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package forms.chargeC
+package models
 
-import forms.mappings.Mappings
-import javax.inject.Inject
-import models.SponsoringEmployerType
-import play.api.data.Form
+import java.time.LocalDate
 
-class IsSponsoringEmployerIndividualFormProvider @Inject() extends Mappings {
+import play.api.libs.json.{Format, Json}
 
-  def apply(): Form[SponsoringEmployerType] =
-    Form(
-      "value" -> enumerable[SponsoringEmployerType]("chargeC.whichTypeOfSponsoringEmployer.error.required")
-    )
+case class AFTOverview(
+                        periodStartDate: LocalDate,
+                        periodEndDate: LocalDate,
+                        numberOfVersions: Int,
+                        submittedVersionAvailable: Boolean,
+                        compiledVersionAvailable: Boolean
+                      )
+
+object AFTOverview {
+  implicit val formats: Format[AFTOverview] = Json.format[AFTOverview]
 }

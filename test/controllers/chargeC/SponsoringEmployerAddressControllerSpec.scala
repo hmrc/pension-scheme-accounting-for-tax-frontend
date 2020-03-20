@@ -28,7 +28,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{IsSponsoringEmployerIndividualPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.{JsObject, Json}
@@ -186,7 +186,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(Json.obj(
             SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-            IsSponsoringEmployerIndividualPage.toString -> false,
+            WhichTypeOfSponsoringEmployerPage.toString -> "organisation",
             SponsoringEmployerAddressPage.toString -> Json.toJson(sponsoringEmployerAddress)
           ))
         )

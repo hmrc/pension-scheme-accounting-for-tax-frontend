@@ -25,6 +25,14 @@
         <p class="govuk-body">{{messages("confirmation.p1")}}</p>
 
         <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
+         <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
+         <div><ul class="govuk-list govuk-list--bullet">
+            <li>{{messages("confirmation.whatNext.item1")}}</li>
+            <li>{{messages("confirmation.whatNext.item2")}}</li>
+            <li>{{messages("confirmation.whatNext.item3")}}</li>
+            <li>{{messages("confirmation.whatNext.item4")}}</li>
+        </ul></div>
+
         <ul class="govuk-list">
               <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
               <li><a href="{{ pensionSchemesUrl }}" class="govuk-link">{{ messages("confirmation.li2", viewModel.schemeName) }}</a></li>

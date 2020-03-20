@@ -18,7 +18,7 @@ package controllers
 
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{Index, MemberDetails, Quarter, YearRange}
+import models.{Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
@@ -29,7 +29,9 @@ import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.Future
 import java.time.LocalDate
+
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 object DataRetrievals {
 
@@ -87,10 +89,10 @@ object DataRetrievals {
                                          (block: (String, String) => Future[Result])
                                          (implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
-    (ua.get(IsSponsoringEmployerIndividualPage(index)), ua.get(SponsoringOrganisationDetailsPage(index)),
+    (ua.get(WhichTypeOfSponsoringEmployerPage(index)), ua.get(SponsoringOrganisationDetailsPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)), ua.get(SchemeNameQuery)) match {
-      case (Some(false), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
-      case (Some(true), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
+      case (Some(SponsoringEmployerTypeOrganisation), Some(company), _, Some(schemeName)) => block(schemeName, company.name)
+      case (Some(SponsoringEmployerTypeIndividual), _, Some(individual), Some(schemeName)) => block(schemeName, individual.fullName)
       case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
@@ -111,24 +113,24 @@ object DataRetrievals {
   }
 
   def cyaChargeC(index: Index, srn: String, startDate: LocalDate)
-                (block: (Boolean, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
+                (block: (SponsoringEmployerType, Either[models.MemberDetails, SponsoringOrganisationDetails], SponsoringEmployerAddress, ChargeCDetails, String) => Future[Result])
                 (implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     (
-      request.userAnswers.get(IsSponsoringEmployerIndividualPage(index)),
+      request.userAnswers.get(WhichTypeOfSponsoringEmployerPage(index)),
       request.userAnswers.get(SponsoringEmployerAddressPage(index)),
       request.userAnswers.get(ChargeCDetailsPage(index)),
       request.userAnswers.get(SchemeNameQuery)
     ) match {
-      case (Some(isSponsoringEmployerIndividual), Some(sponsoringEmployerAddress), Some(chargeDetails), Some(schemeName)) =>
+      case (Some(whichTypeOfSponsoringEmployer), Some(sponsoringEmployerAddress), Some(chargeDetails), Some(schemeName)) =>
         (
           request.userAnswers.get(SponsoringIndividualDetailsPage(index)),
           request.userAnswers.get(SponsoringOrganisationDetailsPage(index))
         ) match {
           case (Some(individual), None) =>
-            block(isSponsoringEmployerIndividual, Left(individual), sponsoringEmployerAddress, chargeDetails, schemeName)
+            block(whichTypeOfSponsoringEmployer, Left(individual), sponsoringEmployerAddress, chargeDetails, schemeName)
           case (None, Some(organisation)) =>
-            block(isSponsoringEmployerIndividual, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
+            block(whichTypeOfSponsoringEmployer, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
             Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
         }

@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteMemberFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, UserAnswers}
+import models.{GenericViewModel, SponsoringEmployerType, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -42,14 +42,15 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
   val userAnswersWithSchemeNameAndTwoIndividuals: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
     .set(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), true).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeIndividual).toOption.get
 
   private val answersIndividual: UserAnswers = userAnswersWithSchemeNameAndTwoIndividuals
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value
@@ -59,8 +60,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
   private val userAnswersWithSchemeNameAndTwoOrganisations: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), sponsoringOrganisationDetails).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(0), false).toOption.get
-    .set(IsSponsoringEmployerIndividualPage(1), false).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation).toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
 
   private val answersOrg: UserAnswers = userAnswersWithSchemeNameAndTwoOrganisations
     .set(ChargeCDetailsPage(0), chargeCDetails).success.value
@@ -204,67 +205,6 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
-    }
-
-    "return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndIndividual))
-
-      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
-
-      val boundForm = form.bind(Map("value" -> ""))
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "viewModel" -> viewModel,
-        "radios" -> Radios.yesNo(boundForm("value"))
-      )
-
-      templateCaptor.getValue mustEqual "chargeC/deleteEmployer.njk"
-
-      jsonCaptor.getValue must containJson(expectedJson)
-    }
-
-    "redirect to Session Expired for a GET if no existing data is found" in {
-
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val request = FakeRequest(GET, httpPathGET)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-    }
-
-    "redirect to Session Expired for a POST if no existing data is found" in {
-
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
-
-      val request =
-        FakeRequest(POST, httpPathGET)
-          .withFormUrlEncodedBody(("value", "true"))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }

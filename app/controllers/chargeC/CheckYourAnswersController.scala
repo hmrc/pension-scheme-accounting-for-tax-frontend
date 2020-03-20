@@ -53,11 +53,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.cyaChargeC(index, srn, startDate) { (isSponsoringEmployerIndividual, sponsorDetails, address, chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeC(index, srn, startDate) { (whichTypeOfSponsoringEmployer, sponsorDetails, address, chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
-          Seq(helper.chargeCIsSponsoringEmployerIndividual(index, isSponsoringEmployerIndividual)),
+          Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, whichTypeOfSponsoringEmployer)),
           helper.chargeCEmployerDetails(index, sponsorDetails),
           Seq(helper.chargeCAddress(index, address, sponsorDetails)),
           helper.chargeCChargeDetails(index, chargeDetails)

@@ -19,11 +19,12 @@ package services
 import base.SpecBase
 import data.SampleData
 import data.SampleData._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.UserAnswers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, IsSponsoringEmployerIndividualPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.mvc.Results
 
 class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
@@ -38,7 +39,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     .setOrException(pages.chargeG.ChargeDetailsPage(0), chargeGDetails)
     .setOrException(pages.chargeG.MemberDetailsPage(0), memberGDetails)
     .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-    .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+    .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)
     .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
 
   "isAtLeastOneValidCharge" must {
@@ -57,7 +58,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     "return true where there is only a charge type C present" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails)
       aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe true
     }
@@ -94,7 +95,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     "return false where there is only a charge type C present with one employer which is deleted" in {
       val ua = SampleData.userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
       aftReturnTidyService.isAtLeastOneValidCharge(ua) mustBe false
     }
@@ -164,7 +165,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     "remove charge C where it has no non-deleted members and another valid charge is present for individual" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
       val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
@@ -175,7 +176,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
     "remove charge C where it has no non-deleted members and another valid charge is present for organisation" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), false)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation)
         .setOrException(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetailsDeleted)
         .setOrException(pages.chargeF.ChargeDetailsPage, chargeFChargeDetails)
       val result = aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(ua)
@@ -188,9 +189,9 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeC.ChargeCDetailsPage(0), chargeCDetails)
         .setOrException(pages.chargeC.ChargeCDetailsPage(1), chargeCDetails)
-        .setOrException(IsSponsoringEmployerIndividualPage(0), true)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)
         .setOrException(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetailsDeleted)
-        .setOrException(IsSponsoringEmployerIndividualPage(1), true)
+        .setOrException(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeIndividual)
         .setOrException(SponsoringIndividualDetailsPage(1), sponsoringIndividualDetailsDeleted)
 
       val result = aftReturnTidyService.reinstateDeletedMemberOrEmployer(ua)

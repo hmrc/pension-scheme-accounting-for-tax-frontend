@@ -19,7 +19,7 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
@@ -27,6 +27,8 @@ import controllers.chargeC.routes._
 import services.ChargeCService._
 import services.AFTReturnTidyService
 import java.time.LocalDate
+import SponsoringEmployerType._
+
 import models.LocalDateBinder._
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -36,19 +38,19 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddEmployersPage) match {
-    case Some(true) => IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+    case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
     case _ => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   //scalastyle:off cyclomatic.complexity
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage =>
-      IsSponsoringEmployerIndividualController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+      WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
 
-    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
-    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
       SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
@@ -82,10 +84,10 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   //scalastyle:on cyclomatic.complexity
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
-    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(false) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
       SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index)
 
-    case IsSponsoringEmployerIndividualPage(index) if isIndividualOrOrg(index, ua).contains(true) =>
+    case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
       SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
@@ -100,8 +102,6 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case ChargeCDetailsPage(index) =>
       CheckYourAnswersController.onPageLoad(srn, startDate, index)
   }
-
-  private def isIndividualOrOrg(index: Int, ua: UserAnswers): Option[Boolean] = ua.get(IsSponsoringEmployerIndividualPage(index))
 
   private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {
