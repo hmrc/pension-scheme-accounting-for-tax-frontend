@@ -25,7 +25,7 @@ import connectors.{AFTConnector, MinimalPsaConnector}
 import data.SampleData
 import data.SampleData._
 import models.SchemeStatus.Open
-import models.{Quarter, UserAnswers}
+import models.{AFTVersion, Quarter, UserAnswers}
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -146,7 +146,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "set the IsNewReturn flag, and " +
         "retrieve and the quarter, status, scheme name and pstr and " +
         "save all of these with a lock" in {
-        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int]()))
+        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)(implicitly, implicitly,
           optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
@@ -177,7 +177,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         "NOT set the IsNewReturn flag and " +
         "NOT retrieve the quarter, status, scheme name or pstr and" +
         "save with a lock" in {
-        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
+        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion](AFTVersion(1, LocalDate.now()))))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (resultScheme, _) =>
           verify(mockAFTConnector, times(1)).getListOfVersions(any(), any())(any(), any())
@@ -223,7 +223,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "user is suspended" must {
       "NOT save with a lock" in {
         when(mockMinimalPsaConnector.isPsaSuspended(any())(any(), any())).thenReturn(Future.successful(true))
-        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[Int](1)))
+        when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion](AFTVersion(1, LocalDate.now()))))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (_, _) =>
           verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())

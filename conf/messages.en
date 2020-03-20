@@ -889,3 +889,9 @@ quarters.q2.label = 1 April to 30 June
 quarters.q3.label = 1 July to 30 September
 quarters.q4.label = 1 October to 31 December
 quarters.error.required = Select the quarter of {0} you are submitting an AFT return for
+
+returnHistory.title = AFT return history for {0} to {1}
+returnHistory.version = Version
+returnHistory.submission = Submission {0}
+returnHistory.dateSubmitted = Date submitted
+returnHistory.visuallyHidden = submission {0} of the AFT return

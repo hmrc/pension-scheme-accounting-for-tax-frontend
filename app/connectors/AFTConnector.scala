@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{AFTOverview, Quarters, UserAnswers}
 import play.api.Logger
+import models.{AFTVersion, UserAnswers}
 import play.api.http.Status
 import play.api.http.Status.OK
 import play.api.libs.json.{JsError, JsObject, JsResultException, JsSuccess, JsValue, Json}
@@ -46,12 +47,12 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     http.GET[JsValue](url)(implicitly, aftHc, implicitly)
   }
 
-  def getListOfVersions(pstr: String, startDate: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[Int]] = {
+  def getListOfVersions(pstr: String, startDate: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTVersion]] = {
     val url = config.aftListOfVersions
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
-      response.json.as[Seq[Int]]
+      response.json.as[Seq[AFTVersion]]
     }
   }
 
