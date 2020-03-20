@@ -26,6 +26,8 @@ GET         /:srn/previous-return/amend-select                                  
 GET         /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onPageLoad(srn: String)
 POST        /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onSubmit(srn: String)
 
+GET         /:srn/previous-return/:startDate/amend-previous                                                                             controllers.amend.ReturnHistoryController.onPageLoad(srn: String, startDate: String)
+
 GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
 POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)
 
