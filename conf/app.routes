@@ -21,6 +21,7 @@ GET         /accessibility-statement                                            
 
 
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
+GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
 POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)
