@@ -16,23 +16,19 @@
 
 package controllers.amend
 
-import audit.AuditService
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import forms.YearsFormProvider
 import forms.amend.AmendYearsFormProvider
 import javax.inject.Inject
 import models.amend.AmendYears
 import models.{GenericViewModel, Years}
-import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -40,21 +36,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AmendYearsController @Inject()(
                                  override val messagesApi: MessagesApi,
-                                 userAnswersCacheConnector: UserAnswersCacheConnector,
-                                 navigator: CompoundNavigator,
                                  identify: IdentifierAction,
-                                 getData: DataRetrievalAction,
-                                 allowAccess: AllowAccessActionProvider,
-                                 requireData: DataRequiredAction,
                                  formProvider: AmendYearsFormProvider,
                                  val controllerComponents: MessagesControllerComponents,
                                  renderer: Renderer,
                                  config: FrontendAppConfig,
                                  aftConnector: AFTConnector,
-                                 schemeService: SchemeService,
-                                 auditService: AuditService,
-                                 aftService: AFTService,
-                                 allowService: AllowAccessService
+                                 schemeService: SchemeService
                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private def form(years: Seq[Int]): Form[AmendYears] = formProvider(years)

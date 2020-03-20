@@ -33,7 +33,8 @@ sealed trait Quarters {
   def startMonth: Int
   def endMonth: Int
 }
-object Quarters extends Enumerable.Implicits {
+
+trait CommonQuarters {
   def currentYear: Int = today.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
@@ -58,13 +59,6 @@ object Quarters extends Enumerable.Implicits {
     override def endMonth = 12
   }
 
-  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
-    selectedYear match {
-      case _ if selectedYear == currentYear => getCurrentYearQuarters
-      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
-      case _ => Seq(Q1, Q2, Q3, Q4)
-    }
-
   def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] ={
     val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
@@ -79,12 +73,6 @@ object Quarters extends Enumerable.Implicits {
     else {
       quartersCY
     }
-  }
-
-  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
-    Radios(form("value"), values(year).map { quarter =>
-      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
-    })
   }
 
   def getQuarter(quarter: Quarters, year: Int): Quarter = {
@@ -106,7 +94,44 @@ object Quarters extends Enumerable.Implicits {
       case _ => Q4
     }
 
+
+
+}
+
+sealed trait StartQuarters extends Quarters
+
+object StartQuarters extends CommonQuarters with Enumerable.Implicits {
+
+  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
+    selectedYear match {
+      case _ if selectedYear == currentYear => getCurrentYearQuarters
+      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
+      case _ => Seq(Q1, Q2, Q3, Q4)
+    }
+
+  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
+    Radios(form("value"), values(year).map { quarter =>
+      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
+    })
+  }
+
   implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
     Enumerable(values(year).map(v => v.toString -> v): _*)
+}
 
+sealed trait AmendQuarters extends Quarters
+
+object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
+
+  def values(quarters: Seq[Quarter]): Seq[Quarters] =
+    quarters.map(quarter => getQuartersFromDate(quarter.startDate))
+
+  def radios(form: Form[_], quarters: Seq[Quarter])(implicit messages: Messages): Seq[Radios.Item] = {
+    Radios(form("value"), values(quarters).map { quarter =>
+      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
+    })
+  }
+
+  implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarters] =
+    Enumerable(values(quarters).map(v => v.toString -> v): _*)
 }

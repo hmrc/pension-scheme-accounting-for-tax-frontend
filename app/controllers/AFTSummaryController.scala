@@ -25,7 +25,7 @@ import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{GenericViewModel, Mode, NormalMode, StartQuarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
@@ -106,7 +106,7 @@ class AFTSummaryController @Inject()(
 
   private def getJson(form: Form[Boolean], ua: UserAnswers, srn: String, startDate: LocalDate, schemeName: String,
                       optionVersion: Option[String], canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val endDate = Quarters.getQuarter(startDate).endDate
+    val endDate = StartQuarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
           "startDate" -> Some(startDate),

@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, Years}
+import models.{StartQuarters, Years}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -53,7 +53,7 @@ class AFTLoginController @Inject()(
     implicit request =>
 
       val defaultYear = Years.minYear(config)
-      (Years.values(config).size, Quarters.values(defaultYear)(config).size) match {
+      (Years.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
 
        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
@@ -63,8 +63,8 @@ class AFTLoginController @Inject()(
         Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
-        val defaultQuarter = Quarters.values(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
-        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear))))
+        val defaultQuarter = StartQuarters.values(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
+        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, StartQuarters.getStartDate(defaultQuarter, defaultYear))))
     }
   }
 
