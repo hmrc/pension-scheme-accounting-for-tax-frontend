@@ -17,26 +17,26 @@
 package forms.amend
 
 import base.SpecBase
-import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{AmendYears, Years}
+import models.AmendQuarters._
+import models.{AmendQuarters, Quarters}
 import play.api.data.FormError
 
-class AmendYearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
+class AmendQuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
-  implicit val config: FrontendAppConfig = frontendAppConfig
-  val years: Seq[Int] = Seq(2020, 2021, 2022)
-  val form = new AmendYearsFormProvider()(years)
+  private val quarters: Seq[Quarters] = Seq(Q1, Q2, Q3)
+  private val errorKey = "quarters.error.required"
+  val form = new AmendQuartersFormProvider()(errorKey, quarters)
 
   ".value" must {
 
     val fieldName = "value"
-    val requiredKey = "amendYears.error.required"
+    val requiredKey = "quarters.error.required"
 
-    behave like optionsField[Years](
+    behave like optionsField[Quarters](
       form,
       fieldName,
-      validValues  = AmendYears.values(years),
+      validValues  = AmendQuarters.values(quarters),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

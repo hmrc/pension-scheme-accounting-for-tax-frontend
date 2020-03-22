@@ -20,9 +20,10 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.amend.AmendYearsFormProvider
+import forms.amend.AmendQuartersFormProvider
 import matchers.JsonMatchers
-import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Years}
+import models.AmendQuarters._
+import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -41,7 +42,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -53,24 +54,26 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
-  val templateToBeRendered = "amend/amendYears.njk"
-  val formProvider = new AmendYearsFormProvider()
-  def form(years: Seq[Int]): Form[Years] = formProvider(years)
+  val templateToBeRendered = "amend/amendQuarters.njk"
+  private val errorKey = "quarters.error.required"
+  private val year = "2022"
+  val formProvider = new AmendQuartersFormProvider()
+  def form(quarters: Seq[Quarters]): Form[Quarters] = formProvider(errorKey, quarters)
 
-  lazy val httpPathGET: String = controllers.amend.routes.AmendYearsController.onPageLoad(srn).url
-  lazy val httpPathPOST: String = controllers.amend.routes.AmendYearsController.onSubmit(srn).url
+  lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
+  lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
 
-  private def jsonToPassToTemplate(years: Seq[Int]): Form[Years] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(quarters: Seq[Quarters]): Form[Quarters] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> AmendYears.radios(form, years),
+    "radios" -> AmendQuarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.amend.routes.AmendYearsController.onSubmit(srn).url,
+      submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
 
-  private val year = "2020"
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
+  private val quarters = Seq(Q1)
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -83,9 +86,8 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
   }
 
-  "AmendYears Controller" must {
+  "AmendQuarters Controller" must {
     "return OK and the correct view for a GET" in {
-      val years = Seq(2020, 2022)
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -98,7 +100,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(years).apply(form(years)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(quarters).apply(form(quarters)))
     }
 
     "redirect to next page when valid data is submitted" in {
@@ -107,7 +109,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url)
+      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2022-01-01").url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

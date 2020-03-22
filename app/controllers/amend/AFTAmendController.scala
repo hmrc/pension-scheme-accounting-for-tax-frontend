@@ -61,7 +61,7 @@ class AFTAmendController @Inject()(
               }.distinct
 
               if (quartersSeq.nonEmpty && quartersSeq.size > 1)
-                Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, yearsSeq.head.toString)))
+                Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, yearsSeq.head.toString)))
               else {
                 Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quartersSeq.head.startDate)))
               }

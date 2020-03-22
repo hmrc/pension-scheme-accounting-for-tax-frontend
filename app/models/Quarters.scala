@@ -123,15 +123,14 @@ sealed trait AmendQuarters extends Quarters
 
 object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
 
-  def values(quarters: Seq[Quarter]): Seq[Quarters] =
-    quarters.map(quarter => getQuartersFromDate(quarter.startDate))
+  def values(quarters: Seq[Quarters]): Seq[Quarters] = quarters
 
-  def radios(form: Form[_], quarters: Seq[Quarter])(implicit messages: Messages): Seq[Radios.Item] = {
+  def radios(form: Form[_], quarters: Seq[Quarters])(implicit messages: Messages): Seq[Radios.Item] = {
     Radios(form("value"), values(quarters).map { quarter =>
       Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
     })
   }
 
-  implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarters] =
+  implicit def enumerable(quarters: Seq[Quarters]): Enumerable[Quarters] =
     Enumerable(values(quarters).map(v => v.toString -> v): _*)
 }

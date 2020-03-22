@@ -62,7 +62,7 @@ class AmendYearsController @Inject()(
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
 
-            renderer.render(template = "years.njk", json).map(Ok(_))
+            renderer.render(template = "amend/amendYears.njk", json).map(Ok(_))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
@@ -86,10 +86,10 @@ class AmendYearsController @Inject()(
                     "radios" -> AmendYears.radios(formWithErrors, yearsSeq),
                     "viewModel" -> viewModel(schemeDetails.schemeName, srn)
                   )
-                  renderer.render(template = "years.njk", json).map(BadRequest(_))
+                  renderer.render(template = "amend/amendYears.njk", json).map(BadRequest(_))
                 },
               value =>
-                Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, value.toString)))
+                Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, value.toString)))
             )
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
