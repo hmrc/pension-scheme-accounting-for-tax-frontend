@@ -79,7 +79,7 @@ class AFTSummaryHelper{
     val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -98,7 +98,7 @@ class AFTSummaryHelper{
     val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
         actions = if (data.totalAmount > BigDecimal(0)) {
           List(
             Action(
@@ -114,8 +114,8 @@ class AFTSummaryHelper{
     }
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
-      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter")),
+      key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = Nil
     ))
 
