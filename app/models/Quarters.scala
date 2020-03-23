@@ -59,7 +59,7 @@ trait CommonQuarters {
     override def endMonth = 12
   }
 
-  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] ={
+  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] = {
     val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
