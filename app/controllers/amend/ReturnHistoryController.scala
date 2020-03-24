@@ -24,7 +24,7 @@ import connectors.AFTConnector
 import controllers.actions.{AllowAccessActionProvider, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTVersion, Quarters}
+import models.{AFTVersion, StartQuarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -72,7 +72,7 @@ class ReturnHistoryController @Inject()(
               fields = "srn" -> srn,
               "startDate" -> Some(startDate),
               "quarterStart" -> startDate.format(dateFormatterStartDate),
-              "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+              "quarterEnd" -> StartQuarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
               "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
               "schemeName" -> schemeDetails.schemeName
           ) ++ tableOfVersions

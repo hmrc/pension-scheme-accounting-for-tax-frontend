@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-package forms
+package forms.amend
 
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{StartYears, Years}
+import models.{AmendYears, Years}
 import play.api.data.FormError
 
-class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
+class AmendYearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
   implicit val config: FrontendAppConfig = frontendAppConfig
-  val form = new YearsFormProvider()()
+  val years: Seq[Int] = Seq(2020, 2021, 2022)
+  val form = new AmendYearsFormProvider()(years)
 
   ".value" must {
 
     val fieldName = "value"
-    val requiredKey = "years.error.required"
+    val requiredKey = "amendYears.error.required"
 
     behave like optionsField[Years](
       form,
       fieldName,
-      validValues  = StartYears.values,
+      validValues  = AmendYears.values(years),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

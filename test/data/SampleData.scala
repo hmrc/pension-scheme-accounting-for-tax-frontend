@@ -25,7 +25,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTOverview, MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -123,4 +123,31 @@ object SampleData {
     .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
 
   val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+
+  val overview1: AFTOverview =
+    AFTOverview(
+      periodStartDate = LocalDate.of(2020,4,1),
+      periodEndDate = LocalDate.of(2028,6,30),
+      numberOfVersions = 2,
+      submittedVersionAvailable = false,
+      compiledVersionAvailable = true
+    )
+
+  val overview2: AFTOverview =
+    AFTOverview(
+      periodStartDate = LocalDate.of(2020,10,1),
+      periodEndDate = LocalDate.of(2020,12,31),
+      numberOfVersions = 3,
+      submittedVersionAvailable = false,
+      compiledVersionAvailable = true
+    )
+
+  val overview3: AFTOverview =
+    AFTOverview(
+      periodStartDate = LocalDate.of(2022,1,1),
+      periodEndDate = LocalDate.of(2022,3,31),
+      numberOfVersions = 1,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = false
+    )
 }

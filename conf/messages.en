@@ -896,3 +896,9 @@ returnHistory.version = Version
 returnHistory.submission = Submission {0}
 returnHistory.dateSubmitted = Date submitted
 returnHistory.visuallyHidden = submission {0} of the AFT return
+
+amendYears.title = Which year do you want to view?
+amendYears.error.required = Select which year you want to view
+
+amendQuarters.title = Which AFT return do you want to view?
+amendQuarters.error.required = Select which quarter you want to view

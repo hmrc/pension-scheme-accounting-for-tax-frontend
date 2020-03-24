@@ -19,7 +19,7 @@ package forms
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.Quarters
+import models.{Quarters, StartQuarters}
 import play.api.data.FormError
 
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
@@ -37,7 +37,7 @@ class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Quarters](
       form,
       fieldName,
-      validValues  = Quarters.values(2020),
+      validValues  = StartQuarters.values(2020),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

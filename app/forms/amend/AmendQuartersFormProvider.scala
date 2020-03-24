@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package pages
+package forms.amend
 
-import models.{Quarter, StartQuarters}
-import play.api.libs.json.JsPath
+import forms.mappings.Mappings
+import models.{AmendQuarters, Quarters}
+import play.api.data.Form
 
-case object QuarterPage extends QuestionPage[Quarter] {
+class AmendQuartersFormProvider extends Mappings {
 
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "quarter"
+  def apply(errorKey: String, quarters: Seq[Quarters]): Form[Quarters] =
+    Form(
+      "value" -> enumerable[Quarters](requiredKey = errorKey)(AmendQuarters.enumerable(quarters))
+    )
 }

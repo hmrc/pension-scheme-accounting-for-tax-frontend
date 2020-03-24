@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package controllers
-
-import java.time.LocalDate
+package controllers.amend
 
 import config.FrontendAppConfig
-import controllers.actions.MutableFakeDataRetrievalAction
+import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.QuartersFormProvider
+import forms.amend.AmendQuartersFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, StartQuarters, UserAnswers}
+import models.AmendQuarters._
+import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -40,63 +39,56 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
 
 import scala.concurrent.Future
-import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
-class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
-  val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockAFTConnector: AFTConnector = mock[AFTConnector]
+
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[SchemeService].toInstance(mockSchemeService)
+    bind[SchemeService].toInstance(mockSchemeService),
+    bind[AFTConnector].toInstance(mockAFTConnector)
   )
-
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  private val testYear = 2020
-  private val startDate = QUARTER_START_DATE
+  private val application: Application = applicationBuilder(extraModules = extraModules).build()
+  val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
-  val templateToBeRendered = "quarters.njk"
-  val formProvider = new QuartersFormProvider()
-  val form: Form[Quarters] = formProvider(messages(errorKey, testYear), testYear)
+  private val year = "2022"
+  val formProvider = new AmendQuartersFormProvider()
+  def form(quarters: Seq[Quarters]): Form[Quarters] = formProvider(errorKey, quarters)
 
-  lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
-  lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
+  lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
+  lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
 
-  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(quarters: Seq[Quarters]): Form[Quarters] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> StartQuarters.radios(form, testYear),
+    "radios" -> AmendQuarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
+      submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
       returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "year" -> testYear.toString
+      schemeName = schemeName)
   )
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q2"))
-
-  private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("q5"))
+  private val quarters = Seq(Q1)
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
+  private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockAFTConnector.getAftOverview(any())(any(), any()))
+      .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
-    DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
   }
 
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
-
-  "Quarters Controller" must {
-
+  "AmendQuarters Controller" must {
     "return OK and the correct view for a GET" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -108,7 +100,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(quarters).apply(form(quarters)))
     }
 
     "redirect to next page when valid data is submitted" in {
@@ -117,11 +109,10 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url)
+      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2022-01-01").url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 

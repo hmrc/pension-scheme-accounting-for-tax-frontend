@@ -21,6 +21,13 @@ GET         /accessibility-statement                                            
 
 
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
+GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
+
+GET         /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onPageLoad(srn: String)
+POST        /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onSubmit(srn: String)
+
+GET         /:srn/previous-return/:year/view-quarter                                                                              controllers.amend.AmendQuartersController.onPageLoad(srn: String, year: String)
+POST        /:srn/previous-return/:year/view-quarter                                                                              controllers.amend.AmendQuartersController.onSubmit(srn: String, year: String)
 
 GET         /:srn/previous-return/:startDate/amend-previous                                                                             controllers.amend.ReturnHistoryController.onPageLoad(srn: String, startDate: String)
 

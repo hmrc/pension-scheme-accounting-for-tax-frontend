@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Quarters}
+import models.{GenericViewModel, Quarters, StartQuarters}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -66,7 +66,7 @@ class QuartersController @Inject()(
           "srn" -> srn,
           "startDate" -> None,
           "form" -> form(year)(implicitly, config),
-          "radios" -> Quarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
+          "radios" -> StartQuarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
           "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
           "year" -> year
         )
@@ -85,7 +85,7 @@ class QuartersController @Inject()(
                     fields = "srn" -> srn,
                     "startDate" -> None,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, year.toInt)(implicitly, config),
+                    "radios" -> StartQuarters.radios(formWithErrors, year.toInt)(implicitly, config),
                     "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
                     "year" -> year
                   )
@@ -93,7 +93,7 @@ class QuartersController @Inject()(
                 }
               },
               value =>
-                Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(value, year.toInt))))
+                Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, StartQuarters.getStartDate(value, year.toInt))))
             )
 
   }
