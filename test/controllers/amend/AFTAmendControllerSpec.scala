@@ -73,14 +73,14 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         redirectLocation(result) mustBe Some(controllers.amend.routes.AmendYearsController.onPageLoad(srn).url)
       }
 
-//      "return to Quarters page if 1 year and more than 1 quarters are available to choose from" in {
-//        when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2)))
-//        val result = route(application, httpGETRequest(httpPathGET)).value
-//
-//        status(result) mustEqual SEE_OTHER
-//        redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, "2020").url)
-//      }
-//
+      "return to Quarters page if 1 year and more than 1 quarters are available to choose from" in {
+        when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2)))
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, "2020").url)
+      }
+
       "return to ReturnHistory page if exactly 1 year and 1 quarter are available to choose from" in {
         when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(overview1)))
 
