@@ -856,7 +856,7 @@ pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 
 
 confirmation.title = The Accounting for tax return has been sent to HMRC
 confirmation.p1 = We have sent a confirmation email to the email address you gave us.
-confirmation.aft.return = AFT return submitted for {0} to {1}
+confirmation.aft.return = Accounting for Tax return submitted for {0} to {1}
 confirmation.aft.date.submitted = Date submitted: {0}
 confirmation.aft.pstr = Pension Scheme Tax Reference: {0}
 confirmation.whatNext.h2 = What you can do next
