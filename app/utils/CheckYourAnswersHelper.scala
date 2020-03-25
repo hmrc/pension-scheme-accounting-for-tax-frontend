@@ -243,7 +243,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
+        classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",
@@ -542,7 +543,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
 
 object CheckYourAnswersHelper {
   private val currencyFormatter: NumberFormat = {
-    val cf = java.text.NumberFormat.getCurrencyInstance
+    val cf = java.text.NumberFormat.getCurrencyInstance(new Locale("en", "GB"))
     cf.setCurrency(Currency.getInstance(new Locale("en", "GB")))
     cf
   }
