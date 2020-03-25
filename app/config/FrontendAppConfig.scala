@@ -42,7 +42,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val authUrl: String = configuration.get[Service]("auth").baseUrl
   lazy val loginUrl: String = configuration.get[String]("urls.login")
   lazy val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
-  lazy val signOutUrl = loadConfig("urls.logout")
+  lazy val signOutUrl: String = loadConfig("urls.logout")
 
   lazy val languageTranslationEnabled: Boolean =
     configuration.get[Boolean]("microservice.services.features.welsh-translation")
@@ -52,6 +52,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
     "cymraeg" -> Lang("cy")
   )
 
+  lazy val emailApiUrl: String = servicesConfig.baseUrl("email")
+  lazy val emailSendForce: Boolean = configuration.getOptional[Boolean]("email.force").getOrElse(false)
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val pensionsAdministratorUrl:String = servicesConfig.baseUrl("pension-administrator")
@@ -68,9 +70,9 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
   lazy val minimumYear: Int = configuration.get[Int]("minimumYear")
 
-  lazy val overviewApiEnablementDate: String = "2020-07-01"
-  lazy val earliestStartDate: String = "2020-04-01"
-  lazy val aftNoOfYearsDisplayed: Int = 6
+  lazy val overviewApiEnablementDate: String = configuration.get[String]("overviewApiEnablementDate")
+  lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
+  lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
