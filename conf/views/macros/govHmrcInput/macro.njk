@@ -43,7 +43,13 @@
         }) | indent(2) | trim }}
     {% endif %}
         <div class="hmrc-currency-input__wrapper">
-            <span class="hmrc-currency-input__unit" aria-hidden="true">£</span>
+            <span class="hmrc-currency-input__unit" aria-hidden="true">
+                {%- if params.symbol %}
+                    {{ params.symbol }}
+                {% else %}
+                    £
+                {% endif %}
+            </span>
             <input
                 class="govuk-input {%- if params.classes %} {{ params.classes }}{% endif %} {%- if params.errorMessage %} govuk-input--error{% endif %}"
                 id="{{ params.id }}"
