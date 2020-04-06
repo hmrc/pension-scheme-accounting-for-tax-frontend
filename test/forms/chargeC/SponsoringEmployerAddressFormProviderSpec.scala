@@ -164,22 +164,22 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
   "postcode" must {
     val requiredKey = "address.postcode.error.required"
     val fieldName = "postcode"
-    "must not bind when key is not present at all when country is GB" in {
+    "not bind when key is not present at all when country is GB" in {
       val result = form.bind(Map("country" -> "GB")).apply(fieldName)
       result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
     }
 
-    "must  not bind blank values when country is GB" in {
+    "not bind blank values when country is GB" in {
       val result = form.bind(Map("country" -> "GB", fieldName -> "")).apply(fieldName)
       result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
     }
 
-    "must have no errors when key is not present at all and country is not GB" in {
+    "have no errors when key is not present at all and country is not GB" in {
       val result = form.bind(Map("country" -> "FR")).apply(fieldName)
       result.errors.size mustBe 0
     }
 
-    "must have no errors when postcode has a blank value and country is not GB" in {
+    "have no errors when postcode has a blank value and country is not GB" in {
       val result = form.bind(Map("country" -> "FR", fieldName -> "")).apply(fieldName)
       result.errors.size mustBe 0
     }

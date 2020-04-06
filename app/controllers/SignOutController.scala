@@ -38,14 +38,12 @@ class SignOutController @Inject()(
     implicit request =>
 
       startDate match {
-        case Some(startDate) =>
-
-          val id = s"$srn$startDate"
+        case Some(startDt) =>
+          val id = s"$srn$startDt"
           userAnswersCacheConnector.removeAll(id).map { _ =>
             Redirect(config.signOutUrl).withNewSession
           }
         case _ =>
-
           Future.successful(Redirect(config.signOutUrl).withNewSession)
       }
   }

@@ -16,8 +16,8 @@
 
 package controllers
 
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalDateTime}
 
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
@@ -25,6 +25,7 @@ import data.SampleData
 import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
 import models.GenericViewModel
+import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -39,7 +40,6 @@ import play.twirl.api.Html
 import utils.AFTConstants._
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
@@ -47,6 +47,9 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
 
   private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
@@ -69,12 +72,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
-      val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-      val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
-      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
       val result = route(application, request).value
@@ -89,6 +87,15 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       templateCaptor.getValue mustEqual "confirmation.njk"
       jsonCaptor.getValue must containJson(json)
+    }
+
+    "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }
