@@ -32,22 +32,19 @@
 
 package controllers.amend
 
-import audit.AuditService
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.amend.AmendQuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{AmendQuarters, GenericViewModel, Quarters}
-import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AllowAccessService, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -119,8 +116,14 @@ class AmendQuartersController @Inject()(
                   renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
                 }
               },
-              value =>
-                Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, AmendQuarters.getStartDate(value, year.toInt))))
+              value => {
+                val aftOverviewElement = aftOverview.filter(_.periodStartDate == AmendQuarters.getStartDate(value, year.toInt))
+                if(aftOverviewElement.nonEmpty && !aftOverviewElement.head.submittedVersionAvailable) {
+                  Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, AmendQuarters.getStartDate(value, year.toInt), Some("1"))))
+                } else {
+                  Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, AmendQuarters.getStartDate(value, year.toInt))))
+                }
+              }
             )
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
