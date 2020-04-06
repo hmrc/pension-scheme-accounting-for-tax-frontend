@@ -16,8 +16,6 @@
     top: 2px;
     width: 1.5rem;
     text-align: center;
-    background: #dee0e2;
-    border-right: 2px solid;
     @include govuk-font($size: 19, $weight: bold);
 }
 .govuk-form-group--error .hmrc-currency-input__unit {
