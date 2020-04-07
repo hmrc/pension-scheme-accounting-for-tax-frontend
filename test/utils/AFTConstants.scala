@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package utils
 
-import models.MemberDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import java.time.LocalDate
 
-case class SponsoringIndividualDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
-
-override def path: JsPath = SponsoringEmployersQuery(index).path \ SponsoringIndividualDetailsPage.toString
-}
-
-object SponsoringIndividualDetailsPage {
-  override lazy val toString: String = "sponsoringIndividualDetails"
+object AFTConstants {
+  val QUARTER_START_DATE = LocalDate.of(2020, 4, 1)
+  val QUARTER_END_DATE = LocalDate.of(2020, 6, 30)
+  val MIN_DATE = LocalDate.of(1900, 1, 1)
 }

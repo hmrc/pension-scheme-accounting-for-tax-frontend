@@ -45,7 +45,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         wholeNumberKey = "chargeA.numberOfMembers.error.nonNumeric",
         nonNumericKey = "chargeA.numberOfMembers.error.nonNumeric",
         min = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 0)),
-        max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", 999999))
+        max = Some(Tuple2("chargeA.numberOfMembers.error.maximum", ChargeDetailsFormProvider.noOfMembersMax))
       ),
       "totalAmtOfTaxDueAtLowerRate" -> onlyIf[Option[BigDecimal]](
         otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "totalAmtOfTaxDueAtHigherRate"),
@@ -83,4 +83,8 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       ),
       "totalAmount" -> bigDecimalTotal("totalAmtOfTaxDueAtLowerRate", "totalAmtOfTaxDueAtHigherRate")
     )(ChargeDetails.apply)(ChargeDetails.unapply))
+}
+
+object ChargeDetailsFormProvider {
+  val noOfMembersMax: Int = 999999
 }
