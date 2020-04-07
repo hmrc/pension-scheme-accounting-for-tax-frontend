@@ -45,6 +45,13 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       requiredAllKey = s"$dateKey.error.required")
   }
 
+  behave like dateFieldWithMin(
+    form = form,
+    key = dateKey,
+    min = MIN_DATE,
+    formError = FormError(dateKey, s"$dateKey.error.minDate")
+  )
+
   "chargeAmount" must {
 
     behave like bigDecimalField(
