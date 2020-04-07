@@ -44,7 +44,8 @@ class CannotChangeAFTReturnController @Inject()(
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
 

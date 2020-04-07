@@ -69,6 +69,7 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   )
 
   private val year = "2020"
+
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 

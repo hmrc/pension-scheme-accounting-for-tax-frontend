@@ -41,6 +41,7 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(MemberDetailsPage(index))(AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, index)),
         row(AnnualAllowanceYearPage(index))(ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)),
         row(ChargeDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
+        row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), Some(SampleData.chargeCEmployer)),

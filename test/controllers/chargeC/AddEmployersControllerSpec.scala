@@ -138,13 +138,12 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
@@ -178,9 +177,9 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual SEE_OTHER
 

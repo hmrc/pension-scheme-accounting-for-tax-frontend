@@ -14,17 +14,26 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package models
 
-import models.MemberDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import org.scalatest.{FreeSpec, MustMatchers}
+import play.api.libs.json.Json
 
-case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
+class SchemeDetailsSpec extends FreeSpec with MustMatchers {
 
-  override def path: JsPath = LifetimeAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
-}
+  "api reads " - {
+    "must map correctly to SchemeDetails" in {
+      val json = Json.obj(
+        "schemeName" -> "test scheme",
+        "pstr" -> "test pstr",
+        "schemeStatus" -> "Open"
+      )
 
-object MemberDetailsPage {
-  override lazy val toString: String = "memberDetails"
+      val result = json.as[SchemeDetails]
+
+      result.schemeName mustBe (json \ "schemeName").as[String]
+      result.pstr mustBe (json \ "pstr").as[String]
+      result.schemeStatus mustBe (json \ "schemeStatus").as[String]
+    }
+  }
 }
