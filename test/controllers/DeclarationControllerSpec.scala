@@ -20,12 +20,12 @@ import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, Mu
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{GenericViewModel, UserAnswers}
+import models.{Declaration, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{DeclarationPage, PSTRQuery}
+import pages.{DeclarationPage, PSTRQuery, SchemeNameQuery}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -80,7 +80,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
-    "Save data to user answers, file AFT Return and redirect to next page when valid data is submitted" in {
+    "Save data to user answers, file AFT Return and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).getOrElse(UserAnswers())))
 
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
@@ -95,6 +95,15 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+    }
+
+    "redirect to session expired when there is no pstr on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers(Json.obj("schemeName" -> schemeName))))
+
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }

@@ -36,15 +36,17 @@ class SignOutController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async { implicit request =>
-    startDate match {
-      case Some(startDate) =>
-        val id = s"$srn$startDate"
-        userAnswersCacheConnector.removeAll(id).map { _ =>
-          Redirect(config.signOutUrl).withNewSession
-        }
-      case _ =>
-        Future.successful(Redirect(config.signOutUrl).withNewSession)
-    }
+  def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async {
+    implicit request =>
+
+      startDate match {
+        case Some(startDt) =>
+          val id = s"$srn$startDt"
+          userAnswersCacheConnector.removeAll(id).map { _ =>
+            Redirect(config.signOutUrl).withNewSession
+          }
+        case _ =>
+          Future.successful(Redirect(config.signOutUrl).withNewSession)
+      }
   }
 }

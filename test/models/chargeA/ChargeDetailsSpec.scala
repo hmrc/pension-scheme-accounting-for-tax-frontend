@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package pages.chargeD
+package models.chargeA
 
-import models.MemberDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import org.scalatest.{FreeSpec, MustMatchers}
 
-case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
+class ChargeDetailsSpec extends FreeSpec with MustMatchers {
 
-  override def path: JsPath = LifetimeAllowanceMembersQuery(index).path \ MemberDetailsPage.toString
-}
+  "calcTotalAmount" - {
 
-object MemberDetailsPage {
-  override lazy val toString: String = "memberDetails"
+    "must return the sum of totalAmtOfTaxDueAtLowerRate and totalAmtOfTaxDueAtHigherRate" in {
+      ChargeDetails(1, Some(100.00), Some(200.00), 50.00).calcTotalAmount mustEqual 300.00
+    }
+
+    "must return zero if there is no totalAmtOfTaxDueAtLowerRate and totalAmtOfTaxDueAtHigherRate" in {
+      ChargeDetails(1, None, None, 50.00).calcTotalAmount mustEqual 0.00
+    }
+  }
 }

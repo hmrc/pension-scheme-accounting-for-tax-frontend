@@ -51,7 +51,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+    implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
         val seqRows = helper.chargeBDetails(chargeDetails)

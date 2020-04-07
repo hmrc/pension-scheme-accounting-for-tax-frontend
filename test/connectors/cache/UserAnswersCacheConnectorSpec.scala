@@ -19,7 +19,7 @@ package connectors.cache
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsString, Json}
+import play.api.libs.json.Json
 import play.api.mvc.Results._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
@@ -34,6 +34,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
 
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
   private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft"
+
+  private val isLockedUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   ".fetch" must {
 
@@ -144,6 +146,52 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
       connector.removeAll(cacheId = "testId").map {
         _ mustEqual Ok
+      }
+    }
+  }
+
+  ".isLocked" must {
+
+    "return `None` when there is no data in the collection" in {
+      server.stubFor(
+        get(urlEqualTo(isLockedUrl))
+          .willReturn(
+            notFound
+          )
+      )
+
+      connector.isLocked(id = "testId") map {
+        result =>
+          result mustBe false
+      }
+    }
+
+    "return true if status is OK and data is present in the collection" in {
+      server.stubFor(
+        get(urlEqualTo(isLockedUrl))
+          .willReturn(
+            ok(Json.obj(fields = "testId" -> "locked").toString())
+          )
+      )
+
+      connector.isLocked(id = "testId") map {
+        result =>
+          result mustBe true
+      }
+    }
+
+    "return a failed future on upstream error" in {
+      server.stubFor(
+        get(urlEqualTo(isLockedUrl))
+          .willReturn(
+            serverError
+          )
+      )
+
+      recoverToExceptionIf[HttpException] {
+        connector.isLocked(id = "testId")
+      } map {
+        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
     }
   }

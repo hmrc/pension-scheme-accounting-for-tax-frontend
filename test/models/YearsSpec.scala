@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package pages
+package models
 
-import models.Years
-import play.api.libs.json.JsPath
+import org.scalatest.{FreeSpec, MustMatchers}
+import play.api.libs.json.{JsString, Json}
 
-case object YearPage extends QuestionPage[Years] {
+class YearsSpec extends FreeSpec with MustMatchers {
 
-  override def path: JsPath = JsPath \ toString
+  "writes" - {
+    "must map correctly to string" in {
+      val year = Year(2020)
 
-  override def toString: String = "year"
+      val result = Json.toJson(year)
+      result mustBe JsString("2020")
+    }
+  }
 }

@@ -52,6 +52,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeDMemberExists),
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeGMemberExists),
+        row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate), aftSummaryNo),
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes),
         row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),

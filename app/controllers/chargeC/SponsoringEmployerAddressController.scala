@@ -80,7 +80,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       }
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+    implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
           case None        => form
@@ -109,7 +110,8 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
     form copy (errors = form.errors.map(_ copy (args = args)))
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData).async {
+    implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form
           .bindFromRequest()

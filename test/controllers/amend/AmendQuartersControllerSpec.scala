@@ -103,6 +103,14 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(quarters).apply(form(quarters)))
     }
 
+    "redirect to session expired page when there is no data returned from overview api for a GET" in {
+      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+
     "redirect to next page when valid data is submitted" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
@@ -119,6 +127,15 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual BAD_REQUEST
 
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "redirect to session expired page when there is no data returned from overview api for a POST" in {
+      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }
