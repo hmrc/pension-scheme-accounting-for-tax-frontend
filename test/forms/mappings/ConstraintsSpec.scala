@@ -50,20 +50,25 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     }
   }
 
-  "minimumValue" - {
+  "minimumValueOption" - {
+
+    "must return Valid for None" in {
+      val result = minimumValueOption(1, "error.min").apply(None)
+      result mustEqual Valid
+    }
 
     "must return Valid for a number greater than the threshold" in {
-      val result = minimumValue(1, "error.min").apply(2)
+      val result = minimumValueOption(1, "error.min").apply(Some(2))
       result mustEqual Valid
     }
 
     "must return Valid for a number equal to the threshold" in {
-      val result = minimumValue(1, "error.min").apply(1)
+      val result = minimumValueOption(1, "error.min").apply(Some(1))
       result mustEqual Valid
     }
 
     "must return Invalid for a number below the threshold" in {
-      val result = minimumValue(1, "error.min").apply(0)
+      val result = minimumValueOption(1, "error.min").apply(Some(0))
       result mustEqual Invalid("error.min", 1)
     }
   }
@@ -86,6 +91,57 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     }
   }
 
+  "maximumValueOption" - {
+
+    "must return Valid for None" in {
+      val result = maximumValueOption(1, "error.max").apply(None)
+      result mustEqual Valid
+    }
+
+    "must return Valid for a number less than the threshold" in {
+      val result = maximumValueOption(1, "error.max").apply(Some(0))
+      result mustEqual Valid
+    }
+
+    "must return Valid for a number equal to the threshold" in {
+      val result = maximumValueOption(1, "error.max").apply(Some(1))
+      result mustEqual Valid
+    }
+
+    "must return Invalid for a number above the threshold" in {
+      val result = maximumValueOption(1, "error.max").apply(Some(2))
+      result mustEqual Invalid("error.max", 1)
+    }
+  }
+
+  "inRange" - {
+
+    "must return Valid for a number between the range" in {
+      val result = inRange(1, 10, "error.max").apply(5)
+      result mustEqual Valid
+    }
+
+    "must return Valid for a number equal to the minimum" in {
+      val result = inRange(1, 10, "error.max").apply(1)
+      result mustEqual Valid
+    }
+
+    "must return Valid for a number equal to the maximum" in {
+      val result = inRange(1, 10, "error.max").apply(10)
+      result mustEqual Valid
+    }
+
+    "must return Invalid for a number above the maximum" in {
+      val result = inRange(1, 10, "error.max").apply(11)
+      result mustEqual Invalid("error.max", 1, 10)
+    }
+
+    "must return Invalid for a number below the minimum" in {
+      val result = inRange(1, 10, "error.max").apply(0)
+      result mustEqual Invalid("error.max", 1, 10)
+    }
+  }
+
   "regexp" - {
 
     "must return Valid for an input that matches the expression" in {
@@ -96,6 +152,19 @@ class ConstraintsSpec extends FreeSpec with MustMatchers with ScalaCheckProperty
     "must return Invalid for an input that does not match the expression" in {
       val result = regexp("""^\d+$""", "error.invalid")("foo")
       result mustEqual Invalid("error.invalid", """^\d+$""")
+    }
+  }
+
+  "nonEmptySet" - {
+
+    "must return Valid for a set non empty" in {
+      val result = nonEmptySet("error.invalid")(Set(1, 2))
+      result mustEqual Valid
+    }
+
+    "must return Invalid for an empty set" in {
+      val result = nonEmptySet("error.invalid")(Set.empty)
+      result mustEqual Invalid("error.invalid")
     }
   }
 

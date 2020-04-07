@@ -89,6 +89,15 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2020-04-01").url)
       }
+
+      "redirect to Session Expired page if there is no data returned from overview" in {
+        when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad().url)
+      }
     }
 
   }

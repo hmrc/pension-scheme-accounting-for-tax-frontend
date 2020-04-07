@@ -139,6 +139,34 @@ class MappingsSpec extends FreeSpec with MustMatchers with OptionValues with Map
     }
   }
 
+  "bigDecimal" - {
+
+    val testForm: Form[BigDecimal] =
+      Form(
+        "value" -> bigDecimal()
+      )
+
+    "must bind a valid bigdecima;" in {
+      val result = testForm.bind(Map("value" -> "100.00"))
+      result.get mustEqual BigDecimal(100.00)
+    }
+
+    "must not bind an empty value" in {
+      val result = testForm.bind(Map("value" -> ""))
+      result.errors must contain(FormError("value", "error.required"))
+    }
+
+    "must not bind an empty map" in {
+      val result = testForm.bind(Map.empty[String, String])
+      result.errors must contain(FormError("value", "error.required"))
+    }
+
+    "must unbind a valid value" in {
+      val result = testForm.fill(BigDecimal(123))
+      result.apply("value").value.value mustEqual "123"
+    }
+  }
+
   "enumerable" - {
 
     val testForm = Form(

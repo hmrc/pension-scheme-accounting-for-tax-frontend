@@ -137,7 +137,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 
@@ -174,9 +174,9 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to Session Expired page for a POST when there is no data" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(None)
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
