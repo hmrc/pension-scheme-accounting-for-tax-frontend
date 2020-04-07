@@ -866,7 +866,7 @@ confirmation.whatNext.item2 = the name of the pension scheme
 confirmation.whatNext.item3 = your pension scheme administrator ID
 confirmation.whatNext.item4 = the version of the return - for example ''Submission 2'' - if it is not the original version
 confirmation.saveOrPrint.h2 = Print
-confirmation.li1 = Return to Smith Harper pension scheme
+confirmation.li1 = Return to {0}
 confirmation.li2 = View your other pension schemes
 confirmation.saveOrPrint.page.link.text = Print this page
 
