@@ -42,6 +42,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
     case ChargeTypePage => sessionExpiredPage
   }
 
+  //scalastyle:off cyclomatic.complexity
   private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
@@ -62,6 +63,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
         controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeG(ua, srn, startDate))
       case _ => sessionExpiredPage
     }
+  //scalastyle:on cyclomatic.complexity
 
   def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
   def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
