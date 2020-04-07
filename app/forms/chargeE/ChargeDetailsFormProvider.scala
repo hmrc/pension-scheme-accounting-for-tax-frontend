@@ -42,7 +42,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
-        minDate(MIN_DATE, "chargeE.chargeDetails.error.minDate"),
+        minDate(MIN_DATE, "dateNoticeReceived.error.minDate"),
         futureDate("dateNoticeReceived.error.future"),
         yearHas4Digits("dateNoticeReceived.error.invalid")
       ),

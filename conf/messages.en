@@ -366,6 +366,7 @@ dateNoticeReceived.error.date = The date you received notice to pay the charge m
 dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
 dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
 dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.minDate = The Date you received notice to pay the charge must be after 31 12 1899
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 
 chargeEDetails.title = Annual allowance charge details for {0}
@@ -384,7 +385,6 @@ chargeE.visuallyHidden.chargeAmount.label = the charge amount
 chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
 chargeE.visuallyHidden.isPaymentMandatory.label = whether the payment type is mandatory
 
-chargeE.chargeDetails.error.minDate = The Date you received notice to pay the charge must be after 31 12 1899
 chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}

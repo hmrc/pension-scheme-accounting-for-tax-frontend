@@ -18,7 +18,7 @@ package forms.chargeE
 
 import forms.behaviours._
 import play.api.data.FormError
-import utils.AFTConstants.QUARTER_START_DATE
+import utils.AFTConstants._
 import utils.DateHelper
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
