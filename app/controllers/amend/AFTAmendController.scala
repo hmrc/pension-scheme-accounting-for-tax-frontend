@@ -31,46 +31,49 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class AFTAmendController @Inject()(
-                                    override val messagesApi: MessagesApi,
-                                    aftConnector: AFTConnector,
-                                    schemeService: SchemeService,
-                                    identify: IdentifierAction,
-                                    getData: DataRetrievalAction,
-                                    allowAccess: AllowAccessActionProvider,
-                                    requireData: DataRequiredAction,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    config: FrontendAppConfig,
-                                    aftService: AFTService,
-                                    allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    aftConnector: AFTConnector,
+    schemeService: SchemeService,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    config: FrontendAppConfig,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+        if (aftOverview.nonEmpty) {
+          val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
 
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-          if (aftOverview.nonEmpty) {
-            val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
-
-            if (yearsSeq.nonEmpty && yearsSeq.size > 1)
-              Future.successful(Redirect(controllers.amend.routes.AmendYearsController.onPageLoad(srn)))
-
-            else {
-              val quartersSeq = aftOverview.filter(_.periodStartDate.getYear == yearsSeq.head).map { overviewElement =>
+          if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
+            Future.successful(Redirect(controllers.amend.routes.AmendYearsController.onPageLoad(srn)))
+          } else {
+            val quartersSeq = aftOverview
+              .filter(_.periodStartDate.getYear == yearsSeq.head)
+              .map { overviewElement =>
                 StartQuarters.getQuarter(overviewElement.periodStartDate)
-              }.distinct
-
-              if (quartersSeq.nonEmpty && quartersSeq.size > 1)
-                Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, yearsSeq.head.toString)))
-              else {
-                Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quartersSeq.head.startDate)))
               }
+              .distinct
+
+            if (quartersSeq.nonEmpty && quartersSeq.size > 1) {
+              Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, yearsSeq.head.toString)))
+            } else {
+              Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quartersSeq.head.startDate)))
             }
-          } else
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
+        } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
+    }
   }
-
 
 }

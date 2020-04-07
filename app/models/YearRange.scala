@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.LocalDate
+import java.time.{LocalDate, Month}
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -28,17 +28,19 @@ import utils.DateHelper
 sealed trait YearRange
 
 object YearRange extends Enumerable.Implicits {
+  val startDateOfNewTaxYear: Int = 6
   def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[DynamicYearRange] = {
     val currentYear = DateHelper.today.getYear
-    val newTaxYearStart = LocalDate.of(currentYear, 4, 6)
+    val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDateOfNewTaxYear)
 
     val maxYear =
-      if (DateHelper.today.isAfter(newTaxYearStart) || DateHelper.today.isEqual(newTaxYearStart))
+      if (DateHelper.today.isAfter(newTaxYearStart) || DateHelper.today.isEqual(newTaxYearStart)) {
         currentYear
-      else
+      } else {
         currentYear - 1
+      }
 
     (2018 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
   }

@@ -28,8 +28,8 @@ import models.LocalDateBinder._
 class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
-    case ChargeBDetailsPage => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    case WhatYouWillNeedPage  => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
+    case ChargeBDetailsPage   => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 

@@ -32,28 +32,34 @@ import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
-    case ChargeTypePage => chargeTypeNavigation(ua, srn, startDate)
-    case AFTSummaryPage =>  aftSummaryNavigation(ua, srn, startDate)
+    case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
+    case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate)
     case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
-    case DeclarationPage => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
+    case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case ChargeTypePage => sessionExpiredPage
   }
 
-  private def chargeTypeNavigation(ua:UserAnswers, srn:String, startDate: LocalDate):Call =
+  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeAuthSurplus) => controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn, startDate) == 0 => controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeAnnualAllowance) => controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeE(ua, srn, startDate))
+      case Some(ChargeType.ChargeTypeAuthSurplus)  => controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
+      case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn, startDate) == 0 =>
+        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
+      case Some(ChargeType.ChargeTypeAnnualAllowance) =>
+        controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeE(ua, srn, startDate))
       case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn, startDate) == 0 => controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeLifetimeAllowance) => controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeD(ua, srn, startDate))
-      case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua, srn, startDate) == 0 => controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
-      case Some(ChargeType.ChargeTypeOverseasTransfer) => controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeG(ua, srn, startDate))
+      case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn, startDate) == 0 =>
+        controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
+      case Some(ChargeType.ChargeTypeLifetimeAllowance) =>
+        controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeD(ua, srn, startDate))
+      case Some(ChargeType.ChargeTypeOverseasTransfer) if nextIndexChargeG(ua, srn, startDate) == 0 =>
+        controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
+      case Some(ChargeType.ChargeTypeOverseasTransfer) =>
+        controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeG(ua, srn, startDate))
       case _ => sessionExpiredPage
     }
 

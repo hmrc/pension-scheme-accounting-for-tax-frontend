@@ -51,26 +51,29 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        formProvider: DeleteMemberFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
-                                       renderer: Renderer
-                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                       renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.chargeG.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
               submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
+              schemeName = schemeName
+            )
 
             val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> form(memberDetails.fullName),
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "form" -> form(memberDetails.fullName),
               "viewModel" -> viewModel,
               "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
               "memberName" -> memberDetails.fullName
@@ -80,52 +83,55 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
-  }
+    }
 
-  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
-            form(memberDetails.fullName).bindFromRequest().fold(
-              formWithErrors => {
+            form(memberDetails.fullName)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
 
-                val viewModel = GenericViewModel(
-                  submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
-                  returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                  schemeName = schemeName)
+                  val viewModel = GenericViewModel(
+                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
+                    returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                    schemeName = schemeName
+                  )
 
-                val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> formWithErrors,
-                  "viewModel" -> viewModel,
-                  "radios" -> Radios.yesNo(formWithErrors("value")),
-                  "memberName" -> memberDetails.fullName
-                )
+                  val json = Json.obj(
+                    "srn" -> srn,
+                    "startDate" -> Some(startDate),
+                    "form" -> formWithErrors,
+                    "viewModel" -> viewModel,
+                    "radios" -> Radios.yesNo(formWithErrors("value")),
+                    "memberName" -> memberDetails.fullName
+                  )
 
-                renderer.render("chargeG/deleteMember.njk", json).map(BadRequest(_))
+                  renderer.render("chargeG/deleteMember.njk", json).map(BadRequest(_))
 
-              },
-              value =>
-                if(value) {
-                  DataRetrievals.retrievePSTR { pstr =>
-
-                    for {
-                      interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                      updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
-                      _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                    } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
-                  }
-                } else {
-                  Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
+                },
+                value =>
+                  if (value) {
+                    DataRetrievals.retrievePSTR {
+                      pstr =>
+                        for {
+                          interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
+                          updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
+                          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
+                    }
+                  } else {
+                    Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
                 }
-            )
+              )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
-  }
+    }
 
   def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getOverseasTransferMembers(ua, srn, startDate).map(_.amount).sum
 }

@@ -34,7 +34,7 @@ object AddMembersService {
       Cell(msg"addMembers.nino.header", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"addMembers.$chargeName.amount.header", classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
       Cell(msg"")
-    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil)
+    ) ++ (if (canChange) Seq(Cell(msg"")) else Nil)
 
     val rows = members.map { data =>
       Seq(
@@ -42,23 +42,30 @@ object AddMembersService {
         Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"${formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
-      ) ++ (if(canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))) else Nil)
+      ) ++ (if (canChange) {
+              Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter")))
+      } else {
+        Nil
+      })
     }
     val totalAmount = members.map(_.amount).sum
 
-    val totalRow = Seq(Seq(
-      Cell(msg""), Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-      Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-      Cell(msg"")
-    ) ++ (if(canChange) Seq(Cell(msg"")) else Nil))
+    val totalRow = Seq(
+      Seq(
+        Cell(msg""),
+        Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
+        Cell(Literal(s"${formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+        Cell(msg"")
+      ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
     Table(head = head, rows = rows ++ totalRow)
   }
 
   def link(id: String, text: String, url: String, name: String, chargeName: String)(implicit messages: Messages): Html = {
     val hiddenTag = "govuk-visually-hidden"
-    Html(s"<a id=$id href=$url> ${messages(text)}" +
-      s"<span class= $hiddenTag>${messages(s"$chargeName.addMembers.visuallyHidden", name)}</span> </a>")
+    Html(
+      s"<a id=$id href=$url> ${messages(text)}" +
+        s"<span class= $hiddenTag>${messages(s"$chargeName.addMembers.visuallyHidden", name)}</span> </a>")
   }
 
 }

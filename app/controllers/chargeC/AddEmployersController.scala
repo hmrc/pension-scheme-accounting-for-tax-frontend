@@ -51,33 +51,34 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        formProvider: AddMembersFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
-                                       renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                       renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-
-          renderer.render(template = "chargeC/addEmployers.njk",
-            getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
+          renderer.render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
-  }
+    }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-        form.bindFromRequest().fold(
+      form
+        .bindFromRequest()
+        .fold(
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-
-                renderer.render(
-                  template = "chargeC/addEmployers.njk",
-                  getJson(srn, startDate, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+                renderer
+                  .render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter))
+                  .map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
@@ -89,31 +90,29 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
             } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn, startDate))
           }
         )
-      }
+  }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter
-                     )(implicit request: DataRequest[AnyContent]): JsObject = {
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter)(
+      implicit request: DataRequest[AnyContent]): JsObject = {
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.AddEmployersController.onSubmit(srn, startDate).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate).url,
+                                     returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                                     schemeName = schemeName)
 
-        val members = getSponsoringEmployers(request.userAnswers, srn, startDate)
+    val members = getSponsoringEmployers(request.userAnswers, srn, startDate)
 
-        Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> form,
-          "viewModel" -> viewModel,
-          "radios" -> Radios.yesNo(form("value")),
-          "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
-          "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-          "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
-          "canChange" -> !request.viewOnly
-        )
+    Json.obj(
+      "srn" -> srn,
+      "startDate" -> Some(startDate),
+      "form" -> form,
+      "viewModel" -> viewModel,
+      "radios" -> Radios.yesNo(form("value")),
+      "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
+      "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
+      "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
+      "canChange" -> !request.viewOnly
+    )
 
-
-    }
+  }
 
 }

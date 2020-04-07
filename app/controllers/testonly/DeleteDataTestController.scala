@@ -34,49 +34,53 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class DeleteDataTestController @Inject()(
-                                          override val messagesApi: MessagesApi,
-                                          renderer: Renderer,
-                                          userAnswersCacheConnector: UserAnswersCacheConnector,
-                                          val controllerComponents: MessagesControllerComponents
-                                        )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport with Mappings {
+    override val messagesApi: MessagesApi,
+    renderer: Renderer,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    val controllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport
+    with Mappings {
 
-  def form = Form(mapping(
-    "srn" -> text("Enter the scheme reference number"),
-    "startDate" -> localDate(
-      invalidKey     = "Enter a real quarter start date",
-      allRequiredKey = "Enter the quarter start date",
-      twoRequiredKey = "The quarter start date must include a day, month and year",
-      requiredKey    = "Enter the quarter start date"
+  def form =
+    Form(
+      mapping(
+        "srn" -> text("Enter the scheme reference number"),
+        "startDate" -> localDate(
+          invalidKey = "Enter a real quarter start date",
+          allRequiredKey = "Enter the quarter start date",
+          twoRequiredKey = "The quarter start date must include a day, month and year",
+          requiredKey = "Enter the quarter start date"
+        )
+      )(MongoId.apply)(MongoId.unapply))
+
+  def present: Action[AnyContent] = Action.async { implicit request =>
+    val json = Json.obj(
+      "form" -> form,
+      "date" -> DateInput.localDate(form("startDate")),
+      "submitUrl" -> controllers.testonly.routes.DeleteDataTestController.delete().url
     )
-  )(MongoId.apply)(MongoId.unapply))
-
-  def present: Action[AnyContent] = Action.async {
-    implicit request =>
-      val json = Json.obj(
-        "form" -> form,
-        "date" -> DateInput.localDate(form("startDate")),
-        "submitUrl" -> controllers.testonly.routes.DeleteDataTestController.delete().url
-      )
-      renderer.render(template = "testonly/deleteData.njk", json).map(Ok(_))
+    renderer.render(template = "testonly/deleteData.njk", json).map(Ok(_))
   }
 
-  def delete: Action[AnyContent] = Action.async {
-    implicit request =>
-      form.bindFromRequest.fold(
-        invalidForm => {
-          val json = Json.obj(
-            "form" -> invalidForm,
-            "date" -> DateInput.localDate(invalidForm("startDate"))
-          )
-          renderer.render(template = "testonly/deleteData.njk", json).map(BadRequest(_))
-        },
-        value => {
-          val id = s"${value.srn}${value.startDate}"
-          userAnswersCacheConnector.removeAll(id).map { _ =>
-            Redirect(controllers.testonly.routes.DeleteDataTestController.present())
-          }
+  def delete: Action[AnyContent] = Action.async { implicit request =>
+    form.bindFromRequest.fold(
+      invalidForm => {
+        val json = Json.obj(
+          "form" -> invalidForm,
+          "date" -> DateInput.localDate(invalidForm("startDate"))
+        )
+        renderer.render(template = "testonly/deleteData.njk", json).map(BadRequest(_))
+      },
+      value => {
+        val id = s"${value.srn}${value.startDate}"
+        userAnswersCacheConnector.removeAll(id).map { _ =>
+          Redirect(controllers.testonly.routes.DeleteDataTestController.present())
         }
-      )
+      }
+    )
   }
 }
 

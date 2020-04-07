@@ -48,25 +48,27 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
-                                              renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                              renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def form()(implicit messages: Messages): Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
         val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
           case Some(value) => form.fill(value)
-          case None => form
+          case None        => form
         }
 
         val viewModel = GenericViewModel(
           submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
 
         val json = Json.obj(
           "srn" -> srn,
@@ -78,35 +80,37 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
         renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(Ok(_))
       }
-  }
+    }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
 
-        form.bindFromRequest().fold(
-          formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
-            val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> formWithErrors,
-              "radios" -> YearRange.radios(formWithErrors),
-              "viewModel" -> viewModel
-            )
-            renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(BadRequest(_))
-          },
-          value => {
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AnnualAllowanceYearPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate))
-          }
-        )
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "radios" -> YearRange.radios(formWithErrors),
+                "viewModel" -> viewModel
+              )
+              renderer.render(template = "chargeE/annualAllowanceYear.njk", json).map(BadRequest(_))
+            },
+            value => {
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(AnnualAllowanceYearPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(AnnualAllowanceYearPage(index), mode, updatedAnswers, srn, startDate))
+            }
+          )
       }
-  }
+    }
 }
