@@ -21,6 +21,7 @@ import javax.inject.Inject
 import models.chargeE.ChargeEDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
+import utils.AFTConstants.MIN_DATE
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
@@ -41,6 +42,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
+        minDate(MIN_DATE, "chargeE.chargeDetails.error.minDate"),
         futureDate("dateNoticeReceived.error.future"),
         yearHas4Digits("dateNoticeReceived.error.invalid")
       ),

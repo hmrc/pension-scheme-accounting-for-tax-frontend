@@ -384,6 +384,7 @@ chargeE.visuallyHidden.chargeAmount.label = the charge amount
 chargeE.visuallyHidden.dateNoticeReceived.label = the date you received notice to pay the charge
 chargeE.visuallyHidden.isPaymentMandatory.label = whether the payment type is mandatory
 
+chargeE.chargeDetails.error.minDate = The Date you received notice to pay the charge must be after 31 12 1899
 chargeE.addMembers.error = Select yes if you want to add another annual allowance charge
 chargeE.addMembers.title = Annual allowance charges for {0} to {1}
 chargeE.addMembers.heading = Annual allowance charges for {0} to {1}
