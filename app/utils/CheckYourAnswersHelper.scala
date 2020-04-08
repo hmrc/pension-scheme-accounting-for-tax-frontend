@@ -44,6 +44,21 @@ case object DataMissingException extends Exception
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages) {
 
+  //def enterPostCode: Option[Row] = userAnswers.get(EnterPostCodePage) map {
+  //  answer =>
+  //    Row(
+  //      key     = Key(msg"enterPostCode.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+  //      value   = Value(lit"$answer"),
+  //      actions = List(
+  //        Action(
+  //          content            = msg"site.edit",
+  //          href               = controllers.routes.EnterPostCodeController.onPageLoad(CheckMode, srn).url,
+  //          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"enterPostCode.checkYourAnswersLabel"))
+  //        )
+  //      )
+  //    )
+  //}
+
   private def addressAnswer(addr: SponsoringEmployerAddress)(implicit messages: Messages): Html = {
     def addrLineToHtml(l: String): String = s"""<span class="govuk-!-display-block">$l</span>"""
 

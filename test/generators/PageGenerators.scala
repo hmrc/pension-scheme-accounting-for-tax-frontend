@@ -24,6 +24,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryEnterPostCodePage: Arbitrary[EnterPostCodePage.type] =
+    Arbitrary(EnterPostCodePage)
+
   implicit lazy val arbitraryConfirmSubmitAFTReturnPage: Arbitrary[ConfirmSubmitAFTReturnPage.type] =
     Arbitrary(ConfirmSubmitAFTReturnPage)
 

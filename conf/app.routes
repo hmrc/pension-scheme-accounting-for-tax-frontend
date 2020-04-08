@@ -195,3 +195,8 @@ POST       /:srn/new-return/:startDate/change/want-to-submit                    
 
 GET        /:srn/new-return/:startDate/declaration                                         controllers.DeclarationController.onPageLoad(srn: String, startDate: String)
 GET        /:srn/new-return/:startDate/declaration/on-submit-declaration                                         controllers.DeclarationController.onSubmit(srn: String, startDate: String)
+
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postCode                        controllers.chargeC.EnterPostCodeController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postCode                        controllers.chargeC.EnterPostCodeController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postCode                  controllers.chargeC.EnterPostCodeController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postCode                  controllers.chargeC.EnterPostCodeController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
