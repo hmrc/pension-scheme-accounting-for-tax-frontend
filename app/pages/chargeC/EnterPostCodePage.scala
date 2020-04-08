@@ -19,7 +19,7 @@ package pages.chargeC
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class EnterPostCodePage(index: Int) extends QuestionPage[String] {
+case class EnterPostCodePage() extends QuestionPage[String] {
   override def path: JsPath = SponsoringEmployersQuery(index).path \ EnterPostCodePage.toString
 }
 

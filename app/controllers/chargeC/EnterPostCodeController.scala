@@ -60,8 +60,8 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        val preparedForm = request.userAnswers.get(EnterPostCodePage) match {
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
+        val preparedForm = request.userAnswers.get(EnterPostCodePage(index)) match {
           case None => form
           case Some(value) => form.fill(value)
         }
@@ -73,16 +73,17 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
 
         val json = Json.obj(
           "form" -> preparedForm,
-          "viewModel" -> viewModel
+          "viewModel" -> viewModel,
+          "sponsorName" -> sponsorName
         )
 
-        renderer.render("enterPostCode.njk", json).map(Ok(_))
+        renderer.render("chargeC/enterPostCode.njk", json).map(Ok(_))
       }
   }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
 
@@ -93,16 +94,17 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "viewModel" -> viewModel
+              "viewModel" -> viewModel,
+              "sponsorName" -> sponsorName
             )
 
-            renderer.render("enterPostCode.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/enterPostCode.njk", json).map(BadRequest(_))
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostCodePage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostCodePage(index), value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(EnterPostCodePage, mode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(EnterPostCodePage(index), mode, updatedAnswers, srn, startDate))
         )
       }
   }

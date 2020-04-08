@@ -22,11 +22,11 @@ import pages.behaviours.PageBehaviours
 class EnterPostCodePageSpec extends PageBehaviours {
 
   "EnterPostCodePage" - {
-
-    beRetrievable[String](EnterPostCodePage)
-
-    beSettable[String](EnterPostCodePage)
-
-    beRemovable[String](EnterPostCodePage)
+//
+//    beRetrievable[String](EnterPostCodePage)
+//
+//    beSettable[String](EnterPostCodePage)
+//
+//    beRemovable[String](EnterPostCodePage)
   }
 }

@@ -27,7 +27,7 @@ class EnterPostCodeFormProviderSpec extends StringFieldBehaviours {
 
   val form = new EnterPostCodeFormProvider()()
 
-  ".value" - {
+  ".value" must {
 
     val fieldName = "value"
 
