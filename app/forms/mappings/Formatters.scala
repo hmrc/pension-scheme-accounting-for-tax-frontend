@@ -32,6 +32,18 @@ trait Formatters extends Transforms with Constraints {
   private[mappings] val decimalRegexp = """^-?(\d*\.\d*)$"""
   private[mappings] val decimal2DPRegexp = """^-?(\d*\.\d{2})$"""
 
+  private[mappings] def stringFormatter(optionErrorKey: Option[String]): Formatter[String] =
+    new Formatter[String] {
+      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
+        (data.get(key), optionErrorKey) match {
+          case (None | Some(""), Some(errorKey)) => Left(Seq(FormError(key, errorKey)))
+          case (Some(s), _) => Right(s)
+        }
+
+      override def unbind(key: String, value: String): Map[String, String] =
+        Map(key -> value)
+    }
+
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] =
     new Formatter[Option[String]] {
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] =
@@ -71,23 +83,12 @@ trait Formatters extends Transforms with Constraints {
         Map(key -> value.getOrElse(""))
     }
 
-  private[mappings] def stringFormatter(errorKey: String): Formatter[String] =
-    new Formatter[String] {
 
-      override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], String] =
-        data.get(key) match {
-          case None | Some("") => Left(Seq(FormError(key, errorKey)))
-          case Some(s) => Right(s)
-        }
-
-      override def unbind(key: String, value: String): Map[String, String] =
-        Map(key -> value)
-    }
 
   private[mappings] def booleanFormatter(requiredKey: String, invalidKey: String): Formatter[Boolean] =
     new Formatter[Boolean] {
 
-      private val baseFormatter = stringFormatter(requiredKey)
+      private val baseFormatter = stringFormatter(Some(requiredKey))
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Boolean] =
         baseFormatter
@@ -109,7 +110,7 @@ trait Formatters extends Transforms with Constraints {
                                      args: Seq[String] = Seq.empty): Formatter[Int] =
     new Formatter[Int] {
 
-      private val baseFormatter = stringFormatter(requiredKey)
+      private val baseFormatter = stringFormatter(Some(requiredKey))
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Int] =
         baseFormatter
@@ -140,7 +141,7 @@ trait Formatters extends Transforms with Constraints {
                                             invalidKey: String,
                                             args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
-      private val baseFormatter = stringFormatter(requiredKey)
+      private val baseFormatter = stringFormatter(Some(requiredKey))
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
@@ -163,7 +164,7 @@ trait Formatters extends Transforms with Constraints {
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
-      private val baseFormatter = stringFormatter(requiredKey)
+      private val baseFormatter = stringFormatter(Some(requiredKey))
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], BigDecimal] =
         baseFormatter
@@ -185,7 +186,7 @@ trait Formatters extends Transforms with Constraints {
         baseFormatter.unbind(key, decimalFormat.format(value))
     }
 
-  private[mappings] def optionBigDecimal2DPFormatter(requiredKey: String,
+  private[mappings] def optionBigDecimal2DPFormatter(requiredKey: Option[String],
                                                      invalidKey: String,
                                                      decimalKey: String,
                                                      args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] =
@@ -242,7 +243,7 @@ trait Formatters extends Transforms with Constraints {
                                               (implicit ev: Enumerable[A]): Formatter[A] =
     new Formatter[A] {
 
-      private val baseFormatter = stringFormatter(requiredKey)
+      private val baseFormatter = stringFormatter(Some(requiredKey))
 
       override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], A] =
         baseFormatter.bind(key, data).right.flatMap {
