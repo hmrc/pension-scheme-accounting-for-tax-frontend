@@ -40,59 +40,55 @@ import viewmodels.Table.Cell
 import scala.concurrent.ExecutionContext
 
 class ReturnHistoryController @Inject()(
-                                         schemeService: SchemeService,
-                                         aftConnector: AFTConnector,
-                                         override val messagesApi: MessagesApi,
-                                         identify: IdentifierAction,
-                                         getData: DataRetrievalAction,
-                                         allowAccess: AllowAccessActionProvider,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         renderer: Renderer,
-                                         config: FrontendAppConfig
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    schemeService: SchemeService,
+    aftConnector: AFTConnector,
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
+        def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
 
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        val tableOfVersions =
+          if (versions.nonEmpty) {
+            Json.obj("versions" -> mapVersionsToTable(versions.sortBy(_.reportVersion).reverse, url))
+          } else {
+            Json.obj()
+          }
 
-        aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap {
-          versions =>
+        val json = Json.obj(
+          fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "quarterStart" -> startDate.format(dateFormatterStartDate),
+          "quarterEnd" -> StartQuarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+          "schemeName" -> schemeDetails.schemeName
+        ) ++ tableOfVersions
 
-            def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
-
-            val tableOfVersions =
-              if (versions.nonEmpty) {
-                Json.obj("versions" -> mapVersionsToTable(versions.sortBy(_.reportVersion).reverse, url))
-              } else {
-                Json.obj()
-              }
-
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "quarterStart" -> startDate.format(dateFormatterStartDate),
-              "quarterEnd" -> StartQuarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-              "schemeName" -> schemeDetails.schemeName
-          ) ++ tableOfVersions
-
-          renderer.render("amend/returnHistory.njk", json).map(Ok(_))
-        }
+        renderer.render("amend/returnHistory.njk", json).map(Ok(_))
       }
+    }
   }
-
-
-
 
   private def mapVersionsToTable(versions: Seq[AFTVersion], url: Option[String] => Call)(implicit messages: Messages): Table = {
 
     val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
     def link(data: AFTVersion)(implicit messages: Messages): Html = {
-      Html(s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages("site.view")}" +
-        s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
-      }
+      Html(
+        s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages("site.view")}" +
+          s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
+    }
 
     val head = Seq(
       Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
@@ -110,9 +106,5 @@ class ReturnHistoryController @Inject()(
 
     Table(head = head, rows = rows)
   }
-
-
-
-
 
 }

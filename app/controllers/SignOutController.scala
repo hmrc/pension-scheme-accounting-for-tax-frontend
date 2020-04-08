@@ -27,12 +27,14 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import scala.concurrent.{ExecutionContext, Future}
 
 class SignOutController @Inject()(
-                                   config: FrontendAppConfig,
-                                   identify: IdentifierAction,
-                                   getData: DataRetrievalAction,
-                                   val controllerComponents: MessagesControllerComponents,
-                                   userAnswersCacheConnector: UserAnswersCacheConnector
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+    config: FrontendAppConfig,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    val controllerComponents: MessagesControllerComponents,
+    userAnswersCacheConnector: UserAnswersCacheConnector
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
   def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async {
     implicit request =>

@@ -24,8 +24,8 @@ import services.AllowAccessService
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)
-                                         (implicit val executionContext: ExecutionContext) extends AllowSubmissionAction {
+class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)(implicit val executionContext: ExecutionContext)
+    extends AllowSubmissionAction {
 
   override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
     allowAccessService.allowSubmission(request.userAnswers.getOrElse(UserAnswers()))(request)

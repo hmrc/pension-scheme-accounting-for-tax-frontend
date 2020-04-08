@@ -27,10 +27,10 @@ trait Navigator {
 
   protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call]
 
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] =  {
-      mode match {
-        case NormalMode => routeMap(userAnswers, srn, startDate)
-        case CheckMode => editRouteMap(userAnswers, srn, startDate)
-      }
+  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+    mode match {
+      case NormalMode => routeMap(userAnswers, srn, startDate)
+      case CheckMode  => editRouteMap(userAnswers, srn, startDate)
+    }
   }
 }

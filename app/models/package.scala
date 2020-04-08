@@ -117,29 +117,30 @@ package object models {
         case ((n: KeyPathNode) :: Nil, value: JsObject) if !value.keys.contains(n.key) => JsSuccess(value)
         case ((n: IdxPathNode) :: Nil, value: JsArray) => removeIndexNode(n, value)
         case ((_: KeyPathNode) :: Nil, _) => JsError(s"cannot remove a key on $jsValue")
-        case (first :: second :: rest, oldValue) =>
-
-          Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
-            .reads(oldValue).flatMap {
-            opt: Option[JsValue] =>
-
-              opt.map(JsSuccess(_)).getOrElse {
-                second match {
-                  case _: KeyPathNode =>
-                    JsSuccess(Json.obj())
-                  case _: IdxPathNode =>
-                    JsSuccess(Json.arr())
-                  case _: RecursiveSearch =>
-                    JsError("recursive search is not supported")
-                }
-              }.flatMap {
-                _.remove(JsPath(second :: rest)).flatMap {
-                  newValue =>
-                    oldValue.set(JsPath(first :: Nil), newValue)
-                }
-              }
-          }
+        case (first :: second :: rest, oldValue) =>removeWithOldValue(first, second, rest, oldValue)
       }
+    }
+
+    private def removeWithOldValue(first: PathNode, second: PathNode, rest: List[PathNode], oldValue: JsValue): JsResult[JsValue] =
+      Reads.optionNoError(Reads.at[JsValue](JsPath(first :: Nil)))
+      .reads(oldValue).flatMap {
+      opt: Option[JsValue] =>
+
+        opt.map(JsSuccess(_)).getOrElse {
+          second match {
+            case _: KeyPathNode =>
+              JsSuccess(Json.obj())
+            case _: IdxPathNode =>
+              JsSuccess(Json.arr())
+            case _: RecursiveSearch =>
+              JsError("recursive search is not supported")
+          }
+        }.flatMap {
+          _.remove(JsPath(second :: rest)).flatMap {
+            newValue =>
+              oldValue.set(JsPath(first :: Nil), newValue)
+          }
+        }
     }
   }
 }

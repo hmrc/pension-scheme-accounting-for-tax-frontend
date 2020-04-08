@@ -118,19 +118,22 @@ trait Formatters extends Transforms with Constraints {
           .right.flatMap {
           case s if s.matches(decimalRegexp) =>
             Left(Seq(FormError(key, wholeNumberKey, args)))
-          case s =>
-            Try(BigInt(s)).toOption match {
-              case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
-              case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
-              case _ =>
-                nonFatalCatch
-                  .either(s.toInt)
-                  .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
-            }
+          case s => nonDecimalIntMatcher(s, key)
+
         }
 
       override def unbind(key: String, value: Int): Map[String, String] =
         baseFormatter.unbind(key, value.toString)
+
+      private def nonDecimalIntMatcher(s: String, key: String): Either[Seq[FormError], Int] =
+        Try(BigInt(s)).toOption match {
+        case Some(l) if min.isDefined && l < min.get._2 => Left(Seq(FormError(key, min.get._1, args)))
+        case Some(l) if max.isDefined && l > max.get._2 => Left(Seq(FormError(key, max.get._1, args)))
+        case _ =>
+          nonFatalCatch
+            .either(s.toInt)
+            .left.map(_ => Seq(FormError(key, nonNumericKey, args)))
+      }
     }
 
   private[mappings] def bigDecimalFormatter(requiredKey: String,

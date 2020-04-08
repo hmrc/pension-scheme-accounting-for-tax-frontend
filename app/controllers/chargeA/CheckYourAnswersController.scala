@@ -50,8 +50,10 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
                                            config: FrontendAppConfig,
-                                           renderer: Renderer
-                                          )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                           renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
@@ -66,29 +68,30 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           helper.total(chargeDetails.totalAmount)
         )
 
-        renderer.render(
-          template = "check-your-answers.njk",
-          ctx = Json.obj(
-            "srn" -> srn,
-          "startDate" -> Some(startDate),
-            "list" -> helper.rows(request.viewOnly, seqRows),
-            "viewModel" -> GenericViewModel(
-              submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName
-            ),
-            "chargeName" -> "chargeA",
-            "canChange" -> !request.viewOnly
+        renderer
+          .render(
+            template = "check-your-answers.njk",
+            ctx = Json.obj(
+              "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "list" -> helper.rows(request.viewOnly, seqRows),
+              "viewModel" -> GenericViewModel(
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              ),
+              "chargeName" -> "chargeA",
+              "canChange" -> !request.viewOnly
+            )
           )
-        ).map(Ok(_))
+          .map(Ok(_))
       }
-  }
+    }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>
-
           val updatedChargeDetails: ChargeDetails = chargeDetails.copy(
             totalAmtOfTaxDueAtLowerRate = Option(chargeDetails.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00))),
             totalAmtOfTaxDueAtHigherRate = Option(chargeDetails.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))

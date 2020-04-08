@@ -30,7 +30,6 @@ trait CompoundNavigator {
   def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Call
 }
 
-
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
   private def defaultPage(id: Page, mode: Mode): Call = {
     Logger.warn(message = s"No navigation defined for id $id in mode $mode")
@@ -43,8 +42,10 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) exte
   }
 
   private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Option[Call] = {
-    navigators.asScala.find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id)).map(
-      _.nextPageOptional(mode, userAnswers, srn, startDate)(id)
-    )
+    navigators.asScala
+      .find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id))
+      .map(
+        _.nextPageOptional(mode, userAnswers, srn, startDate)(id)
+      )
   }
 }

@@ -31,7 +31,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         wholeNumberKey = "numberOfDeceased.error.wholeNumber",
         nonNumericKey = "numberOfDeceased.error.wholeNumber",
         min = Some(Tuple2("numberOfDeceased.error.wholeNumber", 0)),
-        max = Some(Tuple2("numberOfDeceased.error.maxLength", 999999))
+        max = Some(Tuple2("numberOfDeceased.error.maxLength", ChargeDetailsFormProvider.noOfDeceasedMaxLength))
       ),
       "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "totalTaxDue.error.required",
@@ -42,4 +42,10 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         minimumValue[BigDecimal](minimumChargeValueAllowed, "totalTaxDue.error.minimum")
       )
     )(ChargeBDetails.apply)(ChargeBDetails.unapply))
+
 }
+
+object ChargeDetailsFormProvider {
+  val noOfDeceasedMaxLength: Int = 999999
+}
+

@@ -36,21 +36,23 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
-                                           override val messagesApi: MessagesApi,
-                                           identify: IdentifierAction,
-                                           getData: DataRetrievalAction,
-                                           allowAccess: AllowAccessActionProvider,
-                                           requireData: DataRequiredAction,
-                                           val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer,
-                                           schemeDetailsConnector: SchemeDetailsConnector,
-                                           userAnswersCacheConnector: UserAnswersCacheConnector,
-                                           navigator: CompoundNavigator,
-                                           config: FrontendAppConfig
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    schemeDetailsConnector: SchemeDetailsConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
@@ -59,8 +61,8 @@ class WhatYouWillNeedController @Inject()(
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )
 
-      renderer.render(template = "chargeC/whatYouWillNeed.njk",
-        Json.obj("srn" -> srn,
-          "startDate" -> Some(startDate), "viewModel" -> viewModel)).map(Ok(_))
-  }
+      renderer
+        .render(template = "chargeC/whatYouWillNeed.njk", Json.obj("srn" -> srn, "startDate" -> Some(startDate), "viewModel" -> viewModel))
+        .map(Ok(_))
+    }
 }

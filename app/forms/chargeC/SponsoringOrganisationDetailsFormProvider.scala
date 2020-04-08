@@ -28,7 +28,7 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
     Form(
       mapping(
         "name" -> text("chargeC.sponsoringOrganisationDetails.name.error.required")
-          .verifying(maxLength(155, "chargeC.sponsoringOrganisationDetails.name.error.length")),
+          .verifying(maxLength(SponsoringOrganisationDetailsFormProvider.maxLength, "chargeC.sponsoringOrganisationDetails.name.error.length")),
         "crn" -> crnMapping(
           requiredCRNKey = "chargeC.sponsoringOrganisationDetails.crn.error.required",
           lengthKey = "chargeC.sponsoringOrganisationDetails.crn.error.length",
@@ -37,4 +37,8 @@ class SponsoringOrganisationDetailsFormProvider @Inject() extends Mappings with 
       )
       (SponsoringOrganisationDetails.applyDelete)(SponsoringOrganisationDetails.unapplyDelete)
     )
+}
+
+object SponsoringOrganisationDetailsFormProvider {
+  val maxLength: Int = 155
 }

@@ -16,22 +16,23 @@
 
 package forms.chargeG
 
+import java.time.LocalDate
+
 import forms.mappings.{Constraints, Mappings, Transforms}
 import javax.inject.Inject
 import models.chargeG.MemberDetails
 import play.api.data.Form
 import play.api.data.Forms._
-import utils.AFTConstants.MIN_DATE
 
 class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with Transforms {
 
   def apply(): Form[MemberDetails] = Form(
     mapping(
       "firstName" -> text("memberDetails.error.firstName.required")
-        .verifying(maxLength(35, "memberDetails.error.firstName.length"))
+        .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.firstName.length"))
         .verifying(regexp(nameRegex, "memberDetails.error.firstName.invalid")),
       "lastName" -> text("memberDetails.error.lastName.required")
-        .verifying(maxLength(35, "memberDetails.error.lastName.length"))
+        .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.lastName.length"))
         .verifying(regexp(nameRegex, "memberDetails.error.lastName.invalid")),
       "dob" -> localDate(
         invalidKey = "dob.error.invalid",
@@ -39,7 +40,7 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with
         twoRequiredKey = "dob.error.incomplete",
         requiredKey = "dob.error.required"
       ).verifying(
-        minDate(MIN_DATE, "dob.error.past"),
+        minDate(MemberDetailsFormProvider.MIN_DATE, "dob.error.past"),
         futureDate("dob.error.future"),
         yearHas4Digits("dob.error.invalid")
       ),
@@ -48,3 +49,10 @@ class MemberDetailsFormProvider @Inject() extends Mappings with Constraints with
     )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
   )
 }
+
+object MemberDetailsFormProvider {
+  val maxLength: Int = 35
+  val minYear: Int = 1900
+  val MIN_DATE: LocalDate = LocalDate.of(minYear, 1, 1)
+}
+

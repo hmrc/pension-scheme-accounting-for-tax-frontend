@@ -36,23 +36,25 @@ import models.LocalDateBinder._
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(
-                                       override val messagesApi: MessagesApi,
-                                       identify: IdentifierAction,
-                                       getData: DataRetrievalAction,
-                                       requireData: DataRequiredAction,
-                                       allowAccess: AllowAccessActionProvider,
-                                       allowSubmission: AllowSubmissionAction,
-                                       aftService: AFTService,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       navigator: CompoundNavigator,
-                                       val controllerComponents: MessagesControllerComponents,
-                                       config: FrontendAppConfig,
-                                       renderer: Renderer
-                                     )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    allowAccess: AllowAccessActionProvider,
+    allowSubmission: AllowSubmissionAction,
+    aftService: AFTService,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    val controllerComponents: MessagesControllerComponents,
+    config: FrontendAppConfig,
+    renderer: Renderer
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-    andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
+      andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeclarationController.onSubmit(srn, startDate).url,
@@ -62,11 +64,11 @@ class DeclarationController @Inject()(
 
         renderer.render(template = "declaration.njk", Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
-  }
+    }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-    andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
+      andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
@@ -77,5 +79,5 @@ class DeclarationController @Inject()(
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
-  }
+    }
 }

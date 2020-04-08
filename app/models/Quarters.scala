@@ -24,39 +24,42 @@ import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper._
+import java.time.Month
 
 import scala.language.implicitConversions
 
 sealed trait Quarters {
-  def startDay: Int = 1
-  def endDay: Int = 31
   def startMonth: Int
   def endMonth: Int
+  def startDay: Int = 1
+  def endDay: Int
 }
 
 trait CommonQuarters {
   def currentYear: Int = today.getYear
 
   case object Q1 extends WithName("q1") with Quarters {
-    override def startMonth = 1
-    override def endMonth = 3
+    override def startMonth: Int = Month.JANUARY.getValue
+    override def endMonth: Int = Month.MARCH.getValue
+    override def endDay: Int = Month.MARCH.maxLength()
   }
 
   case object Q2 extends WithName("q2") with Quarters {
-    override def endDay = 30
-    override def startMonth = 4
-    override def endMonth = 6
+    override def startMonth: Int = Month.APRIL.getValue
+    override def endMonth: Int = Month.JUNE.getValue
+    override def endDay: Int = Month.JUNE.maxLength()
   }
 
   case object Q3 extends WithName("q3") with Quarters {
-    override def endDay = 30
-    override def startMonth = 7
-    override def endMonth = 9
+    override def startMonth: Int = Month.JULY.getValue
+    override def endMonth: Int = Month.SEPTEMBER.getValue
+    override def endDay: Int = Month.SEPTEMBER.maxLength()
   }
 
   case object Q4 extends WithName("q4") with Quarters {
-    override def startMonth = 10
-    override def endMonth = 12
+    override def startMonth: Int = Month.OCTOBER.getValue
+    override def endMonth: Int = Month.DECEMBER.getValue
+    override def endDay: Int = Month.DECEMBER.maxLength()
   }
 
   def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] = {
@@ -93,9 +96,6 @@ trait CommonQuarters {
       case i if i <= 9 => Q3
       case _ => Q4
     }
-
-
-
 }
 
 sealed trait StartQuarters extends Quarters

@@ -31,21 +31,24 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 
 class CannotStartAFTReturnController @Inject()(
-                                             identify: IdentifierAction,
-                                             getData: DataRetrievalAction,
-                                             requireData: DataRequiredAction,
-                                             val controllerComponents: MessagesControllerComponents,
-                                             renderer: Renderer,
-                                             config: FrontendAppConfig
-                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer.render("cannot-start-aft-return.njk",
-          Json.obj("schemeName" -> schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn))
-        ).map(Ok(_))
+        renderer
+          .render("cannot-start-aft-return.njk",
+                  Json.obj("schemeName" -> schemeName, "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)))
+          .map(Ok(_))
       }
   }
 }
