@@ -31,7 +31,7 @@ trait Mappings extends Formatters with Constraints with Transforms {
     of(optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName))
 
   protected def text(errorKey: String = "error.required"): FieldMapping[String] =
-    of(stringFormatter(Some(errorKey)))
+    of(stringFormatter(errorKey))
 
   protected def int(requiredKey: String = "error.required",
                     wholeNumberKey: String = "error.wholeNumber",
@@ -52,7 +52,7 @@ trait Mappings extends Formatters with Constraints with Transforms {
                              ): FieldMapping[BigDecimal] =
     of(bigDecimal2DPFormatter(requiredKey, invalidKey, decimalKey))
 
-  protected def optionBigDecimal2DP(requiredKey: Option[String] = Some("error.required"),
+  protected def optionBigDecimal2DP(requiredKey: String = "error.required",
                                     invalidKey: String = "error.invalid",
                                     decimalKey: String = "error.decimal"
                                    ): FieldMapping[Option[BigDecimal]] =

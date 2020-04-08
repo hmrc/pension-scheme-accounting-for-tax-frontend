@@ -50,7 +50,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       "totalAmtOfTaxDueAtLowerRate" -> onlyIf[Option[BigDecimal]](
         otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "totalAmtOfTaxDueAtHigherRate"),
         optionBigDecimal2DP(
-          requiredKey = Some("chargeA.totalAmtOfTaxDueAtLowerRate.error.required"),
+          requiredKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal"
         ).verifying(
@@ -67,7 +67,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       "totalAmtOfTaxDueAtHigherRate" -> onlyIf[Option[BigDecimal]](
         otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "totalAmtOfTaxDueAtLowerRate"),
         optionBigDecimal2DP(
-          requiredKey = Some("chargeA.totalAmtOfTaxDueAtHigherRate.error.required"),
+          requiredKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.required",
           invalidKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid",
           decimalKey = "chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal"
         ).verifying(
