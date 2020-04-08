@@ -16,16 +16,18 @@
 
 package forms.chargeE
 
+import java.time.LocalDate
+
 import forms.mappings.{Constraints, Mappings}
 import javax.inject.Inject
 import models.chargeE.ChargeEDetails
 import play.api.data.Form
 import play.api.data.Forms.mapping
-import utils.AFTConstants.MIN_DATE
+import utils.DateHelper.formatDateDMY
 
 class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(minimumChargeValueAllowed:BigDecimal): Form[ChargeEDetails] =
+  def apply(minimumChargeValueAllowed:BigDecimal, minimumDate: LocalDate): Form[ChargeEDetails] =
     Form(mapping(
 
       "chargeAmount" -> bigDecimal2DP(
@@ -42,7 +44,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
         twoRequiredKey = "dateNoticeReceived.error.incomplete",
         requiredKey = "dateNoticeReceived.error.required"
       ).verifying(
-        minDate(MIN_DATE, "dateNoticeReceived.error.minDate"),
+        minDate(minimumDate, "dateNoticeReceived.error.minDate", formatDateDMY(minimumDate)),
         futureDate("dateNoticeReceived.error.future"),
         yearHas4Digits("dateNoticeReceived.error.invalid")
       ),
