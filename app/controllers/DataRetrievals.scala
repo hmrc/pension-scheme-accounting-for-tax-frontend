@@ -22,7 +22,7 @@ import models.{Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages.{PSTRQuery, QuarterPage, QuestionPage, SchemeNameQuery}
+import pages._
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
@@ -42,10 +42,10 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeNameWithPSTRAndQuarter(block: (String, String, Quarter) => Future[Result])(
+  def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, Quarter) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(QuarterPage)) match {
-      case (Some(schemeName), Some(pstr), Some(quarter)) => block(schemeName, pstr, quarter)
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSAEmailQuery), request.userAnswers.get(QuarterPage)) match {
+      case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
       case _                                             => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

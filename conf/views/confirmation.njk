@@ -3,6 +3,7 @@
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block beforeContent %}
   {% include "includes/phase-banner.njk" %}
@@ -18,19 +19,24 @@
       <div class="govuk-grid-column-two-thirds">
 
         {{ govukPanel({
-                titleText: messages("confirmation.aft.return", quarterStartDate, quarterEndDate),
-                html:dataHtml
+                titleText: messages("confirmation.aft.return"),
+                html: panelHtml
         }) }}
 
-        <p class="govuk-body">{{messages("confirmation.p1")}}</p>
+        <p class="govuk-body">{{messages("confirmation.p1", email)}}</p>
+
+        {{ govukSummaryList({
+                    rows: list
+                  })
+        }}
 
         <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
          <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
+         <p class="govuk-body">{{messages("confirmation.whatNext.p2")}}</p>
+
          <div><ul class="govuk-list govuk-list--bullet">
             <li>{{messages("confirmation.whatNext.item1")}}</li>
             <li>{{messages("confirmation.whatNext.item2")}}</li>
-            <li>{{messages("confirmation.whatNext.item3")}}</li>
-            <li>{{messages("confirmation.whatNext.item4")}}</li>
         </ul></div>
 
         <ul class="govuk-list">
