@@ -34,32 +34,31 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class AFTLoginController @Inject()(
-                                      override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      renderer: Renderer,
-                                      config: FrontendAppConfig,
-                                      auditService: AuditService,
-                                      aftService: AFTService,
-                                      allowService: AllowAccessService
-                                    )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    navigator: CompoundNavigator,
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    allowAccess: AllowAccessActionProvider,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig,
+    auditService: AuditService,
+    aftService: AFTService,
+    allowService: AllowAccessService
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
-    implicit request =>
-
-      val defaultYear = StartYears.minYear(config)
-      (StartYears.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    val defaultYear = StartYears.minYear(config)
+    (StartYears.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
-
-       Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
+        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 
       case (_, quarters) if quarters > 1 =>
-
         Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
@@ -69,6 +68,5 @@ class AFTLoginController @Inject()(
   }
 
   case object NoQuartersAvailableException extends Exception("No quarters are available to be be selected from")
-
 
 }

@@ -148,7 +148,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
                      sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails])
                     (implicit messages: Messages): Row =
     Row(
-      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)), classes = Seq("govuk-!-width-one-half")),
+      key = Key(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)),
+        classes = Seq("govuk-!-width-one-half")),
       value = Value(addressAnswer(address)),
       actions = List(
         Action(
@@ -229,7 +230,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: L
   def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
+        classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",

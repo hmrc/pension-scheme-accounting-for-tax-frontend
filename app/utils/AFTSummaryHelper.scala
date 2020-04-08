@@ -33,92 +33,97 @@ class AFTSummaryHelper{
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
+  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+    SummaryDetails(
+      chargeType = ChargeTypeAnnualAllowance,
+      totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+      href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate)
+    ),
+    SummaryDetails(
+      chargeType = ChargeTypeAuthSurplus,
+      totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+      href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate)
+    ),
+    SummaryDetails(
+      chargeType = ChargeTypeDeRegistration,
+      totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+      href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    ),
+    SummaryDetails(
+      chargeType = ChargeTypeLifetimeAllowance,
+      totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0.00)),
+      href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate)
+    ),
+    SummaryDetails(
+      chargeType = ChargeTypeShortService,
+      totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
+      href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    ),
+    SummaryDetails(
+      chargeType = ChargeTypeLumpSumDeath,
+      totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+      href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    )
+  )
+
+  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+    SummaryDetails(
+      chargeType = ChargeTypeOverseasTransfer,
+      totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
+      href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
+    )
+  )
+
+  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
+    summaryDataUK(ua, srn, startDate).map { data =>
+    Row(
+      key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+      actions = if (data.totalAmount > BigDecimal(0)) {
+        List(
+          Action(
+            content = msg"site.view",
+            href = data.href.url,
+            visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+          )
+        )
+      } else {
+        Nil
+      }
+    )
+  }
+
+
+  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
+    summaryDataNonUK(ua, srn, startDate).map { data =>
+    Row(
+      key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
+      actions = if (data.totalAmount > BigDecimal(0)) {
+        List(
+          Action(
+            content = msg"site.view",
+            href = data.href.url,
+            visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+          )
+        )
+      } else {
+        Nil
+      }
+    )
+  }
+
+
+
   def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages): Seq[Row] = {
-
-    val summaryDataUK: Seq[SummaryDetails] = Seq(
-      SummaryDetails(
-        chargeType = ChargeTypeAnnualAllowance,
-        totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate)
-      ),
-      SummaryDetails(
-        chargeType = ChargeTypeAuthSurplus,
-        totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-        href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate)
-      ),
-      SummaryDetails(
-        chargeType = ChargeTypeDeRegistration,
-        totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
-      ),
-      SummaryDetails(
-        chargeType = ChargeTypeLifetimeAllowance,
-        totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0.00)),
-        href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate)
-      ),
-      SummaryDetails(
-        chargeType = ChargeTypeShortService,
-        totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-        href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
-      ),
-      SummaryDetails(
-        chargeType = ChargeTypeLumpSumDeath,
-        totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
-        href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
-      )
-    )
-
-    val summaryDataNonUK: Seq[SummaryDetails] = Seq(
-            SummaryDetails(
-              chargeType = ChargeTypeOverseasTransfer,
-              totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-              href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
-            )
-    )
-
-    val summaryRowsUK: Seq[SummaryList.Row] = summaryDataUK.map { data =>
-      Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-        actions = if (data.totalAmount > BigDecimal(0)) {
-          List(
-            Action(
-              content = msg"site.view",
-              href = data.href.url,
-              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-            )
-          )
-        } else {
-          Nil
-        }
-      )
-    }
-
-
-    val summaryRowsNonUK: Seq[SummaryList.Row] = summaryDataNonUK.map { data =>
-      Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
-        actions = if (data.totalAmount > BigDecimal(0)) {
-          List(
-            Action(
-              content = msg"site.view",
-              href = data.href.url,
-              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-            )
-          )
-        } else {
-          Nil
-        }
-      )
-    }
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK.map(_.totalAmount).sum)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate).map(_.totalAmount).sum)}"),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = Nil
     ))
 
-    summaryRowsUK ++ totalRow ++ summaryRowsNonUK
+    summaryRowsUK(ua, srn, startDate) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate)
   }
 }

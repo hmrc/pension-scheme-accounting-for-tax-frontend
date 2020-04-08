@@ -16,7 +16,6 @@
 
 package models
 
-import models.Mode.UnknownModeException
 import play.api.mvc.JavascriptLiteral
 
 sealed trait Mode

@@ -48,10 +48,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
-  private def form(ua:UserAnswers)(implicit messages: Messages): Form[ChargeBDetails] =
+  private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeBDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
@@ -62,13 +64,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)  andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
         val preparedForm: Form[ChargeBDetails] = request.userAnswers.get(ChargeBDetailsPage) match {
           case Some(value) => form(request.userAnswers).fill(value)
-          case None => form(request.userAnswers)
+          case None        => form(request.userAnswers)
         }
 
         val json = Json.obj(
@@ -80,29 +80,29 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
       }
-  }
+    }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
-        form(request.userAnswers).bindFromRequest().fold(
-          formWithErrors => {
-            val json = Json.obj(
-          "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> formWithErrors,
-              "viewModel" -> viewModel(mode, srn, startDate, schemeName)
-            )
-            renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
-        )
+        form(request.userAnswers)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+              )
+              renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
+          )
       }
-  }
+    }
 }

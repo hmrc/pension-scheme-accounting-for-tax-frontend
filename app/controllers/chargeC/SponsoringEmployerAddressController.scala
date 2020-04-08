@@ -49,8 +49,10 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
                                                     formProvider: SponsoringEmployerAddressFormProvider,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
-                                                    renderer: Renderer
-                                                   )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                    renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private val form = formProvider()
 
@@ -72,21 +74,24 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
   private def jsonCountries(countrySelected: Option[String])(implicit messages: Messages): JsArray =
     config.validCountryCodes
       .map(countryCode => (countryCode, messages(s"country.$countryCode")))
-      .sortWith(_._2 < _._2).foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
-      acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
-    }
+      .sortWith(_._2 < _._2)
+      .foldLeft(JsArray(Seq(Json.obj("value" -> "", "text" -> "")))) { (acc, nextCountryTuple) =>
+        acc ++ countryJsonElement(nextCountryTuple, countrySelected.contains(nextCountryTuple._1))
+      }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
-          case None => form
+          case None        => form
           case Some(value) => form.fill(value)
         }
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
 
         val json = Json.obj(
           "srn" -> srn,
@@ -99,38 +104,42 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
 
         renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(Ok(_))
       }
-  }
+    }
 
   private def addArgsToErrors(form: Form[SponsoringEmployerAddress], args: String*): Form[SponsoringEmployerAddress] =
     form copy (errors = form.errors.map(_ copy (args = args)))
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        form.bindFromRequest().fold(
-          formWithErrors => {
-            val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val viewModel = GenericViewModel(
+                submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
 
-            val json = Json.obj(
-              "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> addArgsToErrors(formWithErrors, sponsorName),
-              "viewModel" -> viewModel,
-              "sponsorName" -> sponsorName,
-              "countries" -> jsonCountries(formWithErrors.data.get("country"))
-            )
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> addArgsToErrors(formWithErrors, sponsorName),
+                "viewModel" -> viewModel,
+                "sponsorName" -> sponsorName,
+                "countries" -> jsonCountries(formWithErrors.data.get("country"))
+              )
 
-            renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
-        )
+              renderer.render("chargeC/sponsoringEmployerAddress.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(SponsoringEmployerAddressPage(index), mode, updatedAnswers, srn, startDate))
+          )
       }
-  }
+    }
 }

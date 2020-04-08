@@ -47,24 +47,27 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
                                                  formProvider: ConfirmSubmitAFTReturnFormProvider,
                                                  val controllerComponents: MessagesControllerComponents,
                                                  config: FrontendAppConfig,
-                                                 renderer: Renderer
-                                                )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                                 renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen
-    allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen
+      allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
-          case None => form
+          case None        => form
           case Some(value) => form.fill(value)
         }
 
         val viewModel = GenericViewModel(
           submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          schemeName = schemeName
+        )
 
         val json = Json.obj(
           fields = "srn" -> srn,
@@ -76,42 +79,45 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
         renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(Ok(_))
       }
-  }
+    }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen
-    allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
-    implicit request =>
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen
+      allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        form.bindFromRequest().fold(
-          formWithErrors => {
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
 
-            val json = Json.obj(
-              fields = "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
-            )
+              val json = Json.obj(
+                fields = "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value"))
+              )
 
-            renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
-          },
-          value =>
-            if (!value) {
-              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-                Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
-              }
-            } else {
-              for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate))
+              renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
+            },
+            value =>
+              if (!value) {
+                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                  Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+                }
+              } else {
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
+                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate))
             }
-        )
+          )
       }
-  }
+    }
 }

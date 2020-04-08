@@ -49,8 +49,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
                                         config: FrontendAppConfig,
-                                        renderer: Renderer
-                                       )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+                                        renderer: Renderer)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private def form(ua: UserAnswers)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = UserAnswers.deriveMinimumChargeValueAllowed(ua))
@@ -63,13 +65,11 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
           case Some(value) => form(request.userAnswers).fill(value)
-          case None => form(request.userAnswers)
+          case None        => form(request.userAnswers)
         }
 
         val json = Json.obj(
@@ -81,29 +81,29 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
       }
-  }
+    }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-
-        form(request.userAnswers).bindFromRequest().fold(
-          formWithErrors => {
-            val json = Json.obj(
-              "srn" -> srn,
-          "startDate" -> Some(startDate),
-              "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
-              "viewModel" -> viewModel(mode, srn, startDate, schemeName)
-            )
-            renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
-        )
+        form(request.userAnswers)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
+                "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+              )
+              renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
+            },
+            value =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
+          )
       }
-  }
+    }
 }

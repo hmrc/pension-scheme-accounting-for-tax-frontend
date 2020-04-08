@@ -26,6 +26,5 @@ case class MemberDetailsPage(index: Int) extends QuestionPage[MemberDetails] {
 }
 
 object MemberDetailsPage {
-  def collectionPath: JsPath = JsPath \ "chargeDDetails" \ LifetimeAllowanceMembersQuery.toString \\ MemberDetailsPage.toString
   override lazy val toString: String = "memberDetails"
 }

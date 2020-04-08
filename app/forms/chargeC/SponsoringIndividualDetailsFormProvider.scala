@@ -30,13 +30,13 @@ class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
         "firstName" -> text("chargeC.sponsoringIndividualDetails.firstName.error.required")
           .verifying(
             firstError(
-              maxLength(35, "chargeC.sponsoringIndividualDetails.firstName.error.length"),
+              maxLength(SponsoringIndividualDetailsFormProvider.maxLength, "chargeC.sponsoringIndividualDetails.firstName.error.length"),
               regexp(nameRegex, "chargeC.sponsoringIndividualDetails.firstName.error.invalid"))
           ),
         "lastName" -> text("chargeC.sponsoringIndividualDetails.lastName.error.required")
           .verifying(
             firstError(
-              maxLength(35, "chargeC.sponsoringIndividualDetails.lastName.error.length"),
+              maxLength(SponsoringIndividualDetailsFormProvider.maxLength, "chargeC.sponsoringIndividualDetails.lastName.error.length"),
               regexp(nameRegex, "chargeC.sponsoringIndividualDetails.lastName.error.invalid"))
           ),
         "nino" -> text("chargeC.sponsoringIndividualDetails.nino.error.required")
@@ -45,4 +45,8 @@ class SponsoringIndividualDetailsFormProvider @Inject() extends Mappings {
       )
       (MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
     )
+}
+
+object SponsoringIndividualDetailsFormProvider {
+  val maxLength: Int = 35
 }

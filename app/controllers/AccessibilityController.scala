@@ -27,11 +27,11 @@ import scala.concurrent.ExecutionContext
 class AccessibilityController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport {
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport {
 
-  def onPageLoad: Action[AnyContent] = Action.async {
-    implicit request =>
-
-      renderer.render("accessibility.njk").map(Ok(_))
+  def onPageLoad: Action[AnyContent] = Action.async { implicit request =>
+    renderer.render("accessibility.njk").map(Ok(_))
   }
 }

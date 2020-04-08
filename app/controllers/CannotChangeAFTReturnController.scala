@@ -33,29 +33,36 @@ import scala.concurrent.ExecutionContext
 import models.LocalDateBinder._
 
 class CannotChangeAFTReturnController @Inject()(
-                                             identify: IdentifierAction,
-                                             getData: DataRetrievalAction,
-                                             requireData: DataRequiredAction,
-                                             val controllerComponents: MessagesControllerComponents,
-                                             renderer: Renderer,
-                                             config: FrontendAppConfig
-                                           )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    identify: IdentifierAction,
+    getData: DataRetrievalAction,
+    requireData: DataRequiredAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
-
-        renderer.render("cannot-change-aft-return.njk",
-          Json.obj("schemeName" -> schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
-            "quarterEnd" -> quarter.endDate.format(dateFormatter),
-            "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
+        renderer
+          .render(
+            "cannot-change-aft-return.njk",
+            Json.obj(
+              "schemeName" -> schemeName,
+              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+              "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
+              "quarterEnd" -> quarter.endDate.format(dateFormatter),
+              "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
+            )
           )
-        ).map(Ok(_))
+          .map(Ok(_))
       }
-  }
+    }
 }

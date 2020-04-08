@@ -19,7 +19,7 @@ package controllers
 import controllers.base.ControllerSpecBase
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, verify, when, never}
 import play.api.libs.json.Json
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
@@ -32,22 +32,31 @@ class SignOutControllerSpec extends ControllerSpecBase {
 
   private val srn = "srn"
   private val startDate = Some(QUARTER_START_DATE.toString)
-  private def signOutRoute: String = controllers.routes.SignOutController.signOut(srn, startDate).url
+  private def signOutRoute(startDate: Option[String] = startDate): String = controllers.routes.SignOutController.signOut(srn, startDate).url
   private val userAnswers = UserAnswers(Json.obj(
     "test-key" -> "test-value"
   ))
-
+  private val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
 
   "SignOut Controller" must {
 
-    "clear data and redirect to feedback survey page" in {
+    "clear data and redirect to feedback survey page when there is a startDate" in {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
       when(mockAppConfig.signOutUrl).thenReturn(frontendAppConfig.signOutUrl)
-      val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
-      val result = route(application, FakeRequest(GET, signOutRoute)).value
+      val result = route(application, FakeRequest(GET, signOutRoute())).value
 
       status(result) mustBe SEE_OTHER
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+      redirectLocation(result) mustBe Some(frontendAppConfig.signOutUrl)
+    }
+
+    "not clear data but redirect to feedback survey page when there is no startDate" in {
+      when(mockAppConfig.signOutUrl).thenReturn(frontendAppConfig.signOutUrl)
+
+      val result = route(application, FakeRequest(GET, signOutRoute(None))).value
+
+      status(result) mustBe SEE_OTHER
+      verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
       redirectLocation(result) mustBe Some(frontendAppConfig.signOutUrl)
     }
   }

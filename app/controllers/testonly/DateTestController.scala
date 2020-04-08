@@ -33,35 +33,36 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DateTestController @Inject()(
-                                    override val messagesApi: MessagesApi,
-                                    renderer: Renderer,
-                                    val controllerComponents: MessagesControllerComponents
-                                  )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+    override val messagesApi: MessagesApi,
+    renderer: Renderer,
+    val controllerComponents: MessagesControllerComponents
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   val form: Form[Option[LocalDate]] = Form("testDate" -> optional(localDate("d MMMM yyyy")))
 
-  def present: Action[AnyContent] = Action.async {
-    implicit request =>
-      val json = Json.obj(
-        "form" -> form.fill(DateHelper.overriddenDate),
-        "submitUrl" -> controllers.testonly.routes.DateTestController.submit().url
-      )
-      renderer.render(template = "testonly/dateTest.njk", json).map(Ok(_))
+  def present: Action[AnyContent] = Action.async { implicit request =>
+    val json = Json.obj(
+      "form" -> form.fill(DateHelper.overriddenDate),
+      "submitUrl" -> controllers.testonly.routes.DateTestController.submit().url
+    )
+    renderer.render(template = "testonly/dateTest.njk", json).map(Ok(_))
   }
 
-  def submit: Action[AnyContent] = Action.async {
-    implicit request =>
-      form.bindFromRequest.fold(
-        invalidForm => {
-          val json = Json.obj(
-            "form" -> invalidForm
-          )
-          renderer.render(template = "testonly/dateTest.njk", json).map(BadRequest(_))
-        },
-        date => {
-          DateHelper.setDate(date)
-          Future.successful(Redirect(controllers.testonly.routes.DateTestController.present()))
-        }
-      )
+  def submit: Action[AnyContent] = Action.async { implicit request =>
+    form.bindFromRequest.fold(
+      invalidForm => {
+        val json = Json.obj(
+          "form" -> invalidForm
+        )
+        renderer.render(template = "testonly/dateTest.njk", json).map(BadRequest(_))
+      },
+      date => {
+        DateHelper.setDate(date)
+        Future.successful(Redirect(controllers.testonly.routes.DateTestController.present()))
+      }
+    )
   }
 }

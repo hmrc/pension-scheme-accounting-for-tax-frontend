@@ -39,7 +39,8 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.Future
 import models.LocalDateBinder._
 
-class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with MockitoSugar
+  with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -71,13 +72,23 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "postcode" -> Seq("ZZ1 1ZZ")
   )
 
-  private def jsonToPassToTemplate(sponsorName: String): Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[SponsoringEmployerAddress] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.onSubmit(NormalMode, srn, startDate, index).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
-    "sponsorName" -> sponsorName
+    "sponsorName" -> sponsorName,
+    "countries" -> Seq(
+      Json.obj(
+        "value" -> "",
+        "text" -> ""
+      ),
+      Json.obj(
+        "value" -> "UK",
+        "text" -> "country.UK"
+      ) ++ (if(isSelected) Json.obj("selected" -> true) else Json.obj())
+    )
   )
 
   override def beforeEach: Unit = {
@@ -85,7 +96,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockAppConfig.validCountryCodes).thenReturn(Seq("foo", "bar"))
+    when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
 
 
@@ -102,7 +113,6 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last").apply(form))
     }
 
@@ -118,10 +128,9 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last")(form.fill(sponsoringEmployerAddress)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last", isSelected = true)(form.fill(sponsoringEmployerAddress)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -167,7 +176,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName)(form.fill(sponsoringEmployerAddress)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName, isSelected = true)(form.fill(sponsoringEmployerAddress)))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {

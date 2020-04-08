@@ -32,9 +32,11 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import scala.concurrent.{ExecutionContext, Future}
 
 class DataRetrievalImpl(
-                         srn: String, startDate: LocalDate,
-                         val userAnswersCacheConnector: UserAnswersCacheConnector
-                       )(implicit val executionContext: ExecutionContext) extends DataRetrieval {
+    srn: String,
+    startDate: LocalDate,
+    val userAnswersCacheConnector: UserAnswersCacheConnector
+)(implicit val executionContext: ExecutionContext)
+    extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -49,16 +51,17 @@ class DataRetrievalImpl(
           OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
         case Some(uaJsValue) =>
           val ua = UserAnswers(uaJsValue.as[JsObject])
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua),
-            isLocked || ua.get(IsPsaSuspendedQuery).getOrElse(true))
+          val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua), isLocked || psaSuspended)
       }
     }
   }
 }
 
 class DataRetrievalActionImpl @Inject()(
-                                         userAnswersCacheConnector: UserAnswersCacheConnector
-                                       )(implicit val executionContext: ExecutionContext) extends DataRetrievalAction {
+    userAnswersCacheConnector: UserAnswersCacheConnector
+)(implicit val executionContext: ExecutionContext)
+    extends DataRetrievalAction {
   override def apply(srn: String, startDate: LocalDate): DataRetrieval = new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }
 

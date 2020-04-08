@@ -19,7 +19,8 @@ package controllers
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter, userAnswersWithSchemeName}
+import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -28,21 +29,17 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
   "CannotChangeAFTReturn Controller" must {
 
     "must return OK and the correct view for a GET" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-
-      val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-      val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
       val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
 
@@ -58,5 +55,15 @@ class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
 
       templateCaptor.getValue mustEqual "cannot-change-aft-return.njk"
     }
+  }
+
+  "redirect to session expired page when there is no scheme name and quarter" in {
+    val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
+
+    mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+    val result = route(application, request).value
+
+    status(result) mustEqual SEE_OTHER
+    redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
   }
 }

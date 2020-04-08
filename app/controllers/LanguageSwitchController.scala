@@ -26,19 +26,18 @@ class LanguageSwitchController @Inject()(
     appConfig: FrontendAppConfig,
     override implicit val messagesApi: MessagesApi,
     val controllerComponents: MessagesControllerComponents
-) extends FrontendBaseController with I18nSupport {
+) extends FrontendBaseController
+    with I18nSupport {
 
   private def fallbackURL: String = routes.IndexController.onPageLoad().url
 
   private def languageMap: Map[String, Lang] = appConfig.languageMap
 
-  def switchToLanguage(language: String): Action[AnyContent] = Action {
-    implicit request =>
+  def switchToLanguage(language: String): Action[AnyContent] = Action { implicit request =>
+    val lang = languageMap.getOrElse(language, Lang.defaultLang)
 
-      val lang = languageMap.getOrElse(language, Lang.defaultLang)
+    val redirectURL = request.headers.get(REFERER).getOrElse(fallbackURL)
 
-      val redirectURL = request.headers.get(REFERER).getOrElse(fallbackURL)
-
-      Redirect(redirectURL).withLang(lang)
+    Redirect(redirectURL).withLang(lang)
   }
 }
