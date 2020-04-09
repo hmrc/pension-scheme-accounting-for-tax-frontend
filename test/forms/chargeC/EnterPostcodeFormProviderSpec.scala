@@ -22,7 +22,7 @@ import play.api.data.FormError
 class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "chargeC.enterPostcode.error.required"
-  val lengthKey = "chargeC.enterPostcode.error.length"
+  val lengthKey = "chargeC.enterPostcode.error.invalid"
   val maxLength = 8
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
