@@ -16,10 +16,13 @@
 
 package pages.chargeC
 
+import models.TolerantAddress
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object EnterPostcodePage extends QuestionPage[String] {
+case object EnterPostcodePage extends QuestionPage[Seq[TolerantAddress]] {
+
   override def path: JsPath = JsPath \ toString
-  override lazy val toString: String = "enterPostcode"
+
+  override def toString: String = "addressResults"
 }

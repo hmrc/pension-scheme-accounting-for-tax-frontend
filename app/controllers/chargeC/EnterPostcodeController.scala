@@ -19,7 +19,7 @@ package controllers.chargeC
 import java.time.LocalDate
 
 import forms.chargeC.EnterPostcodeFormProvider
-import pages.chargeC.{AddressResultsPage, EnterPostcodePage, WhichTypeOfSponsoringEmployerPage}
+import pages.chargeC.{EnterPostcodePage, WhichTypeOfSponsoringEmployerPage}
 import config.FrontendAppConfig
 import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -98,10 +98,13 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
             renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
+          lookupPostcode(srn,
+            mode,
+            value,
+            startDate,
+            index,
+            schemeName,
+            sponsorName)
         )
       }
   }
@@ -115,8 +118,6 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
                               schemeName: String,
                               sponsorName: String
                             )(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
-    val noResults = Messages("messages__error__postcode_no_results", postCode)
 
     addressLookupConnector.addressLookupByPostCode(postCode).flatMap {
 
@@ -136,13 +137,10 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
 
       case addresses =>
         for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressResultsPage, addresses))
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, addresses))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-        } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate))
+        } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
 
-    } recoverWith {
-      case _ =>
-        Future.successful(BadRequest(view(formWithError(""), viewmodel, existingSchemeName)))
     }
   }
 

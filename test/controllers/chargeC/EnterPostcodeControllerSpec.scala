@@ -16,7 +16,8 @@
 
 package controllers.chargeC
 
-import controllers.actions.MutableFakeDataRetrievalAction
+import connectors.AddressLookupConnector
+import controllers.actions.{DataRetrievalAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData.companyName
 import data.SampleData.dummyCall
@@ -26,9 +27,7 @@ import data.SampleData.userAnswersWithSchemeNameAndIndividual
 import data.SampleData.userAnswersWithSchemeNameAndOrganisation
 import forms.chargeC.EnterPostcodeFormProvider
 import matchers.JsonMatchers
-import models.GenericViewModel
-import models.NormalMode
-import models.UserAnswers
+import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -38,9 +37,7 @@ import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.EnterPostcodePage
-import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.chargeC.WhichTypeOfSponsoringEmployerPage
+import pages.chargeC.{EnterPostcodePage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.JsObject
@@ -50,6 +47,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import models.LocalDateBinder._
 import data.SampleData._
+import play.api.inject.bind
 
 import scala.concurrent.Future
 
@@ -57,12 +55,17 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
   with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
+  private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+  private val extraModules = bind[AddressLookupConnector].toInstance(mockAddressLookupConnector)
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
+    extraModules = Seq(extraModules)).build()
   private val templateToBeRendered = "chargeC/enterPostcode.njk"
   private val form = new EnterPostcodeFormProvider()()
   private val index = 0
   private val postcode = "ZZ1 1ZZ"
+  private val seqAddresses = Seq[TolerantAddress]()
+
 
   private def httpPathGET: String = controllers.chargeC.routes.EnterPostcodeController.onPageLoad(NormalMode, srn, startDate, index).url
 
@@ -148,10 +151,11 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
             WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
           ))
         ),
-        EnterPostcodePage.toString -> postcode
+        EnterPostcodePage.toString -> seqAddresses
       )
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostcodePage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 
