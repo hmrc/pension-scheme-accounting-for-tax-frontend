@@ -16,7 +16,6 @@
 
 package controllers.chargeC
 
-import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData.companyName
@@ -26,12 +25,10 @@ import data.SampleData.startDate
 import data.SampleData.userAnswersWithSchemeNameAndIndividual
 import data.SampleData.userAnswersWithSchemeNameAndOrganisation
 import forms.chargeC.EnterPostCodeFormProvider
-import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.GenericViewModel
 import models.NormalMode
 import models.UserAnswers
-import models.chargeC.SponsoringEmployerAddress
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -42,15 +39,12 @@ import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.EnterPostCodePage
-import pages.chargeC.EnterPostCodePage
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.data.Form
-import play.api.inject.bind
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
-import play.api.mvc.Call
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -68,7 +62,7 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
   private val templateToBeRendered = "chargeC/enterPostCode.njk"
   private val form = new EnterPostCodeFormProvider()()
   private val index = 0
-  private val postcode = "ZZ11ZZ"
+  private val postcode = "ZZ1 1ZZ"
 
   private def httpPathGET: String = controllers.chargeC.routes.EnterPostCodeController.onPageLoad(NormalMode, srn, startDate, index).url
 
@@ -79,12 +73,7 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "line1" -> Seq.empty,
-    "line2" -> Seq("line2"),
-    "line3" -> Seq("line3"),
-    "line4" -> Seq("line4"),
-    "country" -> Seq("UK"),
-    "postcode" -> Seq("ZZ1 1ZZ")
+    "value" -> Seq("")
   )
 
   private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[String] => JsObject = form => Json.obj(
@@ -118,7 +107,7 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last").apply(form))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}").apply(form))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -157,10 +146,11 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
             SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
             WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
           ))
-        )
+        ),
+        EnterPostCodePage.toString -> postcode
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostCodePage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostCodePage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 
@@ -177,24 +167,24 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
       redirectLocation(result) mustBe Some(dummyCall.url)
     }
 
-//    "return a BAD REQUEST when invalid data is submitted" in {
-//      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
-//
-//      status(result) mustEqual BAD_REQUEST
-//
-//      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-//    }
-//
-//    "redirect to Session Expired page for a POST when there is no data" in {
-//      mutableFakeDataRetrievalAction.setDataToReturn(None)
-//
-//      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-//    }
+    "return a BAD REQUEST when invalid data is submitted" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+    }
+
+    "redirect to Session Expired page for a POST when there is no data" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
   }
 }

@@ -61,7 +61,7 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(EnterPostCodePage(index)) match {
+        val preparedForm = request.userAnswers.get(EnterPostCodePage) match {
           case None => form
           case Some(value) => form.fill(value)
         }
@@ -102,9 +102,9 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostCodePage(index), value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostCodePage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(EnterPostCodePage(index), mode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(EnterPostCodePage, mode, updatedAnswers, srn, startDate))
         )
       }
   }

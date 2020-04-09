@@ -19,11 +19,7 @@ package pages.chargeC
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case class EnterPostCodePage() extends QuestionPage[String] {
-  override def path: JsPath = SponsoringEmployersQuery(index).path \ EnterPostCodePage.toString
-}
-
-object EnterPostCodePage {
+case object EnterPostCodePage extends QuestionPage[String] {
+  override def path: JsPath = JsPath \ toString
   override lazy val toString: String = "enterPostCode"
 }
-
