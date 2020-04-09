@@ -25,18 +25,17 @@ import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
 import models.LocalDateBinder._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import play.api.i18n.Messages
-import play.twirl.api.Html
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -66,9 +65,8 @@ class ConfirmationController @Inject()(
 
           val json = Json.obj(
             fields = "srn" -> srn,
-            "startDate" -> Some(startDate),
             "panelHtml" -> confirmationPanelText.toString(),
-            "email" -> email/*Html(s"${Html(s"""<a href="#">$email</a>""").toString()}").toString()*/,
+            "email" -> email,
             "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
@@ -78,15 +76,14 @@ class ConfirmationController @Inject()(
             )
           )
           renderer.render("confirmation.njk", json).flatMap { viewHtml =>
-            /*userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+            userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
               Ok(viewHtml)
-            }*/
-            Future.successful(Ok(viewHtml))
+            }
           }
         }
     }
 
-  private def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String, submittedDate: String): Seq[SummaryList.Row] = {
+  private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String, submittedDate: String): Seq[SummaryList.Row] = {
     Seq(Row(
       key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(schemeName), classes = Nil),

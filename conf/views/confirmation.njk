@@ -25,7 +25,7 @@
 
         <p class="govuk-body">
             {{messages("confirmation.p1")}}
-            <a class="govuk-link" href="#">{{email}}.</a>
+            <span class="govuk-!-font-weight-bold">{{email}}</span>.
         </p>
 
         {{ govukSummaryList({
@@ -37,7 +37,7 @@
          <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
          <p class="govuk-body">
              {{messages("confirmation.whatNext.p2.text1")}}
-                <a class="govuk-link" href="#">{{messages("confirmation.whatNext.p2.text2")}}</a>
+                <a class="govuk-link" href="mailto:{{messages("confirmation.whatNext.p2.text2")}}">{{messages("confirmation.whatNext.p2.text2")}}</a>
              {{messages("confirmation.whatNext.p2.text3")}}
          </p>
 

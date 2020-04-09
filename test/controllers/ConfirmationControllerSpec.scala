@@ -24,11 +24,12 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
-import models.GenericViewModel
 import models.LocalDateBinder._
+import models.{GenericViewModel, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import pages.PSAEmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -37,6 +38,9 @@ import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 
 import scala.concurrent.Future
@@ -51,13 +55,31 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
+  private val email = "test@test.com"
+
+  private val rows = Seq(Row(
+    key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
+    value = Value(Literal(SampleData.schemeName), classes = Nil),
+    actions = Nil
+  ),
+    Row(
+      key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
+      actions = Nil
+    ),
+    Row(
+      key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(Literal(DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())), classes = Nil),
+      actions = Nil
+    )
+  )
+
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
-    "pstr" -> SampleData.pstr,
+    "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft")}</span>""").toString()}").toString(),
+    "email" -> email,
+    "list" -> rows,
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
-    "quarterStartDate" -> quarterStartDate,
-    "quarterEndDate" -> quarterEndDate,
-    "submittedDate" -> DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now()),
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
       returnUrl = dummyCall.url,
@@ -73,7 +95,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
+        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
 
       val result = route(application, request).value
 
