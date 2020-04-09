@@ -68,7 +68,7 @@ class ConfirmationController @Inject()(
             fields = "srn" -> srn,
             "startDate" -> Some(startDate),
             "panelHtml" -> confirmationPanelText.toString(),
-            "email" -> email,
+            "email" -> email/*Html(s"${Html(s"""<a href="#">$email</a>""").toString()}").toString()*/,
             "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
@@ -106,6 +106,6 @@ class ConfirmationController @Inject()(
   }
 
   private def confirmationPanelText(implicit messages: Messages): Html = {
-    Html(s"${Html(s"""<span class="heading-large">${messages("confirmation.aft")}</span>""").toString()}")
+    Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft")}</span>""").toString()}")
   }
 }
