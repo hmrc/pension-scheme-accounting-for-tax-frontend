@@ -24,7 +24,7 @@ import data.SampleData.srn
 import data.SampleData.startDate
 import data.SampleData.userAnswersWithSchemeNameAndIndividual
 import data.SampleData.userAnswersWithSchemeNameAndOrganisation
-import forms.chargeC.EnterPostCodeFormProvider
+import forms.chargeC.EnterPostcodeFormProvider
 import matchers.JsonMatchers
 import models.GenericViewModel
 import models.NormalMode
@@ -38,7 +38,7 @@ import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.EnterPostCodePage
+import pages.chargeC.EnterPostcodePage
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
@@ -53,20 +53,20 @@ import data.SampleData._
 
 import scala.concurrent.Future
 
-class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
+class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
   with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeC/enterPostCode.njk"
-  private val form = new EnterPostCodeFormProvider()()
+  private val templateToBeRendered = "chargeC/enterPostcode.njk"
+  private val form = new EnterPostcodeFormProvider()()
   private val index = 0
   private val postcode = "ZZ1 1ZZ"
 
-  private def httpPathGET: String = controllers.chargeC.routes.EnterPostCodeController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.EnterPostcodeController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.EnterPostCodeController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("ZZ1 1ZZ")
@@ -79,10 +79,11 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
   private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[String] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.EnterPostCodeController.onSubmit(NormalMode, srn, startDate, index).url,
+      submitUrl = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName),
-    "sponsorName" -> sponsorName
+    "sponsorName" -> sponsorName,
+    "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
   )
 
   override def beforeEach: Unit = {
@@ -94,7 +95,7 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
   }
 
 
-  "EnterPostCode Controller with individual sponsor" must {
+  "EnterPostcode Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -120,7 +121,7 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
 
-  "EnterPostCode Controller with organisation sponsor" must {
+  "EnterPostcode Controller with organisation sponsor" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -147,10 +148,10 @@ class EnterPostCodeControllerSpec extends ControllerSpecBase with MockitoSugar
             WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
           ))
         ),
-        EnterPostCodePage.toString -> postcode
+        EnterPostcodePage.toString -> postcode
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostCodePage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostcodePage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
 

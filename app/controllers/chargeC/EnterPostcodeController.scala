@@ -18,8 +18,8 @@ package controllers.chargeC
 
 import java.time.LocalDate
 
-import forms.chargeC.EnterPostCodeFormProvider
-import pages.chargeC.EnterPostCodePage
+import forms.chargeC.EnterPostcodeFormProvider
+import pages.chargeC.EnterPostcodePage
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -43,14 +43,14 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
+class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                       navigator: CompoundNavigator,
                                       identify: IdentifierAction,
                                       getData: DataRetrievalAction,
                                       allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
-                                      formProvider: EnterPostCodeFormProvider,
+                                      formProvider: EnterPostcodeFormProvider,
                                       val controllerComponents: MessagesControllerComponents,
                                       config: FrontendAppConfig,
                                       renderer: Renderer
@@ -61,23 +61,24 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(EnterPostCodePage) match {
+        val preparedForm = request.userAnswers.get(EnterPostcodePage) match {
           case None => form
           case Some(value) => form.fill(value)
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPostCodeController.onSubmit(mode, srn, startDate, index).url,
+          submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> preparedForm,
           "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName
+          "sponsorName" -> sponsorName,
+          "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
         )
 
-        renderer.render("chargeC/enterPostCode.njk", json).map(Ok(_))
+        renderer.render("chargeC/enterPostcode.njk", json).map(Ok(_))
       }
   }
 
@@ -88,7 +89,7 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.EnterPostCodeController.onSubmit(mode, srn, startDate, index).url,
+              submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -98,13 +99,13 @@ class EnterPostCodeController @Inject()(override val messagesApi: MessagesApi,
               "sponsorName" -> sponsorName
             )
 
-            renderer.render("chargeC/enterPostCode.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostCodePage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(EnterPostCodePage, mode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
         )
       }
   }

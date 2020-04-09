@@ -19,14 +19,14 @@ package pages.chargeC
 import pages.behaviours.PageBehaviours
 
 
-class EnterPostCodePageSpec extends PageBehaviours {
+class EnterPostcodePageSpec extends PageBehaviours {
 
-  "EnterPostCodePage" - {
-//
-//    beRetrievable[String](EnterPostCodePage)
-//
-//    beSettable[String](EnterPostCodePage)
-//
-//    beRemovable[String](EnterPostCodePage)
+  "EnterPostcodePage" - {
+
+    beRetrievable[String](EnterPostcodePage)
+
+    beSettable[String](EnterPostcodePage)
+
+    beRemovable[String](EnterPostcodePage)
   }
 }

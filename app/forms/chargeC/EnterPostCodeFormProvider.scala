@@ -20,11 +20,11 @@ import javax.inject.Inject
 import forms.mappings.Mappings
 import play.api.data.Form
 
-class EnterPostCodeFormProvider @Inject() extends Mappings {
+class EnterPostcodeFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> text("enterPostCode.error.required")
-        .verifying(maxLength(8, "enterPostCode.error.length"))
+      "value" -> text("enterPostcode.error.required")
+        .verifying(maxLength(8, "enterPostcode.error.length"))
     )
 }

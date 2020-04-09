@@ -44,16 +44,16 @@ case object DataMissingException extends Exception
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages) {
 
-  //def enterPostCode: Option[Row] = userAnswers.get(EnterPostCodePage) map {
+  //def enterPostcode: Option[Row] = userAnswers.get(EnterPostcodePage) map {
   //  answer =>
   //    Row(
-  //      key     = Key(msg"enterPostCode.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+  //      key     = Key(msg"enterPostcode.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
   //      value   = Value(lit"$answer"),
   //      actions = List(
   //        Action(
   //          content            = msg"site.edit",
-  //          href               = controllers.routes.EnterPostCodeController.onPageLoad(CheckMode, srn).url,
-  //          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"enterPostCode.checkYourAnswersLabel"))
+  //          href               = controllers.routes.EnterPostcodeController.onPageLoad(CheckMode, srn).url,
+  //          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"enterPostcode.checkYourAnswersLabel"))
   //        )
   //      )
   //    )

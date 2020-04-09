@@ -19,13 +19,13 @@ package forms.chargeC
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class EnterPostCodeFormProviderSpec extends StringFieldBehaviours {
+class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "enterPostCode.error.required"
-  val lengthKey = "enterPostCode.error.length"
+  val requiredKey = "enterPostcode.error.required"
+  val lengthKey = "enterPostcode.error.length"
   val maxLength = 8
 
-  val form = new EnterPostCodeFormProvider()()
+  val form = new EnterPostcodeFormProvider()()
 
   ".value" must {
 
