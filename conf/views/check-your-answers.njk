@@ -25,11 +25,17 @@
         }) }}
 
         {% if canChange %}
+
+            {% if removeChargeUrl %}
+                <p><a href="{{ removeChargeUrl }}">{{ messages("removeCharge.linkText") }}</a></p>
+            {% endif %}
+
             {{ govukButton({
                 text: messages("site.save_charge_and_continue"),
                 href: viewModel.submitUrl,
                 attributes: {id: "submit"}
               }) }}
+
         {% else %}
             {{ govukButton({
                  text: messages("site.return_to_summary"),
