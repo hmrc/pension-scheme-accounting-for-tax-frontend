@@ -24,6 +24,7 @@ class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
   val requiredKey = "chargeC.enterPostcode.error.required"
   val lengthKey = "chargeC.enterPostcode.error.length"
   val maxLength = 8
+  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
   val form = new EnterPostcodeFormProvider()()
 
@@ -53,8 +54,8 @@ class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
     behave like fieldWithRegex(
       form,
       fieldName,
-      "12AB AB1",
-      FormError(fieldName, keyInvalid, Seq(regexPostcode))
+      Seq("12AB AB1"),
+      FormError(fieldName, "messages__error__postcode_invalid", Seq(regexPostcode))
     )
   }
 }

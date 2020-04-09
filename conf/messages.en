@@ -837,6 +837,7 @@ chargeC.enterPostcode.label = Postcode
 chargeC.enterPostcode.checkYourAnswersLabel = enterPostcode
 chargeC.enterPostcode.error.required = Enter a postcode
 chargeC.enterPostcode.error.length = The postcode cannot be more than 8 characters
+chargeC.enterPostcode.error.invalid = Enter a real postcode
 chargeC.enterPostcode.link.youCan = You can
 chargeC.enterPostcode.link.enterManually = enter the address manually
 chargeC.enterPostcode.findAddress = Find address
