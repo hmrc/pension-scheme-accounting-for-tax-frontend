@@ -46,33 +46,12 @@ import utils.AFTConstants._
 import scala.concurrent.Future
 
 class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
-  private val testManagePensionsUrl = Call("GET", "/scheme-summary")
-  private val quarterEndDate = QUARTER_END_DATE.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-  private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
 
-  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
+  import ConfirmationControllerSpec._
+
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-
-  private val email = "test@test.com"
-
-  private val rows = Seq(Row(
-    key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
-    value = Value(Literal(SampleData.schemeName), classes = Nil),
-    actions = Nil
-  ),
-    Row(
-      key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
-      actions = Nil
-    ),
-    Row(
-      key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(Literal(DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())), classes = Nil),
-      actions = Nil
-    )
-  )
 
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
@@ -121,4 +100,30 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
+}
+
+object ConfirmationControllerSpec {
+  private val testManagePensionsUrl = Call("GET", "/scheme-summary")
+  private val quarterEndDate = QUARTER_END_DATE.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+  private val quarterStartDate = QUARTER_START_DATE.format(DateTimeFormatter.ofPattern("d MMMM"))
+  private val email = "test@test.com"
+
+  private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
+
+  private val rows = Seq(Row(
+    key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
+    value = Value(Literal(SampleData.schemeName), classes = Nil),
+    actions = Nil
+  ),
+    Row(
+      key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
+      actions = Nil
+    ),
+    Row(
+      key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(Literal(DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())), classes = Nil),
+      actions = Nil
+    )
+  )
 }

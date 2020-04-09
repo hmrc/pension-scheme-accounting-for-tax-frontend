@@ -27,7 +27,7 @@ import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import pages.chargeC._
 import pages.chargeE.MemberDetailsPage
 import pages.chargeG.{MemberDetailsPage => ChargeGMemberDetailsPage}
-import pages.{PSTRQuery, QuarterPage, SchemeNameQuery}
+import pages.{PSAEmailQuery, PSTRQuery, QuarterPage, SchemeNameQuery}
 import play.api.mvc.Results.Ok
 import play.api.mvc.{AnyContent, Result}
 import play.api.test.FakeRequest
@@ -57,20 +57,20 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     }
   }
 
-  "retrieveSchemeNameWithPSTRAndQuarter must" - {
+  "retrieveSchemeNameWithEmailAndQuarter must" - {
     val result: (String, String, Quarter) => Future[Result] = { (_, _, _) => Future.successful(Ok("success result"))}
 
-    "return successful result when scheme name, pstr and quarter is successfully retrieved from user answers" in {
-      val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(PSTRQuery, value = "test-pstr")).
+    "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
+      val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(PSAEmailQuery, value = "test@test.com")).
         flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua)
-      val res = DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter(result)(request)
+      val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
       status(res) must be(OK)
     }
 
-    "return session expired when there is no scheme name or pstr or quarter in user answers" in {
+    "return session expired when there is no scheme name or email or quarter in user answers" in {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers())
-      val res = DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter(result)(request)
+      val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
