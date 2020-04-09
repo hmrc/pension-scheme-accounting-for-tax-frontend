@@ -25,7 +25,7 @@ import utils.WireMockHelper
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
-
+  import MinimalPsaConnector._
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
@@ -33,10 +33,12 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
   private lazy val connector: MinimalPsaConnector = injector.instanceOf[MinimalPsaConnector]
   private val psaId = "test-psa"
   private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
+  private val email = "test@test.com"
 
   private def validResponse(b:Boolean) =
     Json.stringify(
       Json.obj(
+        "email" -> email,
         "isPsaSuspended" -> b
       )
     )
@@ -52,8 +54,8 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
           )
       )
 
-      connector.isPsaSuspended(psaId) map {
-        _ mustBe false
+      connector.getMinimalPsaDetails(psaId) map {
+        _ mustBe MinimalPSA(email, isPsaSuspended = false)
       }
     }
 
@@ -66,8 +68,8 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
           )
       )
 
-      connector.isPsaSuspended(psaId) map {
-        _ mustBe true
+      connector.getMinimalPsaDetails(psaId) map {
+        _ mustBe MinimalPSA(email, isPsaSuspended = true)
       }
     }
 
@@ -84,7 +86,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
       )
 
       recoverToSucceededIf[BadRequestException] {
-        connector.isPsaSuspended(psaId)
+        connector.getMinimalPsaDetails(psaId)
       }
     }
   }

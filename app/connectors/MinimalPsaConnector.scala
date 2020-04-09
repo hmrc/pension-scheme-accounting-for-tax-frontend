@@ -25,15 +25,18 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
-  case class MinimalPSA(email: String, isPsaSuspended: Boolean)
-
-  object MinimalPSA {
-    implicit val format: Format[MinimalPSA] = Json.format[MinimalPSA]
-  }
+  import MinimalPsaConnector._
 
   def getMinimalPsaDetails(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
     val psaHc = hc.withExtraHeaders("psaId" -> psaId)
 
     http.GET[MinimalPSA](config.minimalPsaDetailsUrl)(implicitly, psaHc, implicitly)
+  }
+}
+object MinimalPsaConnector {
+  case class MinimalPSA(email: String, isPsaSuspended: Boolean)
+
+  object MinimalPSA {
+    implicit val format: Format[MinimalPSA] = Json.format[MinimalPSA]
   }
 }
