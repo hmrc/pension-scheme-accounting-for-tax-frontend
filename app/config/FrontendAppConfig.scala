@@ -77,6 +77,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
   lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
 
+  lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
+
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
 }
