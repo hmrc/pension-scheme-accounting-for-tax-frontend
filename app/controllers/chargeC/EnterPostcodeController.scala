@@ -92,7 +92,8 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
-              "sponsorName" -> sponsorName
+              "sponsorName" -> sponsorName,
+              "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
             )
 
             renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
