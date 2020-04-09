@@ -103,6 +103,6 @@ class ConfirmationController @Inject()(
   }
 
   private def confirmationPanelText(implicit messages: Messages): Html = {
-    Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft")}</span>""").toString()}")
+    Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString()}")
   }
 }

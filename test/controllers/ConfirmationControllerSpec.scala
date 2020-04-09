@@ -55,7 +55,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   private val json = Json.obj(
     fields = "srn" -> SampleData.srn,
-    "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft")}</span>""").toString()}").toString(),
+    "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
+      .toString()}").toString(),
     "email" -> email,
     "list" -> rows,
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
