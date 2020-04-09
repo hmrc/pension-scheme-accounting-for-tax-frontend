@@ -32,7 +32,7 @@
             label: {
               text: messages('chargeC.enterPostcode.label'),
               isPageHeading: false,
-              classes: "govuk-fieldset__legend--s"
+              classes: "govuk-fieldset__legend--s govuk-!-font-weight-bold"
             },
             id: "value",
             name: "value",
@@ -42,7 +42,9 @@
             errorMessage: form.value.error
           }) }}
 
-          {{ messages("chargeC.enterPostcode.link.youCan") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.enterPostcode.link.enterManually") }}</a>.
+          <p class="govuk-body">
+            {{ messages("chargeC.enterPostcode.link.youCan") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.enterPostcode.link.enterManually") }}</a>.
+          </p>
 
           {{ govukButton({
             text: messages("site.continue"),
