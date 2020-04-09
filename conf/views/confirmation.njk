@@ -19,7 +19,7 @@
       <div class="govuk-grid-column-two-thirds">
 
         {{ govukPanel({
-                titleText: messages("confirmation.aft.return"),
+                titleText: messages("confirmation.aft.return.panel.h1"),
                 html: panelHtml
         }) }}
 
@@ -42,8 +42,8 @@
          </p>
 
          <div><ul class="govuk-list govuk-list--bullet">
-            <li>{{messages("confirmation.whatNext.item1")}}</li>
-            <li>{{messages("confirmation.whatNext.item2")}}</li>
+            <li>{{messages("confirmation.whatNext.li.item1")}}</li>
+            <li>{{messages("confirmation.whatNext.li.item2")}}</li>
         </ul></div>
 
         <ul class="govuk-list">
@@ -53,7 +53,7 @@
 
         <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
 
-        <p class="govuk-body"><a class="govuk-link" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
+        <p class="govuk-body"><a class="govuk-link" href="#">{{messages("confirmation.print.page.link.text")}}</a></p>
 
         {{ govukButton({
             href: viewModel.submitUrl,
