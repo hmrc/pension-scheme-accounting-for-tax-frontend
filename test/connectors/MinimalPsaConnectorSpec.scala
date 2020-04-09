@@ -43,7 +43,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
       )
     )
 
-  "isPsaSuspended" must {
+  "getMinimalPsaDetails" must {
 
     "return successfully when the backend has returned OK and a false response" in {
       server.stubFor(
