@@ -24,7 +24,10 @@ class EnterPostcodeFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> text("chargeC.enterPostcode.error.required")
-        .verifying(maxLength(8, "chargeC.enterPostcode.error.length"))
+      "value" -> postCodeMapping(
+        "chargeC.enterPostcode.error.required",
+        "chargeC.enterPostcode.error.length",
+        "messages__error__postcode_invalid"
+      )
     )
 }
