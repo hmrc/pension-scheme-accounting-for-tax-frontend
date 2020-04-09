@@ -835,10 +835,11 @@ chargeC.enterPostcode.title = What is {0}’s postcode?
 chargeC.enterPostcode.heading = What is {0}’s postcode?
 chargeC.enterPostcode.label = Postcode
 chargeC.enterPostcode.checkYourAnswersLabel = enterPostcode
-chargeC.enterPostcode.error.required = The postcode cannot be more than 8 characters
-chargeC.enterPostcode.error.length = Enter a postcode
+chargeC.enterPostcode.error.required = Enter a postcode
+chargeC.enterPostcode.error.length = The postcode cannot be more than 8 characters
 chargeC.enterPostcode.link.youCan = You can
 chargeC.enterPostcode.link.enterManually = enter the address manually
+chargeC.enterPostcode.findAddress = Find address
 
 
 

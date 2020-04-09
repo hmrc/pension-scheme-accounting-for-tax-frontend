@@ -61,10 +61,6 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-        val preparedForm = request.userAnswers.get(EnterPostcodePage) match {
-          case None => form
-          case Some(value) => form.fill(value)
-        }
 
         val viewModel = GenericViewModel(
           submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
@@ -72,7 +68,7 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
           schemeName = schemeName)
 
         val json = Json.obj(
-          "form" -> preparedForm,
+          "form" -> form,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
           "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
