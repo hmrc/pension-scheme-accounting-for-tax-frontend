@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("enterPostCode.title"), form.errors) }}
+  {{ title(messages("chargeC.enterPostCode.title", sponsorName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,15 +22,17 @@
           }) }}
         {% endif %}
 
+        <h1 class="govuk-heading-xl">{{messages('chargeC.enterPostCode.heading', sponsorName)}}</h1>
+
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
           {{ govukInput({
             label: {
-              text: messages('enterPostCode.title'),
-              isPageHeading: true,
-              classes: "govuk-label--xl"
+              text: messages('chargeC.enterPostCode.label'),
+              isPageHeading: false,
+              classes: "govuk-fieldset__legend--s"
             },
             id: "value",
             name: "value",

@@ -830,6 +830,16 @@ chargeC.addEmployers.label = Do you want to add another authorised surplus payme
 chargeC.addEmployers.visuallyHidden = {0}’s authorised surplus payments charge
 chargeC.addEmployers.error = Select yes if you want to add another authorised surplus payments charge
 
+
+chargeC.enterPostCode.title = What is {0}’s postcode?
+chargeC.enterPostCode.heading = What is {0}’s postcode?
+chargeC.enterPostCode.label = Postcode
+chargeC.enterPostCode.checkYourAnswersLabel = enterPostCode
+chargeC.enterPostCode.error.required = The postcode cannot be more than 8 characters
+chargeC.enterPostCode.error.length = Enter a postcode
+
+
+
 addEmployers.employer.header = Sponsoring employer
 addEmployers.amount.header = Total
 
@@ -902,8 +912,4 @@ amendYears.error.required = Select which year you want to view
 
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
-enterPostCode.title = enterPostCode
-enterPostCode.heading = enterPostCode
-enterPostCode.checkYourAnswersLabel = enterPostCode
-enterPostCode.error.required = The postcode cannot be more than 8 characters
-enterPostCode.error.length = Enter a postcode
+
