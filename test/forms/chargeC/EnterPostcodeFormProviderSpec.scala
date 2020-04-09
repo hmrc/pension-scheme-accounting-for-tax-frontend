@@ -55,7 +55,7 @@ class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
       form,
       fieldName,
       Seq("12AB AB1"),
-      FormError(fieldName, "messages__error__postcode_invalid", Seq(regexPostcode))
+      FormError(fieldName, "chargeC.enterPostcode.error.invalid", Seq(regexPostcode))
     )
   }
 }
