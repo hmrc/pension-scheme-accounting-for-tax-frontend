@@ -113,7 +113,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA: UserAnswers = answers.remove(ChargeBDetailsPage).toOption.get
+      val expectedUA: UserAnswers = answers.removeWithPath(ChargeBDetailsPage.path)
 
       verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
     }
