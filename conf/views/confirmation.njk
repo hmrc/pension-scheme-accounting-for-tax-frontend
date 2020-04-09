@@ -23,7 +23,10 @@
                 html: panelHtml
         }) }}
 
-        <p class="govuk-body">{{messages("confirmation.p1", email)}}</p>
+        <p class="govuk-body">
+            {{messages("confirmation.p1")}}
+            <a class="govuk-link" href="#">{{email}}.</a>
+        </p>
 
         {{ govukSummaryList({
                     rows: list
@@ -32,7 +35,11 @@
 
         <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
          <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
-         <p class="govuk-body">{{messages("confirmation.whatNext.p2")}}</p>
+         <p class="govuk-body">
+             {{messages("confirmation.whatNext.p2.text1")}}
+                <a class="govuk-link" href="#">{{messages("confirmation.whatNext.p2.text2")}}</a>
+             {{messages("confirmation.whatNext.p2.text3")}}
+         </p>
 
          <div><ul class="govuk-list govuk-list--bullet">
             <li>{{messages("confirmation.whatNext.item1")}}</li>
@@ -46,7 +53,7 @@
 
         <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
 
-        <p class="govuk-body"><a class="print-this-page" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
+        <p class="govuk-body"><a class="govuk-link" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
 
         {{ govukButton({
             href: viewModel.submitUrl,
