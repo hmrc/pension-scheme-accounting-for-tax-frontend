@@ -26,7 +26,7 @@ class EnterPostcodeFormProvider @Inject() extends Mappings {
     Form(
       "value" -> postCodeMapping(
         "chargeC.enterPostcode.error.required",
-        "chargeC.enterPostcode.error.length",
+        "chargeC.enterPostcode.error.invalid",
         "chargeC.enterPostcode.error.invalid"
       )
     )
