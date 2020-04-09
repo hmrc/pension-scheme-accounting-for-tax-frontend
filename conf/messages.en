@@ -916,3 +916,10 @@ amendYears.error.required = Select which year you want to view
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
 
+
+addressList.title = addressList
+addressList.heading = addressList
+addressList.option1 = Option 1
+addressList.option2 = Option 2
+addressList.checkYourAnswersLabel = addressList
+addressList.error.required = Select addressList

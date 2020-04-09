@@ -19,23 +19,21 @@ package controllers.chargeC
 import java.time.LocalDate
 
 import forms.chargeC.EnterPostcodeFormProvider
-import pages.chargeC.EnterPostcodePage
+import pages.chargeC.{AddressResultsPage, EnterPostcodePage, WhichTypeOfSponsoringEmployerPage}
 import config.FrontendAppConfig
+import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.GenericViewModel
-import models.Index
-import models.Mode
+import models.{GenericViewModel, Index, Mode, TolerantAddress, UserAnswers}
+import models.requests.DataRequest
 import navigators.CompoundNavigator
-import play.api.i18n.I18nSupport
-import play.api.i18n.MessagesApi
+import play.api.data.Form
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -51,7 +49,8 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
                                       allowAccess: AllowAccessActionProvider,
                                       requireData: DataRequiredAction,
                                       formProvider: EnterPostcodeFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
+                                        addressLookupConnector: AddressLookupConnector,
+                                        val controllerComponents: MessagesControllerComponents,
                                       config: FrontendAppConfig,
                                       renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
@@ -105,5 +104,49 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
             } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
         )
       }
+  }
+
+  private def lookupPostcode(
+                              srn: String,
+                              mode: Mode,
+                              postCode: String,
+                              startDate: LocalDate,
+                              index: Index,
+                              schemeName: String,
+                              sponsorName: String
+                            )(implicit request: DataRequest[AnyContent]): Future[Result] = {
+
+    val noResults = Messages("messages__error__postcode_no_results", postCode)
+
+    addressLookupConnector.addressLookupByPostCode(postCode).flatMap {
+
+      case Nil => val viewModel = GenericViewModel(
+        submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
+        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+        schemeName = schemeName)
+
+        val json = Json.obj(
+          "form" -> formWithError(""),
+          "viewModel" -> viewModel,
+          "sponsorName" -> sponsorName,
+          "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
+        )
+
+        renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
+
+      case addresses =>
+        for {
+          updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressResultsPage, addresses))
+          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+        } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate))
+
+    } recoverWith {
+      case _ =>
+        Future.successful(BadRequest(view(formWithError(""), viewmodel, existingSchemeName)))
+    }
+  }
+
+  protected def formWithError(message: String)(implicit request: DataRequest[AnyContent]): Form[String] = {
+    form.withError("postcode", message)
   }
 }

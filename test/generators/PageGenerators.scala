@@ -24,6 +24,9 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryAddressListPage: Arbitrary[AddressListPage.type] =
+    Arbitrary(AddressListPage)
+
   implicit lazy val arbitraryEnterPostcodePage: Arbitrary[EnterPostcodePage.type] =
     Arbitrary(EnterPostcodePage)
 
