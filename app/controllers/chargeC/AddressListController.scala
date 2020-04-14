@@ -61,10 +61,10 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      ook(mode, srn, startDate, index)
+      presentPage(mode, srn, startDate, index)
   }
 
-  private def ook(mode:Mode, srn:String, startDate:LocalDate, index:Index)(implicit request:DataRequest[AnyContent]) = {
+  private def presentPage(mode:Mode, srn:String, startDate:LocalDate, index:Index)(implicit request:DataRequest[AnyContent]) = {
     DataRetrievals.retrieveSchemeName { schemeName =>
       request.userAnswers.get(EnterPostcodePage) match {
         case None => throw new RuntimeException("??")
