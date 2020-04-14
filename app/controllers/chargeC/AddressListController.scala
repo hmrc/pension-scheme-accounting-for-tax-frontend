@@ -28,6 +28,7 @@ import javax.inject.Inject
 import models.GenericViewModel
 import models.Index
 import models.Mode
+import models.TolerantAddress
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
@@ -37,6 +38,7 @@ import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
+import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
@@ -94,6 +96,15 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
         )
     }
 
+  private def transformAddressesForTemplate(seqTolerantAddresses:Seq[TolerantAddress]):Seq[JsObject] = {
+    for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {
+      Json.obj(
+        "value" -> i,
+        "text" -> row.print
+      )
+    }
+  }
+
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
       request.userAnswers.get(EnterPostcodePage) match {
@@ -105,17 +116,13 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
             schemeName = schemeName
           )
 
-          val addressesAsJson = for ((row, i) <- addresses.zipWithIndex) yield {
-            Json.obj(
-              "value" -> i,
-              "text" -> row.print
-            )
-          }
+          val addressesAsJson = transformAddressesForTemplate(addresses)
 
           val json = Json.obj(
             "form" -> form,
             "viewModel" -> viewModel,
             "sponsorName" -> sponsorName,
+            "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url,
             "addresses" -> addressesAsJson
           )
 

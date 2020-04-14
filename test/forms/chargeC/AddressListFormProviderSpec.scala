@@ -17,8 +17,6 @@
 package forms.chargeC
 
 import forms.behaviours.OptionFieldBehaviours
-import models.AddressList
-import play.api.data.FormError
 
 class AddressListFormProviderSpec extends OptionFieldBehaviours {
 

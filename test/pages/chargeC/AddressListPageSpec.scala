@@ -16,17 +16,16 @@
 
 package pages.chargeC
 
-import models.AddressList
 import pages.behaviours.PageBehaviours
 
-class AddressListSpec extends PageBehaviours {
+class AddressListPageSpec extends PageBehaviours {
 
   "AddressListPage" - {
 
-    beRetrievable[AddressList](AddressListPage)
+    beRetrievable[Int](AddressListPage)
 
-    beSettable[AddressList](AddressListPage)
+    beSettable[Int](AddressListPage)
 
-    beRemovable[AddressList](AddressListPage)
+    beRemovable[Int](AddressListPage)
   }
 }

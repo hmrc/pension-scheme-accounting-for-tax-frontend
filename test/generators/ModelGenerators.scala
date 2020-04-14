@@ -26,10 +26,7 @@ import org.scalacheck.{Arbitrary, Gen}
 
 trait ModelGenerators {
 
-  implicit lazy val arbitraryAddressList: Arbitrary[AddressList] =
-    Arbitrary {
-      Gen.oneOf(AddressList.values.toSeq)
-    }
+
 
   implicit lazy val arbitraryTolerantAddress: Arbitrary[TolerantAddress] =
     Arbitrary {
