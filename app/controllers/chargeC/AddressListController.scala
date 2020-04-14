@@ -33,6 +33,7 @@ import models.requests.DataRequest
 import navigators.CompoundNavigator
 import pages.chargeC.AddressListPage
 import pages.chargeC.EnterPostcodePage
+import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
@@ -77,20 +78,19 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
           },
-          value =>
-
-      //val sea = request.userAnswers.get(EnterPostcodePage) match {
-      //        case None =>
-      //          SponsoringEmployerAddress("","",None,None,"",None)
-      //        case Some(addresses) =>
-      //          SponsoringEmployerAddress.fromTolerantAddress(addresses(value))
-      //      }
-
+          value => {
+            val selectedSponsoringEmployerAddress = request.userAnswers.get(EnterPostcodePage) match {
+              case None =>
+                SponsoringEmployerAddress("", "", None, None, "", None)
+              case Some(addresses) =>
+                SponsoringEmployerAddress.fromTolerantAddress(addresses(value))
+            }
 
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressListPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), selectedSponsoringEmployerAddress))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
             } yield Redirect(navigator.nextPage(AddressListPage, mode, updatedAnswers, srn, startDate))
+          }
         )
     }
 
