@@ -18,8 +18,8 @@ package controllers.chargeC
 
 import java.time.LocalDate
 
-import forms.chargeC.EnterPostcodeFormProvider
-import pages.chargeC.{EnterPostcodePage, WhichTypeOfSponsoringEmployerPage}
+import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
+import pages.chargeC.{SponsoringEmployerAddressSearchPage, WhichTypeOfSponsoringEmployerPage}
 import config.FrontendAppConfig
 import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -41,18 +41,18 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: EnterPostcodeFormProvider,
-                                        addressLookupConnector: AddressLookupConnector,
-                                        val controllerComponents: MessagesControllerComponents,
-                                      config: FrontendAppConfig,
-                                      renderer: Renderer
+class SponsoringEmployerAddressSearchController @Inject()(override val messagesApi: MessagesApi,
+                                                          userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                          navigator: CompoundNavigator,
+                                                          identify: IdentifierAction,
+                                                          getData: DataRetrievalAction,
+                                                          allowAccess: AllowAccessActionProvider,
+                                                          requireData: DataRequiredAction,
+                                                          formProvider: SponsoringEmployerAddressSearchFormProvider,
+                                                          addressLookupConnector: AddressLookupConnector,
+                                                          val controllerComponents: MessagesControllerComponents,
+                                                          config: FrontendAppConfig,
+                                                          renderer: Renderer
                                      )(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
 
   private val form = formProvider()
@@ -62,7 +62,7 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
+          submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName)
 
@@ -73,7 +73,7 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
           "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
         )
 
-        renderer.render("chargeC/enterPostcode.njk", json).map(Ok(_))
+        renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(Ok(_))
       }
   }
 
@@ -83,7 +83,7 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
+              submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName)
 
@@ -94,30 +94,30 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
               "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
             )
 
-            renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
+            renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(BadRequest(_))
           },
           value =>
             addressLookupConnector.addressLookupByPostCode(value).flatMap {
               case Nil =>
                 val viewModel = GenericViewModel(
-                submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
+                submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                 schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithError("chargeC.enterPostcode.error.notFound"),
+                  "form" -> formWithError("chargeC.employerAddressSearch.error.notFound"),
                   "viewModel" -> viewModel,
                   "sponsorName" -> sponsorName,
                   "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
                 )
 
-                renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
+                renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(BadRequest(_))
 
               case addresses =>
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, addresses))
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage, addresses))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
+                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage, mode, updatedAnswers, srn, startDate))
             }
         )
 

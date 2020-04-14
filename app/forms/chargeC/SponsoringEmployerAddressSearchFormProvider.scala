@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package pages.chargeC
+package forms.chargeC
 
-import models.TolerantAddress
-import pages.behaviours.PageBehaviours
+import javax.inject.Inject
+import forms.mappings.Mappings
+import play.api.data.Form
 
+class SponsoringEmployerAddressSearchFormProvider @Inject() extends Mappings {
 
-class EnterPostcodePageSpec extends PageBehaviours {
-
-  "EnterPostcodePage" - {
-
-    beRetrievable[Seq[TolerantAddress]](EnterPostcodePage)
-
-    beSettable[Seq[TolerantAddress]](EnterPostcodePage)
-
-    beRemovable[Seq[TolerantAddress]](EnterPostcodePage)
-  }
+  def apply(): Form[String] =
+    Form(
+      "value" -> postCodeMapping(
+        "chargeC.employerAddressSearch.error.required",
+        "chargeC.employerAddressSearch.error.invalid",
+        "chargeC.employerAddressSearch.error.invalid"
+      )
+    )
 }

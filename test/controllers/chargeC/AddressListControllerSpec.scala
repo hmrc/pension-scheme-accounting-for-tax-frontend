@@ -49,7 +49,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import models.LocalDateBinder._
 import data.SampleData._
 import forms.chargeC.AddressListFormProvider
-import pages.chargeC.EnterPostcodePage
+import pages.chargeC.SponsoringEmployerAddressSearchPage
 import pages.chargeC.SponsoringEmployerAddressPage
 import pages.chargeC.SponsoringIndividualDetailsPage
 
@@ -80,7 +80,7 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
     )
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
-    userAnswersWithSchemeNameAndIndividual.setOrException(EnterPostcodePage, seqAddresses)
+    userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage, seqAddresses)
   )
 
   private def httpPathGET: String = controllers.chargeC.routes.AddressListController.onPageLoad(NormalMode, srn, startDate, index).url
@@ -167,7 +167,7 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
             ))
         ),
 
-        EnterPostcodePage.toString -> seqAddresses
+        SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(AddressListPage), any(), any(), any(), any())).thenReturn(dummyCall)

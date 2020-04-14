@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package forms.chargeC
+package pages.chargeC
 
-import javax.inject.Inject
-import forms.mappings.Mappings
-import play.api.data.Form
+import models.TolerantAddress
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-class EnterPostcodeFormProvider @Inject() extends Mappings {
+case object SponsoringEmployerAddressSearchPage extends QuestionPage[Seq[TolerantAddress]] {
 
-  def apply(): Form[String] =
-    Form(
-      "value" -> postCodeMapping(
-        "chargeC.enterPostcode.error.required",
-        "chargeC.enterPostcode.error.invalid",
-        "chargeC.enterPostcode.error.invalid"
-      )
-    )
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "sponsoringEmployerAddressSearch"
 }

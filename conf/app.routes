@@ -196,10 +196,10 @@ POST       /:srn/new-return/:startDate/change/want-to-submit                    
 GET        /:srn/new-return/:startDate/declaration                                         controllers.DeclarationController.onPageLoad(srn: String, startDate: String)
 GET        /:srn/new-return/:startDate/declaration/on-submit-declaration                                         controllers.DeclarationController.onSubmit(srn: String, startDate: String)
 
-GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postcode                        controllers.chargeC.EnterPostcodeController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postcode                        controllers.chargeC.EnterPostcodeController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postcode                  controllers.chargeC.EnterPostcodeController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postcode                  controllers.chargeC.EnterPostcodeController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postcode                        controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/enter-postcode                        controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
+POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/enter-postcode                  controllers.chargeC.SponsoringEmployerAddressSearchController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
 GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/select-address                        controllers.chargeC.AddressListController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
 POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/select-address                        controllers.chargeC.AddressListController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)

@@ -25,7 +25,7 @@ import data.SampleData.srn
 import data.SampleData.startDate
 import data.SampleData.userAnswersWithSchemeNameAndIndividual
 import data.SampleData.userAnswersWithSchemeNameAndOrganisation
-import forms.chargeC.EnterPostcodeFormProvider
+import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import matchers.JsonMatchers
 import models.GenericViewModel
 import models.NormalMode
@@ -40,7 +40,7 @@ import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.EnterPostcodePage
+import pages.chargeC.SponsoringEmployerAddressSearchPage
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
@@ -56,7 +56,7 @@ import play.api.inject.bind
 
 import scala.concurrent.Future
 
-class EnterPostcodeControllerSpec
+class SponsoringEmployerAddressSearchControllerSpec
     extends ControllerSpecBase
     with MockitoSugar
     with NunjucksSupport
@@ -70,16 +70,16 @@ class EnterPostcodeControllerSpec
   private val extraModules = bind[AddressLookupConnector].toInstance(mockAddressLookupConnector)
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules = Seq(extraModules)).build()
-  private val templateToBeRendered = "chargeC/enterPostcode.njk"
-  private val form = new EnterPostcodeFormProvider()()
+  private val templateToBeRendered = "chargeC/sponsoringEmployerAddressSearch.njk"
+  private val form = new SponsoringEmployerAddressSearchFormProvider()()
   private val index = 0
   private val postcode = "ZZ1 1ZZ"
   private val seqAddresses =
     Seq[TolerantAddress](TolerantAddress(Some("addr1"), Some("addr2"), Some("addr3"), Some("addr4"), Some("postcode"), Some("UK")))
 
-  private def httpPathGET: String = controllers.chargeC.routes.EnterPostcodeController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("ZZ1 1ZZ")
@@ -94,7 +94,7 @@ class EnterPostcodeControllerSpec
       Json.obj(
         "form" -> form,
         "viewModel" -> GenericViewModel(
-          submitUrl = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url,
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url,
           returnUrl = dummyCall.url,
           schemeName = schemeName
         ),
@@ -165,10 +165,10 @@ class EnterPostcodeControllerSpec
               WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
             ))
         ),
-        EnterPostcodePage.toString -> seqAddresses
+        SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPostcodePage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressSearchPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)

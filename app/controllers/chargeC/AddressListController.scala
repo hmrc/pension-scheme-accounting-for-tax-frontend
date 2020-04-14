@@ -33,7 +33,7 @@ import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
 import pages.chargeC.AddressListPage
-import pages.chargeC.EnterPostcodePage
+import pages.chargeC.SponsoringEmployerAddressSearchPage
 import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
@@ -81,7 +81,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
             presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
           },
           value => {
-            val selectedSponsoringEmployerAddress = request.userAnswers.get(EnterPostcodePage) match {
+            val selectedSponsoringEmployerAddress = request.userAnswers.get(SponsoringEmployerAddressSearchPage) match {
               case None =>
                 SponsoringEmployerAddress("", "", None, None, "", None)
               case Some(addresses) =>
@@ -107,7 +107,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
 
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-      request.userAnswers.get(EnterPostcodePage) match {
+      request.userAnswers.get(SponsoringEmployerAddressSearchPage) match {
         case None => throw new RuntimeException("??")
         case Some(addresses) =>
           val viewModel = GenericViewModel(

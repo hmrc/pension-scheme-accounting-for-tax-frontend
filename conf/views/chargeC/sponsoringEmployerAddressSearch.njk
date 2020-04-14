@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("chargeC.enterPostcode.title", sponsorName), form.errors) }}
+  {{ title(messages("chargeC.employerAddressSearch.title", sponsorName), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeC.enterPostcode.heading', sponsorName)}}</h1>
+        <h1 class="govuk-heading-xl">{{messages('chargeC.employerAddressSearch.heading', sponsorName)}}</h1>
 
         <form action="{{ submitUrl }}" method="post">
 
@@ -30,7 +30,7 @@
 
           {{ govukInput({
             label: {
-              text: messages('chargeC.enterPostcode.label'),
+              text: messages('chargeC.employerAddressSearch.label'),
               isPageHeading: false,
               classes: "govuk-fieldset__legend--s govuk-!-font-weight-bold"
             },
@@ -43,11 +43,11 @@
           }) }}
 
           <p class="govuk-body">
-            {{ messages("chargeC.enterPostcode.link.youCan") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.enterPostcode.link.enterManually") }}</a>.
+            {{ messages("chargeC.employerAddressSearch.link.youCan") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.employerAddressSearch.link.enterManually") }}</a>.
           </p>
 
           {{ govukButton({
-            text: messages("chargeC.enterPostcode.findAddress"),
+            text: messages("chargeC.employerAddressSearch.findAddress"),
             attributes: {id: "submit"}
           }) }}
 

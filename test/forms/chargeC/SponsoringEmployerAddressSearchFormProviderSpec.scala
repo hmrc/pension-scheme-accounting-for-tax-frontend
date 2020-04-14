@@ -19,14 +19,14 @@ package forms.chargeC
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
+class SponsoringEmployerAddressSearchFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "chargeC.enterPostcode.error.required"
-  val lengthKey = "chargeC.enterPostcode.error.invalid"
+  val requiredKey = "chargeC.employerAddressSearch.error.required"
+  val lengthKey = "chargeC.employerAddressSearch.error.invalid"
   val maxLength = 8
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
 
-  val form = new EnterPostcodeFormProvider()()
+  val form = new SponsoringEmployerAddressSearchFormProvider()()
 
   ".value" must {
 
@@ -55,7 +55,7 @@ class EnterPostcodeFormProviderSpec extends StringFieldBehaviours {
       form,
       fieldName,
       Seq("12AB AB1"),
-      FormError(fieldName, "chargeC.enterPostcode.error.invalid", Seq(regexPostcode))
+      FormError(fieldName, "chargeC.employerAddressSearch.error.invalid", Seq(regexPostcode))
     )
   }
 }

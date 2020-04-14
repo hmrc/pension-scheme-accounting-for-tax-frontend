@@ -27,8 +27,8 @@ trait PageGenerators {
   implicit lazy val arbitraryAddressListPage: Arbitrary[AddressListPage.type] =
     Arbitrary(AddressListPage)
 
-  implicit lazy val arbitraryEnterPostcodePage: Arbitrary[EnterPostcodePage.type] =
-    Arbitrary(EnterPostcodePage)
+  implicit lazy val arbitraryEnterPostcodePage: Arbitrary[SponsoringEmployerAddressSearchPage.type] =
+    Arbitrary(SponsoringEmployerAddressSearchPage)
 
   implicit lazy val arbitraryConfirmSubmitAFTReturnPage: Arbitrary[ConfirmSubmitAFTReturnPage.type] =
     Arbitrary(ConfirmSubmitAFTReturnPage)

@@ -17,12 +17,17 @@
 package pages.chargeC
 
 import models.TolerantAddress
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.behaviours.PageBehaviours
 
-case object EnterPostcodePage extends QuestionPage[Seq[TolerantAddress]] {
 
-  override def path: JsPath = JsPath \ toString
+class SponsoringEmployerAddressSearchPageSpec extends PageBehaviours {
 
-  override def toString: String = "addressResults"
+  "SponsoringEmployerAddressSearchPage" - {
+
+    beRetrievable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+
+    beSettable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+
+    beRemovable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+  }
 }
