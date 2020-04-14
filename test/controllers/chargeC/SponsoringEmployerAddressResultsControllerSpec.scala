@@ -37,7 +37,7 @@ import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.AddressListPage
+import pages.chargeC.SponsoringEmployerAddressResultsPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.data.Form
@@ -48,21 +48,21 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import models.LocalDateBinder._
 import data.SampleData._
-import forms.chargeC.AddressListFormProvider
+import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import pages.chargeC.SponsoringEmployerAddressPage
 import pages.chargeC.SponsoringIndividualDetailsPage
 
 import scala.concurrent.Future
 
-class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
-  private val templateToBeRendered = "chargeC/addressList.njk"
-  private val form = new AddressListFormProvider()()
+  private val templateToBeRendered = "chargeC/sponsoringEmployerAddressResults.njk"
+  private val form = new SponsoringEmployerAddressResultsFormProvider()()
   private val index = 0
   private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("first3"), Some("first4"), Some("firstpost"), Some("UK"))
   private val secondAddress = TolerantAddress(
@@ -83,9 +83,9 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
     userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage, seqAddresses)
   )
 
-  private def httpPathGET: String = controllers.chargeC.routes.AddressListController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.AddressListController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("1")
@@ -109,7 +109,7 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
       Json.obj(
         "form" -> form,
         "viewModel" -> GenericViewModel(
-          submitUrl = controllers.chargeC.routes.AddressListController.onSubmit(NormalMode, srn, startDate, index).url,
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onSubmit(NormalMode, srn, startDate, index).url,
           returnUrl = dummyCall.url,
           schemeName = schemeName
         ),
@@ -170,7 +170,7 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddressListPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressResultsPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)

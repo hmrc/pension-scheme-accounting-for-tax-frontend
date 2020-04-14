@@ -15,17 +15,12 @@
  */
 
 package pages.chargeC
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-import pages.behaviours.PageBehaviours
+case object SponsoringEmployerAddressResultsPage extends QuestionPage[Int] {
 
-class AddressListPageSpec extends PageBehaviours {
+  override def path: JsPath = JsPath \ toString
 
-  "AddressListPage" - {
-
-    beRetrievable[Int](AddressListPage)
-
-    beSettable[Int](AddressListPage)
-
-    beRemovable[Int](AddressListPage)
-  }
+  override def toString: String = "sponsoringEmployerAddressResults"
 }

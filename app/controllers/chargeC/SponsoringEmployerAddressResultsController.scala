@@ -23,7 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import models.LocalDateBinder._
-import forms.chargeC.AddressListFormProvider
+import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import javax.inject.Inject
 import models.GenericViewModel
 import models.Index
@@ -32,7 +32,7 @@ import models.TolerantAddress
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
-import pages.chargeC.AddressListPage
+import pages.chargeC.SponsoringEmployerAddressResultsPage
 import pages.chargeC.SponsoringEmployerAddressSearchPage
 import pages.chargeC.SponsoringEmployerAddressPage
 import play.api.data.Form
@@ -50,17 +50,17 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class AddressListController @Inject()(override val messagesApi: MessagesApi,
-                                      userAnswersCacheConnector: UserAnswersCacheConnector,
-                                      navigator: CompoundNavigator,
-                                      identify: IdentifierAction,
-                                      getData: DataRetrievalAction,
-                                      allowAccess: AllowAccessActionProvider,
-                                      requireData: DataRequiredAction,
-                                      formProvider: AddressListFormProvider,
-                                      val controllerComponents: MessagesControllerComponents,
-                                      config: FrontendAppConfig,
-                                      renderer: Renderer)(implicit ec: ExecutionContext)
+class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
+                                                           userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                           navigator: CompoundNavigator,
+                                                           identify: IdentifierAction,
+                                                           getData: DataRetrievalAction,
+                                                           allowAccess: AllowAccessActionProvider,
+                                                           requireData: DataRequiredAction,
+                                                           formProvider: SponsoringEmployerAddressResultsFormProvider,
+                                                           val controllerComponents: MessagesControllerComponents,
+                                                           config: FrontendAppConfig,
+                                                           renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
@@ -91,7 +91,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), selectedSponsoringEmployerAddress))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddressListPage, mode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage, mode, updatedAnswers, srn, startDate))
           }
         )
     }
@@ -111,7 +111,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
         case None => throw new RuntimeException("??")
         case Some(addresses) =>
           val viewModel = GenericViewModel(
-            submitUrl = routes.AddressListController.onSubmit(mode, srn, startDate, index).url,
+            submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, index).url,
             returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
             schemeName = schemeName
           )
@@ -126,7 +126,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
             "addresses" -> addressesAsJson
           )
 
-          renderer.render("chargeC/addressList.njk", json).map(status(_))
+          renderer.render("chargeC/sponsoringEmployerAddressResults.njk", json).map(status(_))
       }
     }
   }

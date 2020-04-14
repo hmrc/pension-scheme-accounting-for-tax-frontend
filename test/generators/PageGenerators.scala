@@ -24,10 +24,10 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
-  implicit lazy val arbitraryAddressListPage: Arbitrary[AddressListPage.type] =
-    Arbitrary(AddressListPage)
+  implicit lazy val arbitrarySponsoringEmployerAddressResults: Arbitrary[SponsoringEmployerAddressResultsPage.type] =
+    Arbitrary(SponsoringEmployerAddressResultsPage)
 
-  implicit lazy val arbitraryEnterPostcodePage: Arbitrary[SponsoringEmployerAddressSearchPage.type] =
+  implicit lazy val arbitrarySponsoringEmployerAddressSearch: Arbitrary[SponsoringEmployerAddressSearchPage.type] =
     Arbitrary(SponsoringEmployerAddressSearchPage)
 
   implicit lazy val arbitraryConfirmSubmitAFTReturnPage: Arbitrary[ConfirmSubmitAFTReturnPage.type] =

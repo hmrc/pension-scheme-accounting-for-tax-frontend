@@ -6,11 +6,11 @@ echo "Applying migration AddressList"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/addressList                        controllers.chargeC.AddressListController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/addressList                        controllers.chargeC.AddressListController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/addressList                        controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/addressList                        controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
 
-echo "GET        /:srn/new-return/changeAddressList                  controllers.chargeC.AddressListController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/changeAddressList                  controllers.chargeC.AddressListController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en
@@ -25,10 +25,10 @@ echo "Adding to UserAnswersEntryGenerators"
 awk '/trait UserAnswersEntryGenerators/ {\
     print;\
     print "";\
-    print "  implicit lazy val arbitraryAddressListUserAnswersEntry: Arbitrary[(AddressListPage.type, JsValue)] =";\
+    print "  implicit lazy val arbitraryAddressListUserAnswersEntry: Arbitrary[(SponsoringEmployerAddressResultsPage.type, JsValue)] =";\
     print "    Arbitrary {";\
     print "      for {";\
-    print "        page  <- arbitrary[AddressListPage.type]";\
+    print "        page  <- arbitrary[SponsoringEmployerAddressResultsPage.type]";\
     print "        value <- arbitrary[AddressList].map(Json.toJson(_))";\
     print "      } yield (page, value)";\
     print "    }";\
@@ -38,8 +38,8 @@ echo "Adding to PageGenerators"
 awk '/trait PageGenerators/ {\
     print;\
     print "";\
-    print "  implicit lazy val arbitraryAddressListPage: Arbitrary[AddressListPage.type] =";\
-    print "    Arbitrary(AddressListPage)";\
+    print "  implicit lazy val arbitraryAddressListPage: Arbitrary[SponsoringEmployerAddressResultsPage.type] =";\
+    print "    Arbitrary(SponsoringEmployerAddressResultsPage)";\
     next }1' ../test/generators/PageGenerators.scala > tmp && mv tmp ../test/generators/PageGenerators.scala
 
 echo "Adding to ModelGenerators"
@@ -55,14 +55,14 @@ awk '/trait ModelGenerators/ {\
 echo "Adding to UserAnswersGenerator"
 awk '/val generators/ {\
     print;\
-    print "    arbitrary[(AddressListPage.type, JsValue)] ::";\
+    print "    arbitrary[(SponsoringEmployerAddressResultsPage.type, JsValue)] ::";\
     next }1' ../test/generators/UserAnswersGenerator.scala > tmp && mv tmp ../test/generators/UserAnswersGenerator.scala
 
 echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def addressList: Option[Row] = userAnswers.get(AddressListPage) map {";\
+     print "  def addressList: Option[Row] = userAnswers.get(SponsoringEmployerAddressResultsPage) map {";\
      print "    answer =>";\
      print "      Row(";\
      print "        key     = Key(msg\"addressList.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
@@ -70,7 +70,7 @@ awk '/class CheckYourAnswersHelper/ {\
      print "        actions = List(";\
      print "          Action(";\
      print "            content            = msg\"site.edit\",";\
-     print "            href               = controllers.routes.AddressListController.onPageLoad(CheckMode, srn).url,";\
+     print "            href               = controllers.routes.SponsoringEmployerAddressResultsController.onPageLoad(CheckMode, srn).url,";\
      print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"addressList.checkYourAnswersLabel\"))";\
      print "          )";\
      print "        )";\

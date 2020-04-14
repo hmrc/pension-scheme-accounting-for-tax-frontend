@@ -18,9 +18,9 @@ package forms.chargeC
 
 import forms.behaviours.OptionFieldBehaviours
 
-class AddressListFormProviderSpec extends OptionFieldBehaviours {
+class SponsoringEmployerAddressResultsFormProviderSpec extends OptionFieldBehaviours {
 
-  val form = new AddressListFormProvider()()
+  val form = new SponsoringEmployerAddressResultsFormProvider()()
 
   //".value" must {
   //

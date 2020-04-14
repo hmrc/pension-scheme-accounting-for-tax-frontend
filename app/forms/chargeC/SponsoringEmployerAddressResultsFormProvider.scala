@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package pages.chargeC
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+package forms.chargeC
 
-case object AddressListPage extends QuestionPage[Int] {
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-  override def path: JsPath = JsPath \ toString
+class SponsoringEmployerAddressResultsFormProvider @Inject() extends Mappings {
 
-  override def toString: String = "selectedAddress"
+  def apply(): Form[Int] =
+    Form(
+      "value" -> int("chargeC.addressList.error.required")
+    )
 }
