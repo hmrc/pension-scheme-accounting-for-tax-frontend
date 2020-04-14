@@ -38,7 +38,6 @@ import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.AddressListPage
-import pages.chargeC.SponsoringOrganisationDetailsPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.data.Form
@@ -65,17 +64,19 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val templateToBeRendered = "chargeC/addressList.njk"
   private val form = new AddressListFormProvider()()
   private val index = 0
-  private val postcode = "ZZ1 1ZZ"
+  private val firstAddress = TolerantAddress(Some("first1"), Some("first2"), Some("first3"), Some("first4"), Some("firstpost"), Some("UK"))
+  private val secondAddress = TolerantAddress(
+    Some(sponsoringEmployerAddress.line1),
+    Some(sponsoringEmployerAddress.line2),
+    sponsoringEmployerAddress.line3,
+    sponsoringEmployerAddress.line4,
+    sponsoringEmployerAddress.postcode,
+    Some(sponsoringEmployerAddress.country)
+  )
   private val seqAddresses =
     Seq[TolerantAddress](
-      TolerantAddress(
-        Some(sponsoringEmployerAddress.line1),
-        Some(sponsoringEmployerAddress.line2),
-        sponsoringEmployerAddress.line3,
-        sponsoringEmployerAddress.line4,
-        sponsoringEmployerAddress.postcode,
-        Some(sponsoringEmployerAddress.country)
-      )
+      firstAddress,
+      secondAddress
     )
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
@@ -87,7 +88,7 @@ class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private def httpPathPOST: String = controllers.chargeC.routes.AddressListController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq("0")
+    "value" -> Seq("1")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
