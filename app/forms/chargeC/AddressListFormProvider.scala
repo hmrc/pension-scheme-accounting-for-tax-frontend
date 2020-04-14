@@ -24,6 +24,6 @@ class AddressListFormProvider @Inject() extends Mappings {
 
   def apply(): Form[Int] =
     Form(
-      "value" -> int("")
+      "value" -> int("chargeC.addressList.error.required")
     )
 }

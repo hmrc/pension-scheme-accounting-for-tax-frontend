@@ -28,6 +28,7 @@ import javax.inject.Inject
 import models.GenericViewModel
 import models.Index
 import models.Mode
+import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
 import pages.chargeC.AddressListPage
@@ -77,6 +78,15 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
             presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
           },
           value =>
+
+      //val sea = request.userAnswers.get(EnterPostcodePage) match {
+      //        case None =>
+      //          SponsoringEmployerAddress("","",None,None,"",None)
+      //        case Some(addresses) =>
+      //          SponsoringEmployerAddress.fromTolerantAddress(addresses(value))
+      //      }
+
+
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressListPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
@@ -85,7 +95,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
     }
 
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
-    DataRetrievals.retrieveSchemeName { schemeName =>
+    DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
       request.userAnswers.get(EnterPostcodePage) match {
         case None => throw new RuntimeException("??")
         case Some(addresses) =>
@@ -105,6 +115,7 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
           val json = Json.obj(
             "form" -> form,
             "viewModel" -> viewModel,
+            "sponsorName" -> sponsorName,
             "addresses" -> addressesAsJson
           )
 

@@ -842,6 +842,11 @@ chargeC.enterPostcode.link.youCan = You can
 chargeC.enterPostcode.link.enterManually = enter the address manually
 chargeC.enterPostcode.findAddress = Find address
 
+chargeC.addressList.title = What is {0}’s address?
+chargeC.addressList.heading = What is {0}’s address?
+chargeC.addressList.error.required = Select an address
+
+
 
 
 addEmployers.employer.header = Sponsoring employer
@@ -918,9 +923,3 @@ amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
 
 
-addressList.title = addressList
-addressList.heading = addressList
-addressList.option1 = Option 1
-addressList.option2 = Option 2
-addressList.checkYourAnswersLabel = addressList
-addressList.error.required = Select addressList
