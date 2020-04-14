@@ -24,6 +24,6 @@ class SponsoringEmployerAddressResultsFormProvider @Inject() extends Mappings {
 
   def apply(): Form[Int] =
     Form(
-      "value" -> int("chargeC.addressList.error.required")
+      "value" -> int("chargeC.employerAddressResults.error.required")
     )
 }

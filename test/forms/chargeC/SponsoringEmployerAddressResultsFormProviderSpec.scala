@@ -16,28 +16,22 @@
 
 package forms.chargeC
 
-import forms.behaviours.OptionFieldBehaviours
+import forms.behaviours.IntFieldBehaviours
+import play.api.data.FormError
 
-class SponsoringEmployerAddressResultsFormProviderSpec extends OptionFieldBehaviours {
+class SponsoringEmployerAddressResultsFormProviderSpec extends IntFieldBehaviours {
 
   val form = new SponsoringEmployerAddressResultsFormProvider()()
 
-  //".value" must {
-  //
-  //  val fieldName = "value"
-  //  val requiredKey = "addressList.error.required"
-  //
-  //  behave like optionsField[AddressList](
-  //    form,
-  //    fieldName,
-  //    validValues  = AddressList.values,
-  //    invalidError = FormError(fieldName, "error.invalid")
-  //  )
-  //
-  //  behave like mandatoryField(
-  //    form,
-  //    fieldName,
-  //    requiredError = FormError(fieldName, requiredKey)
-  //  )
-  //}
+  "value" must {
+
+    val fieldName = "value"
+    val requiredKey = "chargeC.employerAddressResults.error.required"
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+  }
 }

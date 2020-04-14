@@ -126,7 +126,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase 
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
 
-  "AddressList Controller with individual sponsor" must {
+  "SponsoringEmployerAddressResults Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

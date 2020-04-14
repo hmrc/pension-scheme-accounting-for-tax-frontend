@@ -842,9 +842,9 @@ chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually
 chargeC.employerAddressSearch.findAddress = Find address
 
-chargeC.addressList.title = What is {0}’s address?
-chargeC.addressList.heading = What is {0}’s address?
-chargeC.addressList.error.required = Select an address
+chargeC.employerAddressResults.title = What is {0}’s address?
+chargeC.employerAddressResults.heading = What is {0}’s address?
+chargeC.employerAddressResults.error.required = Select an address
 
 
 

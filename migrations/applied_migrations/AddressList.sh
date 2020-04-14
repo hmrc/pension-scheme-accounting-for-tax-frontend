@@ -6,20 +6,20 @@ echo "Applying migration AddressList"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:srn/new-return/addressList                        controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
-echo "POST       /:srn/new-return/addressList                        controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "GET        /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
+echo "POST       /:srn/new-return/employerAddressResults                        controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = NormalMode, srn: String)" >> ../conf/app.routes
 
 echo "GET        /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
 echo "POST       /:srn/new-return/changeAddressList                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: String)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en
-echo "addressList.title = addressList" >> ../conf/messages.en
-echo "addressList.heading = addressList" >> ../conf/messages.en
-echo "addressList.option1 = Option 1" >> ../conf/messages.en
-echo "addressList.option2 = Option 2" >> ../conf/messages.en
-echo "addressList.checkYourAnswersLabel = addressList" >> ../conf/messages.en
-echo "addressList.error.required = Select addressList" >> ../conf/messages.en
+echo "employerAddressResults.title = employerAddressResults" >> ../conf/messages.en
+echo "employerAddressResults.heading = employerAddressResults" >> ../conf/messages.en
+echo "employerAddressResults.option1 = Option 1" >> ../conf/messages.en
+echo "employerAddressResults.option2 = Option 2" >> ../conf/messages.en
+echo "employerAddressResults.checkYourAnswersLabel = employerAddressResults" >> ../conf/messages.en
+echo "employerAddressResults.error.required = Select employerAddressResults" >> ../conf/messages.en
 
 echo "Adding to UserAnswersEntryGenerators"
 awk '/trait UserAnswersEntryGenerators/ {\
@@ -62,16 +62,16 @@ echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def addressList: Option[Row] = userAnswers.get(SponsoringEmployerAddressResultsPage) map {";\
+     print "  def employerAddressResults: Option[Row] = userAnswers.get(SponsoringEmployerAddressResultsPage) map {";\
      print "    answer =>";\
      print "      Row(";\
-     print "        key     = Key(msg\"addressList.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
-     print "        value   = Value(msg\"addressList.$answer\"),";\
+     print "        key     = Key(msg\"employerAddressResults.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
+     print "        value   = Value(msg\"employerAddressResults.$answer\"),";\
      print "        actions = List(";\
      print "          Action(";\
      print "            content            = msg\"site.edit\",";\
      print "            href               = controllers.routes.SponsoringEmployerAddressResultsController.onPageLoad(CheckMode, srn).url,";\
-     print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"addressList.checkYourAnswersLabel\"))";\
+     print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"employerAddressResults.checkYourAnswersLabel\"))";\
      print "          )";\
      print "        )";\
      print "      )";\
