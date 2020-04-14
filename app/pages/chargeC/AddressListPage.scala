@@ -15,13 +15,12 @@
  */
 
 package pages.chargeC
-import models.AddressList
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object AddressListPage extends QuestionPage[AddressList] {
+case object AddressListPage extends QuestionPage[Int] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "addressList"
+  override def toString: String = "selectedAddress"
 }

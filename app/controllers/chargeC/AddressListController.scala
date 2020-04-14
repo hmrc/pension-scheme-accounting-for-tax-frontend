@@ -25,17 +25,24 @@ import controllers.actions._
 import models.LocalDateBinder._
 import forms.chargeC.AddressListFormProvider
 import javax.inject.Inject
-import models.{AddressList, GenericViewModel, Index, Mode}
+import models.GenericViewModel
+import models.Index
+import models.Mode
+import models.requests.DataRequest
 import navigators.CompoundNavigator
-import pages.chargeC.AddressListPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import pages.chargeC.EnterPostcodePage
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AddressListController @Inject()(override val messagesApi: MessagesApi,
                                       userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -54,54 +61,64 @@ class AddressListController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+      ook(mode, srn, startDate, index)
+  }
 
-        val preparedForm = request.userAnswers.get(AddressListPage) match {
-          case None => form
-          case Some(value) => form.fill(value)
-        }
+  private def ook(mode:Mode, srn:String, startDate:LocalDate, index:Index)(implicit request:DataRequest[AnyContent]) = {
+    DataRetrievals.retrieveSchemeName { schemeName =>
+      request.userAnswers.get(EnterPostcodePage) match {
+        case None => throw new RuntimeException("??")
+        case Some(addresses) =>
+          val viewModel = GenericViewModel(
+            submitUrl = routes.AddressListController.onSubmit(mode, srn, startDate, index).url,
+            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+            schemeName = schemeName)
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.AddressListController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName)
+          val addressesAsJson = for ((row, i) <- addresses.zipWithIndex) yield {
+            Json.obj(
+              "value" -> i,
+              "text" -> row.print
+            )
+          }
 
-        val json = Json.obj(
-          "form" -> preparedForm,
-          "viewModel" -> viewModel,
-          "radios" -> AddressList.radios(preparedForm)
-        )
+          val json = Json.obj(
+            "form" -> form,
+            "viewModel" -> viewModel,
+            "addresses" -> addressesAsJson
+          )
 
-        renderer.render("addressList.njk", json).map(Ok(_))
+          renderer.render("chargeC/addressList.njk", json).map(Ok(_))
       }
+    }
   }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-
-        form.bindFromRequest().fold(
-          formWithErrors => {
-
-            val viewModel = GenericViewModel(
-              submitUrl = routes.AddressListController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName)
-
-            val json = Json.obj(
-              "form" -> formWithErrors,
-              "viewModel" -> viewModel,
-              "radios" -> AddressList.radios(formWithErrors)
-            )
-
-            renderer.render("addressList.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressListPage, value))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddressListPage, mode, updatedAnswers, srn, startDate))
-        )
-      }
+    Future.successful(Ok(""))
+      //DataRetrievals.retrieveSchemeName { schemeName =>
+      //
+      //  form.bindFromRequest().fold(
+      //    formWithErrors => {
+      //
+      //      val viewModel = GenericViewModel(
+      //        submitUrl = routes.AddressListController.onSubmit(mode, srn, startDate, index).url,
+      //        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      //        schemeName = schemeName)
+      //
+      //      val json = Json.obj(
+      //        "form" -> formWithErrors,
+      //        "viewModel" -> viewModel,
+      //        "radios" -> AddressList.radios(formWithErrors)
+      //      )
+      //
+      //      renderer.render("addressList.njk", json).map(BadRequest(_))
+      //    },
+      //    value =>
+      //      for {
+      //        updatedAnswers <- Future.fromTry(request.userAnswers.set(AddressListPage, value))
+      //        _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+      //      } yield Redirect(navigator.nextPage(AddressListPage, mode, updatedAnswers, srn, startDate))
+      //  )
+      //}
   }
 }

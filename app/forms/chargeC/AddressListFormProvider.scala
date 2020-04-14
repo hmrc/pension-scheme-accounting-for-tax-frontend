@@ -18,13 +18,12 @@ package forms.chargeC
 
 import forms.mappings.Mappings
 import javax.inject.Inject
-import models.AddressList
 import play.api.data.Form
 
 class AddressListFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[AddressList] =
+  def apply(): Form[Int] =
     Form(
-      "value" -> enumerable[AddressList]("addressList.error.required")
+      "value" -> int("")
     )
 }
