@@ -19,13 +19,10 @@ package controllers.chargeC
 import connectors.AddressLookupConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.companyName
 import data.SampleData.dummyCall
 import data.SampleData.srn
 import data.SampleData.startDate
 import data.SampleData.userAnswersWithSchemeNameAndIndividual
-import data.SampleData.userAnswersWithSchemeNameAndOrganisation
-import forms.chargeC.AddressListFormProvider
 import matchers.JsonMatchers
 import models.GenericViewModel
 import models.NormalMode
@@ -54,17 +51,12 @@ import models.LocalDateBinder._
 import data.SampleData._
 import forms.chargeC.AddressListFormProvider
 import pages.chargeC.EnterPostcodePage
-import play.api.inject.bind
+import pages.chargeC.SponsoringEmployerAddressPage
+import pages.chargeC.SponsoringIndividualDetailsPage
 
 import scala.concurrent.Future
 
-class AddressListControllerSpec
-  extends ControllerSpecBase
-    with MockitoSugar
-    with NunjucksSupport
-    with JsonMatchers
-    with OptionValues
-    with TryValues {
+class AddressListControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -75,7 +67,16 @@ class AddressListControllerSpec
   private val index = 0
   private val postcode = "ZZ1 1ZZ"
   private val seqAddresses =
-    Seq[TolerantAddress](TolerantAddress(Some("addr1"), Some("addr2"), Some("addr3"), Some("addr4"), Some("postcode"), Some("UK")))
+    Seq[TolerantAddress](
+      TolerantAddress(
+        Some(sponsoringEmployerAddress.line1),
+        Some(sponsoringEmployerAddress.line2),
+        sponsoringEmployerAddress.line3,
+        sponsoringEmployerAddress.line4,
+        sponsoringEmployerAddress.postcode,
+        Some(sponsoringEmployerAddress.country)
+      )
+    )
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
     userAnswersWithSchemeNameAndIndividual.setOrException(EnterPostcodePage, seqAddresses)
@@ -86,14 +87,14 @@ class AddressListControllerSpec
   private def httpPathPOST: String = controllers.chargeC.routes.AddressListController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq("1")
+    "value" -> Seq("0")
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("")
   )
 
-  private def transformAddressesForTemplate(seqTolerantAddresses:Seq[TolerantAddress]):Seq[JsObject] = {
+  private def transformAddressesForTemplate(seqTolerantAddresses: Seq[TolerantAddress]): Seq[JsObject] = {
     for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {
       Json.obj(
         "value" -> i,
@@ -114,7 +115,7 @@ class AddressListControllerSpec
         "sponsorName" -> sponsorName,
         "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url,
         "addresses" -> transformAddressesForTemplate(seqAddresses)
-      )
+    )
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -138,8 +139,7 @@ class AddressListControllerSpec
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      val expectedJson = jsonToPassToTemplate(
-        sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}")
+      val expectedJson = jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}")
         .apply(form)
 
       jsonCaptor.getValue must containJson(expectedJson)
@@ -155,36 +155,38 @@ class AddressListControllerSpec
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
 
-    //"Save data to user answers and redirect to next page when valid data is submitted" in {
-    //  val expectedJson = Json.obj(
-    //    "chargeCDetails" -> Json.obj(
-    //      "employers" -> Json.arr(
-    //        Json.obj(
-    //          SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-    //          WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
-    //        ))
-    //    ),
-    //    AddressListPage.toString -> seqAddresses
-    //  )
-    //
-    //  when(mockCompoundNavigator.nextPage(Matchers.eq(AddressListPage), any(), any(), any(), any())).thenReturn(dummyCall)
-    //  when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
-    //
-    //  mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
-    //
-    //  val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-    //
-    //  val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-    //
-    //  status(result) mustEqual SEE_OTHER
-    //
-    //  verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-    //
-    //  jsonCaptor.getValue must containJson(expectedJson)
-    //
-    //  redirectLocation(result) mustBe Some(dummyCall.url)
-    //}
-    //
+    "Save data to user answers and redirect to next page when valid data is submitted" in {
+      val expectedJson = Json.obj(
+        "chargeCDetails" -> Json.obj(
+          "employers" -> Json.arr(
+            Json.obj(
+              SponsoringIndividualDetailsPage.toString -> sponsoringIndividualDetails,
+              WhichTypeOfSponsoringEmployerPage.toString -> "individual",
+              SponsoringEmployerAddressPage.toString -> sponsoringEmployerAddress
+            ))
+        ),
+
+        EnterPostcodePage.toString -> seqAddresses
+      )
+
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddressListPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+    }
+
     "return a BAD REQUEST when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)
 
