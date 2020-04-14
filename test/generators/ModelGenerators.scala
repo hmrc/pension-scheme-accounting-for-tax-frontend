@@ -31,6 +31,18 @@ trait ModelGenerators {
       Gen.oneOf(AddressList.values.toSeq)
     }
 
+  implicit lazy val arbitraryTolerantAddress: Arbitrary[TolerantAddress] =
+    Arbitrary {
+      for {
+        addressLine1 <- arbitrary[Option[String]]
+        addressLine2 <- arbitrary[Option[String]]
+        addressLine3 <- arbitrary[Option[String]]
+        addressLine4 <- arbitrary[Option[String]]
+        postcode <- arbitrary[Option[String]]
+        country <- arbitrary[Option[String]]
+      } yield TolerantAddress(addressLine1, addressLine2, addressLine3, addressLine4, postcode, country)
+    }
+
   implicit lazy val arbitraryMemberDetails: Arbitrary[MemberDetails] =
     Arbitrary {
       for {

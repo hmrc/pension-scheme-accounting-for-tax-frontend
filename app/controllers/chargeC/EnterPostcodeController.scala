@@ -82,7 +82,6 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
-
             val viewModel = GenericViewModel(
               submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -98,50 +97,31 @@ class EnterPostcodeController @Inject()(override val messagesApi: MessagesApi,
             renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
           },
           value =>
-          lookupPostcode(srn,
-            mode,
-            value,
-            startDate,
-            index,
-            schemeName,
-            sponsorName)
+            addressLookupConnector.addressLookupByPostCode(value).flatMap {
+              case Nil =>
+                val viewModel = GenericViewModel(
+                submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName)
+
+                val json = Json.obj(
+                  "form" -> formWithError("chargeC.enterPostcode.error.notFound"),
+                  "viewModel" -> viewModel,
+                  "sponsorName" -> sponsorName,
+                  "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
+                )
+
+                renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
+
+              case addresses =>
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, addresses))
+                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
+            }
         )
+
       }
-  }
-
-  private def lookupPostcode(
-                              srn: String,
-                              mode: Mode,
-                              postCode: String,
-                              startDate: LocalDate,
-                              index: Index,
-                              schemeName: String,
-                              sponsorName: String
-                            )(implicit request: DataRequest[AnyContent]): Future[Result] = {
-
-    addressLookupConnector.addressLookupByPostCode(postCode).flatMap {
-
-      case Nil => val viewModel = GenericViewModel(
-        submitUrl = routes.EnterPostcodeController.onSubmit(mode, srn, startDate, index).url,
-        returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-        schemeName = schemeName)
-
-        val json = Json.obj(
-          "form" -> formWithError(""),
-          "viewModel" -> viewModel,
-          "sponsorName" -> sponsorName,
-          "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
-        )
-
-        renderer.render("chargeC/enterPostcode.njk", json).map(BadRequest(_))
-
-      case addresses =>
-        for {
-          updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPostcodePage, addresses))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-        } yield Redirect(navigator.nextPage(EnterPostcodePage, mode, updatedAnswers, srn, startDate))
-
-    }
   }
 
   protected def formWithError(message: String)(implicit request: DataRequest[AnyContent]): Form[String] = {

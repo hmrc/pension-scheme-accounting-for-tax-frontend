@@ -16,6 +16,7 @@
 
 package pages.chargeC
 
+import models.TolerantAddress
 import pages.behaviours.PageBehaviours
 
 
@@ -23,10 +24,10 @@ class EnterPostcodePageSpec extends PageBehaviours {
 
   "EnterPostcodePage" - {
 
-    beRetrievable[String](EnterPostcodePage)
+    beRetrievable[Seq[TolerantAddress]](EnterPostcodePage)
 
-    beSettable[String](EnterPostcodePage)
+    beSettable[Seq[TolerantAddress]](EnterPostcodePage)
 
-    beRemovable[String](EnterPostcodePage)
+    beRemovable[Seq[TolerantAddress]](EnterPostcodePage)
   }
 }

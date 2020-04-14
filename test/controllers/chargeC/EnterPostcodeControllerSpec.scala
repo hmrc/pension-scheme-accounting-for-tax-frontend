@@ -17,7 +17,7 @@
 package controllers.chargeC
 
 import connectors.AddressLookupConnector
-import controllers.actions.{DataRetrievalAction, MutableFakeDataRetrievalAction}
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData.companyName
 import data.SampleData.dummyCall
@@ -27,7 +27,10 @@ import data.SampleData.userAnswersWithSchemeNameAndIndividual
 import data.SampleData.userAnswersWithSchemeNameAndOrganisation
 import forms.chargeC.EnterPostcodeFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.TolerantAddress
+import models.UserAnswers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -37,7 +40,9 @@ import org.mockito.Mockito.when
 import org.scalatest.OptionValues
 import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{EnterPostcodePage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
+import pages.chargeC.EnterPostcodePage
+import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.data.Form
 import play.api.libs.json.JsObject
@@ -51,21 +56,26 @@ import play.api.inject.bind
 
 import scala.concurrent.Future
 
-class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
-  with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class EnterPostcodeControllerSpec
+    extends ControllerSpecBase
+    with MockitoSugar
+    with NunjucksSupport
+    with JsonMatchers
+    with OptionValues
+    with TryValues {
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules = bind[AddressLookupConnector].toInstance(mockAddressLookupConnector)
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
-    extraModules = Seq(extraModules)).build()
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules = Seq(extraModules)).build()
   private val templateToBeRendered = "chargeC/enterPostcode.njk"
   private val form = new EnterPostcodeFormProvider()()
   private val index = 0
   private val postcode = "ZZ1 1ZZ"
-  private val seqAddresses = Seq[TolerantAddress]()
-
+  private val seqAddresses =
+    Seq[TolerantAddress](TolerantAddress(Some("addr1"), Some("addr2"), Some("addr3"), Some("addr4"), Some("postcode"), Some("UK")))
 
   private def httpPathGET: String = controllers.chargeC.routes.EnterPostcodeController.onPageLoad(NormalMode, srn, startDate, index).url
 
@@ -79,15 +89,18 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
     "value" -> Seq("")
   )
 
-  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[String] => JsObject = form => Json.obj(
-    "form" -> form,
-    "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName),
-    "sponsorName" -> sponsorName,
-    "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
-  )
+  private def jsonToPassToTemplate(sponsorName: String, isSelected: Boolean = false): Form[String] => JsObject =
+    form =>
+      Json.obj(
+        "form" -> form,
+        "viewModel" -> GenericViewModel(
+          submitUrl = controllers.chargeC.routes.EnterPostcodeController.onSubmit(NormalMode, srn, startDate, index).url,
+          returnUrl = dummyCall.url,
+          schemeName = schemeName
+        ),
+        "sponsorName" -> sponsorName,
+        "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
+    )
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -96,7 +109,6 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
-
 
   "EnterPostcode Controller with individual sponsor" must {
     "return OK and the correct view for a GET" in {
@@ -111,7 +123,8 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}").apply(form))
+      jsonCaptor.getValue must containJson(
+        jsonToPassToTemplate(sponsorName = s"${sponsoringIndividualDetails.firstName} ${sponsoringIndividualDetails.lastName}").apply(form))
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {
@@ -124,32 +137,33 @@ class EnterPostcodeControllerSpec extends ControllerSpecBase with MockitoSugar
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
 
-  "EnterPostcode Controller with organisation sponsor" must {
-    "return OK and the correct view for a GET" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+    "EnterPostcode Controller with organisation sponsor" must {
+      "return OK and the correct view for a GET" in {
+        mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, httpGETRequest(httpPathGET)).value
+        val result = route(application, httpGETRequest(httpPathGET)).value
 
-      status(result) mustEqual OK
+        status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual templateToBeRendered
+        templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName).apply(form))
+        jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = companyName).apply(form))
+      }
     }
-  }
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
-          "employers" -> Json.arr(Json.obj(
-            SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
-            WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
-          ))
+          "employers" -> Json.arr(
+            Json.obj(
+              SponsoringOrganisationDetailsPage.toString -> sponsoringOrganisationDetails,
+              WhichTypeOfSponsoringEmployerPage.toString -> "organisation"
+            ))
         ),
         EnterPostcodePage.toString -> seqAddresses
       )
