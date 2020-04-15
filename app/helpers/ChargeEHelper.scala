@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package services
+package helpers
 
 import java.time.LocalDate
 
-import models.LocalDateBinder._
 import models.{Member, MemberDetails, UserAnswers}
-import pages.chargeD.ChargeDetailsPage
+import pages.chargeE.ChargeDetailsPage
 import play.api.i18n.Messages
 import play.api.mvc.Call
-import services.AddMembersService.mapChargeXMembersToTable
+import AddMembersHelper.mapChargeXMembersToTable
 import viewmodels.Table
+import models.LocalDateBinder._
 
-object ChargeDService {
+object ChargeEHelper {
 
-  def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
+  def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
     val members = for {
-        (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
+        (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
       } yield {
         ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
           Member(
             index,
             member.fullName,
             member.nino,
-            chargeDetails.total,
+            chargeDetails.chargeAmount,
             viewUrl(index, srn, startDate).url,
             removeUrl(index, srn, startDate).url,
             member.isDeleted
@@ -49,13 +49,13 @@ object ChargeDService {
     members.flatten
   }
 
-  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
-    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
+  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
+    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
-  def mapToTable(members: Seq[Member], canChange:Boolean)(implicit messages: Messages): Table =
-    mapChargeXMembersToTable("chargeD", members, canChange)
+  def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
+    mapChargeXMembersToTable("chargeE", members, canChange)
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package services
+package helpers
 
 import java.time.LocalDate
 
@@ -25,7 +25,7 @@ import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import utils.AFTConstants.QUARTER_START_DATE
 
-class ChargeDServiceSpec extends SpecBase {
+class ChargeDHelperSpec extends SpecBase {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -54,13 +54,13 @@ class ChargeDServiceSpec extends SpecBase {
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      ChargeDService.getLifetimeAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      ChargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      ChargeDService.getLifetimeAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

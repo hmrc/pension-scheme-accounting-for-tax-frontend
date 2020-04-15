@@ -24,7 +24,7 @@ import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import play.api.mvc.Call
-import services.ChargeEService._
+import helpers.ChargeEHelper._
 import java.time.LocalDate
 import models.LocalDateBinder._
 import services.AFTReturnTidyService
