@@ -22,10 +22,10 @@ class SponsoringEmployerAddressResultsPageSpec extends PageBehaviours {
 
   "SponsoringEmployerAddressResultsPage" - {
 
-    beRetrievable[Int](SponsoringEmployerAddressResultsPage)
+    beRetrievable[Int](SponsoringEmployerAddressResultsPage(0))
 
-    beSettable[Int](SponsoringEmployerAddressResultsPage)
+    beSettable[Int](SponsoringEmployerAddressResultsPage(0))
 
-    beRemovable[Int](SponsoringEmployerAddressResultsPage)
+    beRemovable[Int](SponsoringEmployerAddressResultsPage(0))
   }
 }

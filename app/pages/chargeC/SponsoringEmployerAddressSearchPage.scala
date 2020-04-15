@@ -20,9 +20,10 @@ import models.TolerantAddress
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object SponsoringEmployerAddressSearchPage extends QuestionPage[Seq[TolerantAddress]] {
+case class SponsoringEmployerAddressSearchPage(index: Int) extends QuestionPage[Seq[TolerantAddress]] {
+  override def path: JsPath = JsPath \ SponsoringEmployerAddressSearchPage.toString
+}
 
-  override def path: JsPath = JsPath \ toString
-
+object SponsoringEmployerAddressSearchPage {
   override def toString: String = "sponsoringEmployerAddressSearch"
 }

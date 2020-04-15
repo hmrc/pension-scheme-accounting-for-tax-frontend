@@ -80,7 +80,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase 
     )
 
   private val userAnswersIndividual: Option[UserAnswers] = Some(
-    userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage, seqAddresses)
+    userAnswersWithSchemeNameAndIndividual.setOrException(SponsoringEmployerAddressSearchPage(index), seqAddresses)
   )
 
   private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onPageLoad(NormalMode, srn, startDate, index).url
@@ -170,7 +170,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase 
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressResultsPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressResultsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)

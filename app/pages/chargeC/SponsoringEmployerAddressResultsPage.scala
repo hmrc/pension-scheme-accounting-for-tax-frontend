@@ -18,9 +18,10 @@ package pages.chargeC
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object SponsoringEmployerAddressResultsPage extends QuestionPage[Int] {
+case class SponsoringEmployerAddressResultsPage(index: Int) extends QuestionPage[Int] {
+  override def path: JsPath = JsPath \ SponsoringEmployerAddressResultsPage.toString
+}
 
-  override def path: JsPath = JsPath \ toString
-
+object SponsoringEmployerAddressResultsPage {
   override def toString: String = "sponsoringEmployerAddressResults"
 }

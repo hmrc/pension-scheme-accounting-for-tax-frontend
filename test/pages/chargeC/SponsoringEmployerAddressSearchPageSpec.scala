@@ -24,10 +24,10 @@ class SponsoringEmployerAddressSearchPageSpec extends PageBehaviours {
 
   "SponsoringEmployerAddressSearchPage" - {
 
-    beRetrievable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+    beRetrievable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage(0))
 
-    beSettable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+    beSettable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage(0))
 
-    beRemovable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage)
+    beRemovable[Seq[TolerantAddress]](SponsoringEmployerAddressSearchPage(0))
   }
 }

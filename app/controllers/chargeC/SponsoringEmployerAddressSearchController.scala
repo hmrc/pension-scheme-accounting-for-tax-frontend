@@ -115,9 +115,9 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
 
               case addresses =>
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage, addresses))
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage(index), addresses))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage, mode, updatedAnswers, srn, startDate))
+                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage(index), mode, updatedAnswers, srn, startDate))
             }
         )
 

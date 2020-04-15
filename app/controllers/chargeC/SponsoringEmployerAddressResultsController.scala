@@ -81,20 +81,31 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
           },
           value => {
-            val selectedSponsoringEmployerAddress = request.userAnswers.get(SponsoringEmployerAddressSearchPage) match {
+            val selectedSponsoringEmployerAddress = request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
               case None =>
                 SponsoringEmployerAddress("", "", None, None, "", None)
               case Some(addresses) =>
-                SponsoringEmployerAddress.fromTolerantAddress(addresses(value))
+                fromTolerantAddress(addresses(value))
             }
 
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), selectedSponsoringEmployerAddress))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage, mode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
     }
+
+  private def fromTolerantAddress(ta:TolerantAddress):SponsoringEmployerAddress = {
+    SponsoringEmployerAddress(
+      ta.addressLine1.getOrElse(""),
+      ta.addressLine2.getOrElse(""),
+      ta.addressLine3,
+      ta.addressLine4,
+      "GB",
+      ta.postcode
+    )
+  }
 
   private def transformAddressesForTemplate(seqTolerantAddresses:Seq[TolerantAddress]):Seq[JsObject] = {
     for ((row, i) <- seqTolerantAddresses.zipWithIndex) yield {
@@ -107,7 +118,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
 
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-      request.userAnswers.get(SponsoringEmployerAddressSearchPage) match {
+      request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
         case None => throw new RuntimeException("??")
         case Some(addresses) =>
           val viewModel = GenericViewModel(

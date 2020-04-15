@@ -168,7 +168,7 @@ class SponsoringEmployerAddressSearchControllerSpec
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressSearchPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressSearchPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)

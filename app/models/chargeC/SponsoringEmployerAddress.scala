@@ -29,14 +29,4 @@ case class SponsoringEmployerAddress(line1: String,
 object SponsoringEmployerAddress {
   implicit lazy val formats: Format[SponsoringEmployerAddress] =
     Json.format[SponsoringEmployerAddress]
-
-  def fromTolerantAddress(ta:TolerantAddress):SponsoringEmployerAddress =
-    SponsoringEmployerAddress(
-      ta.addressLine1.getOrElse(""),
-      ta.addressLine2.getOrElse(""),
-      ta.addressLine3,
-      ta.addressLine4,
-      ta.country.getOrElse(""),
-      ta.postcode
-    )
 }
