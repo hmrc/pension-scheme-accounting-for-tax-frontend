@@ -836,7 +836,6 @@ chargeC.employerAddressSearch.heading = What is {0}’s postcode?
 chargeC.employerAddressSearch.label = Postcode
 chargeC.employerAddressSearch.checkYourAnswersLabel = employerAddressSearch
 chargeC.employerAddressSearch.error.required = Enter a postcode
-chargeC.employerAddressSearch.error.notFound = No matching postcode found
 chargeC.employerAddressSearch.error.invalid = Enter a real postcode
 chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually

@@ -105,7 +105,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                 schemeName = schemeName)
 
                 val json = Json.obj(
-                  "form" -> formWithError("chargeC.employerAddressSearch.error.notFound"),
+                  "form" -> formWithError("chargeC.employerAddressSearch.error.invalid"),
                   "viewModel" -> viewModel,
                   "sponsorName" -> sponsorName,
                   "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
@@ -125,6 +125,6 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
   }
 
   protected def formWithError(message: String)(implicit request: DataRequest[AnyContent]): Form[String] = {
-    form.withError("postcode", message)
+    form.withError("value", message)
   }
 }
