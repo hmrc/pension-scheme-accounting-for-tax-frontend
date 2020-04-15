@@ -24,7 +24,7 @@ import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.Call
-import services.ChargeGService._
+import helpers.ChargeGHelper._
 import java.time.LocalDate
 import models.LocalDateBinder._
 import services.AFTReturnTidyService
