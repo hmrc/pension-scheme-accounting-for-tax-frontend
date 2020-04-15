@@ -72,7 +72,7 @@ object SampleData {
       line2 = "line2",
       line3 = Some("line3"),
       line4 = Some("line4"),
-      country = "UK",
+      country = "GB",
       postcode = Some("ZZ1 1ZZ")
     )
 

@@ -841,6 +841,7 @@ chargeC.employerAddressSearch.error.invalid = Enter a real postcode
 chargeC.employerAddressSearch.link.youCan = You can
 chargeC.employerAddressSearch.link.enterManually = enter the address manually
 chargeC.employerAddressSearch.findAddress = Find address
+chargeC.employerAddressSearch.selectAddress = Select the address from the list below, or
 
 chargeC.employerAddressResults.title = What is {0}’s address?
 chargeC.employerAddressResults.heading = What is {0}’s address?
