@@ -16,10 +16,14 @@
 
 package controllers.chargeC
 
+import audit.AddressLookupAuditEvent
+import audit.AuditService
+import audit.StartAFTAuditEvent
 import connectors.AddressLookupConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData.companyName
+import org.mockito.Mockito._
 import data.SampleData.dummyCall
 import data.SampleData.srn
 import data.SampleData.startDate
@@ -66,10 +70,17 @@ class SponsoringEmployerAddressSearchControllerSpec
   private val userAnswersIndividual: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndIndividual)
   private val userAnswersOrganisation: Option[UserAnswers] = Some(userAnswersWithSchemeNameAndOrganisation)
   private val mockAddressLookupConnector = mock[AddressLookupConnector]
+  private val mockAuditService = mock[AuditService]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val extraModules = bind[AddressLookupConnector].toInstance(mockAddressLookupConnector)
+
   private val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules = Seq(extraModules)).build()
+    applicationBuilderMutableRetrievalAction(
+      mutableFakeDataRetrievalAction,
+      extraModules = Seq(
+        bind[AddressLookupConnector].toInstance(mockAddressLookupConnector),
+        bind[AuditService].toInstance(mockAuditService)
+      )
+    ).build()
   private val templateToBeRendered = "chargeC/sponsoringEmployerAddressSearch.njk"
   private val form = new SponsoringEmployerAddressSearchFormProvider()()
   private val index = 0
@@ -77,12 +88,14 @@ class SponsoringEmployerAddressSearchControllerSpec
   private val seqAddresses =
     Seq[TolerantAddress](TolerantAddress(Some("addr1"), Some("addr2"), Some("addr3"), Some("addr4"), Some("postcode"), Some("UK")))
 
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String =
+    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String =
+    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq("ZZ1 1ZZ")
+    "value" -> Seq(postcode)
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
@@ -104,6 +117,7 @@ class SponsoringEmployerAddressSearchControllerSpec
 
   override def beforeEach: Unit = {
     super.beforeEach
+    reset(mockAuditService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -155,8 +169,8 @@ class SponsoringEmployerAddressSearchControllerSpec
       }
     }
 
-    "Save data to user answers and redirect to next page when valid data is submitted" in {
-
+    "Save data to user answers and redirect to next page when valid data is submitted and send audit event" in {
+      val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(
@@ -184,6 +198,9 @@ class SponsoringEmployerAddressSearchControllerSpec
       jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+
+      verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+      eventCaptor.getValue mustEqual AddressLookupAuditEvent(postcode)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

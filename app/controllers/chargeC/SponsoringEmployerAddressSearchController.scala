@@ -18,6 +18,8 @@ package controllers.chargeC
 
 import java.time.LocalDate
 
+import audit.AddressLookupAuditEvent
+import audit.AuditService
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, WhichTypeOfSponsoringEmployerPage}
 import config.FrontendAppConfig
@@ -27,13 +29,13 @@ import controllers.DataRetrievals
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, Mode, TolerantAddress, UserAnswers}
+import models.{TolerantAddress, GenericViewModel, UserAnswers, Mode, Index}
 import models.requests.DataRequest
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Result, AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -50,6 +52,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                                                           requireData: DataRequiredAction,
                                                           formProvider: SponsoringEmployerAddressSearchFormProvider,
                                                           addressLookupConnector: AddressLookupConnector,
+                                                          auditService:AuditService,
                                                           val controllerComponents: MessagesControllerComponents,
                                                           config: FrontendAppConfig,
                                                           renderer: Renderer
@@ -114,6 +117,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                 renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(BadRequest(_))
 
               case addresses =>
+                auditService.sendEvent(AddressLookupAuditEvent(value))
                 for {
                   updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage(index), addresses))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
