@@ -26,7 +26,7 @@ trait OptionFieldBehaviours extends FieldBehaviours {
                       invalidError: FormError): Unit = {
 
 
-    "must bind all valid year range" in {
+    "must bind all valid values" in {
 
       for(value <- validValues) {
 
@@ -35,7 +35,7 @@ trait OptionFieldBehaviours extends FieldBehaviours {
       }
     }
 
-    "must not bind invalid year range" in {
+    "must not bind invalid values" in {
 
       val generator = stringsExceptSpecificValues(validValues.map(_.toString))
 

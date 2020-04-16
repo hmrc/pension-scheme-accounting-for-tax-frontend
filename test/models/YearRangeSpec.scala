@@ -44,7 +44,7 @@ class YearRangeSpec
 
   "YearRange" must {
 
-    "must deserialise valid year range" in {
+    "must deserialise valid values" in {
 
       val gen = Gen.oneOf(YearRange.createSeqYearRange)
 
@@ -56,7 +56,7 @@ class YearRangeSpec
       }
     }
 
-    "must fail to deserialise invalid year range" in {
+    "must fail to deserialise invalid values" in {
 
       val gen = arbitrary[String] suchThat (!YearRange.createSeqYearRange
         .map(_.toString)

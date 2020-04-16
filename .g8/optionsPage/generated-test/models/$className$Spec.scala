@@ -10,7 +10,7 @@ class $className$Spec extends FreeSpec with MustMatchers with ScalaCheckProperty
 
   "$className$" - {
 
-    "must deserialise valid year range" in {
+    "must deserialise valid values" in {
 
       val gen = Gen.oneOf($className$.values)
 
@@ -21,7 +21,7 @@ class $className$Spec extends FreeSpec with MustMatchers with ScalaCheckProperty
       }
     }
 
-    "must fail to deserialise invalid year range" in {
+    "must fail to deserialise invalid values" in {
 
       val gen = arbitrary[String] suchThat (!$className$.values.map(_.toString).contains(_))
 
