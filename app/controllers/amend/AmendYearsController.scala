@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
 import javax.inject.Inject
-import models.{AmendYears, GenericViewModel, Years}
+import models.{AmendYears, GenericViewModel, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -34,70 +34,52 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class AmendYearsController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    formProvider: AmendYearsFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    aftConnector: AFTConnector,
-    schemeService: SchemeService
+  override val messagesApi: MessagesApi,
+  identify: IdentifierAction,
+  formProvider: AmendYearsFormProvider,
+  val controllerComponents: MessagesControllerComponents,
+  renderer: Renderer,
+  config: FrontendAppConfig,
+  aftConnector: AFTConnector,
+  schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(years: Seq[Int]): Form[Years] = formProvider(years)
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+        schemeDetails =>
+          aftConnector.getAftOverview(schemeDetails.pstr).flatMap {
+            aftOverview =>
+              if (aftOverview.nonEmpty) {
+                val yearsSeq =
+                  aftOverview.map(_.periodStartDate.getYear).distinct
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
-          val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct
+                val json = Json.obj(
+                  "srn" -> srn,
+                  "startDate" -> None,
+                  "form" -> form(yearsSeq),
+                  "radios" -> AmendYears.radios(form(yearsSeq), yearsSeq),
+                  "viewModel" -> viewModel(schemeDetails.schemeName, srn)
+                )
 
-          val json = Json.obj(
-            "srn" -> srn,
-            "startDate" -> None,
-            "form" -> form(yearsSeq),
-            "radios" -> AmendYears.radios(form(yearsSeq), yearsSeq),
-            "viewModel" -> viewModel(schemeDetails.schemeName, srn)
-          )
-
-          renderer.render(template = "amend/amendYears.njk", json).map(Ok(_))
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
-      }
-    }
-  }
-
-  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
-          val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct
-          form(yearsSeq)
-            .bindFromRequest()
-            .fold(
-              formWithErrors =>
-                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-                  val json = Json.obj(
-                    fields = "srn" -> srn,
-                    "startDate" -> None,
-                    "form" -> formWithErrors,
-                    "radios" -> AmendYears.radios(formWithErrors, yearsSeq),
-                    "viewModel" -> viewModel(schemeDetails.schemeName, srn)
+                renderer
+                  .render(template = "amend/amendYears.njk", json)
+                  .map(Ok(_))
+              } else {
+                Future.successful(
+                  Redirect(
+                    controllers.routes.SessionExpiredController.onPageLoad()
                   )
-                  renderer.render(template = "amend/amendYears.njk", json).map(BadRequest(_))
-              },
-              value => Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, value.toString)))
-            )
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
+                )
+              }
+          }
       }
-    }
   }
+
+  private def form(years: Seq[Int]): Form[Year] = formProvider(years)
 
   private def viewModel(schemeName: String, srn: String): GenericViewModel = {
     GenericViewModel(
@@ -105,5 +87,55 @@ class AmendYearsController @Inject()(
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
+  }
+
+  def onSubmit(srn: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+        schemeDetails =>
+          aftConnector.getAftOverview(schemeDetails.pstr).flatMap {
+            aftOverview =>
+              if (aftOverview.nonEmpty) {
+                val yearsSeq =
+                  aftOverview.map(_.periodStartDate.getYear).distinct
+                form(yearsSeq)
+                  .bindFromRequest()
+                  .fold(
+                    formWithErrors =>
+                      schemeService
+                        .retrieveSchemeDetails(request.psaId.id, srn)
+                        .flatMap { schemeDetails =>
+                          val json = Json.obj(
+                            fields = "srn" -> srn,
+                            "startDate" -> None,
+                            "form" -> formWithErrors,
+                            "radios" -> AmendYears
+                              .radios(formWithErrors, yearsSeq),
+                            "viewModel" -> viewModel(
+                              schemeDetails.schemeName,
+                              srn
+                            )
+                          )
+                          renderer
+                            .render(template = "amend/amendYears.njk", json)
+                            .map(BadRequest(_))
+                      },
+                    value =>
+                      Future.successful(
+                        Redirect(
+                          controllers.amend.routes.AmendQuartersController
+                            .onPageLoad(srn, value.toString)
+                        )
+                    )
+                  )
+              } else {
+                Future.successful(
+                  Redirect(
+                    controllers.routes.SessionExpiredController.onPageLoad()
+                  )
+                )
+              }
+          }
+      }
   }
 }

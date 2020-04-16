@@ -25,11 +25,9 @@ import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
 
-sealed trait Years {
-  def getYear: Int = this.asInstanceOf[Year].year
-}
 
-case class Year(year: Int) extends Years {
+case class Year(year: Int) {
+  def getYear: Int = this.asInstanceOf[Year].year
   override def toString: String = year.toString
 }
 
@@ -64,7 +62,7 @@ object StartYears extends CommonYears with Enumerable.Implicits {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
-  implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Years] =
+  implicit def enumerable(implicit config: FrontendAppConfig): Enumerable[Year] =
     Enumerable(values.map(v => v.toString -> v): _*)
 }
 
@@ -76,7 +74,7 @@ object AmendYears extends CommonYears with Enumerable.Implicits {
     Radios(form("value"), years.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
-  implicit def enumerable(implicit years: Seq[Int]): Enumerable[Years] =
+  implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
     Enumerable(values(years).map(v => v.toString -> v): _*)
 
 }
