@@ -98,7 +98,7 @@ trait CommonQuarters {
     }
 }
 
-sealed trait StartQuarters extends Quarters
+//sealed trait StartQuarters extends Quarters
 
 object StartQuarters extends CommonQuarters with Enumerable.Implicits {
 
@@ -119,7 +119,7 @@ object StartQuarters extends CommonQuarters with Enumerable.Implicits {
     Enumerable(values(year).map(v => v.toString -> v): _*)
 }
 
-sealed trait AmendQuarters extends Quarters
+//sealed trait AmendQuarters extends Quarters
 
 object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
 
