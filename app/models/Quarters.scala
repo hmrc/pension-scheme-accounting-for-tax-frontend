@@ -98,8 +98,6 @@ trait CommonQuarters {
     }
 }
 
-//sealed trait StartQuarters extends Quarters
-
 object StartQuarters extends CommonQuarters with Enumerable.Implicits {
 
   def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
@@ -118,8 +116,6 @@ object StartQuarters extends CommonQuarters with Enumerable.Implicits {
   implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
     Enumerable(values(year).map(v => v.toString -> v): _*)
 }
-
-//sealed trait AmendQuarters extends Quarters
 
 object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
 
