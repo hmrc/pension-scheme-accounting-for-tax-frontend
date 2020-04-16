@@ -36,20 +36,20 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import scala.concurrent.ExecutionContext
 
 class WhatYouWillNeedController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    config: FrontendAppConfig,
-    renderer: Renderer,
-    schemeDetailsConnector: SchemeDetailsConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport {
+                                          override val messagesApi: MessagesApi,
+                                          identify: IdentifierAction,
+                                          getData: DataRetrievalAction,
+                                          allowAccess: AllowAccessActionProvider,
+                                          requireData: DataRequiredAction,
+                                          val controllerComponents: MessagesControllerComponents,
+                                          config: FrontendAppConfig,
+                                          renderer: Renderer,
+                                          schemeDetailsConnector: SchemeDetailsConnector,
+                                          userAnswersCacheConnector: UserAnswersCacheConnector,
+                                          navigator: CompoundNavigator
+                                      )(implicit ec: ExecutionContext)
+                                          extends FrontendBaseController
+                                          with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
