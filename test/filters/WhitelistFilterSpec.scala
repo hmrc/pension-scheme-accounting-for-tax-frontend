@@ -86,9 +86,9 @@ class WhitelistFilterSpec extends FreeSpec with MustMatchers with ScalaCheckProp
       }
     }
 
-    "must contain all of the values" - {
+    "must contain all of the createSeqYearRange" - {
 
-      "when given a comma-separated list of values" in {
+      "when given a comma-separated list of createSeqYearRange" in {
 
         val gen = Gen.nonEmptyListOf(Gen.alphaNumStr suchThat (_.nonEmpty))
 
@@ -185,9 +185,9 @@ class WhitelistFilterSpec extends FreeSpec with MustMatchers with ScalaCheckProp
       }
     }
 
-    "must return Calls to all of the values" - {
+    "must return Calls to all of the createSeqYearRange" - {
 
-      "when given a comma-separated list of values" in {
+      "when given a comma-separated list of createSeqYearRange" in {
 
         val gen = Gen.nonEmptyListOf(Gen.alphaNumStr suchThat (_.nonEmpty))
 

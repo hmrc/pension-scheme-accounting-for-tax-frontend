@@ -51,7 +51,7 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
 
   "render" - {
 
-    "must pass config values to the Nunjucks Renderer" - {
+    "must pass config createSeqYearRange to the Nunjucks Renderer" - {
 
       "when called with only a template" in {
 
@@ -74,7 +74,7 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
       }
     }
 
-    "must pass config values to the Nunjucks Renderer" - {
+    "must pass config createSeqYearRange to the Nunjucks Renderer" - {
 
       "when called with a template and a JsObject" in {
 
@@ -97,7 +97,7 @@ class RendererSpec extends FreeSpec with MustMatchers with GuiceOneAppPerSuite w
       }
     }
 
-    "must pass config values to the Nunjucks Renderer" - {
+    "must pass config createSeqYearRange to the Nunjucks Renderer" - {
 
       "when called with a template and a writable object" in {
 

@@ -23,7 +23,7 @@ import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.DynamicYearRange
+import models.YearRange
 import models.{YearRange, UserAnswers}
 import pages.chargeE.{CheckYourAnswersPage, ChargeDetailsPage, AnnualAllowanceYearPage, MemberDetailsPage}
 import play.api.libs.json.{Json, JsObject}
@@ -40,7 +40,7 @@ import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
-  private val dynamicYearRange = DynamicYearRange("2019")
+  private val dynamicYearRange = YearRange("2019")
 
   private val templateToBeRendered = "check-your-answers.njk"
 

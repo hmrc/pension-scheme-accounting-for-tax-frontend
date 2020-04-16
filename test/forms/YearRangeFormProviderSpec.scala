@@ -32,7 +32,7 @@ class YearRangeFormProviderSpec extends OptionFieldBehaviours {
     behave like optionsField[YearRange](
       form,
       fieldName,
-      validValues  = YearRange.values,
+      validValues  = YearRange.createSeqYearRange,
       invalidError = FormError(fieldName, "error.invalid")
     )
 

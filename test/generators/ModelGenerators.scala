@@ -62,7 +62,7 @@ trait ModelGenerators {
 
   implicit lazy val arbitraryYearRange: Arbitrary[YearRange] =
     Arbitrary {
-      Gen.oneOf(YearRange.values.toSeq)
+      Gen.oneOf(YearRange.createSeqYearRange.toSeq)
     }
 
   def datesBetween(min: LocalDate, max: LocalDate): Gen[LocalDate] = {

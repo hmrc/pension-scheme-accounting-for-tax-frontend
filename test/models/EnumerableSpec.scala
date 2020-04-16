@@ -51,7 +51,7 @@ class EnumerableSpec extends FreeSpec with MustMatchers with EitherValues with O
         }
     }
 
-    "must fail to bind for invalid values" in {
+    "must fail to bind for invalid createSeqYearRange" in {
       a [RuntimeException] shouldBe thrownBy {
         Json.fromJson[Foo](JsString("invalid")).asEither.left.value
       }

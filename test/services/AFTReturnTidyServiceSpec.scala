@@ -201,7 +201,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       result.get(ChargeCDetailsPage(1)).map(_.amountTaxDue) mustBe Some(zeroCurrencyValue)
     }
 
-    "reinstate only the last deleted member from charge D and zero currency values" in {
+    "reinstate only the last deleted member from charge D and zero currency createSeqYearRange" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
         .setOrException(pages.chargeD.ChargeDetailsPage(1), chargeDDetails)
@@ -218,7 +218,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       result.get(pages.chargeD.ChargeDetailsPage(1)).flatMap(_.taxAt55Percent) mustBe Some(zeroCurrencyValue)
     }
 
-    "reinstate only the last deleted member from charge E and zero currency values" in {
+    "reinstate only the last deleted member from charge E and zero currency createSeqYearRange" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeE.ChargeDetailsPage(0), chargeEDetails)
         .setOrException(pages.chargeE.ChargeDetailsPage(1), chargeEDetails)
@@ -233,7 +233,7 @@ class AFTReturnTidyServiceSpec extends SpecBase with ScalaFutures with BeforeAnd
       result.get(pages.chargeE.ChargeDetailsPage(1)).map(_.chargeAmount) mustBe Some(zeroCurrencyValue)
     }
 
-    "reinstate only the last deleted member from charge G and zero currency values" in {
+    "reinstate only the last deleted member from charge G and zero currency createSeqYearRange" in {
       val ua: UserAnswers = userAnswersWithSchemeName
         .setOrException(pages.chargeG.ChargeAmountsPage(0), chargeAmounts)
         .setOrException(pages.chargeG.ChargeAmountsPage(1), chargeAmounts)

@@ -113,14 +113,14 @@ class SessionIdFilterSpec extends FreeSpec with MustMatchers with OptionValues w
       (body \ "fromSession").as[String] mustEqual "foo"
     }
 
-    "must not override other session values from the response" in {
+    "must not override other session createSeqYearRange from the response" in {
 
       val result = route(app, FakeRequest(GET, "/test2")).value
 
       session(result).data must contain("foo" -> "bar")
     }
 
-    "must not override other session values from the request" in {
+    "must not override other session createSeqYearRange from the request" in {
 
       val result = route(app, FakeRequest(GET, "/test").withSession("foo" -> "bar")).value
       session(result).data must contain("foo" -> "bar")
