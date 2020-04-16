@@ -123,9 +123,6 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual template
-println( "\n\nUA:" + ua)
-      println( "\n\nEXP=" + jsonToTemplate(form.fill(YearRange("2019"))))
-      println( "\n\nACT=" + jsonCaptor.getValue)
 
       jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange("2019"))))
     }
