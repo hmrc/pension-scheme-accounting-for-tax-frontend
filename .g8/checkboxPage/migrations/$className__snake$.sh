@@ -48,7 +48,7 @@ awk '/trait ModelGenerators/ {\
     print "";\
     print "  implicit lazy val arbitrary$className$: Arbitrary[$className$] =";\
     print "    Arbitrary {";\
-    print "      Gen.oneOf($className$.createSeqYearRange.toSeq)";\
+    print "      Gen.oneOf($className$.values.toSeq)";\
     print "    }";\
     next }1' ../test/generators/ModelGenerators.scala > tmp && mv tmp ../test/generators/ModelGenerators.scala
 
