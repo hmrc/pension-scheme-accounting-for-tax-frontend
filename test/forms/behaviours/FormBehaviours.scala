@@ -27,7 +27,7 @@ trait FormBehaviours extends FormSpec {
   val form: Form[_]
 
   def questionForm[A](expectedResult: A) = {
-    "must  bind valid createSeqYearRange correctly" in {
+    "must  bind valid year range correctly" in {
       val boundForm = form.bind(validData)
       boundForm.get mustBe expectedResult
     }

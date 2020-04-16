@@ -26,7 +26,7 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
 
   "ChargeType" - {
 
-    "must deserialise valid createSeqYearRange" in {
+    "must deserialise valid year range" in {
 
       val gen = Gen.oneOf(ChargeType.values)
 
@@ -37,7 +37,7 @@ class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyC
       }
     }
 
-    "must fail to deserialise invalid createSeqYearRange" in {
+    "must fail to deserialise invalid year range" in {
 
       val gen = arbitrary[String] suchThat (!ChargeType.values.map(_.toString).contains(_))
 
