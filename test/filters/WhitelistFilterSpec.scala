@@ -86,7 +86,7 @@ class WhitelistFilterSpec extends FreeSpec with MustMatchers with ScalaCheckProp
       }
     }
 
-    "must contain all of the createSeqYearRange" - {
+    "must contain all of the values" - {
 
       "when given a comma-separated list of createSeqYearRange" in {
 
@@ -185,7 +185,7 @@ class WhitelistFilterSpec extends FreeSpec with MustMatchers with ScalaCheckProp
       }
     }
 
-    "must return Calls to all of the createSeqYearRange" - {
+    "must return Calls to all of the values" - {
 
       "when given a comma-separated list of createSeqYearRange" in {
 
