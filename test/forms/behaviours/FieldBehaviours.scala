@@ -48,7 +48,7 @@ trait FieldBehaviours extends FormSpec with ScalaCheckPropertyChecks with Genera
       result.errors mustEqual Seq(requiredError)
     }
 
-    "must  not bind blank createSeqYearRange" in {
+    "must  not bind blank values" in {
 
       val result = form.bind(Map(fieldName -> "")).apply(fieldName)
       result.errors mustEqual Seq(requiredError)

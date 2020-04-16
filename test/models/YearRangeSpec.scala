@@ -46,7 +46,7 @@ class YearRangeSpec
 
     "must deserialise valid values" in {
 
-      val gen = Gen.oneOf(YearRange.createSeqYearRange)
+      val gen = Gen.oneOf(YearRange.values)
 
       forAll(gen) { yearRange =>
         JsString(yearRange.toString)
@@ -58,7 +58,7 @@ class YearRangeSpec
 
     "must fail to deserialise invalid values" in {
 
-      val gen = arbitrary[String] suchThat (!YearRange.createSeqYearRange
+      val gen = arbitrary[String] suchThat (!YearRange.values
         .map(_.toString)
         .contains(_))
 
@@ -71,7 +71,7 @@ class YearRangeSpec
     }
 
     "must serialise" in {
-      val gen = Gen.oneOf(YearRange.createSeqYearRange)
+      val gen = Gen.oneOf(YearRange.values)
 
       forAll(gen) { yearRange =>
         Json.toJson(yearRange) mustEqual JsString(yearRange.toString)
@@ -79,14 +79,14 @@ class YearRangeSpec
     }
   }
 
-  "createSeqYearRange" must {
+  "values" must {
     "yield seq of tax year start years for all years up to BUT NOT INCLUDING current calendar year " +
       "where current calendar date is set to 5th April (end of old tax year) of a random year" in {
       forAll(genYear -> "valid years") { year =>
         DateHelper.setDate(Some(LocalDate.of(year, 4, 5)))
         val expectedResult =
           (2018 until year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.createSeqYearRange mustBe expectedResult
+        YearRange.values mustBe expectedResult
       }
     }
 
@@ -96,7 +96,7 @@ class YearRangeSpec
         DateHelper.setDate(Some(LocalDate.of(year, 4, 6)))
         val expectedResult =
           (2018 to year).reverse.map(yr => YearRange(yr.toString))
-        YearRange.createSeqYearRange mustBe expectedResult
+        YearRange.values mustBe expectedResult
       }
     }
   }

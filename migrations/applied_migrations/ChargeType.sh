@@ -48,7 +48,7 @@ awk '/trait ModelGenerators/ {\
     print "";\
     print "  implicit lazy val arbitraryChargeType: Arbitrary[ChargeType] =";\
     print "    Arbitrary {";\
-    print "      Gen.oneOf(ChargeType.createSeqYearRange.toSeq)";\
+    print "      Gen.oneOf(ChargeType.values.toSeq)";\
     print "    }";\
     next }1' ../test/generators/ModelGenerators.scala > tmp && mv tmp ../test/generators/ModelGenerators.scala
 

@@ -169,7 +169,7 @@ class SponsoringEmployerAddressFormProviderSpec extends StringFieldBehaviours wi
       result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
     }
 
-    "not bind blank createSeqYearRange when country is GB" in {
+    "not bind blank values when country is GB" in {
       val result = form.bind(Map("country" -> "GB", fieldName -> "")).apply(fieldName)
       result.errors.head mustEqual FormError(fieldName, Seq(requiredKey), Seq())
     }
