@@ -35,13 +35,13 @@ object YearRange extends Enumerable.Implicits {
     def writes(yr: YearRange): JsValue = JsString(yr.toString)
   }
 
-  private val startDateOfNewTaxYear: Int = 6
+  private val startDayOfNewTaxYear: Int = 6
 
   def currentYear = new YearRange(DateHelper.today.getYear.toString)
 
   def values: Seq[YearRange] = {
     val currentYear = DateHelper.today.getYear
-    val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDateOfNewTaxYear)
+    val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDayOfNewTaxYear)
 
     val maxYear =
       if (DateHelper.today.isAfter(newTaxYearStart) || DateHelper.today.isEqual(newTaxYearStart)) {
