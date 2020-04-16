@@ -29,6 +29,16 @@ sealed trait Years {
   def getYear: Int = this.asInstanceOf[Year].year
 }
 
+case class Year(year: Int) extends Years {
+  override def toString: String = year.toString
+}
+
+object Year {
+  implicit val writes: Writes[Year] = new Writes[Year] {
+    def writes(year: Year): JsValue = JsString(year.toString)
+  }
+}
+
 trait CommonYears extends Enumerable.Implicits {
 
   def currentYear: Int = {
@@ -46,18 +56,8 @@ trait CommonYears extends Enumerable.Implicits {
   }
 }
 
-case class Year(year: Int) extends Years {
-  override def toString: String = year.toString
-}
-
-object Year {
-  implicit val writes: Writes[Year] = new Writes[Year] {
-    def writes(year: Year): JsValue = JsString(year.toString)
-  }
-}
-
-sealed trait StartYears extends Years
 object StartYears extends CommonYears with Enumerable.Implicits {
+
   def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
 
   def radios(form: Form[_])(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
@@ -68,13 +68,9 @@ object StartYears extends CommonYears with Enumerable.Implicits {
     Enumerable(values.map(v => v.toString -> v): _*)
 }
 
-sealed trait AmendYears extends Years
-
 object AmendYears extends CommonYears with Enumerable.Implicits {
 
-  def values(years: Seq[Int]): Seq[Year] = {
-    years.map(x => Year(x))
-  }
+  def values(years: Seq[Int]): Seq[Year] = years.map(x => Year(x))
 
   def radios(form: Form[_], years: Seq[Int])(implicit messages: Messages): Seq[Radios.Item] = {
     Radios(form("value"), years.map(year => Radios.Radio(Literal(year.toString), year.toString)))
