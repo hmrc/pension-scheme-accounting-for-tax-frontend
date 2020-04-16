@@ -16,11 +16,15 @@
 
 package controllers.chargeD
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.CYAChargeDHelper
+import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
@@ -36,10 +40,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.time.LocalDate
-
-import helpers.CheckYourAnswersHelper
-import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -59,7 +59,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeD(index, srn, startDate) { (memberDetails, chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeDHelper(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeDMemberDetails(index, memberDetails),

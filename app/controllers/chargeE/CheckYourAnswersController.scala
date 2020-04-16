@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CheckYourAnswersHelper
+import helpers.CYAChargeEHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
@@ -57,7 +57,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeE(index, srn, startDate) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeEHelper(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeEMemberDetails(index, memberDetails),

@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CheckYourAnswersHelper
+import helpers.CYAChargeAHelper
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
@@ -59,7 +59,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeAHelper(srn, startDate)
 
         val seqRows = Seq(
           helper.chargeAMembers(chargeDetails),

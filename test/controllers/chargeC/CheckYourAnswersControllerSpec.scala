@@ -19,14 +19,14 @@ package controllers.chargeC
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CheckYourAnswersHelper
+import helpers.CYAChargeCHelper
 import matchers.JsonMatchers
+import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.UserAnswers
 import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import models.LocalDateBinder._
-import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
@@ -47,7 +47,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private def helper(ua: UserAnswers) = new CheckYourAnswersHelper(ua, srn, startDate)
+  private def helper(ua: UserAnswers) = new CYAChargeCHelper(srn, startDate)
   
   private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),

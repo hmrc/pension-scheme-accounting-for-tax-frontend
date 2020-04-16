@@ -16,11 +16,15 @@
 
 package controllers.chargeC
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
+import helpers.CYAChargeCHelper
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeC._
@@ -34,10 +38,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.time.LocalDate
-
-import helpers.CheckYourAnswersHelper
-import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -58,7 +58,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.cyaChargeC(index, srn, startDate) { (whichTypeOfSponsoringEmployer, sponsorDetails, address, chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeCHelper(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, whichTypeOfSponsoringEmployer)),

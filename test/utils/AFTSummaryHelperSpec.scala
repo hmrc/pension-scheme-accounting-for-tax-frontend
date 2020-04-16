@@ -19,31 +19,23 @@ package utils
 import java.time.LocalDate
 
 import base.SpecBase
-import models.ChargeType.ChargeTypeAnnualAllowance
-import models.UserAnswers
+import controllers._
+import controllers.chargeB.{routes => _}
+import helpers.FormatHelper
+import models.ChargeType.{ChargeTypeAnnualAllowance, _}
+import models.LocalDateBinder._
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
+import models.{ChargeType, UserAnswers}
 import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
-import controllers._
-import controllers.chargeB.{routes => _}
-import models.{ChargeType, UserAnswers}
-import play.api.i18n.Messages
-import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import models.ChargeType._
-import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
-import java.time.LocalDate
-import models.LocalDateBinder._
+import uk.gov.hmrc.viewmodels._
 
-class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
+class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach with FormatHelper {
 
   private val userAnswers = UserAnswers(Json.obj()).setOrException(
     pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00)).setOrException(

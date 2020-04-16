@@ -16,10 +16,14 @@
 
 package controllers.chargeB
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.CYAChargeBHelper
+import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
@@ -32,10 +36,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
-import java.time.LocalDate
-
-import helpers.CheckYourAnswersHelper
-import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            override val messagesApi: MessagesApi,
@@ -55,7 +55,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeBHelper(srn, startDate)
         val seqRows = helper.chargeBDetails(chargeDetails)
 
         renderer

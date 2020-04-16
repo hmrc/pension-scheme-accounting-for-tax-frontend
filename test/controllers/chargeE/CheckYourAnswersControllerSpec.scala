@@ -19,24 +19,16 @@ package controllers.chargeE
 import java.time.LocalDate
 
 import behaviours.CheckYourAnswersBehaviour
-import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CheckYourAnswersHelper
+import helpers.CYAChargeEHelper
 import matchers.JsonMatchers
-import models.DynamicYearRange
-import models.{UserAnswers, YearRange}
+import models.LocalDateBinder._
+import models.{DynamicYearRange, UserAnswers}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import models.LocalDateBinder._
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
-import play.api.Application
-import play.twirl.api.Html
 import utils.DateHelper
-
-import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
@@ -52,7 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(AnnualAllowanceYearPage(0), dynamicYearRange).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  private val helper = new CheckYourAnswersHelper(ua, srn, startDate)
+  private val helper = new CYAChargeEHelper(srn, startDate)
   private val rows = Seq(
     helper.chargeEMemberDetails(0, memberDetails),
     helper.chargeETaxYear(0, dynamicYearRange),

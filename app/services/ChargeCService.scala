@@ -16,7 +16,12 @@
 
 package services
 
+import java.time.LocalDate
+
 import controllers.chargeB.{routes => _}
+import helpers.FormatHelper
+import models.LocalDateBinder._
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.{Employer, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.i18n.Messages
@@ -25,15 +30,10 @@ import play.api.libs.json.Reads._
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
-import java.time.LocalDate
 
-import models.LocalDateBinder._
-import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
-
-object ChargeCService {
+object ChargeCService extends FormatHelper {
 
   def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] = {
     def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
