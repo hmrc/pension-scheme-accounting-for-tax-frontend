@@ -44,7 +44,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, index)),
         row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, index)),
         row(SponsoringEmployerAddressSearchPage(index))(SponsoringEmployerAddressResultsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(SponsoringEmployerAddressResultsPage(index))(SponsoringEmployerAddressController.onPageLoad(NormalMode,srn, startDate, index)),
+        row(SponsoringEmployerAddressResultsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
         row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
         row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
         row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn, startDate)),
