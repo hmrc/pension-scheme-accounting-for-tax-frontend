@@ -19,12 +19,12 @@ package controllers.chargeD
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
+import helpers.CheckYourAnswersHelper
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeD.{ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {

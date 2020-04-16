@@ -23,6 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.CheckYourAnswersHelper
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.{GenericViewModel, NormalMode}
@@ -36,7 +37,6 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 

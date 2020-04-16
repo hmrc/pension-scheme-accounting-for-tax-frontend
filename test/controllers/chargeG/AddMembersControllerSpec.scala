@@ -34,7 +34,7 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants._
 import models.LocalDateBinder._
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 
 import scala.concurrent.Future
 

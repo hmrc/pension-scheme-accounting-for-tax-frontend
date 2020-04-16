@@ -21,7 +21,7 @@ import models.Member
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
 

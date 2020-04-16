@@ -30,10 +30,11 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 import java.time.LocalDate
+
+import helpers.CheckYourAnswersHelper
 import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,

@@ -34,10 +34,11 @@ import services.AFTService
 import services.ChargeDService.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
+
+import helpers.CheckYourAnswersHelper
 import models.LocalDateBinder._
 
 class CheckYourAnswersController @Inject()(config: FrontendAppConfig,

@@ -38,7 +38,7 @@ import utils.AFTConstants._
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 
 class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()

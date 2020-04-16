@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.CheckYourAnswersHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
@@ -33,7 +34,6 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 

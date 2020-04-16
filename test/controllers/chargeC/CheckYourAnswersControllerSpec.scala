@@ -19,12 +19,12 @@ package controllers.chargeC
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
+import helpers.CheckYourAnswersHelper
 import matchers.JsonMatchers
 import models.UserAnswers
 import pages.chargeC._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 

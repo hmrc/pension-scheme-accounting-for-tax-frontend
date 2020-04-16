@@ -1,0 +1,109 @@
+package helpers
+
+import java.time.LocalDate
+
+import helpers.CYAHelper.{dateFormatter, formatCurrencyAmountAsString}
+import models.CheckMode
+import models.LocalDateBinder._
+import models.chargeG.{ChargeAmounts, MemberDetails}
+import play.api.i18n.Messages
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
+
+class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) {
+
+  def chargeGMemberDetails(index: Int, answer: MemberDetails): Seq[Row] = {
+    Seq(
+      Row(
+        key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"dob.cya.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.dob.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"dob.cya.label".withArgs(answer.fullName))
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"cya.nino.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
+          )
+        )
+      )
+    )
+  }
+
+  def chargeGDetails(index: Int, answer: models.chargeG.ChargeDetails): Seq[Row] = {
+    Seq(
+      Row(
+        key = Key(msg"chargeG.chargeDetails.qropsReferenceNumber.label", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.qropsReferenceNumber), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"chargeG.chargeDetails.qropsTransferDate.label", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.qropsTransferDate.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"chargeGDetails.qropsTransferDate.visuallyHidden.label")
+          )
+        )
+      )
+    )
+  }
+
+  def chargeGAmounts(index: Int, answer: ChargeAmounts): Seq[Row] = {
+    Seq(
+      Row(
+        key = Key(msg"chargeG.chargeAmount.transferred", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"chargeG.chargeAmount.transferred.visuallyHidden.label")
+          )
+        )
+      ),
+      Row(
+        key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
+          "")),
+        actions = List(
+          Action(
+            content = msg"site.edit",
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            visuallyHiddenText = Some(msg"chargeG.chargeAmount.taxDue.visuallyHidden.label")
+          )
+        )
+      )
+    )
+  }
+
+}

@@ -29,7 +29,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import controllers._
 import controllers.chargeB.{routes => _}
 import models.{ChargeType, UserAnswers}
@@ -39,7 +39,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import models.ChargeType._
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import java.time.LocalDate
 import models.LocalDateBinder._
 

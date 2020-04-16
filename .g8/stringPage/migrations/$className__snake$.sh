@@ -65,6 +65,6 @@ awk '/class CheckYourAnswersHelper/ {\
      print "        )";\
      print "      )";\
      print "  }";\
-     next }1' ../app/utils/CheckYourAnswersHelper.scala > tmp && mv tmp ../app/utils/CheckYourAnswersHelper.scala
+     next }1' ../app/utils/CYAHelper.scala > tmp && mv tmp ../app/utils/CYAHelper.scala
 
 echo "Migration $className;format="snake"$ completed"

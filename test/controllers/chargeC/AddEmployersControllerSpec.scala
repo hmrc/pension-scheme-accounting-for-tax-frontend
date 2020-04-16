@@ -39,7 +39,7 @@ import utils.AFTConstants._
 import scala.concurrent.Future
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 
 class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()

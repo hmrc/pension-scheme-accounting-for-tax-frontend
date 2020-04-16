@@ -22,13 +22,13 @@ import behaviours.CheckYourAnswersBehaviour
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
+import helpers.CheckYourAnswersHelper
 import matchers.JsonMatchers
 import models.DynamicYearRange
-import models.{YearRange, UserAnswers}
-import pages.chargeE.{CheckYourAnswersPage, ChargeDetailsPage, AnnualAllowanceYearPage, MemberDetailsPage}
-import play.api.libs.json.{Json, JsObject}
+import models.{UserAnswers, YearRange}
+import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.CheckYourAnswersHelper
 import models.LocalDateBinder._
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when

@@ -25,7 +25,7 @@ import play.api.libs.json.Reads._
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import helpers.CheckYourAnswersHelper.formatCurrencyAmountAsString
 import viewmodels.Table
 import viewmodels.Table.Cell
 import java.time.LocalDate
