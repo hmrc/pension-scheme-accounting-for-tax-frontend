@@ -60,7 +60,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       .toString()}").toString(),
     "email" -> email,
     "list" -> rows(hasVersion),
-    "hasVersionNunber" -> hasVersion,
+    "hasVersionNumber" -> hasVersion,
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,

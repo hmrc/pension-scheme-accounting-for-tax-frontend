@@ -69,7 +69,7 @@ class ConfirmationController @Inject()(
             fields = "srn" -> srn,
             "panelHtml" -> confirmationPanelText.toString(),
             "email" -> email,
-            "hasVersionNunber" -> versionNumber.nonEmpty,
+            "hasVersionNumber" -> versionNumber.nonEmpty,
             "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
