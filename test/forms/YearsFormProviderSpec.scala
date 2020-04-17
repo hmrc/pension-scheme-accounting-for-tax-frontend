@@ -19,7 +19,7 @@ package forms
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{StartYears, Years}
+import models.{StartYears, Year}
 import play.api.data.FormError
 
 class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
@@ -32,7 +32,7 @@ class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     val fieldName = "value"
     val requiredKey = "years.error.required"
 
-    behave like optionsField[Years](
+    behave like optionsField[Year](
       form,
       fieldName,
       validValues  = StartYears.values,
