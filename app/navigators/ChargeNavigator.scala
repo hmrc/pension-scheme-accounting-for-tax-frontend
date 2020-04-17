@@ -25,9 +25,9 @@ import models.LocalDateBinder._
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.Call
-import services.ChargeDService.getLifetimeAllowanceMembersIncludingDeleted
-import services.ChargeEService.getAnnualAllowanceMembersIncludingDeleted
-import services.ChargeGService.getOverseasTransferMembersIncludingDeleted
+import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
+import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
+import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
