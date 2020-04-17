@@ -2,7 +2,7 @@
 
 ## Info
 
-This service allows a pensions administrator, to file or amend an accounting for tax return for a registered pension scheme
+This service allows a pensions administrator, to file or amend an accounting for tax return for a registered pension scheme.
 
 This service has a corresponding back-end service, namely pension-scheme-accounting-for-tax which integrates with HOD i.e DES/ETMP.
 
@@ -20,16 +20,21 @@ This service has a corresponding back-end service, namely pension-scheme-account
 ### Endpoints used   
 
 |Service                | HTTP Method | Route | Purpose
-|-----------------------|-------------|------------------------------------------------------|----------------------------------------------------------------------|
-|Accounting For Tax     | POST        | /pension-scheme-accounting-for-tax/aft-file-return   | Submits/Updates an AFT Return                                        |
-|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-details   | Returns AFT details                                                  |
-|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-versions  | Returns AFT Versions for a quarter                                   |
-|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-overview  | Returns number of AFT Versions for all the quarters in a given period|
-|Pensions Scheme        | GET         | /pensions-scheme/scheme                              | Returns details of a scheme                                          |
-|Pensions Scheme        | GET         | /pensions-scheme/is-psa-associated                   | Returns true if Psa is associated with the selected scheme           |
-|Pension Administrator  | GET         | /pension-administrator/get-minimal-psa               | Returns minimal PSA details                                          | 
-|Address Lookup         | GET         | /v2/uk/addresses                                     | Returns a list of addresses that match a given postcode              | 
-|Email                  | POST        | /hmrc/email                                          | Sends an email to an email address                                   | 
+|-----------------------|-------------|-----------------------------------------------------------|----------------------------------------------------------------------|
+|Accounting For Tax     | POST        | /pension-scheme-accounting-for-tax/aft-file-return        | Submits/Updates an AFT Return                                        |
+|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-details        | Returns AFT details                                                  |
+|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-versions       | Returns AFT Versions for a quarter                                   |
+|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/get-aft-overview       | Returns number of AFT Versions for all the quarters in a given period|
+|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/journey-cache/aft      | Returns the data from the AFT Cache                                  |
+|Accounting For Tax     | POST        | /pension-scheme-accounting-for-tax/journey-cache/aft      | Saves the data to the AFT Cache                                      |
+|Accounting For Tax     | DELETE      | /pension-scheme-accounting-for-tax/journey-cache/aft      | Deletes the data from the AFT Cache                                  |
+|Accounting For Tax     | GET         | /pension-scheme-accounting-for-tax/journey-cache/aft/lock | Gets the lock from AFT Cache                                         |
+|Accounting For Tax     | POST        | /pension-scheme-accounting-for-tax/journey-cache/aft/lock | Set the lock to AFT Cache                                            |
+|Pensions Scheme        | GET         | /pensions-scheme/scheme                                   | Returns details of a scheme                                          |
+|Pensions Scheme        | GET         | /pensions-scheme/is-psa-associated                        | Returns true if Psa is associated with the selected scheme           |
+|Pension Administrator  | GET         | /pension-administrator/get-minimal-psa                    | Returns minimal PSA details                                          | 
+|Address Lookup         | GET         | /v2/uk/addresses                                          | Returns a list of addresses that match a given postcode              | 
+|Email                  | POST        | /hmrc/email                                               | Sends an email to an email address                                   | 
 
 ## Running the service
 
