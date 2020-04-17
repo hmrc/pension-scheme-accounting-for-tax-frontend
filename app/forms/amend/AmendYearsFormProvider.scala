@@ -18,14 +18,16 @@ package forms.amend
 
 import forms.mappings.Mappings
 import javax.inject.Inject
-import models.{AmendYears, Years}
+import models.{AmendYears, Year}
 import play.api.data.Form
 
 class AmendYearsFormProvider @Inject() extends Mappings {
 
-  def apply(years: Seq[Int]): Form[Years] = {
+  def apply(years: Seq[Int]): Form[Year] = {
     Form(
-      "value" -> enumerable[Years](requiredKey = "amendYears.error.required")(AmendYears.enumerable(years))
+      "value" -> enumerable[Year](requiredKey = "amendYears.error.required")(
+        AmendYears.enumerable(years)
+      )
     )
   }
 }

@@ -22,7 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearsFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Years}
+import models.{Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, StartYears, UserAnswers, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -54,12 +54,12 @@ class YearsControllerSpec extends ControllerSpecBase with NunjucksSupport with J
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   val templateToBeRendered = "years.njk"
   val formProvider = new YearsFormProvider()
-  val form: Form[Years] = formProvider()
+  val form: Form[Year] = formProvider()
 
   lazy val httpPathGET: String = controllers.routes.YearsController.onPageLoad(srn).url
   lazy val httpPathPOST: String = controllers.routes.YearsController.onSubmit(srn).url
 
-  private val jsonToPassToTemplate: Form[Years] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> StartYears.radios(form),
     "viewModel" -> GenericViewModel(
