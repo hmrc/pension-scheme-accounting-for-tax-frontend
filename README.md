@@ -2,7 +2,7 @@
 
 ## Info
 
-This service allows a pensions administrator, to file an accounting for tax return for a registered pension scheme
+This service allows a pensions administrator, to file or amend an accounting for tax return for a registered pension scheme
 
 This service has a corresponding back-end service, namely pension-scheme-accounting-for-tax which integrates with HOD i.e DES/ETMP.
 
@@ -43,12 +43,11 @@ Enrolment key: HMRC-PODS-ORG
 
 Identifier name: PsaID
 
-Example PSA ID: A2100005
+Example PSA ID: A2100005 (Local and Staging Environment only)
 
 ## Tests and prototype
 
 [View the prototype here](https://pods-prototype.herokuapp.com)
-
 |Repositories     |Link                                                                   |
 |-----------------|-----------------------------------------------------------------------|
 |Journey tests    |https://github.com/hmrc/pods-journey-tests                             |
