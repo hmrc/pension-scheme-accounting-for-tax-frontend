@@ -299,6 +299,7 @@ chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
 chargeD = Lifetime allowance charge
 chargeE = Annual allowance charge
+chargeF = De-registration charge
 chargeG = Overseas transfer charge
 
 memberDetails.title = Member’s details - {0}
@@ -908,3 +909,7 @@ amendYears.error.required = Select which year you want to view
 
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
+
+deleteCharge.title = Are you sure you want to remove the {0}?
+deleteCharge.error.required = Select yes if you want to remove the {0}
+removeCharge.linkText = Remove this charge

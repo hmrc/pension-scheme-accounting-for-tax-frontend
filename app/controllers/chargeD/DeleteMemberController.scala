@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.DeleteMemberFormProvider
+import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
@@ -48,7 +48,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
                                        aftService: AFTService,
-                                       formProvider: DeleteMemberFormProvider,
+                                       formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
