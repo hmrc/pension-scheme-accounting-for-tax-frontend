@@ -25,6 +25,7 @@ import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
 import models.LocalDateBinder._
+import pages.VersionNumberQuery
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -60,13 +61,15 @@ class ConfirmationController @Inject()(
           val quarterEndDate = quarter.endDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
           val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
           val listSchemesUrl = config.yourPensionSchemesUrl
+          val versionNumber = request.userAnswers.get(VersionNumberQuery)
 
-          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate)
+          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, versionNumber)
 
           val json = Json.obj(
             fields = "srn" -> srn,
             "panelHtml" -> confirmationPanelText.toString(),
             "email" -> email,
+            "hasVersionNumber" -> versionNumber.nonEmpty,
             "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
@@ -83,7 +86,8 @@ class ConfirmationController @Inject()(
         }
     }
 
-  private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String, submittedDate: String): Seq[SummaryList.Row] = {
+  private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
+                                   submittedDate: String, versionNumber: Option[Int]): Seq[SummaryList.Row] = {
     Seq(Row(
       key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(schemeName), classes = Nil),
@@ -99,7 +103,15 @@ class ConfirmationController @Inject()(
         value = Value(Literal(submittedDate), classes = Nil),
         actions = Nil
       )
-    )
+    ) ++ versionNumber.map{ vn =>
+      Seq(
+        Row(
+          key = Key(msg"confirmation.table.r4.c1", classes = Seq("govuk-!-font-weight-regular")),
+          value = Value(Literal(s"$vn"), classes = Nil),
+          actions = Nil
+        )
+      )
+    }.getOrElse(Nil)
   }
 
   private def confirmationPanelText(implicit messages: Messages): Html = {
