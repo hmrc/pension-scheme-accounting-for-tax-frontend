@@ -299,6 +299,7 @@ chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
 chargeD = Lifetime allowance charge
 chargeE = Annual allowance charge
+chargeF = De-registration charge
 chargeG = Overseas transfer charge
 
 memberDetails.title = Member’s details - {0}
@@ -366,6 +367,7 @@ dateNoticeReceived.error.date = The date you received notice to pay the charge m
 dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
 dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
 dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.minDate = The Date you received notice to pay the charge must be after {0}
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 
 chargeEDetails.title = Annual allowance charge details for {0}
@@ -780,7 +782,7 @@ deleteMember.chargeG.title = Are you sure you want to remove {0}’s overseas tr
 deleteMember.chargeG.heading = Are you sure you want to remove {0}’s overseas transfer charge?
 deleteMember.chargeG.error.required = Select yes if you want to remove {0}’s overseas transfer charge
 chargeG.whatYouWillNeed.title = Overseas transfer charge
-chargeG.whatYouWillNeed.heading = Overseas transfer chargewhich type of sponsoring employer received the authorised surplus payment
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
 chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
@@ -910,3 +912,7 @@ amendYears.error.required = Select which year you want to view
 
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
+
+deleteCharge.title = Are you sure you want to remove the {0}?
+deleteCharge.error.required = Select yes if you want to remove the {0}
+removeCharge.linkText = Remove this charge

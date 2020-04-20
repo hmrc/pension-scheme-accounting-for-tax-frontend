@@ -16,14 +16,20 @@
 
 package forms.chargeE
 
+import java.time.LocalDate
+
 import forms.behaviours._
 import play.api.data.FormError
-import utils.AFTConstants.QUARTER_START_DATE
+import utils.AFTConstants._
 import utils.DateHelper
+import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldBehaviours with BooleanFieldBehaviours {
 
-  val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  val form = new ChargeDetailsFormProvider().apply(
+    minimumChargeValueAllowed = BigDecimal("0.01"),
+    minimumDate = MIN_DATE
+  )
   val dateKey = "dateNoticeReceived"
   val chargeAmountKey = "chargeAmount"
   val isMandatoryKey = "isPaymentMandatory"
@@ -44,6 +50,13 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
       key = dateKey,
       requiredAllKey = s"$dateKey.error.required")
   }
+
+  behave like dateFieldWithMin(
+    form = form,
+    key = dateKey,
+    min = MIN_DATE,
+    formError = FormError(dateKey, s"$dateKey.error.minDate", Seq(dateFormatterDMY.format(MIN_DATE)))
+  )
 
   "chargeAmount" must {
 

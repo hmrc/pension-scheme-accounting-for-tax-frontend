@@ -85,7 +85,7 @@ class YearRangeSpec
       forAll(genYear -> "valid years") { year =>
         DateHelper.setDate(Some(LocalDate.of(year, 4, 5)))
         val expectedResult =
-          (2018 until year).reverse.map(yr => DynamicYearRange(yr.toString))
+          (2018 until year).reverse.map(yr => YearRange(yr.toString))
         YearRange.values mustBe expectedResult
       }
     }
@@ -95,7 +95,7 @@ class YearRangeSpec
       forAll(genYear -> "valid years") { year =>
         DateHelper.setDate(Some(LocalDate.of(year, 4, 6)))
         val expectedResult =
-          (2018 to year).reverse.map(yr => DynamicYearRange(yr.toString))
+          (2018 to year).reverse.map(yr => YearRange(yr.toString))
         YearRange.values mustBe expectedResult
       }
     }

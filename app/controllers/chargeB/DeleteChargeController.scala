@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.chargeE
+package controllers.chargeB
+
+import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
@@ -22,24 +24,22 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Index, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.LocalDateBinder._
 import navigators.CompoundNavigator
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import helpers.ChargeEHelper.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.time.LocalDate
-import models.LocalDateBinder._
 
-class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
+class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
@@ -51,20 +51,20 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
-    formProvider(messages("deleteMember.error.required", memberName))
+  private def form(implicit messages: Messages): Form[Boolean] =
+    formProvider(messages("deleteCharge.error.required", messages("chargeB").toLowerCase()))
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+      implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        request.userAnswers.get(MemberDetailsPage(index)) match {
-          case Some(memberDetails) =>
+
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
+              submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )
@@ -72,30 +72,26 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
             val json = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(startDate),
-              "form" -> form(memberDetails.fullName),
+              "form" -> form,
               "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(form(memberDetails.fullName)(implicitly)("value")),
-              "memberName" -> memberDetails.fullName
+              "radios" -> Radios.yesNo(form(implicitly)("value")),
+              "chargeName" -> "chargeB"
             )
 
-            renderer.render("chargeE/deleteMember.njk", json).map(Ok(_))
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
+            renderer.render("deleteCharge.njk", json).map(Ok(_))
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        request.userAnswers.get(MemberDetailsPage(index)) match {
-          case Some(memberDetails) =>
-            form(memberDetails.fullName)
+            form
               .bindFromRequest()
               .fold(
                 formWithErrors => {
 
                   val viewModel = GenericViewModel(
-                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
+                    submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
                     returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
                     schemeName = schemeName
                   )
@@ -106,31 +102,27 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     "form" -> formWithErrors,
                     "viewModel" -> viewModel,
                     "radios" -> Radios.yesNo(formWithErrors("value")),
-                    "memberName" -> memberDetails.fullName
+                    "chargeName" -> "chargeB"
                   )
 
-                  renderer.render("chargeE/deleteMember.njk", json).map(BadRequest(_))
+                  renderer.render("deleteCharge.njk", json).map(BadRequest(_))
 
                 },
                 value =>
                   if (value) {
                     DataRetrievals.retrievePSTR {
                       pstr =>
+                        val updatedAnswers = request.userAnswers.removeWithPath(ChargeBDetailsPage.path)
                         for {
-                          interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                          updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
+                        } yield Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
                     }
                   } else {
-                    Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
-                }
+                    Future.successful(Redirect(controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
+                  }
               )
-          case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
 }
