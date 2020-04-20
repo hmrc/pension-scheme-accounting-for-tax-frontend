@@ -832,6 +832,25 @@ chargeC.addEmployers.label = Do you want to add another authorised surplus payme
 chargeC.addEmployers.visuallyHidden = {0}’s authorised surplus payments charge
 chargeC.addEmployers.error = Select yes if you want to add another authorised surplus payments charge
 
+
+chargeC.employerAddressSearch.title = What is {0}’s postcode?
+chargeC.employerAddressSearch.heading = What is {0}’s postcode?
+chargeC.employerAddressSearch.label = Postcode
+chargeC.employerAddressSearch.checkYourAnswersLabel = employerAddressSearch
+chargeC.employerAddressSearch.error.required = Enter a postcode
+chargeC.employerAddressSearch.error.invalid = Enter a real postcode
+chargeC.employerAddressSearch.link.youCan = You can
+chargeC.employerAddressSearch.link.enterManually = enter the address manually
+chargeC.employerAddressSearch.findAddress = Find address
+chargeC.employerAddressSearch.selectAddress = Select the address from the list below, or
+
+chargeC.employerAddressResults.title = What is {0}’s address?
+chargeC.employerAddressResults.heading = What is {0}’s address?
+chargeC.employerAddressResults.error.required = Select an address
+
+
+
+
 addEmployers.employer.header = Sponsoring employer
 addEmployers.amount.header = Total
 
