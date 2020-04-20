@@ -16,6 +16,8 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -23,18 +25,18 @@ import forms.chargeE.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.{times, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor}
 import pages.IsNewReturn
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios, DateInput}
 
 import scala.concurrent.Future
 
@@ -42,7 +44,11 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeE/chargeDetails.njk"
-  private val form = new ChargeDetailsFormProvider().apply(minimumChargeValueAllowed = BigDecimal("0.01"))
+  private val dateNoticeReceived = LocalDate.of(1980,12,1)
+  private val form = new ChargeDetailsFormProvider().apply(
+    minimumChargeValueAllowed = BigDecimal("0.01"),
+    minimumDate = dateNoticeReceived
+  )
   private def httpPathGET: String = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
   private def httpPathPOST: String = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
 
@@ -86,6 +92,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.earliestDateOfNotice).thenReturn(dateNoticeReceived)
   }
 
   val validData: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(MemberDetailsPage(0), memberDetails).get

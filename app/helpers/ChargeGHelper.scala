@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package services
+package helpers
+
+import java.time.LocalDate
 
 import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeG.ChargeAmountsPage
 import play.api.i18n.Messages
 import play.api.mvc.Call
-import services.AddMembersService.mapChargeXMembersToTable
+import AddMembersHelper.mapChargeXMembersToTable
 import viewmodels.Table
-import java.time.LocalDate
 import models.LocalDateBinder._
 
-object ChargeGService {
+object ChargeGHelper {
 
   def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 

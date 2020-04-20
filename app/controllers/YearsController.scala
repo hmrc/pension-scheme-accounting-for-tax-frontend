@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, StartYears, Years}
+import models.{GenericViewModel, StartYears, Year}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -56,7 +56,7 @@ class YearsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Years] = formProvider()
+  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
