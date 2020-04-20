@@ -27,7 +27,7 @@ import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.{AFTService, AllowAccessService, QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -46,15 +46,18 @@ class AFTLoginController @Inject()(
     config: FrontendAppConfig,
     auditService: AuditService,
     aftService: AFTService,
-    allowService: AllowAccessService
+    allowService: AllowAccessService,
+    quartersService: QuartersService,
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
     val defaultYear = StartYears.minYear(config)
-    (StartYears.values(config).size, StartQuarters.values(defaultYear)(config).size) match {
+    (StartYears.values(config).size, quartersService.getStartQuarters(srn, schemeDetails.pstr, defaultYear).size) match {
       case (years, _) if years > 1 =>
         Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 

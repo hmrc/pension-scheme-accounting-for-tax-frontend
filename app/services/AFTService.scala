@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
+import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{StartQuarters, SchemeDetails, UserAnswers}
+import models.{SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -105,7 +105,7 @@ class AFTService @Inject()(
           if (listOfVersions.isEmpty) {
             currentUserAnswers
               .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, StartQuarters.getQuarter(startDate))
+              .setOrException(QuarterPage, AmendQuarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)

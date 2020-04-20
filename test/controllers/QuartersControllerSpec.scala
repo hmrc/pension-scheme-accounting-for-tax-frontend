@@ -24,7 +24,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, StartQuarters, UserAnswers}
+import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -69,7 +69,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
   private val jsonToPassToTemplate: Form[Quarters] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> StartQuarters.radios(form, testYear),
+    "radios" -> AmendQuarters.radios(form, testYear),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
       returnUrl = dummyCall.url,

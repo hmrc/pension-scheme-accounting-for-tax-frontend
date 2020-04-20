@@ -20,7 +20,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.amend.AmendQuartersFormProvider
+import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.AmendQuarters._
 import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
@@ -57,7 +57,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
   private val year = "2022"
-  val formProvider = new AmendQuartersFormProvider()
+  val formProvider = new QuartersFormProvider()
   def form(quarters: Seq[Quarters]): Form[Quarters] = formProvider(errorKey, quarters)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url

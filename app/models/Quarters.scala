@@ -21,7 +21,7 @@ import java.time.LocalDate
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.Radios
+import uk.gov.hmrc.viewmodels.{Radios, Text}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper._
 import java.time.Month
@@ -96,6 +96,13 @@ trait CommonQuarters {
       case i if i <= 9 => Q3
       case _ => Q4
     }
+
+  def availableQuarters(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
+    selectedYear match {
+      case _ if selectedYear == currentYear => getCurrentYearQuarters
+      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
+      case _ => Seq(Q1, Q2, Q3, Q4)
+    }
 }
 
 object StartQuarters extends CommonQuarters with Enumerable.Implicits {
@@ -119,14 +126,31 @@ object StartQuarters extends CommonQuarters with Enumerable.Implicits {
 
 object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
 
-  def values(quarters: Seq[Quarters]): Seq[Quarters] = quarters
+  def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)
 
-  def radios(form: Form[_], quarters: Seq[Quarters])(implicit messages: Messages): Seq[Radios.Item] = {
-    Radios(form("value"), values(quarters).map { quarter =>
-      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
+  def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter])(implicit messages: Messages): Seq[Radios.Item] = {
+    Radios(form("value"), displayQuarters.map { displayQuarter =>
+
+      Radios.Radio(getLabel(displayQuarter), displayQuarter.quarter.toString)
     })
   }
 
-  implicit def enumerable(quarters: Seq[Quarters]): Enumerable[Quarters] =
-    Enumerable(values(quarters).map(v => v.toString -> v): _*)
+  implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarter] =
+    Enumerable(quarters.map(v => v.toString -> v): _*)
+
+
+  def getLabel(displayQuarter: DisplayQuarter)(implicit messages: Messages): Text = {
+    val q =  getQuartersFromDate(displayQuarter.quarter.startDate)
+    val year: String = if(displayQuarter.displayYear) displayQuarter.quarter.startDate.getYear.toString else ""
+    val lockedString = displayQuarter.lockedBy match {
+      case Some(lockingPsa) => messages("quarters.lockedBy", lockingPsa)
+      case _ => ""
+    }
+    val hint: String = displayQuarter.hintText match {
+      case Some(hint) => messages(hint.toString)
+      case _ => ""
+    }
+
+    Literal(s"${messages(s"quarters.${q.toString}.label")} ++ $year ++ $lockedString ++ \n$hint")
+  }
 }

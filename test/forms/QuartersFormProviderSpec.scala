@@ -16,10 +16,12 @@
 
 package forms
 
+import java.time.LocalDate
+
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{Quarters, StartQuarters}
+import models.{AmendQuarters, Quarter, Quarters}
 import play.api.data.FormError
 
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
@@ -37,7 +39,7 @@ class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
     behave like optionsField[Quarters](
       form,
       fieldName,
-      validValues  = StartQuarters.values(2020),
+      validValues  = Seq(Quarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

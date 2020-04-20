@@ -16,15 +16,14 @@
 
 package forms
 
-import config.FrontendAppConfig
 import forms.mappings.Mappings
-import models.{Quarters, StartQuarters}
+import models.{AmendQuarters, Quarter}
 import play.api.data.Form
 
 class QuartersFormProvider extends Mappings {
 
-  def apply(errorKey: String, year: Int)(implicit config: FrontendAppConfig): Form[Quarters] =
+  def apply(errorKey: String, quarters: Seq[Quarter]): Form[Quarter] =
     Form(
-      "value" -> enumerable[Quarters](requiredKey = errorKey)(StartQuarters.enumerable(year))
+      "value" -> enumerable[Quarter](requiredKey = errorKey)(AmendQuarters.enumerable(quarters))
     )
 }

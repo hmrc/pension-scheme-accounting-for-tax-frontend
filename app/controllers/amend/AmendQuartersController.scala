@@ -19,52 +19,51 @@ package controllers.amend
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions._
-import forms.amend.AmendQuartersFormProvider
+import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AmendQuarters, GenericViewModel, Quarters}
+import models.{AmendQuarters, GenericViewModel, Quarter}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.SchemeService
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AmendQuartersController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    formProvider: AmendQuartersFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    schemeService: SchemeService,
-    aftConnector: AFTConnector
+                                         override val messagesApi: MessagesApi,
+                                         identify: IdentifierAction,
+                                         formProvider: QuartersFormProvider,
+                                         val controllerComponents: MessagesControllerComponents,
+                                         renderer: Renderer,
+                                         config: FrontendAppConfig,
+                                         quartersService: QuartersService,
+                                         schemeService: SchemeService,
+                                         aftConnector: AFTConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarters])(implicit messages: Messages): Form[Quarters] =
+  private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
     formProvider(messages("amendQuarters.error.required"), quarters)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
+      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+        if (displayQuarters.nonEmpty) {
 
-          val quarters = aftOverview.filter(_.periodStartDate.getYear == year.toInt).map { overviewElement =>
-            AmendQuarters.getQuartersFromDate(overviewElement.periodStartDate)
-          }
+          val quarters = displayQuarters.map(_.quarter)
 
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> None,
             "form" -> form(quarters),
-            "radios" -> AmendQuarters.radios(form(quarters), quarters),
+            "radios" -> AmendQuarters.radios(form(quarters), displayQuarters),
             "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
             "year" -> year
           )
@@ -79,12 +78,11 @@ class AmendQuartersController @Inject()(
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
+    aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+        if (displayQuarters.nonEmpty) {
 
-          val quarters = aftOverview.filter(_.periodStartDate.getYear == year.toInt).map { overviewElement =>
-            AmendQuarters.getQuartersFromDate(overviewElement.periodStartDate)
-          }
+          val quarters = displayQuarters.map(_.quarter)
 
           form(quarters)
             .bindFromRequest()
@@ -95,7 +93,7 @@ class AmendQuartersController @Inject()(
                     fields = "srn" -> srn,
                     "startDate" -> None,
                     "form" -> formWithErrors,
-                    "radios" -> AmendQuarters.radios(formWithErrors, quarters),
+                    "radios" -> AmendQuarters.radios(formWithErrors, displayQuarters),
                     "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
                     "year" -> year
                   )
@@ -103,13 +101,13 @@ class AmendQuartersController @Inject()(
                 }
               },
               value => {
-                val aftOverviewElement = aftOverview.filter(_.periodStartDate == AmendQuarters.getStartDate(value, year.toInt))
+                val aftOverviewElement = aftOverview.filter(_.periodStartDate == value.startDate)
                 if (aftOverviewElement.nonEmpty && !aftOverviewElement.head.submittedVersionAvailable) {
                   Future.successful(
-                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, AmendQuarters.getStartDate(value, year.toInt), Some("1"))))
+                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Some("1"))))
                 } else {
                   Future.successful(
-                    Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, AmendQuarters.getStartDate(value, year.toInt))))
+                    Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
                 }
               }
             )
@@ -117,6 +115,7 @@ class AmendQuartersController @Inject()(
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
+    }
     }
   }
 

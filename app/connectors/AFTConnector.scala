@@ -20,9 +20,8 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{AFTOverview, StartQuarters, UserAnswers}
+import models.{AFTOverview, AFTVersion, AmendQuarters, UserAnswers}
 import play.api.Logger
-import models.{AFTVersion, UserAnswers}
 import play.api.http.Status
 import play.api.http.Status.OK
 import play.api.libs.json.{JsError, JsObject, JsResultException, JsSuccess, JsValue, Json}
@@ -76,7 +75,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  def endDate: LocalDate = StartQuarters.getQuarter(DateHelper.today).endDate
+  def endDate: LocalDate = AmendQuarters.getQuarter(DateHelper.today).endDate
 
   def startDate: LocalDate =  {
     val earliestStartDate = LocalDate.parse(config.earliestStartDate)
