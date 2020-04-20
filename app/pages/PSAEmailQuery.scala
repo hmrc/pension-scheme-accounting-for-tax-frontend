@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package forms
+package pages
 
-import config.FrontendAppConfig
-import forms.mappings.Mappings
-import javax.inject.Inject
-import models.{StartYears, Year}
-import play.api.data.Form
+import play.api.libs.json.JsPath
 
-class YearsFormProvider @Inject() extends Mappings {
+case object PSAEmailQuery extends QuestionPage[String] {
 
-  def apply()(implicit config: FrontendAppConfig): Form[Year] =
-    Form(
-      "value" -> enumerable[Year](requiredKey = "years.error.required")(
-        StartYears.enumerable
-      )
-    )
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "psaEmail"
 }

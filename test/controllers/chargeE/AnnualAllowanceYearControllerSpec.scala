@@ -24,7 +24,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.DynamicYearRange
+import models.YearRange
 import models.{YearRange, GenericViewModel, UserAnswers, NormalMode, Enumerable}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, reset, when, verify}
@@ -108,7 +108,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET when the question has previously been answered" in {
       reset(mockSchemeDetailsConnector)
-      val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), DynamicYearRange("2019"))(
+      val ua = userAnswersWithSchemeNamePstrQuarter.set(AnnualAllowanceYearPage(0), YearRange("2019"))(
         writes(YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
@@ -124,7 +124,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       templateCaptor.getValue mustEqual template
 
-      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(DynamicYearRange("2019"))))
+      jsonCaptor.getValue must containJson(jsonToTemplate(form.fill(YearRange("2019"))))
     }
 
 
