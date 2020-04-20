@@ -122,8 +122,9 @@ class AFTService @Inject()(
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
-          minimalPsaConnector.isPsaSuspended(request.psaId.id).map { retrievedIsSuspendedValue =>
-            uaWithStatus.setOrException(IsPsaSuspendedQuery, retrievedIsSuspendedValue)
+          minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
+            uaWithStatus.setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
+              .setOrException(PSAEmailQuery, psaDetails.email)
           }
         case Some(_) =>
           Future.successful(uaWithStatus)

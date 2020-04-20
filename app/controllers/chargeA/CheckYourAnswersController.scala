@@ -81,6 +81,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeA",
+              "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
               "canChange" -> !request.viewOnly
             )
           )

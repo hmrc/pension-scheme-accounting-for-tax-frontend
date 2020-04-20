@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package services
+package helpers
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.{Member, UserAnswers}
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
-class ChargeGServiceSpec extends SpecBase {
+class ChargeGHelperSpec extends SpecBase {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -55,13 +55,13 @@ class ChargeGServiceSpec extends SpecBase {
 
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      ChargeGService.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      ChargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeGService.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      ChargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

@@ -18,20 +18,25 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.http.Status
+import play.api.libs.json._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
+  import MinimalPsaConnector._
 
-  def isPsaSuspended(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Boolean] = {
+  def getMinimalPsaDetails(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
     val psaHc = hc.withExtraHeaders("psaId" -> psaId)
 
-    http.GET[HttpResponse](config.minimalPsaDetailsUrl)(implicitly, psaHc, implicitly) map { response =>
-      require(response.status == Status.OK)
-      (response.json \ "isPsaSuspended").as[Boolean]
-    }
+    http.GET[MinimalPSA](config.minimalPsaDetailsUrl)(implicitly, psaHc, implicitly)
+  }
+}
+object MinimalPsaConnector {
+  case class MinimalPSA(email: String, isPsaSuspended: Boolean)
+
+  object MinimalPSA {
+    implicit val format: Format[MinimalPSA] = Json.format[MinimalPSA]
   }
 }

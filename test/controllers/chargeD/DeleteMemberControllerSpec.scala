@@ -20,7 +20,7 @@ import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.DeleteMemberFormProvider
+import forms.DeleteFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
@@ -52,7 +52,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private def onwardRoute = Call("GET", "/foo")
 
   private val memberName = "first last"
-  private val formProvider = new DeleteMemberFormProvider()
+  private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
   private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, 0).url

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package services
+package helpers
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import models.{Employer, MemberDetails, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
-
-import scala.collection.mutable.ArrayBuffer
-import utils.AFTConstants.QUARTER_START_DATE
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.{Employer, MemberDetails, UserAnswers}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
+import utils.AFTConstants.QUARTER_START_DATE
 
-class ChargeCServiceSpec extends SpecBase {
+import scala.collection.mutable.ArrayBuffer
+
+class ChargeCHelperSpec extends SpecBase {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -65,13 +65,13 @@ class ChargeCServiceSpec extends SpecBase {
 
   ".getOverseasTransferEmployers" must {
     "return all the members added in charge G" in {
-      ChargeCService.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
+      ChargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
     }
   }
 
   ".getOverseasTransferEmployersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeCService.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
+      ChargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
     }
   }
 

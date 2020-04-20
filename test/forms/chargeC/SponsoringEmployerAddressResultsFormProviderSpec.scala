@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package forms
+package forms.chargeC
 
-import forms.behaviours.BooleanFieldBehaviours
+import forms.behaviours.IntFieldBehaviours
 import play.api.data.FormError
 
-class DeleteMemberFormProviderSpec extends BooleanFieldBehaviours {
+class SponsoringEmployerAddressResultsFormProviderSpec extends IntFieldBehaviours {
 
-  val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
-  val invalidKey = "error.boolean"
+  val form = new SponsoringEmployerAddressResultsFormProvider()()
 
-  val form = new DeleteMemberFormProvider()(requiredKey)
-
-  ".value" must {
+  "value" must {
 
     val fieldName = "value"
-
-    behave like booleanField(
-      form,
-      fieldName,
-      invalidError = FormError(fieldName, invalidKey)
-    )
+    val requiredKey = "chargeC.employerAddressResults.error.required"
 
     behave like mandatoryField(
       form,

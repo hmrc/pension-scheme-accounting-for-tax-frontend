@@ -42,7 +42,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
 
-  private val FakeActionFilter = new ActionFilter[OptionalDataRequest] {
+  val FakeActionFilter: ActionFilter[OptionalDataRequest] = new ActionFilter[OptionalDataRequest] {
     override protected def executionContext: ExecutionContext = global
 
     override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)

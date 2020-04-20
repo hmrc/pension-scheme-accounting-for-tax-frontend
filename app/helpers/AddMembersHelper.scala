@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package services
+package helpers
 
 import controllers.chargeB.{routes => _}
-import helpers.FormatHelper
 import models.Member
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -25,9 +24,9 @@ import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-object AddMembersService extends FormatHelper {
+object AddMembersHelper extends FormatHelper {
 
-  private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
+  private[helpers] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 
     val head = Seq(
       Cell(msg"addMembers.members.header", classes = Seq("govuk-!-width-one-quarter")),

@@ -19,17 +19,19 @@ package navigators
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{NormalMode, SponsoringEmployerType, CheckMode, UserAnswers}
 import pages.Page
 import pages.chargeC._
 import play.api.mvc.Call
 import controllers.chargeC.routes._
-import services.ChargeCService._
+import helpers.ChargeCHelper._
 import services.AFTReturnTidyService
 import java.time.LocalDate
-import SponsoringEmployerType._
 
+import SponsoringEmployerType._
 import models.LocalDateBinder._
+import pages.chargeC.SponsoringEmployerAddressSearchPage
+import pages.chargeC.SponsoringEmployerAddressSearchPage
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  aftReturnTidyService: AFTReturnTidyService,
@@ -55,10 +57,16 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
-      SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index)
 
     case SponsoringIndividualDetailsPage(index) =>
-      SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index)
+
+    case SponsoringEmployerAddressSearchPage(index) =>
+      SponsoringEmployerAddressResultsController.onPageLoad(NormalMode, srn, startDate, index)
+
+    case SponsoringEmployerAddressResultsPage(index) =>
+      ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
 
     case SponsoringEmployerAddressPage(index) =>
       ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)

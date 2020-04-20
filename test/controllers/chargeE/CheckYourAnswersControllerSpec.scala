@@ -24,7 +24,7 @@ import data.SampleData._
 import helpers.CYAChargeEHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{DynamicYearRange, UserAnswers}
+import models.{UserAnswers, YearRange}
 import pages.chargeE.{AnnualAllowanceYearPage, ChargeDetailsPage, CheckYourAnswersPage, MemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -32,7 +32,7 @@ import utils.DateHelper
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
-  private val dynamicYearRange = DynamicYearRange("2019")
+  private val dynamicYearRange = YearRange("2019")
 
   private val templateToBeRendered = "check-your-answers.njk"
 

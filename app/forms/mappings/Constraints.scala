@@ -23,6 +23,7 @@ import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
 trait Constraints {
+  private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
   private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
@@ -35,6 +36,8 @@ trait Constraints {
           .find(_ != Valid)
           .getOrElse(Valid)
     }
+
+  protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
 
   protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
     Constraint {

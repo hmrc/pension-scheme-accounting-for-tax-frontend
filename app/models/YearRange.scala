@@ -16,7 +16,8 @@
 
 package models
 
-import java.time.{LocalDate, Month}
+import java.time.LocalDate
+import java.time.Month
 
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -25,15 +26,22 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 
-sealed trait YearRange
+case class YearRange(startYear: String)  {
+  override def toString: String = startYear
+}
 
 object YearRange extends Enumerable.Implicits {
-  val startDateOfNewTaxYear: Int = 6
-  def currentYear = new DynamicYearRange(DateHelper.today.getYear.toString)
+  implicit val writes: Writes[YearRange] = new Writes[YearRange] {
+    def writes(yr: YearRange): JsValue = JsString(yr.toString)
+  }
 
-  def values: Seq[DynamicYearRange] = {
+  private val startDayOfNewTaxYear: Int = 6
+
+  def currentYear = new YearRange(DateHelper.today.getYear.toString)
+
+  def values: Seq[YearRange] = {
     val currentYear = DateHelper.today.getYear
-    val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDateOfNewTaxYear)
+    val newTaxYearStart = LocalDate.of(currentYear, Month.APRIL.getValue, startDayOfNewTaxYear)
 
     val maxYear =
       if (DateHelper.today.isAfter(newTaxYearStart) || DateHelper.today.isEqual(newTaxYearStart)) {
@@ -42,7 +50,7 @@ object YearRange extends Enumerable.Implicits {
         currentYear - 1
       }
 
-    (2018 to maxYear).reverse.map(year => DynamicYearRange(year.toString))
+    (2018 to maxYear).reverse.map(year => YearRange(year.toString))
   }
 
   def getLabel(yr: YearRange)(implicit messages: Messages): Literal = {
@@ -54,14 +62,4 @@ object YearRange extends Enumerable.Implicits {
     Radios(form("value"), values.map(yearRange => Radios.Radio(getLabel(yearRange), yearRange.toString)))
 
   implicit def enumerable: Enumerable[YearRange] = Enumerable(values.map(yearRange => yearRange.toString -> yearRange): _*)
-}
-
-case class DynamicYearRange(startYear: String) extends YearRange {
-  override def toString: String = startYear
-}
-
-object DynamicYearRange {
-  implicit val writes: Writes[DynamicYearRange] = new Writes[DynamicYearRange] {
-    def writes(yr: DynamicYearRange): JsValue = JsString(yr.toString)
-  }
 }

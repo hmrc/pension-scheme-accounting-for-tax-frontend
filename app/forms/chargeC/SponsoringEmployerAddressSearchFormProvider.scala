@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package forms
+package forms.chargeC
 
 import javax.inject.Inject
-
 import forms.mappings.Mappings
 import play.api.data.Form
 
-class DeleteMemberFormProvider @Inject() extends Mappings {
+class SponsoringEmployerAddressSearchFormProvider @Inject() extends Mappings {
 
-  def apply(errorKey: String): Form[Boolean] =
+  def apply(): Form[String] =
     Form(
-      "value" -> boolean(errorKey)
+      "value" -> postCodeMapping(
+        "chargeC.employerAddressSearch.error.required",
+        "chargeC.employerAddressSearch.error.invalid",
+        "chargeC.employerAddressSearch.error.invalid"
+      )
     )
 }

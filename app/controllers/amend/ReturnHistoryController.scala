@@ -40,19 +40,19 @@ import viewmodels.Table.Cell
 import scala.concurrent.ExecutionContext
 
 class ReturnHistoryController @Inject()(
-    schemeService: SchemeService,
-    aftConnector: AFTConnector,
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                        schemeService: SchemeService,
+                                        aftConnector: AFTConnector,
+                                        override val messagesApi: MessagesApi,
+                                        identify: IdentifierAction,
+                                        getData: DataRetrievalAction,
+                                        allowAccess: AllowAccessActionProvider,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        renderer: Renderer,
+                                        config: FrontendAppConfig
+                                    )(implicit ec: ExecutionContext)
+                                        extends FrontendBaseController
+                                        with I18nSupport
+                                        with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>

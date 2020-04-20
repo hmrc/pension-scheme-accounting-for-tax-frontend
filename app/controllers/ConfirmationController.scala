@@ -24,50 +24,54 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
+import models.LocalDateBinder._
+import pages.VersionNumberQuery
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{SummaryList, _}
 
 import scala.concurrent.ExecutionContext
-import models.LocalDateBinder._
 
 class ConfirmationController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    requireData: DataRequiredAction,
-    allowAccess: AllowAccessActionProvider,
-    allowSubmission: AllowSubmissionAction,
-    val controllerComponents: MessagesControllerComponents,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    renderer: Renderer,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                        override val messagesApi: MessagesApi,
+                                        identify: IdentifierAction,
+                                        getData: DataRetrievalAction,
+                                        requireData: DataRequiredAction,
+                                        allowAccess: AllowAccessActionProvider,
+                                        allowSubmission: AllowSubmissionAction,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        renderer: Renderer,
+                                        config: FrontendAppConfig
+                                      )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
       implicit request =>
-        DataRetrievals.retrieveSchemeNameWithPSTRAndQuarter { (schemeName, pstr, quarter) =>
+        DataRetrievals.retrieveSchemeNameWithEmailAndQuarter { (schemeName, email, quarter) =>
           val quarterStartDate = quarter.startDate.format(DateTimeFormatter.ofPattern("d MMMM"))
           val quarterEndDate = quarter.endDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
           val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
           val listSchemesUrl = config.yourPensionSchemesUrl
-          val html = confirmationPanelText(submittedDate, schemeName, pstr)
+          val versionNumber = request.userAnswers.get(VersionNumberQuery)
+
+          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, versionNumber)
 
           val json = Json.obj(
             fields = "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "pstr" -> pstr,
-            "dataHtml" -> html.toString(),
+            "panelHtml" -> confirmationPanelText.toString(),
+            "email" -> email,
+            "hasVersionNumber" -> versionNumber.nonEmpty,
+            "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
-            "quarterStartDate" -> quarterStartDate,
-            "quarterEndDate" -> quarterEndDate,
-            "submittedDate" -> submittedDate,
             "viewModel" -> GenericViewModel(
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -82,17 +86,35 @@ class ConfirmationController @Inject()(
         }
     }
 
-  private def confirmationPanelText(submittedDate: String, schemeName: String, pstr: String)(implicit messages: Messages): Html = {
-    def pTag(text: String, classes: Option[String] = None): String = {
-      s"""<p class="govuk-!-font-size-19 ${classes.getOrElse("")}">$text</p>"""
-    }
-    def span(text: String): String = {
-      s"${Html(s"""<span class="govuk-!-font-weight-bold">$text</span>""").toString()}"
-    }
-    Html(
-      pTag(messages("confirmation.aft.date.submitted", span(submittedDate)), classes = Some("govuk-!-margin-bottom-7")) +
-        pTag(schemeName, classes = Some("govuk-!-font-weight-bold")) +
-        pTag(messages("confirmation.aft.pstr", span(pstr)))
-    )
+  private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
+                                   submittedDate: String, versionNumber: Option[Int]): Seq[SummaryList.Row] = {
+    Seq(Row(
+      key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(Literal(schemeName), classes = Nil),
+      actions = Nil
+    ),
+      Row(
+        key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
+        value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
+        actions = Nil
+      ),
+      Row(
+        key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
+        value = Value(Literal(submittedDate), classes = Nil),
+        actions = Nil
+      )
+    ) ++ versionNumber.map{ vn =>
+      Seq(
+        Row(
+          key = Key(msg"confirmation.table.r4.c1", classes = Seq("govuk-!-font-weight-regular")),
+          value = Value(Literal(s"$vn"), classes = Nil),
+          actions = Nil
+        )
+      )
+    }.getOrElse(Nil)
+  }
+
+  private def confirmationPanelText(implicit messages: Messages): Html = {
+    Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString()}")
   }
 }

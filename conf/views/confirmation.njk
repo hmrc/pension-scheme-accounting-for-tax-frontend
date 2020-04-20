@@ -3,6 +3,7 @@
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/panel/macro.njk" import govukPanel %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
 
 {% block beforeContent %}
   {% include "includes/phase-banner.njk" %}
@@ -12,25 +13,46 @@
   {{ title(messages("confirmation.title")) }}
 {% endblock %}
 
+{% set panelH1 %}
+    {% if hasVersionNumber %}
+     {{ messages("confirmation.aft.amendment.panel.h1") }}
+     {% else %}
+     {{ messages("confirmation.aft.return.panel.h1") }}
+     {% endif %}
+{% endset %}
+
 {% block mainContent %}
 
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
         {{ govukPanel({
-                titleText: messages("confirmation.aft.return", quarterStartDate, quarterEndDate),
-                html:dataHtml
+                titleText: panelH1,
+                html: panelHtml
         }) }}
+        <p class="govuk-body">
+            {{messages("confirmation.p1")}}
+            <span class="govuk-!-font-weight-bold">{{email}}</span>.
+        </p>
 
-        <p class="govuk-body">{{messages("confirmation.p1")}}</p>
+        {{ govukSummaryList({
+                    rows: list
+                  })
+        }}
 
         <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
          <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
+         <p class="govuk-body">
+             {{messages("confirmation.whatNext.p2.text1")}}
+                <a class="govuk-link" href="mailto:{{messages("confirmation.whatNext.p2.text2")}}">{{messages("confirmation.whatNext.p2.text2")}}</a>
+             {{messages("confirmation.whatNext.p2.text3")}}
+         </p>
          <div><ul class="govuk-list govuk-list--bullet">
-            <li>{{messages("confirmation.whatNext.item1")}}</li>
-            <li>{{messages("confirmation.whatNext.item2")}}</li>
-            <li>{{messages("confirmation.whatNext.item3")}}</li>
-            <li>{{messages("confirmation.whatNext.item4")}}</li>
+            <li>{{messages("confirmation.whatNext.li.item1")}}</li>
+            <li>{{messages("confirmation.whatNext.li.item2")}}</li>
+            {% if hasVersionNumber %}
+                <li>{{messages("confirmation.whatNext.li.item3")}}</li>
+            {% endif %}
         </ul></div>
 
         <ul class="govuk-list">
@@ -40,7 +62,7 @@
 
         <h2 class="govuk-heading-m">{{messages("confirmation.saveOrPrint.h2")}}</h2>
 
-        <p class="govuk-body"><a class="print-this-page" href="#">{{messages("confirmation.saveOrPrint.page.link.text")}}</a></p>
+        <p class="govuk-body"><a class="govuk-link" href="#">{{messages("confirmation.print.page.link.text")}}</a></p>
 
         {{ govukButton({
             href: viewModel.submitUrl,

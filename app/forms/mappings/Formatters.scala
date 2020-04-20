@@ -54,12 +54,12 @@ trait Formatters extends Transforms with Constraints {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Option[String]] = {
       val postCode = postCodeDataTransform(data.get(key))
       val country = countryDataTransform(data.get(countryFieldName))
-      val maxLengthNonUKPostCode = 10
+      val maxLengthNonUKPostcode = 10
 
       (postCode, country) match {
         case (Some(zip), Some("GB")) if zip.matches(postcodeRegexp) => Right(Some(postCodeValidTransform(zip)))
         case (Some(_), Some("GB")) => Left(Seq(FormError(key, invalidKey)))
-        case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostCode => Right(Some(zip))
+        case (Some(zip), Some(_)) if zip.length <= maxLengthNonUKPostcode => Right(Some(zip))
         case (Some(_), Some(_)) => Left(Seq(FormError(key, nonUkLengthKey)))
         case (Some(zip), None) => Right(Some(zip))
         case (None, Some("GB")) => Left(Seq(FormError(key, requiredKey)))

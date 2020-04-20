@@ -71,6 +71,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeB",
+              "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
               "canChange" -> !request.viewOnly
             )
           )
