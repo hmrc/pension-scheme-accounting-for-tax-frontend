@@ -877,12 +877,14 @@ pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 
 
 confirmation.title = The Accounting for tax return has been submitted
 confirmation.aft.return.panel.h1 = Return submitted
+confirmation.aft.amendment.panel.h1 = Amended return submitted
 confirmation.aft.return.panel.text = Accounting for Tax
 confirmation.p1 = We have sent a confirmation email to
 confirmation.table.r1.c1 = Scheme
 confirmation.table.r2.c1 = Accounting period
 confirmation.table.r2.c2 = {0} to {1}
 confirmation.table.r3.c1 = Date submitted
+confirmation.table.r4.c1 = Submission number
 
 confirmation.whatNext.h2 = What to do next
 confirmation.whatNext.p1 = If you need to make a payment for this submission, you must include a charge reference with your payment.
@@ -891,6 +893,7 @@ confirmation.whatNext.p2.text2 = pensions.administration@hmrc.gov.uk
 confirmation.whatNext.p2.text3 = with these details:
 confirmation.whatNext.li.item1 = the name of the pension scheme
 confirmation.whatNext.li.item2 = the date and time of submission
+confirmation.whatNext.li.item3 = the submission number
 confirmation.saveOrPrint.h2 = Print
 confirmation.li1 = Return to {0}
 confirmation.li2 = View your other pension schemes
@@ -932,3 +935,4 @@ amendQuarters.error.required = Select which quarter you want to view
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
+
