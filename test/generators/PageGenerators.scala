@@ -24,6 +24,12 @@ import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {
 
+  implicit lazy val arbitrarySponsoringEmployerAddressResults: Arbitrary[SponsoringEmployerAddressResultsPage.type] =
+    Arbitrary(SponsoringEmployerAddressResultsPage)
+
+  implicit lazy val arbitrarySponsoringEmployerAddressSearch: Arbitrary[SponsoringEmployerAddressSearchPage.type] =
+    Arbitrary(SponsoringEmployerAddressSearchPage)
+
   implicit lazy val arbitraryConfirmSubmitAFTReturnPage: Arbitrary[ConfirmSubmitAFTReturnPage.type] =
     Arbitrary(ConfirmSubmitAFTReturnPage)
 

@@ -22,16 +22,25 @@ import data.SampleData._
 import forms.chargeC.SponsoringEmployerAddressFormProvider
 import matchers.JsonMatchers
 import models.chargeC.SponsoringEmployerAddress
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import org.scalatest.{OptionValues, TryValues}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import org.scalatest.OptionValues
+import org.scalatest.TryValues
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{WhichTypeOfSponsoringEmployerPage, SponsoringEmployerAddressPage, SponsoringOrganisationDetailsPage}
+import pages.chargeC.SponsoringEmployerAddressPage
+import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -62,6 +71,16 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "postcode" -> Seq("ZZ1 1ZZ")
 
   )
+
+  val sponsoringEmployerAddress: SponsoringEmployerAddress =
+    SponsoringEmployerAddress(
+      line1 = "line1",
+      line2 = "line2",
+      line3 = Some("line3"),
+      line4 = Some("line4"),
+      country = "UK",
+      postcode = Some("ZZ1 1ZZ")
+    )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "line1" -> Seq.empty,
@@ -129,8 +148,8 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       templateCaptor.getValue mustEqual templateToBeRendered
-
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(sponsorName = "First Last", isSelected = true)(form.fill(sponsoringEmployerAddress)))
+      val expected = jsonToPassToTemplate(sponsorName = "First Last", isSelected = true)(form.fill(sponsoringEmployerAddress))
+      jsonCaptor.getValue must containJson(expected)
     }
 
     "redirect to Session Expired page for a GET when there is no data" in {

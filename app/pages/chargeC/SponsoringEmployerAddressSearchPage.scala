@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package pages.chargeC
 
 import models.TolerantAddress
-import play.api.libs.json.{Format, Json}
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
-                                     country: String,
-                                     postcode: Option[String])
+case class SponsoringEmployerAddressSearchPage(index: Int) extends QuestionPage[Seq[TolerantAddress]] {
+  override def path: JsPath = JsPath \ SponsoringEmployerAddressSearchPage.toString
+}
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+object SponsoringEmployerAddressSearchPage {
+  override def toString: String = "sponsoringEmployerAddressSearch"
 }

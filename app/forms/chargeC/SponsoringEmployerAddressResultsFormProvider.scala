@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package forms.chargeC
 
-import models.TolerantAddress
-import play.api.libs.json.{Format, Json}
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
-                                     country: String,
-                                     postcode: Option[String])
+class SponsoringEmployerAddressResultsFormProvider @Inject() extends Mappings {
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+  def apply(): Form[Int] =
+    Form(
+      "value" -> int("chargeC.employerAddressResults.error.required")
+    )
 }

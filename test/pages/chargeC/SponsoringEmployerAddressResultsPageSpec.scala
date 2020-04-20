@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package pages.chargeC
 
-import models.TolerantAddress
-import play.api.libs.json.{Format, Json}
+import pages.behaviours.PageBehaviours
 
-case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
-                                     country: String,
-                                     postcode: Option[String])
+class SponsoringEmployerAddressResultsPageSpec extends PageBehaviours {
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+  "SponsoringEmployerAddressResultsPage" - {
+
+    beRetrievable[Int](SponsoringEmployerAddressResultsPage(0))
+
+    beSettable[Int](SponsoringEmployerAddressResultsPage(0))
+
+    beRemovable[Int](SponsoringEmployerAddressResultsPage(0))
+  }
 }

@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package audit
 
-import models.TolerantAddress
-import play.api.libs.json.{Format, Json}
+case class AddressLookupAuditEvent(
+                               postcode: String
+                             ) extends AuditEvent {
+  override def auditType: String = "AddressSubmitted"
 
-case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
-                                     country: String,
-                                     postcode: Option[String])
-
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+  override def details: Map[String, String] = {
+    Map(
+      "postcode" -> postcode
+    )
+  }
 }

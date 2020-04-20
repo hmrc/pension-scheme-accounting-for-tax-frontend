@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package models.chargeC
+package forms.chargeC
 
-import models.TolerantAddress
-import play.api.libs.json.{Format, Json}
+import forms.behaviours.IntFieldBehaviours
+import play.api.data.FormError
 
-case class SponsoringEmployerAddress(line1: String,
-                                     line2: String,
-                                     line3: Option[String],
-                                     line4: Option[String],
-                                     country: String,
-                                     postcode: Option[String])
+class SponsoringEmployerAddressResultsFormProviderSpec extends IntFieldBehaviours {
 
-object SponsoringEmployerAddress {
-  implicit lazy val formats: Format[SponsoringEmployerAddress] =
-    Json.format[SponsoringEmployerAddress]
+  val form = new SponsoringEmployerAddressResultsFormProvider()()
+
+  "value" must {
+
+    val fieldName = "value"
+    val requiredKey = "chargeC.employerAddressResults.error.required"
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+  }
 }
