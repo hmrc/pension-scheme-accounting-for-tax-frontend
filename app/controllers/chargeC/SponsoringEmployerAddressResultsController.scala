@@ -81,17 +81,16 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
           },
           value => {
-            val selectedSponsoringEmployerAddress = request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
+            request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
               case None =>
-                SponsoringEmployerAddress("", "", None, None, "", None)
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               case Some(addresses) =>
-                fromTolerantAddress(addresses(value))
+                for {
+                  updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value))))
+                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate))
             }
 
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), selectedSponsoringEmployerAddress))
-              _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate))
           }
         )
     }
@@ -119,7 +118,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
   private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
-        case None => throw new RuntimeException("??")
+        case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         case Some(addresses) =>
           val viewModel = GenericViewModel(
             submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, index).url,
