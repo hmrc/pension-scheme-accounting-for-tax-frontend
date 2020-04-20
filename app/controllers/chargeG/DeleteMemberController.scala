@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.DeleteMemberFormProvider
+import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
@@ -34,7 +34,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import services.ChargeGService.getOverseasTransferMembers
+import helpers.ChargeGHelper.getOverseasTransferMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -48,7 +48,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
                                        aftService: AFTService,
-                                       formProvider: DeleteMemberFormProvider,
+                                       formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)

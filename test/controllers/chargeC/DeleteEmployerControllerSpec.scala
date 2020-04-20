@@ -20,7 +20,7 @@ import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.DeleteMemberFormProvider
+import forms.DeleteFormProvider
 import matchers.JsonMatchers
 import models.{GenericViewModel, SponsoringEmployerType, UserAnswers}
 import org.mockito.Matchers.any
@@ -80,7 +80,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private val employerNameIndividual = "First Last"
   private val employerNameOrg = "Big Company"
-  private val formProvider = new DeleteMemberFormProvider()
+  private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteEmployer.chargeC.error.required", employerNameIndividual))
 
   private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, startDate, 0).url

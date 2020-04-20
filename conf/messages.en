@@ -299,6 +299,7 @@ chargeA = Short service refund lump sum charge
 chargeB = Special lump sum death benefits charge
 chargeD = Lifetime allowance charge
 chargeE = Annual allowance charge
+chargeF = De-registration charge
 chargeG = Overseas transfer charge
 
 memberDetails.title = Member’s details - {0}
@@ -366,6 +367,7 @@ dateNoticeReceived.error.date = The date you received notice to pay the charge m
 dateNoticeReceived.error.incomplete = The date you received notice to pay the charge must include a day, month and year
 dateNoticeReceived.error.invalid = Enter a real date for the date you received notice to pay the charge
 dateNoticeReceived.error.future = The date you received notice to pay the charge must be today or in the past
+dateNoticeReceived.error.minDate = The Date you received notice to pay the charge must be after {0}
 isPaymentMandatory.error = Select yes if the payment type is mandatory
 
 chargeEDetails.title = Annual allowance charge details for {0}
@@ -780,7 +782,7 @@ deleteMember.chargeG.title = Are you sure you want to remove {0}’s overseas tr
 deleteMember.chargeG.heading = Are you sure you want to remove {0}’s overseas transfer charge?
 deleteMember.chargeG.error.required = Select yes if you want to remove {0}’s overseas transfer charge
 chargeG.whatYouWillNeed.title = Overseas transfer charge
-chargeG.whatYouWillNeed.heading = Overseas transfer chargewhich type of sponsoring employer received the authorised surplus payment
+chargeG.whatYouWillNeed.heading = Overseas transfer charge
 chargeG.whatYouWillNeed.p1 = To record an overseas transfer charge you will need:
 chargeG.whatYouWillNeed.li1 = the name, date of birth and National Insurance number for each member liable to the overseas transfer charge
 chargeG.whatYouWillNeed.li2 = the date and ‘transferred value’ of each transfer
@@ -873,21 +875,26 @@ pageCannotStartAFTReturn.title = You cannot start a new AFT return
 pageCannotStartAFTReturn.heading = You cannot start a new AFT return
 pageCannotStartAFTReturn.p1 = You need to phone Pension Scheme Services on 0300 123 1079.
 
-confirmation.title = The Accounting for tax return has been sent to HMRC
-confirmation.p1 = We have sent a confirmation email to the email address you gave us.
-confirmation.aft.return = Accounting for Tax return submitted for {0} to {1}
-confirmation.aft.date.submitted = Date submitted: {0}
-confirmation.aft.pstr = Pension Scheme Tax Reference: {0}
-confirmation.whatNext.h2 = What you can do next
-confirmation.whatNext.p1 = If you need to make a payment for this return, you will need to include a charge reference with your payment. To get the charge reference, you should email pensions.administration@hmrc.gov.uk. In your email you need to include:
-confirmation.whatNext.item1 = the Pension Scheme Tax Reference
-confirmation.whatNext.item2 = the name of the pension scheme
-confirmation.whatNext.item3 = your pension scheme administrator ID
-confirmation.whatNext.item4 = the version of the return - for example ''Submission 2'' - if it is not the original version
+confirmation.title = The Accounting for tax return has been submitted
+confirmation.aft.return.panel.h1 = Return submitted
+confirmation.aft.return.panel.text = Accounting for Tax
+confirmation.p1 = We have sent a confirmation email to
+confirmation.table.r1.c1 = Scheme
+confirmation.table.r2.c1 = Accounting period
+confirmation.table.r2.c2 = {0} to {1}
+confirmation.table.r3.c1 = Date submitted
+
+confirmation.whatNext.h2 = What to do next
+confirmation.whatNext.p1 = If you need to make a payment for this submission, you must include a charge reference with your payment.
+confirmation.whatNext.p2.text1 = To get your charge reference send an email to
+confirmation.whatNext.p2.text2 = pensions.administration@hmrc.gov.uk
+confirmation.whatNext.p2.text3 = with these details:
+confirmation.whatNext.li.item1 = the name of the pension scheme
+confirmation.whatNext.li.item2 = the date and time of submission
 confirmation.saveOrPrint.h2 = Print
 confirmation.li1 = Return to {0}
 confirmation.li2 = View your other pension schemes
-confirmation.saveOrPrint.page.link.text = Print this page
+confirmation.print.page.link.text = Print this page
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
@@ -922,4 +929,6 @@ amendYears.error.required = Select which year you want to view
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
 
-
+deleteCharge.title = Are you sure you want to remove the {0}?
+deleteCharge.error.required = Select yes if you want to remove the {0}
+removeCharge.linkText = Remove this charge

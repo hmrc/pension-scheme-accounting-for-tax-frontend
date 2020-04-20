@@ -16,27 +16,24 @@
 
 package forms
 
-import base.SpecBase
-import config.FrontendAppConfig
-import forms.behaviours.OptionFieldBehaviours
-import models.{StartYears, Year}
+import forms.behaviours.BooleanFieldBehaviours
 import play.api.data.FormError
 
-class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {
+class DeleteFormProviderSpec extends BooleanFieldBehaviours {
 
-  implicit val config: FrontendAppConfig = frontendAppConfig
-  val form = new YearsFormProvider()()
+  val requiredKey = "Select yes if you want to remove the annual allowance charge for first last"
+  val invalidKey = "error.boolean"
+
+  val form = new DeleteFormProvider()(requiredKey)
 
   ".value" must {
 
     val fieldName = "value"
-    val requiredKey = "years.error.required"
 
-    behave like optionsField[Year](
+    behave like booleanField(
       form,
       fieldName,
-      validValues  = StartYears.values,
-      invalidError = FormError(fieldName, "error.invalid")
+      invalidError = FormError(fieldName, invalidKey)
     )
 
     behave like mandatoryField(

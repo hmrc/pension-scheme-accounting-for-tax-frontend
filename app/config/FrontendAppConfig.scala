@@ -16,6 +16,9 @@
 
 package config
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
 import play.api.Configuration
@@ -75,6 +78,12 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val overviewApiEnablementDate: String = configuration.get[String]("overviewApiEnablementDate")
   lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
+
+  lazy val earliestDateOfNotice: LocalDate = LocalDate
+    .parse(
+      configuration.get[String]("earliestDateOfNotice"),
+      DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    )
   lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
 
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
