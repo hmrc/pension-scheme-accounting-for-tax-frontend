@@ -25,7 +25,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{SchemeDetails, UserAnswers}
+import models.{AmendQuarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier

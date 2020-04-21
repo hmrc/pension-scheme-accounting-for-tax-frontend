@@ -105,25 +105,6 @@ trait CommonQuarters {
     }
 }
 
-object StartQuarters extends CommonQuarters with Enumerable.Implicits {
-
-  def values(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
-    selectedYear match {
-      case _ if selectedYear == currentYear => getCurrentYearQuarters
-      case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
-      case _ => Seq(Q1, Q2, Q3, Q4)
-    }
-
-  def radios(form: Form[_], year: Int)(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
-    Radios(form("value"), values(year).map { quarter =>
-      Radios.Radio(Literal(messages(s"quarters.${quarter.toString}.label")), quarter.toString)
-    })
-  }
-
-  implicit def enumerable(year: Int)(implicit config: FrontendAppConfig): Enumerable[Quarters] =
-    Enumerable(values(year).map(v => v.toString -> v): _*)
-}
-
 object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
 
   def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)

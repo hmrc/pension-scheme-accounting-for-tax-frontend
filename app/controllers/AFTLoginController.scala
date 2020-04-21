@@ -22,7 +22,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{StartQuarters, StartYears}
+import models.{AmendQuarters, StartQuarters, StartYears}
 import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -55,9 +55,8 @@ class AFTLoginController @Inject()(
     with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
     val defaultYear = StartYears.minYear(config)
-    (StartYears.values(config).size, quartersService.getStartQuarters(srn, schemeDetails.pstr, defaultYear).size) match {
+    (StartYears.values(config).size, AmendQuarters.availableQuarters(defaultYear)(config).size) match {
       case (years, _) if years > 1 =>
         Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 
@@ -65,8 +64,8 @@ class AFTLoginController @Inject()(
         Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
       case _ =>
-        val defaultQuarter = StartQuarters.values(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
-        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, StartQuarters.getStartDate(defaultQuarter, defaultYear))))
+        val defaultQuarter = AmendQuarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
+        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, AmendQuarters.getStartDate(defaultQuarter, defaultYear))))
     }
   }
 
