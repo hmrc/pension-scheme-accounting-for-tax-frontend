@@ -24,7 +24,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AmendQuarters, GenericViewModel, Quarter}
+import models.{GenericViewModel, Quarter, Quarters, SubmittedHint}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -73,7 +73,7 @@ class QuartersController @Inject()(
             "srn" -> srn,
             "startDate" -> None,
             "form" -> form(year, quarters),
-            "radios" -> AmendQuarters.radios(form(year, quarters), displayQuarters),
+            "radios" -> Quarters.radios(form(year, quarters), displayQuarters),
             "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
             "year" -> year
           )
@@ -88,30 +88,41 @@ class QuartersController @Inject()(
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
-        if (displayQuarters.nonEmpty) {
+      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+        quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+          if (displayQuarters.nonEmpty) {
 
-          val quarters = displayQuarters.map(_.quarter)
-    form(year, quarters)
-      .bindFromRequest()
-      .fold(
-        formWithErrors => {
-          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> None,
-              "form" -> formWithErrors,
-              "radios" -> AmendQuarters.radios(formWithErrors, displayQuarters),
-              "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-              "year" -> year
-            )
-            renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+            val quarters = displayQuarters.map(_.quarter)
+            form(year, quarters)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+                    val json = Json.obj(
+                      fields = "srn" -> srn,
+                      "startDate" -> None,
+                      "form" -> formWithErrors,
+                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                      "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                      "year" -> year
+                    )
+                    renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+                  }
+                },
+                value => {
+                  val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
+                  selectedDisplayQuarter.hintText match {
+                    case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate)))
+                    case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                    case _ =>
+                      val version = Some(aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected).numberOfVersions.toString)
+                      Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, version)))
+                  }
+                }
+              )
+          } else {
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
-        },
-        value => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate)))
-      )
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
       }
     }
@@ -123,4 +134,6 @@ class QuartersController @Inject()(
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
+
+  case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
 }

@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.{AmendQuarters, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarter, SubmittedHint}
+import models.{Quarters, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarter, SubmittedHint}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -40,7 +40,7 @@ class QuartersService @Inject()(
           .filter(_.periodStartDate.getYear == year)
           .filter(_.submittedVersionAvailable)
           .map { overviewElement =>
-          val quarter = AmendQuarters.getQuarter(overviewElement.periodStartDate)
+          val quarter = Quarters.getQuarter(overviewElement.periodStartDate)
           val displayYear = aftOverview.filter(_.periodStartDate.getYear != year).distinct.isEmpty
             DisplayQuarter(quarter, displayYear, None, None)
         }
@@ -58,7 +58,7 @@ class QuartersService @Inject()(
           aftOverview
           .filter(_.compiledVersionAvailable)
           .map { overviewElement =>
-            val quarter: Quarter = AmendQuarters.getQuarter(overviewElement.periodStartDate)
+            val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
             userAnswersCacheConnector.lockedBy(srn, overviewElement.periodStartDate).map {
               case Some(lockingPsa) => DisplayQuarter(quarter, displayYear = true, Some(lockingPsa), Some(LockedHint))
               case None =>

@@ -22,8 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.AmendQuarters._
-import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
+import models.{DisplayQuarter, Enumerable, GenericViewModel, Quarter, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -57,22 +56,24 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
   private val year = "2022"
+  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020, q12021)
+  val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterViewPast, displayQuarterStart)
+
   val formProvider = new QuartersFormProvider()
-  def form(quarters: Seq[Quarters]): Form[Quarters] = formProvider(errorKey, quarters)
+  def form(quarters: Seq[Quarter]): Form[Quarter] = formProvider(errorKey, quarters)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
 
-  private def jsonToPassToTemplate(quarters: Seq[Quarters]): Form[Quarters] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> AmendQuarters.radios(form, quarters),
+    "radios" -> Quarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
 
-  private val quarters = Seq(Q1)
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
@@ -100,7 +101,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(quarters).apply(form(quarters)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
     }
 
     "redirect to session expired page when there is no data returned from overview api for a GET" in {

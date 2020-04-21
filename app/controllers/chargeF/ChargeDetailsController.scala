@@ -26,7 +26,7 @@ import forms.chargeF.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
-import models.{AmendQuarters, GenericViewModel, Mode, UserAnswers}
+import models.{Quarters, GenericViewModel, Mode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
@@ -55,7 +55,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     with NunjucksSupport {
 
   private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDetails] = {
-    val endDate = AmendQuarters.getQuarter(startDate).endDate
+    val endDate = Quarters.getQuarter(startDate).endDate
     formProvider(
       startDate,
       endDate,

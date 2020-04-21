@@ -24,7 +24,8 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
+import models.LocalDateBinder._
+import models.{DisplayQuarter, Enumerable, GenericViewModel, Quarter, Quarters, SchemeDetails, SchemeStatus, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -40,11 +41,10 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 import utils.DateHelper
 
 import scala.concurrent.Future
-import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
 class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
@@ -62,14 +62,16 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private val errorKey = "quarters.error.required"
   val templateToBeRendered = "quarters.njk"
   val formProvider = new QuartersFormProvider()
-  val form: Form[Quarters] = formProvider(messages(errorKey, testYear), testYear)
+  val availableQuarters: Seq[Quarter] = Seq(q22020, q32020, q42020, q12021)
+  val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterViewPast, displayQuarterStart)
+  val form: Form[Quarter] = formProvider(messages(errorKey, testYear), availableQuarters)
 
   lazy val httpPathGET: String = controllers.routes.QuartersController.onPageLoad(srn, testYear.toString).url
   lazy val httpPathPOST: String = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url
 
-  private val jsonToPassToTemplate: Form[Quarters] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> AmendQuarters.radios(form, testYear),
+    "radios" -> Quarters.radios(form, displayQuarters),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.QuartersController.onSubmit(srn, testYear.toString).url,
       returnUrl = dummyCall.url,

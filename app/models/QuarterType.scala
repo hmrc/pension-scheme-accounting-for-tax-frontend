@@ -28,7 +28,7 @@ import java.time.Month
 
 import scala.language.implicitConversions
 
-sealed trait Quarters {
+sealed trait QuarterType {
   def startMonth: Int
   def endMonth: Int
   def startDay: Int = 1
@@ -38,31 +38,31 @@ sealed trait Quarters {
 trait CommonQuarters {
   def currentYear: Int = today.getYear
 
-  case object Q1 extends WithName("q1") with Quarters {
+  case object Q1 extends WithName("q1") with QuarterType {
     override def startMonth: Int = Month.JANUARY.getValue
     override def endMonth: Int = Month.MARCH.getValue
     override def endDay: Int = Month.MARCH.maxLength()
   }
 
-  case object Q2 extends WithName("q2") with Quarters {
+  case object Q2 extends WithName("q2") with QuarterType {
     override def startMonth: Int = Month.APRIL.getValue
     override def endMonth: Int = Month.JUNE.getValue
     override def endDay: Int = Month.JUNE.maxLength()
   }
 
-  case object Q3 extends WithName("q3") with Quarters {
+  case object Q3 extends WithName("q3") with QuarterType {
     override def startMonth: Int = Month.JULY.getValue
     override def endMonth: Int = Month.SEPTEMBER.getValue
     override def endDay: Int = Month.SEPTEMBER.maxLength()
   }
 
-  case object Q4 extends WithName("q4") with Quarters {
+  case object Q4 extends WithName("q4") with QuarterType {
     override def startMonth: Int = Month.OCTOBER.getValue
     override def endMonth: Int = Month.DECEMBER.getValue
     override def endDay: Int = Month.DECEMBER.maxLength()
   }
 
-  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[Quarters] = {
+  def getCurrentYearQuarters(implicit config: FrontendAppConfig): Seq[QuarterType] = {
     val quartersCY = today.getMonthValue match {
       case i if i > 9 => Seq(Q1, Q2, Q3, Q4)
       case i if i > 6 => Seq(Q1, Q2, Q3)
@@ -78,18 +78,18 @@ trait CommonQuarters {
     }
   }
 
-  def getQuarter(quarter: Quarters, year: Int): Quarter = {
+  def getQuarter(quarter: QuarterType, year: Int): Quarter = {
     Quarter(LocalDate.of(year, quarter.startMonth, quarter.startDay),
       LocalDate.of(year, quarter.endMonth, quarter.endDay))
   }
 
-  def getStartDate(quarter: Quarters, year: Int): LocalDate =
+  def getStartDate(quarter: QuarterType, year: Int): LocalDate =
     LocalDate.of(year, quarter.startMonth, quarter.startDay)
 
   def getQuarter(startDate: LocalDate): Quarter =
     getQuarter(getQuartersFromDate(startDate), startDate.getYear)
 
-  def getQuartersFromDate(date: LocalDate): Quarters =
+  def getQuartersFromDate(date: LocalDate): QuarterType =
     date.getMonthValue match {
       case i if i <= 3 => Q1
       case i if i <= 6 => Q2
@@ -97,7 +97,7 @@ trait CommonQuarters {
       case _ => Q4
     }
 
-  def availableQuarters(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[Quarters] =
+  def availableQuarters(selectedYear: Int)(implicit config: FrontendAppConfig): Seq[QuarterType] =
     selectedYear match {
       case _ if selectedYear == currentYear => getCurrentYearQuarters
       case _ if selectedYear == config.minimumYear => Seq(Q2, Q3, Q4)
@@ -105,7 +105,7 @@ trait CommonQuarters {
     }
 }
 
-object AmendQuarters extends CommonQuarters with Enumerable.Implicits {
+object Quarters extends CommonQuarters with Enumerable.Implicits {
 
   def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)
 

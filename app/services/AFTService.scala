@@ -25,7 +25,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{AmendQuarters, SchemeDetails, UserAnswers}
+import models.{Quarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -105,7 +105,7 @@ class AFTService @Inject()(
           if (listOfVersions.isEmpty) {
             currentUserAnswers
               .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, AmendQuarters.getQuarter(startDate))
+              .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
