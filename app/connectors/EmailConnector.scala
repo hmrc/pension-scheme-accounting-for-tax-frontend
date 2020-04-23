@@ -60,9 +60,10 @@ class EmailConnector @Inject()(
     http.POST(emailServiceUrl, jsonData).map { response =>
       response.status match {
         case ACCEPTED =>
+          Logger.debug("Email sent successfully for AFT Submission")
           EmailSent
         case status =>
-          Logger.warn(s"Sending Email failed with response status $status")
+          Logger.warn(s"Sending Email failed for AFT Submission with response status $status")
           EmailNotSent
       }
     } recoverWith logExceptions
