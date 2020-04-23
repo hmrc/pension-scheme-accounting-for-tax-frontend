@@ -59,19 +59,25 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, url)
+    save(id, value, url, None)
   }
 
   override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, lockUrl)
+    save(id, value, lockUrl, sessionData)
   }
 
-  private def save(id: String, value: JsValue, url: String)(implicit
+  private def save(id: String, value: JsValue, url: String, sessionData: Option[SessionData])(implicit
                                                     ec: ExecutionContext,
                                                     hc: HeaderCarrier
   ): Future[JsValue] = {
+    val sessionDataHeaders = sessionData match {
+      case Some(data) => Seq(Tuple2("version", data.version.toString), Tuple2("accessMode", data.accessMode.toString))
+      case None => Nil
+    }
+    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
+
     http.url(url)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id), ("content-type", "application/json")).headers: _*)
+      .withHttpHeaders(hc.withExtraHeaders(allExtraHeaders:_*).headers: _*)
       .post(PlainText(Json.stringify(value)).value).flatMap {
       response =>
         response.status match {
