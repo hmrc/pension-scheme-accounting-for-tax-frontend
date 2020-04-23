@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
+import models.AFTOverview
 import models.AccessMode
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
@@ -84,37 +85,47 @@ class AFTService @Inject()(
     }
   }
 
-  private def save(ua: UserAnswers, srn:String, startDate: LocalDate, optionVersion: Option[String], pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+  private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+    val version = optionVersion match {
+      case None => seqAFTOverview.head.numberOfVersions
+      case Some(v) => v.toInt
+    }
+
+    val accessMode = if (isLocked || psaSuspended || version < seqAFTOverview.head.numberOfVersions) {
+      AccessMode.PageAccessModeViewOnly
+    } else {
+      if (seqAFTOverview.isEmpty) {
+        AccessMode.PageAccessModePreCompile
+      } else {
+        if (seqAFTOverview.head.compiledVersionAvailable) {
+          AccessMode.PageAccessModeCompile
+        } else {
+          AccessMode.PageAccessModePreCompile
+        }
+      }
+    }
+    SessionData(version, accessMode)
+  }
+
+  private def save(ua: UserAnswers,
+                   srn:String,
+                   startDate: LocalDate,
+                   optionVersion: Option[String],
+                   pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
     val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
     val id = s"$srn$startDate"
-    userAnswersCacheConnector.isLocked(id).flatMap { isLocked =>
-      val f = aftConnector.getAftOverview(pstr).map{ seqAFTOverview =>
-        val version = optionVersion match {
-          case None => seqAFTOverview.head.numberOfVersions
-          case Some(v) => v.toInt
-        }
 
-        val accessMode = if (isLocked || psaSuspended || version < seqAFTOverview.head.numberOfVersions) {
-          AccessMode.PageAccessModeViewOnly
-        } else {
-
-          if (seqAFTOverview.isEmpty) {
-            AccessMode.PageAccessModePreCompile
-          } else {
-            if (seqAFTOverview.head.compiledVersionAvailable) {
-              AccessMode.PageAccessModeCompile
-            } else {
-              AccessMode.PageAccessModePreCompile
-            }
-          }
-        }
-        SessionData(version, accessMode)
-      }
-
-      f.flatMap { sessionData =>
-        val savedJson = userAnswersCacheConnector.saveWithSessionData(request.internalId, ua.data, sessionData)
-        savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
-      }
+    for {
+      isLocked <- userAnswersCacheConnector.isLocked(id)
+      seqAFTOverview <- aftConnector.getAftOverview(pstr)
+      savedJson <- userAnswersCacheConnector
+        .saveWithSessionData(
+          request.internalId,
+          ua.data,
+          createSessionData(optionVersion, seqAFTOverview, isLocked, psaSuspended)
+        )
+    } yield {
+      UserAnswers(savedJson.as[JsObject])
     }
   }
 
