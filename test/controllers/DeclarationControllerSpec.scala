@@ -91,7 +91,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -102,9 +102,10 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-      verify(mockEmailConnector, times(1)).sendEmail(any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+      journeyTypeCaptor.getValue mustEqual "AFTReturn"
       templateCaptor.getValue mustEqual fileAFTReturnTemplateId
       emailParamsCaptor.getValue mustEqual emailParams()
     }
@@ -112,7 +113,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter.map(_.setOrException(VersionNumberQuery, versionNumber)))
 
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -120,9 +121,10 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
-      verify(mockEmailConnector, times(1)).sendEmail(any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+      journeyTypeCaptor.getValue mustEqual "AFTAmend"
       templateCaptor.getValue mustEqual amendAftReturnTemplateIdId
       emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
     }
@@ -145,6 +147,7 @@ object DeclarationControllerSpec {
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+  private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[String])
   private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
   private val versionNumber = 3
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)

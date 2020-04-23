@@ -103,8 +103,12 @@ class DeclarationController @Inject()(
       "hmrcEmail" -> sendToEmailId
     ) ++ versionNumber.map(vn => Map("submissionNumber" -> s"$vn")).getOrElse(Map.empty[String, String])
 
-    val templateId = if (versionNumber.nonEmpty) config.amendAftReturnTemplateIdId else config.fileAFTReturnTemplateId
+    val (journeyType, templateId) = if (versionNumber.nonEmpty) {
+      ("AFTAmend", config.amendAftReturnTemplateIdId)
+    } else {
+      ("AFTReturn", config.fileAFTReturnTemplateId)
+    }
 
-    emailConnector.sendEmail(email, templateId, pstr, templateParams)
+    emailConnector.sendEmail(journeyType, email, templateId, pstr, templateParams)
   }
 }

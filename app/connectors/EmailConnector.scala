@@ -39,13 +39,14 @@ class EmailConnector @Inject()(
     http: HttpClient,
     crypto: ApplicationCrypto
 ) {
-  def callbackUrl(pstr: String): String = {
+  def callbackUrl(journeyType: String, pstr: String): String = {
     val encryptedPstr = crypto.QueryParameterCrypto.encrypt(PlainText(pstr)).value
 
-    s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response/$encryptedPstr"
+    s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response/$journeyType/$encryptedPstr"
   }
 
   def sendEmail(
+      journeyType: String,
       emailAddress: String,
       templateName: String,
       pstr: String,
@@ -53,7 +54,7 @@ class EmailConnector @Inject()(
   )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(pstr))
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(journeyType, pstr))
 
     val jsonData = Json.toJson(sendEmailReq)
 
