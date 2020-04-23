@@ -117,7 +117,7 @@ class AFTService @Inject()(
     val id = s"$srn$startDate"
 
     for {
-      isLocked <- userAnswersCacheConnector.isLocked(id)
+      isLocked <- userAnswersCacheConnector.getSessionData(id)
       seqAFTOverview <- aftConnector.getAftOverview(pstr)
       savedJson <- userAnswersCacheConnector
         .saveAndLock(

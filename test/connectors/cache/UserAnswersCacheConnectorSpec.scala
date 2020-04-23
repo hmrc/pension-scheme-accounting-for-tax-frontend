@@ -160,7 +160,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.isLocked(id = "testId") map {
+      connector.getSessionData(id = "testId") map {
         result =>
           result mustBe false
       }
@@ -174,7 +174,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.isLocked(id = "testId") map {
+      connector.getSessionData(id = "testId") map {
         result =>
           result mustBe true
       }
@@ -189,7 +189,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
 
       recoverToExceptionIf[HttpException] {
-        connector.isLocked(id = "testId")
+        connector.getSessionData(id = "testId")
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }

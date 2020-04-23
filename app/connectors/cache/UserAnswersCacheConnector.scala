@@ -95,10 +95,10 @@ class UserAnswersCacheConnectorImpl @Inject()(
       .delete().map(_ => Ok)
   }
 
-  override def isLocked(id: String)(implicit
-                                    ec: ExecutionContext,
-                                    hc: HeaderCarrier
-  ): Future[Boolean] = {
+  override def getSessionData(id: String)(implicit
+                                          ec: ExecutionContext,
+                                          hc: HeaderCarrier
+  ): Future[SessionData] = {
     http.url(lockUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
@@ -126,7 +126,7 @@ trait UserAnswersCacheConnector {
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
-  def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
+  def getSessionData(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[SessionData]
 }
 
 

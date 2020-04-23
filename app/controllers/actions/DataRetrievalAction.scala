@@ -44,7 +44,7 @@ class DataRetrievalImpl(
     val id = s"$srn$startDate"
     for {
       data <- userAnswersCacheConnector.fetch(id)
-      isLocked <- userAnswersCacheConnector.isLocked(id)
+      isLocked <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       data match {
         case None =>
