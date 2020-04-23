@@ -33,7 +33,7 @@ class DynamicYearRange(string: () => String) extends YearRange{
 }
 
 object YearRange extends Enumerable.Implicits {
-  def values: Seq[DynamicYearRange with YearRange] = {
+  def values: Seq[DynamicYearRange] = {
     val maxYear = if (LocalDate.now.getMonthValue > 3) Year.now.getValue + 1 else Year.now.getValue
     (2019 to maxYear).reverse.map( year => new DynamicYearRange(year.toString) )
   }
