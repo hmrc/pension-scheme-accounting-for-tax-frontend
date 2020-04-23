@@ -53,7 +53,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = schemeName)
   )
 

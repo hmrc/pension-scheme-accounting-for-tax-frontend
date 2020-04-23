@@ -66,7 +66,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     "radios" -> YearRange.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 

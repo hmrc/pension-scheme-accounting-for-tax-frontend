@@ -76,7 +76,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               "list" -> helper.rows(request.viewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeD",

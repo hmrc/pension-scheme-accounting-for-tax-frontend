@@ -48,7 +48,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     ),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-      returnUrl = frontendAppConfig.managePensionsSchemeSummaryUrl.format(srn, startDate),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName
     ),
     "chargeName" -> "chargeA"

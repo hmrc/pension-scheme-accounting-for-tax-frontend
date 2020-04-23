@@ -110,7 +110,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase 
         "form" -> form,
         "viewModel" -> GenericViewModel(
           submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressResultsController.onSubmit(NormalMode, srn, startDate, index).url,
-          returnUrl = dummyCall.url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         ),
         "sponsorName" -> sponsorName,

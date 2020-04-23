@@ -33,6 +33,7 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -57,7 +58,8 @@ class WhatYouWillNeedController @Inject()(
 
       renderer
         .render(template = "chargeF/whatYouWillNeed.njk",
-                Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn, "startDate" -> Some(startDate)))
+                Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn, "startDate" -> Some(startDate),
+                  "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
         .map(Ok(_))
     }
 }
