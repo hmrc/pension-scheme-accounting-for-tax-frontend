@@ -161,4 +161,13 @@ object SampleData {
   val displayQuarterContinueAmend: DisplayQuarter = DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))
   val displayQuarterViewPast: DisplayQuarter = DisplayQuarter(q22020, displayYear = false, None, Some(SubmittedHint))
   val displayQuarterStart: DisplayQuarter = DisplayQuarter(q12021, displayYear = false, None, None)
+
+  val aftOverviewQ22020: AFTOverview =
+    AFTOverview(q22020.startDate, q22020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+  val aftOverviewQ32020: AFTOverview =
+    AFTOverview(q32020.startDate, q32020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = true)
+  val aftOverviewQ42020: AFTOverview =
+    AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+  val aftOverviewQ12021: AFTOverview =
+    AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
 }

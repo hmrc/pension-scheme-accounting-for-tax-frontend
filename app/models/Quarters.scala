@@ -16,15 +16,16 @@
 
 package models
 
-import java.time.LocalDate
+import java.time.{LocalDate, Month}
 
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.{Radios, Text}
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Text, _}
 import utils.DateHelper._
-import java.time.Month
+import viewmodels.Radios.Radio
+import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
@@ -110,11 +111,18 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
   def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)
 
   def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter])(implicit messages: Messages): Seq[Radios.Item] = {
-    Radios(form("value"), displayQuarters.map { displayQuarter =>
+    val x: Seq[Radio] = displayQuarters.map { displayQuarter =>
 
-      Radios.Radio(getLabel(displayQuarter), displayQuarter.quarter.toString)
-    })
+      Radios.Radio(label = getLabel(displayQuarter),
+        value = displayQuarter.quarter.toString,
+        hint = getHint(displayQuarter),
+        labelClasses = Some(LabelClasses(classes = Seq("govuk-!-font-weight-bold"))))
+    }
+
+    Radios(form("value"), x)
   }
+
+
 
   implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarter] =
     Enumerable(quarters.map(v => v.toString -> v): _*)
@@ -127,11 +135,14 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
       case Some(lockingPsa) => messages("quarters.lockedBy", lockingPsa)
       case _ => ""
     }
-    val hint: String = displayQuarter.hintText match {
-      case Some(hint) => messages(hint.toString)
-      case _ => ""
-    }
 
-    Literal(s"${messages(s"quarters.${q.toString}.label")} ++ $year ++ $lockedString ++ \n$hint")
+    Literal(s"${messages(s"quarters.${q.toString}.label")} $year $lockedString")
+  }
+
+  private def getHint(displayQuarter: DisplayQuarter)(implicit messages: Messages): Option[Hint] =
+    displayQuarter.hintText match {
+    case Some(hint) =>
+      Some(Hint(msg"${hint.toString}", "hint-id"))
+    case _ => None
   }
 }

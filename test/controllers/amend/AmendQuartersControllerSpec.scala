@@ -36,7 +36,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.SchemeService
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -47,17 +47,19 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   implicit val config: FrontendAppConfig = mockAppConfig
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
+  private val mockQuartersService: QuartersService = mock[QuartersService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
+    bind[QuartersService].toInstance(mockQuartersService),
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
   val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
   private val year = "2022"
-  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020, q12021)
-  val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterViewPast, displayQuarterStart)
+  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020)
+  val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterContinueAmend, displayQuarterViewPast)
 
   val formProvider = new QuartersFormProvider()
   def form(quarters: Seq[Quarter]): Form[Quarter] = formProvider(errorKey, quarters)
@@ -74,13 +76,14 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       schemeName = schemeName)
   )
 
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAFTConnector.getAftOverview(any())(any(), any()))
-      .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
+      .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
+    when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
@@ -104,8 +107,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
     }
 
-    "redirect to session expired page when there is no data returned from overview api for a GET" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+    "redirect to session expired page when quarters service returns an empty list" in {
+      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -118,7 +121,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2022-01-01").url)
+      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, q22020.startDate.toString).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
@@ -130,8 +133,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
 
-    "redirect to session expired page when there is no data returned from overview api for a POST" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+    "redirect to session expired page when there quarters service returns an empty list for a POST" in {
+      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

@@ -65,10 +65,10 @@ class QuartersController @Inject()(
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+      quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
-
           val quarters = displayQuarters.map(_.quarter)
+
           val json = Json.obj(
             "srn" -> srn,
             "startDate" -> None,
@@ -89,7 +89,7 @@ class QuartersController @Inject()(
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+        quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
           if (displayQuarters.nonEmpty) {
 
             val quarters = displayQuarters.map(_.quarter)
