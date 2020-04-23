@@ -16,23 +16,25 @@
 
 package services
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
+import java.time.{LocalDateTime, LocalDate, LocalTime}
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
+import models.AccessMode
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
+import models.SessionData
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{StartQuarters, SchemeDetails, UserAnswers}
+import models.{SchemeDetails, StartQuarters, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{Future, ExecutionContext}
+import scala.util.{Success, Failure}
 
 @Singleton
 class AFTService @Inject()(
@@ -76,21 +78,44 @@ class AFTService @Inject()(
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
-      savedUA <- save(updatedUA)
+      savedUA <- save(updatedUA, srn, startDate, optionVersion, schemeDetails.pstr)
     } yield {
       (schemeDetails, savedUA)
     }
   }
 
-  private def save(ua: UserAnswers)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+  private def save(ua: UserAnswers, srn:String, startDate: LocalDate, optionVersion: Option[String], pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
     val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
+    val id = s"$srn$startDate"
+    userAnswersCacheConnector.isLocked(id).flatMap { isLocked =>
+      val f = aftConnector.getAftOverview(pstr).map{ seqAFTOverview =>
+        val version = optionVersion match {
+          case None => seqAFTOverview.head.numberOfVersions
+          case Some(v) => v.toInt
+        }
 
-    val savedJson = if (request.viewOnly || psaSuspended) {
-      userAnswersCacheConnector.save(request.internalId, ua.data)
-    } else {
-      userAnswersCacheConnector.saveAndLock(request.internalId, ua.data)
+        val accessMode = if (isLocked || psaSuspended || version < seqAFTOverview.head.numberOfVersions) {
+          AccessMode.PageAccessModeViewOnly
+        } else {
+
+          if (seqAFTOverview.isEmpty) {
+            AccessMode.PageAccessModePreCompile
+          } else {
+            if (seqAFTOverview.head.compiledVersionAvailable) {
+              AccessMode.PageAccessModeCompile
+            } else {
+              AccessMode.PageAccessModePreCompile
+            }
+          }
+        }
+        SessionData(version, accessMode)
+      }
+
+      f.flatMap { sessionData =>
+        val savedJson = userAnswersCacheConnector.saveWithSessionData(request.internalId, ua.data, sessionData)
+        savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
+      }
     }
-    savedJson.map(jsVal => UserAnswers(jsVal.as[JsObject]))
   }
 
   private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)(

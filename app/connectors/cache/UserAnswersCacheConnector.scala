@@ -18,15 +18,17 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.SessionData
 import play.api.http.Status._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.JsNull
+import play.api.libs.json.{Json, JsValue}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
@@ -62,6 +64,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def saveAndLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     save(id, value, lockUrl)
+  }
+
+  override def saveWithSessionData(cacheId: String, value: JsValue, sessionData: SessionData)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  Future.successful(JsNull)
+    //save(id, value, lockUrl)
   }
 
   private def save(id: String, value: JsValue, url: String)(implicit
@@ -115,6 +122,8 @@ trait UserAnswersCacheConnector {
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def saveAndLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+
+  def saveWithSessionData(cacheId: String, value: JsValue, sessionData: SessionData)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
