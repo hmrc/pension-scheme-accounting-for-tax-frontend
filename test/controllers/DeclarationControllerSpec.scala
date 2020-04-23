@@ -16,16 +16,19 @@
 
 package controllers
 
+import java.time.LocalDateTime
+
+import connectors.{EmailConnector, EmailSent}
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{Declaration, GenericViewModel, UserAnswers}
+import models.{Declaration, GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{DeclarationPage, PSTRQuery, SchemeNameQuery}
+import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -33,16 +36,21 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
-import utils.AFTConstants.QUARTER_START_DATE
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import models.LocalDateBinder._
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
 
 import scala.concurrent.Future
 
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
 
   private val mockAFTService = mock[AFTService]
-  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[AFTService].toInstance(mockAFTService),
-    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+  private val mockEmailConnector = mock[EmailConnector]
+  private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[AFTService].toInstance(mockAFTService),
+    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction),
+    bind[EmailConnector].toInstance(mockEmailConnector)
+  )
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
@@ -56,6 +64,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
+  private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
+  private val emailParams = Map("schemeName" -> schemeName,
+    "accountingPeriod" -> messages("confirmation.table.accounting.period.value", quarter.startDate.format(dateFormatterStartDate),
+      quarter.endDate.format(dateFormatterDMY)),
+    "dateSubmitted" -> dateFormatterSubmittedDate.format(LocalDateTime.now()),
+    "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id"))
+
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -80,9 +95,11 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
-    "Save data to user answers, file AFT Return and redirect to next page when on submit declaration" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).getOrElse(UserAnswers())))
-
+    "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).flatMap(
+        _.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers())))
+      val eventCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -93,8 +110,10 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), any(),eventCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
+      eventCaptor.getValue mustEqual emailParams
     }
 
     "redirect to session expired when there is no pstr on submit declaration" in {

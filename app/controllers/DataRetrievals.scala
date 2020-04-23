@@ -16,22 +16,22 @@
 
 package controllers
 
+import java.time.LocalDate
+
+import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
 import models.{Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
+import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
 import pages.chargeE.AnnualAllowanceYearPage
-import pages._
 import play.api.libs.json.Reads
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Result}
 
 import scala.concurrent.Future
-import java.time.LocalDate
-
-import models.LocalDateBinder._
-import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 object DataRetrievals {
 
@@ -46,7 +46,16 @@ object DataRetrievals {
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSAEmailQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
-      case _                                             => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case _                                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def retrieveSchemeNameWithPSTREmailAndQuarter(block: (String, String, String, Quarter) => Future[Result])(
+      implicit request: DataRequest[AnyContent]): Future[Result] = {
+    val ua = request.userAnswers
+    (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(PSAEmailQuery), ua.get(QuarterPage)) match {
+      case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) => block(schemeName, pstr, email, quarter)
+      case _                                                          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 

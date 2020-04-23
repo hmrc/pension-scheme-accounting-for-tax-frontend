@@ -17,26 +17,28 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
-import org.scalatest.{AsyncWordSpec, MustMatchers, RecoverMethods}
+import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
-class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with RecoverMethods {
+class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+
+  private val testEmailAddress = "test@test.com"
+  private val testTemplate = "testTemplate"
+  private val testPstr = "12345678AB"
+
+  private def url = s"/hmrc/email"
+
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def portConfigKey: String = "microservice.services.email.port"
 
-  private val url: String = "/hmrc/email"
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
   private lazy val connector = injector.instanceOf[EmailConnector]
-  private val testEmailAddress = "test@test.com"
-  private val testTemplate = "testTemplate"
-  val testPsaId = PsaId("A1234567")
 
-  ".sendEmail" must {
+  "Email Connector" must {
     "return an EmailSent" when {
-      "email sent succesfully with status 202 (Accepted)" in {
+      "email sent successfully with status 202 (Accepted)" in {
         server.stubFor(
           post(urlEqualTo(url)).willReturn(
             aResponse()
@@ -44,24 +46,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(testEmailAddress, testTemplate, testPsaId).map {
-          result =>
-            result mustBe EmailSent
-        }
-      }
-    }
-
-    "return an EmailNotSent" when {
-      "email service returns back with 204 (No Content)" in {
-        server.stubFor(
-          post(urlEqualTo(url)).willReturn(
-            noContent()
-              .withHeader("Content-Type", "application/json")
-          )
-        )
-        connector.sendEmail(testEmailAddress, testTemplate, testPsaId).map {
-          result =>
-            result mustBe EmailNotSent
+        connector.sendEmail(testEmailAddress, testTemplate, testPstr, Map.empty).map { result => result mustBe EmailSent
         }
       }
     }
@@ -75,9 +60,18 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(testEmailAddress, testTemplate, testPsaId).map {
-          result =>
-            result mustBe EmailNotSent
+        connector.sendEmail(testEmailAddress, testTemplate, testPstr, Map.empty).map { result => result mustBe EmailNotSent
+        }
+      }
+
+      "email service returns back with 204 (No Content)" in {
+        server.stubFor(
+          post(urlEqualTo(url)).willReturn(
+            noContent()
+              .withHeader("Content-Type", "application/json")
+          )
+        )
+        connector.sendEmail(testEmailAddress, testTemplate, testPstr, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }

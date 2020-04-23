@@ -16,14 +16,13 @@
 
 package connectors
 
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SendEmailRequest
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -35,27 +34,26 @@ case object EmailSent extends EmailStatus
 
 case object EmailNotSent extends EmailStatus
 
-@ImplementedBy(classOf[EmailConnectorImpl])
-trait EmailConnector {
+class EmailConnector @Inject()(
+    appConfig: FrontendAppConfig,
+    http: HttpClient,
+    crypto: ApplicationCrypto
+) {
+  def callbackUrl(pstr: String): String = {
+    val encryptedPstr = crypto.QueryParameterCrypto.encrypt(PlainText(pstr)).value
 
-  def sendEmail(emailAddress: String, templateName: String, psaId: PsaId)
-               (implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus]
-}
+    s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response/$encryptedPstr"
+  }
 
-class EmailConnectorImpl @Inject()(
-                                    appConfig: FrontendAppConfig,
-                                    http: HttpClient,
-                                    crypto: ApplicationCrypto
-                                  ) extends EmailConnector {
-
-  override def sendEmail(
-                          emailAddress: String,
-                          templateName: String,
-                          psaId: PsaId
-                        )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
+  def sendEmail(
+      emailAddress: String,
+      templateName: String,
+      pstr: String,
+      templateParams: Map[String, String]
+  )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, Map.empty, appConfig.emailSendForce)
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(pstr))
 
     val jsonData = Json.toJson(sendEmailReq)
 

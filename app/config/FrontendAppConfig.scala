@@ -78,6 +78,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val overviewApiEnablementDate: String = configuration.get[String]("overviewApiEnablementDate")
   lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
+  lazy val fileAFTReturnTemplateId: String = configuration.get[String]("email.fileAftReturnTemplateId")
 
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
