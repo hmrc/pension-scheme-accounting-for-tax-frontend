@@ -23,10 +23,11 @@ import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, Mu
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{Declaration, GenericViewModel, Quarter, UserAnswers}
+import models.LocalDateBinder._
+import models.{GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
@@ -37,12 +38,12 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
-import models.LocalDateBinder._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
 
 import scala.concurrent.Future
 
 class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar with JsonMatchers {
+  import DeclarationControllerSpec._
 
   private val mockAFTService = mock[AFTService]
   private val mockEmailConnector = mock[EmailConnector]
@@ -54,31 +55,23 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val templateToBeRendered = "declaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
-
-  private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = dummyCall.url,
-      schemeName = schemeName)
-  )
-  private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
-  private val emailParams = Map("schemeName" -> schemeName,
-    "accountingPeriod" -> messages("confirmation.table.accounting.period.value", quarter.startDate.format(dateFormatterStartDate),
-      quarter.endDate.format(dateFormatterDMY)),
-    "dateSubmitted" -> dateFormatterSubmittedDate.format(LocalDateTime.now()),
-    "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id"))
-
-
   override def beforeEach: Unit = {
     super.beforeEach
+    Mockito.reset(mockRenderer, mockEmailConnector, mockAFTService, mockUserAnswersCacheConnector, mockCompoundNavigator)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.amendAftReturnTemplateIdId).thenReturn(amendAftReturnTemplateIdId)
+    when(mockAppConfig.fileAFTReturnTemplateId).thenReturn(fileAFTReturnTemplateId)
   }
-
-  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private def emailParams(isAmendment: Boolean = false): Map[String, String] =
+    Map(
+      "schemeName" -> schemeName,
+      "accountingPeriod" -> messages("confirmation.table.accounting.period.value",
+                                     quarter.startDate.format(dateFormatterStartDate),
+                                     quarter.endDate.format(dateFormatterDMY)),
+      "dateSubmitted" -> dateFormatterSubmittedDate.format(LocalDateTime.now()),
+      "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id")
+    ) ++ (if (isAmendment) Map("submissionNumber" -> s"$versionNumber") else Map.empty)
 
   "Declaration Controller" must {
     "return OK and the correct view for a GET" in {
@@ -96,9 +89,8 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     }
 
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).flatMap(
-        _.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers())))
-      val eventCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
+
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
@@ -110,10 +102,29 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), any(),eventCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-      eventCaptor.getValue mustEqual emailParams
+      templateCaptor.getValue mustEqual fileAFTReturnTemplateId
+      emailParamsCaptor.getValue mustEqual emailParams()
+    }
+
+    "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter.map(_.setOrException(VersionNumberQuery, versionNumber)))
+
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      verify(mockEmailConnector, times(1)).sendEmail(any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+      templateCaptor.getValue mustEqual amendAftReturnTemplateIdId
+      emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
     }
 
     "redirect to session expired when there is no pstr on submit declaration" in {
@@ -125,4 +136,25 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
+}
+
+object DeclarationControllerSpec {
+
+  private val templateToBeRendered = "declaration.njk"
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
+  private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
+  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+  private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
+  private val versionNumber = 3
+  private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
+  private val userAnswersWithPSTREmailQuarter: Option[UserAnswers] = userAnswers.map(
+    _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
+  private val jsonToPassToTemplate = Json.obj(
+    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
+                                             returnUrl = dummyCall.url,
+                                             schemeName = schemeName)
+  )
+  private val amendAftReturnTemplateIdId = "pods_aft_amended_return"
+  private val fileAFTReturnTemplateId = "pods_file_aft_return"
 }

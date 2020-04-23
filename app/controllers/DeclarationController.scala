@@ -19,14 +19,15 @@ package controllers
 import java.time.{LocalDate, LocalDateTime}
 
 import config.FrontendAppConfig
-import connectors.EmailConnector
+import connectors.{EmailConnector, EmailStatus}
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{Declaration, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, DeclarationPage}
+import pages.{AFTStatusQuery, DeclarationPage, VersionNumberQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -77,25 +78,33 @@ class DeclarationController @Inject()(
           updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
-          _ <- emailConnector.sendEmail(email, config.fileAFTReturnTemplateId, pstr, emailParams(schemeName, quarter))
+          _ <- sendEmail(email, pstr, quarter, schemeName)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
     }
 
-  private def emailParams(schemeName: String, quarter: Quarter)(implicit messages: Messages): Map[String, String] = {
+  private def sendEmail(email: String, pstr: String, quarter: Quarter, schemeName: String)(implicit request: DataRequest[_],
+                                                                                           messages: Messages): Future[EmailStatus] = {
+    val versionNumber = request.userAnswers.get(VersionNumberQuery)
+
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
     val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
-    val hmrcEmail = messages("confirmation.whatNext.send.to.email.id")
+
+    val sendToEmailId = messages("confirmation.whatNext.send.to.email.id")
     val accountingPeriod = messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)
 
-    Map(
+    val templateParams = Map(
       "schemeName" -> schemeName,
       "accountingPeriod" -> accountingPeriod,
       "dateSubmitted" -> submittedDate,
-      "hmrcEmail" -> hmrcEmail
-    )
+      "hmrcEmail" -> sendToEmailId
+    ) ++ versionNumber.map(vn => Map("submissionNumber" -> s"$vn")).getOrElse(Map.empty[String, String])
+
+    val templateId = if (versionNumber.nonEmpty) config.amendAftReturnTemplateIdId else config.fileAFTReturnTemplateId
+
+    emailConnector.sendEmail(email, templateId, pstr, templateParams)
   }
 }
