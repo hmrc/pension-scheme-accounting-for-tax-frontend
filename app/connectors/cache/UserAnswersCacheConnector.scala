@@ -62,7 +62,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     save(id, value, url)
   }
 
-  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     save(id, value, lockUrl)
   }
 
