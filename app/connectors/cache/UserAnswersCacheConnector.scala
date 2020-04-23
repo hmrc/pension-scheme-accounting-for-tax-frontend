@@ -62,13 +62,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
     save(id, value, url)
   }
 
-  override def saveAndLock(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     save(id, value, lockUrl)
-  }
-
-  override def saveWithSessionData(cacheId: String, value: JsValue, sessionData: SessionData)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-  Future.successful(JsNull)
-    //save(id, value, lockUrl)
   }
 
   private def save(id: String, value: JsValue, url: String)(implicit
@@ -121,9 +116,7 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
-  def saveAndLock(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
-
-  def saveWithSessionData(cacheId: String, value: JsValue, sessionData: SessionData)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+  def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 

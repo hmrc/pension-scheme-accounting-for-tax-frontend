@@ -119,10 +119,10 @@ class AFTService @Inject()(
       isLocked <- userAnswersCacheConnector.isLocked(id)
       seqAFTOverview <- aftConnector.getAftOverview(pstr)
       savedJson <- userAnswersCacheConnector
-        .saveWithSessionData(
+        .saveAndLock(
           request.internalId,
           ua.data,
-          createSessionData(optionVersion, seqAFTOverview, isLocked, psaSuspended)
+          Some(createSessionData(optionVersion, seqAFTOverview, isLocked, psaSuspended))
         )
     } yield {
       UserAnswers(savedJson.as[JsObject])
