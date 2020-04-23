@@ -86,12 +86,13 @@ class AFTService @Inject()(
   }
 
   private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+    val numberOfVersions = if(seqAFTOverview.isEmpty) 1 else seqAFTOverview.head.numberOfVersions
     val version = optionVersion match {
-      case None => seqAFTOverview.head.numberOfVersions
+      case None => numberOfVersions
       case Some(v) => v.toInt
     }
 
-    val accessMode = if (isLocked || psaSuspended || version < seqAFTOverview.head.numberOfVersions) {
+    val accessMode = if (isLocked || psaSuspended || version < numberOfVersions) {
       AccessMode.PageAccessModeViewOnly
     } else {
       if (seqAFTOverview.isEmpty) {
