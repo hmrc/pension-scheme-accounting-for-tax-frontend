@@ -58,12 +58,12 @@ class DataRetrievalImpl(
     } yield {
       (data, sessionData) match {
         case (_, None) =>
-          OptionalDataRequest(request.request, id, request.psaId, None)
-        case (None, Some(sd)) =>
-          OptionalDataRequest(request.request, id, request.psaId, None, viewOnly = sd.name.isDefined)
-        case (Some(uaJsValue), Some(sd)) =>
+          OptionalDataRequest(request.request, id, request.psaId, None, None)
+        case (None, Some(_)) =>
+          OptionalDataRequest(request.request, id, request.psaId, None, sessionData)
+        case (Some(uaJsValue), Some(_)) =>
           val ua = UserAnswers(uaJsValue.as[JsObject])
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua), viewOnly = sd.accessMode == AccessMode.PageAccessModeViewOnly)
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua), sessionData)
       }
     }
   }

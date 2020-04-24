@@ -74,7 +74,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             ctx = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(startDate),
-              "list" -> helper.rows(request.viewOnly, seqRows),
+              "list" -> helper.rows(request.sessionData.forall(_.isViewOnly), seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -82,7 +82,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               ),
               "chargeName" -> "chargeA",
               "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
-              "canChange" -> !request.viewOnly
+              "canChange" -> !request.sessionData.forall(_.isViewOnly)
             )
           )
           .map(Ok(_))

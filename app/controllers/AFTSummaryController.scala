@@ -74,7 +74,8 @@ class AFTSummaryController @Inject()(
         case (schemeDetails, userAnswers) =>
           allowService.filterForIllegalPageAccess(srn, startDate, userAnswers, Some(AFTSummaryPage), optionVersion).flatMap {
             case None =>
-              val json = getJson(form, userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, !request.viewOnly)
+              val json = getJson(form, userAnswers, srn, startDate,
+                schemeDetails.schemeName, optionVersion, request.sessionData.forall(_.isEditable))
               renderer.render("aftSummary.njk", json).map(Ok(_))
             case Some(redirectLocation) => Future.successful(redirectLocation)
           }
@@ -89,7 +90,7 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, !request.viewOnly)
+              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, request.sessionData.forall(_.isEditable) )
               renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
             },
             value => {

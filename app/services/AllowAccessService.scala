@@ -66,7 +66,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
       case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
           case true =>
-            (isSuspended, request.viewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
+            (isSuspended, request.sessionData.exists(_.isViewOnly), optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
               case (true, _, Some(AFTSummaryPage), Some(_), false) =>
                 Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optionVersion))))
               case (true, _, Some(ChargeTypePage), _, _) =>

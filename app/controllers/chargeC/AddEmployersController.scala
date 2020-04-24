@@ -109,8 +109,8 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
-      "canChange" -> !request.viewOnly
+      "table" -> Json.toJson(mapToTable(members, !request.sessionData.forall(_.isViewOnly))),
+      "canChange" -> !request.sessionData.forall(_.isViewOnly)
     )
 
   }

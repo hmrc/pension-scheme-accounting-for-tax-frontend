@@ -127,7 +127,7 @@ class AFTService @Inject()(
     }
   }
 
-  def isLockedByAnotherUser(sessionData: Option[SessionData]):Boolean = {
+  private def isLockedByAnotherUser(sessionData: Option[SessionData]):Boolean = {
     sessionData match {
       case None => false
       case Some(sd) => sd.name.isDefined
