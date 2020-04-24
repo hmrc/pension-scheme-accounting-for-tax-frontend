@@ -99,7 +99,11 @@ class QuartersService @Inject()(
           }
         Future.sequence(displayQuarters)
       } else {
-        Future.successful(Nil)
+        val displayQuarters =  availableQuarters(year)(config).map { x =>
+          val availableQuarter = getQuarter(x, year)
+          DisplayQuarter(availableQuarter, displayYear = false, None, None)
+        }
+        Future.successful(displayQuarters)
       }
     }
   }

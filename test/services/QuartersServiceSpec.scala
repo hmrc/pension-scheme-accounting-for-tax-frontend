@@ -126,9 +126,13 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
       }
     }
 
-    "give an empty list if overview api returns an empty list" in {
+    "give display all available quarters to start if overview api returns an empty list" in {
       whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
-        result mustBe Nil
+        result mustBe Seq(
+          DisplayQuarter(q22020, displayYear = false, None, None),
+          DisplayQuarter(q32020, displayYear = false, None, None),
+          DisplayQuarter(q42020, displayYear = false, None, None)
+        )
       }
     }
   }
