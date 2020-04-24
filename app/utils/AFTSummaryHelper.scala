@@ -16,20 +16,21 @@
 
 package utils
 
+import java.time.LocalDate
+
 import controllers._
 import controllers.chargeB.{routes => _}
+import helpers.{CYAHelper, FormatHelper}
+import models.ChargeType._
+import models.LocalDateBinder._
 import models.{ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import models.ChargeType._
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
-import java.time.LocalDate
-import models.LocalDateBinder._
 
-class AFTSummaryHelper{
+class AFTSummaryHelper extends FormatHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 

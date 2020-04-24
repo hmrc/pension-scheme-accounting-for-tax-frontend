@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import helpers.CYAChargeFHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
@@ -33,7 +34,6 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
@@ -54,7 +54,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
-        val helper = new CheckYourAnswersHelper(request.userAnswers, srn, startDate)
+        val helper = new CYAChargeFHelper(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeFDate(chargeDetails),

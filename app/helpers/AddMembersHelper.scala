@@ -16,16 +16,15 @@
 
 package helpers
 
+import controllers.chargeB.{routes => _}
 import models.Member
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.viewmodels.Text.Literal
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-object AddMembersHelper extends NunjucksSupport {
+object AddMembersHelper extends FormatHelper {
 
   private[helpers] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 

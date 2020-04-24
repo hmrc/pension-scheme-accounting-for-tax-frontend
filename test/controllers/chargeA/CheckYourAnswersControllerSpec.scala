@@ -19,13 +19,13 @@ package controllers.chargeA
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
+import helpers.CYAChargeAHelper
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.CheckYourAnswersHelper
-import models.LocalDateBinder._
 
 class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with CheckYourAnswersBehaviour {
 
@@ -37,7 +37,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
-  private val helper: CheckYourAnswersHelper = new CheckYourAnswersHelper(ua, srn, startDate)
+  private val helper: CYAChargeAHelper = new CYAChargeAHelper(srn, startDate)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(

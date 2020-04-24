@@ -24,8 +24,25 @@ import play.api.data.Forms.of
 
 trait Mappings extends Formatters with Constraints with Transforms {
 
+  private val maxPostCodeLength = 8
+
   protected def optionalText(): FieldMapping[Option[String]] =
     of(optionalStringFormatter)
+
+  protected def postCodeMapping(keyRequired: String, keyLength: String, keyInvalid: String): Mapping[String] = {
+    text(keyRequired)
+      .transform(postCodeTransform, noTransform)
+      .verifying(
+        firstError(
+          maxLength(
+            maxPostCodeLength,
+            keyLength
+          ),
+          postCode(keyInvalid)
+        )
+      )
+      .transform(postCodeValidTransform, noTransform)
+  }
 
   protected def optionalPostcode(requiredKey: String, invalidKey: String, nonUkLengthKey: String, countryFieldName: String): FieldMapping[Option[String]] =
     of(optionalPostcodeFormatter(requiredKey, invalidKey, nonUkLengthKey, countryFieldName))

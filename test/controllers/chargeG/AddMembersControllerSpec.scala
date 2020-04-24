@@ -20,7 +20,9 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.AddMembersFormProvider
+import helpers.FormatHelper
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -33,12 +35,11 @@ import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants._
-import models.LocalDateBinder._
-import utils.CheckYourAnswersHelper.formatCurrencyAmountAsString
+import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.Future
 
-class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with FormatHelper {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/addMembers.njk"
@@ -95,8 +96,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       returnUrl = dummyCall.url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
-    "quarterStart" -> QUARTER_START_DATE.format(dateFormatter),
-    "quarterEnd" -> QUARTER_END_DATE.format(dateFormatter),
+    "quarterStart" -> QUARTER_START_DATE.format(dateFormatterDMY),
+    "quarterEnd" -> QUARTER_END_DATE.format(dateFormatterDMY),
     "table" -> table
   )
 
