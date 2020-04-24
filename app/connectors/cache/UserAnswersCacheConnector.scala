@@ -42,7 +42,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
 ) extends UserAnswersCacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
-  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
+  override protected def sessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
+  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
@@ -71,8 +72,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
   )(implicit
     ec: ExecutionContext,
     hc: HeaderCarrier): Future[JsValue] = {
-
-    val useURL = if (lockReturn) lockUrl else url
+    val useURL = (optionSessionData, lockReturn) match {
+      case (_, true) => lockUrl
+      case (Some(_), false) => sessionUrl
+      case _ => url
+    }
 
     val sessionDataHeaders = optionSessionData match {
       case Some(data) => Seq(Tuple2("version", data.version.toString), Tuple2("accessMode", data.accessMode.toString))
@@ -106,7 +110,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                           ec: ExecutionContext,
                                           hc: HeaderCarrier): Future[Option[SessionData]] = {
     http
-      .url(lockUrl)
+      .url(sessionUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap { response =>
@@ -127,11 +131,16 @@ class UserAnswersCacheConnectorImpl @Inject()(
 trait UserAnswersCacheConnector {
 
   protected def url: String
+  protected def sessionUrl: String
   protected def lockUrl: String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String, value: JsValue, optionSessionData: Option[SessionAccessData] = None, lockReturn: Boolean = false)(implicit ec: ExecutionContext,
+  def save(cacheId: String,
+           value: JsValue,
+           optionSessionData: Option[SessionAccessData] = None,
+           lockReturn: Boolean = false
+          )(implicit ec: ExecutionContext,
                                                                                            hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
