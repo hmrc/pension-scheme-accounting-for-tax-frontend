@@ -19,13 +19,9 @@ package models
 import play.api.libs.json.Format
 import play.api.libs.json.Json
 
-// TODO: PODS-4134 naming???
-case class SessionDataMinusLockInfo(version:Int, accessMode: AccessMode)
-
 case class SessionData(sessionId: String, name: Option[String], version:Int, accessMode: AccessMode) {
   def isViewOnly = accessMode == AccessMode.PageAccessModeViewOnly
   def isEditable = !isViewOnly
-
   def isLocked = name.isDefined
 }
 
@@ -33,3 +29,6 @@ object SessionData {
   implicit lazy val formats: Format[SessionData] =
     Json.format[SessionData]
 }
+
+// TODO: PODS-4134 naming???
+case class SessionDataMinusLockInfo(version:Int, accessMode: AccessMode)
