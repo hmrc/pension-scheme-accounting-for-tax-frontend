@@ -49,7 +49,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "set addRequiredDetailsToUserAnswers to 'None' and viewOnly flag to false in the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future(None)
-        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
@@ -65,7 +65,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly flag to true and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj()))
-        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(true)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(true)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
@@ -79,7 +79,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly to true if psa is suspended and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj("isPsaSuspended" -> true)))
-        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
@@ -93,7 +93,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly to false if psa is not suspended, isLocked is false and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj("isPsaSuspended" -> false)))
-        when(dataCacheConnector.isLocked(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
