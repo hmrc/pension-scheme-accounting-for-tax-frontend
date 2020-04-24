@@ -30,5 +30,4 @@ object SessionData {
     Json.format[SessionData]
 }
 
-// TODO: PODS-4134 naming???
-case class SessionDataMinusLockInfo(version:Int, accessMode: AccessMode)
+case class SessionAccessData(version:Int, accessMode: AccessMode)
