@@ -75,7 +75,8 @@ class ChargeTypeController @Inject()(
               "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
             )
             renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          case Some(alternativeLocation) => Future.successful(alternativeLocation)
+          case Some(alternativeLocation) =>
+            Future.successful(alternativeLocation)
         }
     }
   }

@@ -19,6 +19,7 @@ package models
 import play.api.libs.json.Format
 import play.api.libs.json.Json
 
+// TODO: PODS-4134 naming???
 case class SessionDataMinusLockInfo(version:Int, accessMode: AccessMode)
 
 case class SessionData(sessionId: String, name: Option[String], version:Int, accessMode: AccessMode)

@@ -63,11 +63,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, url, None)
+    save(id, value, url, sessionData = None)
   }
 
   override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, lockUrl, sessionData)
+    save(id, value, lockUrl, sessionData = sessionData)
   }
 
   private def save(id: String, value: JsValue, url: String, sessionData: Option[SessionDataMinusLockInfo])(implicit
@@ -108,7 +108,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
       .get()
       .flatMap {
         response =>
-        println( "\n>>>RESP=" + response.body)
           response.status match {
             case NOT_FOUND => Future.successful(None)
             case OK =>

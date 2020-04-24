@@ -50,7 +50,7 @@ class DataRetrievalImpl(
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
+//TODO: PODS-4134
     val id = s"$srn$startDate"
     for {
       data <- userAnswersCacheConnector.fetch(id)
@@ -58,7 +58,7 @@ class DataRetrievalImpl(
     } yield {
       (data, sessionData) match {
         case (_, None) =>
-          OptionalDataRequest(request.request, id, request.psaId, None, viewOnly = true)
+          OptionalDataRequest(request.request, id, request.psaId, None)
         case (None, Some(sd)) =>
           OptionalDataRequest(request.request, id, request.psaId, None, viewOnly = sd.name.isDefined)
         case (Some(uaJsValue), Some(sd)) =>

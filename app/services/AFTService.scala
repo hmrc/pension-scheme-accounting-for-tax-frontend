@@ -87,13 +87,14 @@ class AFTService @Inject()(
   }
 
   private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
-    val getVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(1)
+    val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(1)
+
     val version = optionVersion match {
-      case None => getVersion
+      case None => maxVersion
       case Some(v) => v.toInt
     }
 
-    val accessMode = if (isLocked || psaSuspended || version < getVersion) {
+    val accessMode = if (isLocked || psaSuspended || version < maxVersion) {
       AccessMode.PageAccessModeViewOnly
     } else {
       if (seqAFTOverview.isEmpty) {
@@ -109,7 +110,24 @@ class AFTService @Inject()(
     SessionDataMinusLockInfo(version, accessMode)
   }
 
-  private def isLocked(sessionData: Option[SessionData]):Boolean = {
+  private def saveByAccessMode(id:String, ua: UserAnswers, sd:SessionDataMinusLockInfo)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    if (sd.accessMode == AccessMode.PageAccessModeViewOnly) {
+      userAnswersCacheConnector
+        .save(
+          id,
+          ua.data
+        )
+    } else {
+      userAnswersCacheConnector
+        .saveAndLock(
+          id,
+          ua.data,
+          Some(sd)
+        )
+    }
+  }
+
+  def isLockedByAnotherUser(sessionData: Option[SessionData]):Boolean = {
     sessionData match {
       case None => false
       case Some(sd) => sd.name.isDefined
@@ -125,14 +143,13 @@ class AFTService @Inject()(
     val id = s"$srn$startDate"
 
     for {
-      sessionData <- userAnswersCacheConnector.getSessionData(id)
+      optionSessionData <- userAnswersCacheConnector.getSessionData(id)
       seqAFTOverview <- aftConnector.getAftOverview(pstr)
-      savedJson <- userAnswersCacheConnector
-        .saveAndLock(
-          request.internalId,
-          ua.data,
-          Some(createSessionData(optionVersion, seqAFTOverview, isLocked(sessionData), psaSuspended))
-        )
+      savedJson <- saveByAccessMode(
+        request.internalId,
+        ua,
+        createSessionData(optionVersion, seqAFTOverview, isLockedByAnotherUser(optionSessionData), psaSuspended)
+      )
     } yield {
       UserAnswers(savedJson.as[JsObject])
     }
