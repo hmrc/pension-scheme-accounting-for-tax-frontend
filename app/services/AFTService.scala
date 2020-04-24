@@ -127,13 +127,6 @@ class AFTService @Inject()(
     }
   }
 
-  private def isLockedByAnotherUser(sessionData: Option[SessionData]):Boolean = {
-    sessionData match {
-      case None => false
-      case Some(sd) => sd.name.isDefined
-    }
-  }
-
   private def save(ua: UserAnswers,
                    srn:String,
                    startDate: LocalDate,
@@ -148,7 +141,7 @@ class AFTService @Inject()(
       savedJson <- saveByAccessMode(
         request.internalId,
         ua,
-        createSessionData(optionVersion, seqAFTOverview, isLockedByAnotherUser(optionSessionData), psaSuspended)
+        createSessionData(optionVersion, seqAFTOverview, optionSessionData.exists(_.isLocked), psaSuspended)
       )
     } yield {
       UserAnswers(savedJson.as[JsObject])
