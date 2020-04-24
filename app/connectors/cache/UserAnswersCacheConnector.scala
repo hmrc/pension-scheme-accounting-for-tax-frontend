@@ -19,7 +19,7 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SessionData
-import models.SessionDataMinusLockInfo
+import models.SessionAccessData
 import play.api.http.Status._
 import play.api.libs.json.JsError
 import play.api.libs.json.JsResultException
@@ -66,7 +66,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   def save(
       id: String,
       value: JsValue,
-      sessionData: Option[SessionDataMinusLockInfo] = None
+      sessionData: Option[SessionAccessData] = None
   )(implicit
     ec: ExecutionContext,
     hc: HeaderCarrier): Future[JsValue] = {
@@ -129,8 +129,8 @@ trait UserAnswersCacheConnector {
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo] = None)(implicit ec: ExecutionContext,
-                                                                                                  hc: HeaderCarrier): Future[JsValue]
+  def save(cacheId: String, value: JsValue, sessionData: Option[SessionAccessData] = None)(implicit ec: ExecutionContext,
+                                                                                           hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
