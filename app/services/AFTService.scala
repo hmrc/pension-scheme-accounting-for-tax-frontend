@@ -27,6 +27,7 @@ import models.AccessMode
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.SessionData
+import models.SessionDataMinusLockInfo
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{SchemeDetails, StartQuarters, UserAnswers}
 import pages._
@@ -86,12 +87,13 @@ class AFTService @Inject()(
   }
 
   private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+    val getVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(1)
     val version = optionVersion match {
-      case None => seqAFTOverview.head.numberOfVersions
+      case None => getVersion
       case Some(v) => v.toInt
     }
 
-    val accessMode = if (isLocked || psaSuspended || version < seqAFTOverview.head.numberOfVersions) {
+    val accessMode = if (isLocked || psaSuspended || version < getVersion) {
       AccessMode.PageAccessModeViewOnly
     } else {
       if (seqAFTOverview.isEmpty) {
@@ -104,7 +106,14 @@ class AFTService @Inject()(
         }
       }
     }
-    SessionData(version, accessMode)
+    SessionDataMinusLockInfo(version, accessMode)
+  }
+
+  private def isLocked(sessionData: Option[SessionData]):Boolean = {
+    sessionData match {
+      case None => false
+      case Some(sd) => sd.name.isDefined
+    }
   }
 
   private def save(ua: UserAnswers,
@@ -116,13 +125,13 @@ class AFTService @Inject()(
     val id = s"$srn$startDate"
 
     for {
-      isLocked <- userAnswersCacheConnector.isLocked(id)
+      sessionData <- userAnswersCacheConnector.getSessionData(id)
       seqAFTOverview <- aftConnector.getAftOverview(pstr)
       savedJson <- userAnswersCacheConnector
         .saveAndLock(
           request.internalId,
           ua.data,
-          Some(createSessionData(optionVersion, seqAFTOverview, isLocked, psaSuspended))
+          Some(createSessionData(optionVersion, seqAFTOverview, isLocked(sessionData), psaSuspended))
         )
     } yield {
       UserAnswers(savedJson.as[JsObject])

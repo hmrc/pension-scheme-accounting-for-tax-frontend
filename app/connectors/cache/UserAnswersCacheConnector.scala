@@ -19,8 +19,12 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SessionData
+import models.SessionDataMinusLockInfo
 import play.api.http.Status._
+import play.api.libs.json.JsError
 import play.api.libs.json.JsNull
+import play.api.libs.json.JsResultException
+import play.api.libs.json.JsSuccess
 import play.api.libs.json.{Json, JsValue}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
@@ -36,7 +40,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                              ) extends UserAnswersCacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
-  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
+  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
@@ -62,7 +66,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
     save(id, value, url)
   }
 
-  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
+  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
     save(id, value, lockUrl)
   }
 
@@ -89,18 +93,24 @@ class UserAnswersCacheConnectorImpl @Inject()(
       .delete().map(_ => Ok)
   }
 
-  override def isLocked(id: String)(implicit
+  override def getSessionData(id: String)(implicit
                                     ec: ExecutionContext,
                                     hc: HeaderCarrier
-  ): Future[Boolean] = {
+  ): Future[Option[SessionData]] = {
     http.url(lockUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap {
         response =>
+        println( "\n>>>RESP=" + response.body)
           response.status match {
-            case NOT_FOUND => Future.successful(false)
-            case OK => Future.successful(true)
+            case NOT_FOUND => Future.successful(None)
+            case OK =>
+              val sessionData = Json.parse(response.body).validate[SessionData] match {
+                case JsSuccess(value, path) => value
+                case JsError(errors) => throw JsResultException(errors)
+              }
+              Future.successful(Some(sessionData))
             case _ => Future.failed(new HttpException(response.body, response.status))
           }
       }
@@ -116,11 +126,13 @@ trait UserAnswersCacheConnector {
 
   def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
-  def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionData])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+  def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
-  def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
+  def getSessionData(id: String)(implicit
+                                 ec: ExecutionContext,
+                                 hc: HeaderCarrier): Future[Option[SessionData]]
 }
 
 

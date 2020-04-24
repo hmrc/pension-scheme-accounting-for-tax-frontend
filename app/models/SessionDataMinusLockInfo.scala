@@ -16,4 +16,14 @@
 
 package models
 
-case class SessionData (version:Int, accessMode: AccessMode)
+import play.api.libs.json.Format
+import play.api.libs.json.Json
+
+case class SessionDataMinusLockInfo(version:Int, accessMode: AccessMode)
+
+case class SessionData(sessionId: String, name: Option[String], version:Int, accessMode: AccessMode)
+
+object SessionData {
+  implicit lazy val formats: Format[SessionData] =
+    Json.format[SessionData]
+}

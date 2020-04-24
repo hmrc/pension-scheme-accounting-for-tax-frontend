@@ -21,15 +21,17 @@ import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
+import models.AccessMode
+import models.SessionData
 import models.UserAnswers
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
 import pages.IsPsaSuspendedQuery
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DataRetrievalImpl(
     srn: String,
@@ -38,21 +40,30 @@ class DataRetrievalImpl(
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrieval {
 
+  private def isLocked(sessionData: Option[SessionData]):Boolean = {
+    sessionData match {
+      case None => false
+      case Some(sd) => sd.name.isDefined
+    }
+  }
+
+
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     val id = s"$srn$startDate"
     for {
       data <- userAnswersCacheConnector.fetch(id)
-      isLocked <- userAnswersCacheConnector.isLocked(id)
+      sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
-      data match {
-        case None =>
-          OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
-        case Some(uaJsValue) =>
+      (data, sessionData) match {
+        case (_, None) =>
+          OptionalDataRequest(request.request, id, request.psaId, None, viewOnly = true)
+        case (None, Some(sd)) =>
+          OptionalDataRequest(request.request, id, request.psaId, None, viewOnly = sd.name.isDefined)
+        case (Some(uaJsValue), Some(sd)) =>
           val ua = UserAnswers(uaJsValue.as[JsObject])
-          val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua), isLocked || psaSuspended)
+          OptionalDataRequest(request.request, id, request.psaId, Some(ua), viewOnly = sd.accessMode == AccessMode.PageAccessModeViewOnly)
       }
     }
   }
