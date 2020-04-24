@@ -66,13 +66,15 @@ class UserAnswersCacheConnectorImpl @Inject()(
   def save(
       id: String,
       value: JsValue,
-      sessionData: Option[SessionAccessData] = None
+      optionSessionData: Option[SessionAccessData] = None,
+      lockReturn: Boolean = false
   )(implicit
     ec: ExecutionContext,
     hc: HeaderCarrier): Future[JsValue] = {
-    val useURL = if (sessionData.isDefined) lockUrl else url
 
-    val sessionDataHeaders = sessionData match {
+    val useURL = if (lockReturn) lockUrl else url
+
+    val sessionDataHeaders = optionSessionData match {
       case Some(data) => Seq(Tuple2("version", data.version.toString), Tuple2("accessMode", data.accessMode.toString))
       case None       => Nil
     }
@@ -129,7 +131,7 @@ trait UserAnswersCacheConnector {
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String, value: JsValue, sessionData: Option[SessionAccessData] = None)(implicit ec: ExecutionContext,
+  def save(cacheId: String, value: JsValue, optionSessionData: Option[SessionAccessData] = None, lockReturn: Boolean = false)(implicit ec: ExecutionContext,
                                                                                            hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]

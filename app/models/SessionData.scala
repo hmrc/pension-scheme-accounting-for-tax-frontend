@@ -16,18 +16,33 @@
 
 package models
 
-import play.api.libs.json.Format
-import play.api.libs.json.Json
+import play.api.libs.json.Reads
+import play.api.libs.json.Writes
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
-case class SessionData(sessionId: String, name: Option[String], version:Int, accessMode: AccessMode) {
-  def isViewOnly = accessMode == AccessMode.PageAccessModeViewOnly
+import scala.language.implicitConversions
+
+case class SessionAccessData(version: Int, accessMode: AccessMode)
+
+case class SessionData(sessionId: String, name: Option[String], sessionAccessData: SessionAccessData) {
+  def isViewOnly = sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isEditable = !isViewOnly
   def isLocked = name.isDefined
 }
 
 object SessionData {
-  implicit lazy val formats: Format[SessionData] =
-    Json.format[SessionData]
-}
+  implicit val writes: Writes[SessionData] =
+    ((JsPath \ "sessionId").write[String] and
+      (JsPath \ "name").writeNullable[String] and
+      (JsPath \ "version").write[Int] and
+      (JsPath \ "accessMode").write[AccessMode])(sd => (sd.sessionId, sd.name, sd.sessionAccessData.version, sd.sessionAccessData.accessMode))
 
-case class SessionAccessData(version:Int, accessMode: AccessMode)
+  implicit val reads: Reads[SessionData] =
+    ((JsPath \ "sessionId").read[String] and
+      (JsPath \ "name").readNullable[String] and
+      (JsPath \ "version").read[Int] and
+      (JsPath \ "accessMode").read[AccessMode])(
+      (sessionId, optionName, version, accessMode) => SessionData(sessionId, optionName, SessionAccessData(version, accessMode))
+    )
+}
