@@ -27,7 +27,7 @@ import models.AccessMode
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.SessionData
-import models.SessionAccessData
+import models.SessionDataMinusLockInfo
 import models.requests.{DataRequest, OptionalDataRequest}
 import models.{SchemeDetails, StartQuarters, UserAnswers}
 import pages._
@@ -93,15 +93,21 @@ class AFTService @Inject()(
       case None => maxVersion
       case Some(v) => v.toInt
     }
+
     val accessMode = if (isLocked || psaSuspended || version < maxVersion) {
       AccessMode.PageAccessModeViewOnly
     } else {
-      (seqAFTOverview.isEmpty, seqAFTOverview.headOption.exists(_.compiledVersionAvailable)) match {
-        case (false, true) => AccessMode.PageAccessModeCompile
-        case _ => AccessMode.PageAccessModePreCompile
+      if (seqAFTOverview.isEmpty) {
+        AccessMode.PageAccessModePreCompile
+      } else {
+        if (seqAFTOverview.head.compiledVersionAvailable) {
+          AccessMode.PageAccessModeCompile
+        } else {
+          AccessMode.PageAccessModePreCompile
+        }
       }
     }
-    SessionAccessData(version, accessMode)
+    SessionDataMinusLockInfo(version, accessMode)
   }
 
   private def save(ua: UserAnswers,
@@ -109,7 +115,7 @@ class AFTService @Inject()(
                    startDate: LocalDate,
                    optionVersion: Option[String],
                    pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    def saveByAccessMode(id:String, ua: UserAnswers, sd:SessionAccessData)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+    def saveByAccessMode(id:String, ua: UserAnswers, sd:SessionDataMinusLockInfo)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
       userAnswersCacheConnector
         .save(
           id,
