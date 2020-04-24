@@ -110,28 +110,20 @@ class AFTService @Inject()(
     SessionDataMinusLockInfo(version, accessMode)
   }
 
-  private def saveByAccessMode(id:String, ua: UserAnswers, sd:SessionDataMinusLockInfo)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-    if (sd.accessMode == AccessMode.PageAccessModeViewOnly) {
-      userAnswersCacheConnector
-        .save(
-          id,
-          ua.data
-        )
-    } else {
-      userAnswersCacheConnector
-        .saveAndLock(
-          id,
-          ua.data,
-          Some(sd)
-        )
-    }
-  }
-
   private def save(ua: UserAnswers,
                    srn:String,
                    startDate: LocalDate,
                    optionVersion: Option[String],
                    pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+    def saveByAccessMode(id:String, ua: UserAnswers, sd:SessionDataMinusLockInfo)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
+      userAnswersCacheConnector
+        .save(
+          id,
+          ua.data,
+          if (sd.accessMode == AccessMode.PageAccessModeViewOnly) None else Some(sd)
+        )
+    }
+
     val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
     val id = s"$srn$startDate"
 

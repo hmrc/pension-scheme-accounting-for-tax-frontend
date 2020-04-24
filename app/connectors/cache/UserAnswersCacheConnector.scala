@@ -22,102 +22,102 @@ import models.SessionData
 import models.SessionDataMinusLockInfo
 import play.api.http.Status._
 import play.api.libs.json.JsError
-import play.api.libs.json.JsNull
 import play.api.libs.json.JsResultException
 import play.api.libs.json.JsSuccess
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.HttpException
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class UserAnswersCacheConnectorImpl @Inject()(
-                                               config: FrontendAppConfig,
-                                               http: WSClient
-                                             ) extends UserAnswersCacheConnector {
+    config: FrontendAppConfig,
+    http: WSClient
+) extends UserAnswersCacheConnector {
 
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
   override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
-                                 hc: HeaderCarrier
-  ): Future[Option[JsValue]] = {
-    http.url(url)
+                                 hc: HeaderCarrier): Future[Option[JsValue]] = {
+    http
+      .url(url)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
-      .flatMap {
-        response =>
-          response.status match {
-            case NOT_FOUND =>
-              Future.successful(None)
-            case OK =>
-              Future.successful(Some(Json.parse(response.body)))
-            case _ =>
-              Future.failed(new HttpException(response.body, response.status))
-          }
+      .flatMap { response =>
+        response.status match {
+          case NOT_FOUND =>
+            Future.successful(None)
+          case OK =>
+            Future.successful(Some(Json.parse(response.body)))
+          case _ =>
+            Future.failed(new HttpException(response.body, response.status))
+        }
       }
   }
 
-  override def save(id: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, url, sessionData = None)
-  }
+  def save(
+      id: String,
+      value: JsValue,
+      sessionData: Option[SessionDataMinusLockInfo] = None
+  )(implicit
+    ec: ExecutionContext,
+    hc: HeaderCarrier): Future[JsValue] = {
+    val useURL = if (sessionData.isDefined) lockUrl else url
 
-  override def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo] = None)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
-    save(id, value, lockUrl, sessionData = sessionData)
-  }
-
-  private def save(id: String, value: JsValue, url: String, sessionData: Option[SessionDataMinusLockInfo])(implicit
-                                                    ec: ExecutionContext,
-                                                    hc: HeaderCarrier
-  ): Future[JsValue] = {
     val sessionDataHeaders = sessionData match {
       case Some(data) => Seq(Tuple2("version", data.version.toString), Tuple2("accessMode", data.accessMode.toString))
-      case None => Nil
+      case None       => Nil
     }
     val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
 
-    http.url(url)
-      .withHttpHeaders(hc.withExtraHeaders(allExtraHeaders:_*).headers: _*)
-      .post(PlainText(Json.stringify(value)).value).flatMap {
-      response =>
+    http
+      .url(useURL)
+      .withHttpHeaders(hc.withExtraHeaders(allExtraHeaders: _*).headers: _*)
+      .post(PlainText(Json.stringify(value)).value)
+      .flatMap { response =>
         response.status match {
           case CREATED =>
             Future.successful(value)
           case _ =>
             Future.failed(new HttpException(response.body, response.status))
         }
-    }
+      }
   }
 
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-    http.url(url)
+    http
+      .url(url)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
-      .delete().map(_ => Ok)
+      .delete()
+      .map(_ => Ok)
   }
 
   override def getSessionData(id: String)(implicit
-                                    ec: ExecutionContext,
-                                    hc: HeaderCarrier
-  ): Future[Option[SessionData]] = {
-    http.url(lockUrl)
+                                          ec: ExecutionContext,
+                                          hc: HeaderCarrier): Future[Option[SessionData]] = {
+    http
+      .url(lockUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
-      .flatMap {
-        response =>
-          response.status match {
-            case NOT_FOUND => Future.successful(None)
-            case OK =>
-              val sessionData = Json.parse(response.body).validate[SessionData] match {
-                case JsSuccess(value, path) => value
-                case JsError(errors) => throw JsResultException(errors)
-              }
-              Future.successful(Some(sessionData))
-            case _ => Future.failed(new HttpException(response.body, response.status))
-          }
+      .flatMap { response =>
+        response.status match {
+          case NOT_FOUND => Future.successful(None)
+          case OK =>
+            val sessionData = Json.parse(response.body).validate[SessionData] match {
+              case JsSuccess(value, path) => value
+              case JsError(errors)        => throw JsResultException(errors)
+            }
+            Future.successful(Some(sessionData))
+          case _ => Future.failed(new HttpException(response.body, response.status))
+        }
       }
   }
 }
@@ -129,9 +129,8 @@ trait UserAnswersCacheConnector {
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String, value: JsValue)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
-
-  def saveAndLock(id: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo])(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+  def save(cacheId: String, value: JsValue, sessionData: Option[SessionDataMinusLockInfo] = None)(implicit ec: ExecutionContext,
+                                                                                                  hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
@@ -139,5 +138,3 @@ trait UserAnswersCacheConnector {
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier): Future[Option[SessionData]]
 }
-
-
