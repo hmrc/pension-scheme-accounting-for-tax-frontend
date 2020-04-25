@@ -44,6 +44,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
   override protected def sessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
   override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
+  override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/locked-by"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
@@ -126,6 +127,28 @@ class UserAnswersCacheConnectorImpl @Inject()(
         }
       }
   }
+
+  override def lockedBy(id: String)(implicit
+                                          ec: ExecutionContext,
+                                          hc: HeaderCarrier): Future[Option[String]] = {
+    http
+      .url(lockedByUrl)
+      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
+      .get()
+      .flatMap { response =>
+      // TODO test if reponse rigt when locked
+        response.status match {
+          case NOT_FOUND => Future.successful(None)
+          case OK =>
+            val name = Json.parse(response.body).validate[String] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors)        => throw JsResultException(errors)
+            }
+            Future.successful(Some(name))
+          case _ => Future.failed(new HttpException(response.body, response.status))
+        }
+      }
+  }
 }
 
 trait UserAnswersCacheConnector {
@@ -133,6 +156,7 @@ trait UserAnswersCacheConnector {
   protected def url: String
   protected def sessionUrl: String
   protected def lockUrl: String
+  protected def lockedByUrl: String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
@@ -148,4 +172,9 @@ trait UserAnswersCacheConnector {
   def getSessionData(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier): Future[Option[SessionData]]
+
+  def lockedBy(id: String)(implicit
+                           ec: ExecutionContext,
+                           hc: HeaderCarrier): Future[Option[String]]
+
 }

@@ -110,15 +110,13 @@ class AFTService @Inject()(
                    startDate: LocalDate,
                    optionVersion: Option[String],
                    pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    def saveAll(optionSessionData: Option[SessionData], seqAFTOverview: Seq[AFTOverview])
+    def saveAll(optionLockedBy: Option[String], seqAFTOverview: Seq[AFTOverview])
                (implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-
-      val isLocked = optionSessionData.exists(_.isLocked)
-
+println("\nlockedby=" + optionLockedBy)
       val sd:SessionAccessData = createSessionData(
         optionVersion,
         seqAFTOverview,
-        isLocked,
+        optionLockedBy.isDefined,
         ua.get(IsPsaSuspendedQuery).getOrElse(true))
 
       userAnswersCacheConnector
@@ -126,16 +124,16 @@ class AFTService @Inject()(
           request.internalId,
           ua.data,
           optionSessionData = Some(sd),
-          lockReturn = !isLocked && sd.accessMode != AccessMode.PageAccessModeViewOnly
+          lockReturn = sd.accessMode != AccessMode.PageAccessModeViewOnly
         )
     }
 
     val id = s"$srn$startDate"
 
     for {
-      optionSessionData <- userAnswersCacheConnector.getSessionData(id)
+      optionLockedBy <- userAnswersCacheConnector.lockedBy(id)
       seqAFTOverview <- aftConnector.getAftOverview(pstr)
-      savedJson <- saveAll(optionSessionData, seqAFTOverview)
+      savedJson <- saveAll(optionLockedBy, seqAFTOverview)
     } yield {
       UserAnswers(savedJson.as[JsObject])
     }
