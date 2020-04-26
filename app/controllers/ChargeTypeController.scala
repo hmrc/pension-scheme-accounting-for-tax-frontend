@@ -18,26 +18,34 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.AuditService
+import audit.StartAFTAuditEvent
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{NormalMode, GenericViewModel, ChargeType}
+import models.ChargeType
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.SchemeService
-import services.{AllowAccessService, AFTService}
+import services.AFTService
+import services.AllowAccessService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -63,26 +71,21 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen updateData(srn, startDate, None) andThen requireData).async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      allowService.filterForIllegalPageAccess(srn, startDate = startDate, request.userAnswers, Some(ChargeTypePage)).flatMap {
-        case None =>
-          auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-          val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
-          val json = Json.obj(
-            fields = "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "form" -> preparedForm,
-            "radios" -> ChargeType.radios(preparedForm),
-            "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
-          )
-          renderer.render(template = "chargeType.njk", json).map(Ok(_))
-        case Some(alternativeLocation) =>
-          Future.successful(alternativeLocation)
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, None) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
+        val json = Json.obj(
+          fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "radios" -> ChargeType.radios(preparedForm),
+          "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
+        )
+        renderer.render(template = "chargeType.njk", json).map(Ok(_))
       }
     }
-
-  }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>

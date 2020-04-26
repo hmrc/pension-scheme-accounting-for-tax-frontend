@@ -87,20 +87,12 @@ class AFTSummaryController @Inject()(
   private def getFormattedStartDate(date: LocalDate): String = date.format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData).async { implicit request =>
+    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        allowService
-          .filterForIllegalPageAccess(srn, startDate, request.userAnswers, Some(AFTSummaryPage), optionVersion)
-          .flatMap {
-            case None =>
-              val json =
-                getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.forall(_.isEditable))
-              renderer.render("aftSummary.njk", json).map(Ok(_))
-
-            case Some(redirectLocation) => Future.successful(redirectLocation)
-          }
+        val json =
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.forall(_.isEditable))
+        renderer.render("aftSummary.njk", json).map(Ok(_))
       }
-
     }
 
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =

@@ -45,7 +45,6 @@ import models.StartQuarters
 import models.UserAnswers
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.DateHelper
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -58,7 +57,7 @@ class RequestCreationService @Inject()(
     minimalPsaConnector: MinimalPsaConnector,
     aftReturnTidyService: AFTReturnTidyService
 ) {
-  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
+  private def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
   def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
@@ -199,10 +198,4 @@ class RequestCreationService @Inject()(
       }
     }
   }
-
-  def isSubmissionDisabled(quarterEndDate: String): Boolean = {
-    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
-    !(DateHelper.today.compareTo(nextDay) >= 0)
-  }
-
 }
