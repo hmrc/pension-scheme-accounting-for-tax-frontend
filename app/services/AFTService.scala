@@ -47,6 +47,7 @@ class AFTService @Inject()(
     aftReturnTidyService: AFTReturnTidyService
 ) {
 
+
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
     val hasDeletedLastMemberOrEmployerFromLastCharge = !aftReturnTidyService.isAtLeastOneValidCharge(answers)
@@ -66,114 +67,6 @@ class AFTService @Inject()(
             userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
           case Failure(ex) => throw ex
         }
-      }
-    }
-  }
-
-  def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
-    aftConnector.getAFTDetails(pstr, startDate, aftVersion)
-
-  def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Option[String])(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext,
-      request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
-    for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
-      savedUA <- save(updatedUA, srn, startDate, optionVersion, schemeDetails.pstr)
-    } yield {
-      (schemeDetails, savedUA)
-    }
-  }
-
-
-  private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
-    val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(1)
-
-    val version = optionVersion match {
-      case None => maxVersion
-      case Some(v) => v.toInt
-    }
-    val accessMode = if (isLocked || psaSuspended || version < maxVersion) {
-      AccessMode.PageAccessModeViewOnly
-    } else {
-      (seqAFTOverview.isEmpty, seqAFTOverview.headOption.exists(_.compiledVersionAvailable)) match {
-        case (false, true) => AccessMode.PageAccessModeCompile
-        case _ => AccessMode.PageAccessModePreCompile
-      }
-    }
-    SessionAccessData(version, accessMode)
-  }
-
-  private def save(ua: UserAnswers,
-                   srn:String,
-                   startDate: LocalDate,
-                   optionVersion: Option[String],
-                   pstr:String)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    def saveAll(optionLockedBy: Option[String], seqAFTOverview: Seq[AFTOverview])
-               (implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-println("\nlockedby=" + optionLockedBy)
-      val sd:SessionAccessData = createSessionData(
-        optionVersion,
-        seqAFTOverview,
-        optionLockedBy.isDefined,
-        ua.get(IsPsaSuspendedQuery).getOrElse(true))
-
-      userAnswersCacheConnector
-        .save(
-          request.internalId,
-          ua.data,
-          optionSessionData = Some(sd),
-          lockReturn = sd.accessMode != AccessMode.PageAccessModeViewOnly
-        )
-    }
-
-    val id = s"$srn$startDate"
-
-    for {
-      optionLockedBy <- userAnswersCacheConnector.lockedBy(id)
-      seqAFTOverview <- aftConnector.getAftOverview(pstr)
-      savedJson <- saveAll(optionLockedBy, seqAFTOverview)
-    } yield {
-      UserAnswers(savedJson.as[JsObject])
-    }
-  }
-
-  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext,
-      request: OptionalDataRequest[_]): Future[UserAnswers] = {
-    def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
-
-    val futureUserAnswers = optionVersion match {
-      case None =>
-        aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
-          if (listOfVersions.isEmpty) {
-            currentUserAnswers
-              .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, StartQuarters.getQuarter(startDate))
-              .setOrException(AFTStatusQuery, value = "Compiled")
-              .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-              .setOrException(PSTRQuery, schemeDetails.pstr)
-          } else {
-            currentUserAnswers
-          }
-        }
-      case Some(version) =>
-        getAFTDetails(schemeDetails.pstr, startDate, version)
-          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
-    }
-
-    futureUserAnswers.flatMap { ua =>
-      val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
-      uaWithStatus.get(IsPsaSuspendedQuery) match {
-        case None =>
-          minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
-            uaWithStatus.setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
-              .setOrException(PSAEmailQuery, psaDetails.email)
-          }
-        case Some(_) =>
-          Future.successful(uaWithStatus)
       }
     }
   }

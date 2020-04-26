@@ -25,18 +25,19 @@ import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, NormalMode}
+import models.{NormalMode, GenericViewModel, ChargeType}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.SchemeService
+import services.{AllowAccessService, AFTService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -44,6 +45,7 @@ class ChargeTypeController @Inject()(
     navigator: CompoundNavigator,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
+    updateData: DataUpdateAction,
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: ChargeTypeFormProvider,
@@ -52,7 +54,8 @@ class ChargeTypeController @Inject()(
     config: FrontendAppConfig,
     auditService: AuditService,
     aftService: AFTService,
-    allowService: AllowAccessService
+    allowService: AllowAccessService,
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -60,25 +63,25 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async { implicit request =>
-    aftService.retrieveAFTRequiredDetails(srn = srn, startDate = startDate, optionVersion = None).flatMap {
-      case (schemeDetails, userAnswers) =>
-        allowService.filterForIllegalPageAccess(srn, startDate = startDate, userAnswers, Some(ChargeTypePage)).flatMap {
-          case None =>
-            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-            val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "form" -> preparedForm,
-              "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
-            )
-            renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          case Some(alternativeLocation) =>
-            Future.successful(alternativeLocation)
-        }
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen updateData(srn, startDate, None) andThen requireData).async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      allowService.filterForIllegalPageAccess(srn, startDate = startDate, request.userAnswers, Some(ChargeTypePage)).flatMap {
+        case None =>
+          auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+          val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
+          val json = Json.obj(
+            fields = "srn" -> srn,
+            "startDate" -> Some(startDate),
+            "form" -> preparedForm,
+            "radios" -> ChargeType.radios(preparedForm),
+            "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
+          )
+          renderer.render(template = "chargeType.njk", json).map(Ok(_))
+        case Some(alternativeLocation) =>
+          Future.successful(alternativeLocation)
+      }
     }
+
   }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {

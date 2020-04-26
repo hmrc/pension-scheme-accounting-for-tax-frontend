@@ -25,13 +25,15 @@ import models.{SchemeStatus, UserAnswers}
 import models.requests.OptionalDataRequest
 import pages._
 import play.api.http.Status.NOT_FOUND
-import play.api.mvc.{Result, Results}
+import play.api.mvc.{Results, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 import java.time.LocalDate
+
 import models.LocalDateBinder._
+import models.requests.DataRequest
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector, aftService: AFTService, errorHandler: ErrorHandler)(
     implicit val executionContext: ExecutionContext)
@@ -49,14 +51,14 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     }
   }
 
-  private def isPreviousPageWithinAFT(implicit request: OptionalDataRequest[_]): Boolean =
+  private def isPreviousPageWithinAFT(implicit request: DataRequest[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
   def filterForIllegalPageAccess(srn: String,
                                  startDate: LocalDate,
                                  ua: UserAnswers,
                                  optionCurrentPage: Option[Page] = None,
-                                 optionVersion: Option[String] = None)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] = {
+                                 optionVersion: Option[String] = None)(implicit request: DataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
@@ -82,7 +84,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     }
   }
 
-  def allowSubmission(ua: UserAnswers)(implicit request: OptionalDataRequest[_]): Future[Option[Result]] =
+  def allowSubmission(ua: UserAnswers)(implicit request: DataRequest[_]): Future[Option[Result]] =
     ua.get(QuarterPage) match {
       case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
         Future.successful(None)

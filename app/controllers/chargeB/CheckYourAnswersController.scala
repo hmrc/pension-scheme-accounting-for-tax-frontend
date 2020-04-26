@@ -52,7 +52,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeBHelper(srn, startDate)

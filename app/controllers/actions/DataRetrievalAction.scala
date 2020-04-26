@@ -28,6 +28,8 @@ import models.requests.{OptionalDataRequest, IdentifierRequest}
 import pages.IsPsaSuspendedQuery
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
+import play.api.mvc.Request
+import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -36,43 +38,22 @@ import scala.concurrent.{Future, ExecutionContext}
 class DataRetrievalImpl(
     srn: String,
     startDate: LocalDate,
-    val userAnswersCacheConnector: UserAnswersCacheConnector
+    requestCreationService:RequestCreationService
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrieval {
-
-  private def isLocked(sessionData: Option[SessionData]):Boolean = {
-    sessionData match {
-      case None => false
-      case Some(sd) => sd.name.isDefined
-    }
-  }
-
-
+  
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    val id = s"$srn$startDate"
-    for {
-      data <- userAnswersCacheConnector.fetch(id)
-      sessionData <- userAnswersCacheConnector.getSessionData(id)
-    } yield {
-      (data, sessionData) match {
-        case (_, None) =>
-          OptionalDataRequest(request.request, id, request.psaId, None, None)
-        case (None, Some(_)) =>
-          OptionalDataRequest(request.request, id, request.psaId, None, sessionData)
-        case (Some(uaJsValue), Some(_)) =>
-          val ua = UserAnswers(uaJsValue.as[JsObject])
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua), sessionData)
-      }
-    }
+    requestCreationService.createRequest(request.psaId, srn, startDate)(request,implicitly, implicitly)
   }
 }
 
 class DataRetrievalActionImpl @Inject()(
-    userAnswersCacheConnector: UserAnswersCacheConnector
+                                         requestCreationService:RequestCreationService
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval =
+    new DataRetrievalImpl(srn, startDate, requestCreationService)
 }
 
 @ImplementedBy(classOf[DataRetrievalImpl])
@@ -81,4 +62,38 @@ trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataReq
 @ImplementedBy(classOf[DataRetrievalActionImpl])
 trait DataRetrievalAction {
   def apply(srn: String, startDate: LocalDate): DataRetrieval
+}
+
+
+
+
+
+class DataUpdateImpl(
+                         srn: String,
+                         startDate: LocalDate,
+                         optionVersion:Option[String],
+                         requestCreationService:RequestCreationService
+                       )(implicit val executionContext: ExecutionContext)
+  extends DataUpdate {
+
+  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    requestCreationService.retrieveAndCreateRequest(request.psaId, srn, startDate, optionVersion)(request,implicitly, implicitly)
+  }
+}
+
+class DataUpdateActionImpl @Inject()(
+                                         requestCreationService:RequestCreationService
+                                       )(implicit val executionContext: ExecutionContext)
+  extends DataUpdateAction {
+  override def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate =
+    new DataUpdateImpl(srn, startDate, optionVersion, requestCreationService)
+}
+
+@ImplementedBy(classOf[DataUpdateImpl])
+trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataRequest]
+
+@ImplementedBy(classOf[DataUpdateActionImpl])
+trait DataUpdateAction {
+  def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate
 }
