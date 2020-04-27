@@ -16,29 +16,20 @@
 
 package connectors.cache
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SessionData
 import models.SessionAccessData
-import models.UserAnswers
-import models.requests.IdentifierRequest
-import models.requests.OptionalDataRequest
 import play.api.http.Status._
 import play.api.libs.json.JsError
-import play.api.libs.json.JsObject
 import play.api.libs.json.JsResultException
 import play.api.libs.json.JsSuccess
 import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.mvc.AnyContent
-import play.api.mvc.Request
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpException
 
@@ -53,7 +44,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
   override protected def sessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
   override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
-  override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/locked-by"
+  override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
