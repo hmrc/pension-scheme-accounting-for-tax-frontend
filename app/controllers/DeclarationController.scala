@@ -19,8 +19,8 @@ package controllers
 import java.time.{LocalDate, LocalDateTime}
 
 import config.FrontendAppConfig
-import connectors.{EmailConnector, EmailStatus}
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
@@ -78,14 +78,14 @@ class DeclarationController @Inject()(
           updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
-          _ <- sendEmail(email, pstr, quarter, schemeName)
+          _ <- sendEmail(email, quarter, schemeName)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
     }
 
-  private def sendEmail(email: String, pstr: String, quarter: Quarter, schemeName: String)(implicit request: DataRequest[_],
+  private def sendEmail(email: String, quarter: Quarter, schemeName: String)(implicit request: DataRequest[_],
                                                                                            messages: Messages): Future[EmailStatus] = {
     val versionNumber = request.userAnswers.get(VersionNumberQuery)
 
