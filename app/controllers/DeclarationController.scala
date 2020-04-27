@@ -77,7 +77,7 @@ class DeclarationController @Inject()(
           updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
-          _ <- emailConnector.sendEmail(email, config.fileAFTReturnTemplateId, pstr, emailParams(schemeName, quarter))
+          _ <- emailConnector.sendEmail(email, config.fileAFTReturnTemplateId, emailParams(schemeName, quarter))
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }

@@ -23,7 +23,8 @@ import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, Mu
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{Declaration, GenericViewModel, Quarter, UserAnswers}
+import models.LocalDateBinder._
+import models.{GenericViewModel, Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -37,7 +38,6 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
-import models.LocalDateBinder._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
 
 import scala.concurrent.Future
@@ -99,7 +99,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.set(PSTRQuery, pstr).flatMap(
         _.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers())))
       val eventCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -110,7 +110,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), any(),eventCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), eventCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
       eventCaptor.getValue mustEqual emailParams
