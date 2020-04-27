@@ -65,12 +65,16 @@ class RequestCreationService @Inject()(
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
-    for {
+    val ff = for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       newRequest(data.map(dd => UserAnswers(dd.as[JsObject])), sessionData, id, psaId)
     }
+    ff.foreach { pp =>
+      println( "\n\n>>>CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
+    }
+    ff
   }
 
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
@@ -87,7 +91,7 @@ class RequestCreationService @Inject()(
         }
     }
     ff.foreach { pp =>
-      println( "\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
+      println( "\n\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
     }
     ff
   }
