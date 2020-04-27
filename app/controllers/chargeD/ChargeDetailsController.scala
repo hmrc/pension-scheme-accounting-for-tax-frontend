@@ -25,19 +25,20 @@ import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.SessionData
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, Index, Mode, StartQuarters, UserAnswers}
+import models.{GenericViewModel, UserAnswers, Mode, StartQuarters, Index}
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -54,12 +55,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(ua: UserAnswers, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
+  private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
     val endDate = StartQuarters.getQuarter(startDate).endDate
     formProvider(
       startDate,
       endDate,
-      UserAnswers.deriveMinimumChargeValueAllowed(ua)
+      minimumChargeValue
     )
   }
 
@@ -73,9 +74,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
+
+        val mininimumChargeValue:BigDecimal = SessionData.deriveMinimumChargeValueAllowed(request.sessionData)
+
         val preparedForm: Form[ChargeDDetails] = request.userAnswers.get(ChargeDetailsPage(index)) match {
-          case Some(value) => form(request.userAnswers, startDate).fill(value)
-          case None        => form(request.userAnswers, startDate)
+          case Some(value) => form(mininimumChargeValue, startDate).fill(value)
+          case None        => form(mininimumChargeValue, startDate)
         }
 
         val json = Json.obj(
@@ -94,7 +98,10 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
-        form(request.userAnswers, startDate)
+
+        val mininimumChargeValue:BigDecimal = SessionData.deriveMinimumChargeValueAllowed(request.sessionData)
+
+        form(mininimumChargeValue, startDate)
           .bindFromRequest()
           .fold(
             formWithErrors => {

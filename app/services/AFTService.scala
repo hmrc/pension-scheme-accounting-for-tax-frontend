@@ -62,11 +62,7 @@ class AFTService @Inject()(
       if (hasDeletedLastMemberOrEmployerFromLastCharge) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
-        ua.remove(IsNewReturn) match {
-          case Success(userAnswersWithIsNewReturnRemoved) =>
-            userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
-          case Failure(ex) => throw ex
-        }
+        Future.successful(())
       }
     }
   }

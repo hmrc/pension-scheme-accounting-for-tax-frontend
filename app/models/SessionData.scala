@@ -45,4 +45,11 @@ object SessionData {
       (JsPath \ "accessMode").read[AccessMode])(
       (sessionId, optionName, version, accessMode) => SessionData(sessionId, optionName, SessionAccessData(version, accessMode))
     )
+
+  def deriveMinimumChargeValueAllowed(optionSessionData: Option[SessionData]): BigDecimal = {
+    optionSessionData.map(_.sessionAccessData.accessMode) match {
+      case Some(AccessMode.PageAccessModePreCompile) => BigDecimal("0.01")
+      case _ => BigDecimal("0.00")
+    }
+  }
 }

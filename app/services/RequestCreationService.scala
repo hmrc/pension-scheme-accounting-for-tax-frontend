@@ -17,7 +17,6 @@
 package services
 
 import pages.AFTStatusQuery
-import pages.IsNewReturn
 import pages.IsPsaSuspendedQuery
 import pages.PSAEmailQuery
 import pages.PSTRQuery
@@ -200,7 +199,6 @@ class RequestCreationService @Inject()(
         aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
           if (listOfVersions.isEmpty) {
             currentUserAnswers
-              .setOrException(IsNewReturn, true)
               .setOrException(QuarterPage, StartQuarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
