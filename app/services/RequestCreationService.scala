@@ -29,6 +29,7 @@ import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.AFTConnector
 import connectors.MinimalPsaConnector
@@ -45,6 +46,7 @@ import models.StartQuarters
 import models.UserAnswers
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.DateHelper
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -54,7 +56,8 @@ class RequestCreationService @Inject()(
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     schemeService: SchemeService,
-    minimalPsaConnector: MinimalPsaConnector
+    minimalPsaConnector: MinimalPsaConnector,
+    config: FrontendAppConfig
 ) {
   private def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
@@ -78,12 +81,16 @@ class RequestCreationService @Inject()(
     val id = s"$srn$startDate"
 
     implicit val optionalDataRequest: OptionalDataRequest[A] = OptionalDataRequest[A](request, id, psaId, None, None)
-    retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
+    val ff = retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
       case (_, ua) =>
         userAnswersCacheConnector.getSessionData(id).map { sd =>
           newRequest(Some(ua), sd, id, psaId)
         }
     }
+    ff.foreach { pp =>
+      println( "\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
+    }
+    ff
   }
 
   private def newRequest[A](optionUserAnswers: Option[UserAnswers], sessionData: Option[SessionData], id: String, psaId: PsaId)(
@@ -112,20 +119,17 @@ class RequestCreationService @Inject()(
   }
 
   private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
-    val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(1)
+    val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
 
-    val version = optionVersion match {
-      case None    => maxVersion
-      case Some(v) => v.toInt
-    }
-    val accessMode = if (isLocked || psaSuspended || version < maxVersion) {
-      AccessMode.PageAccessModeViewOnly
+    val (version, accessMode) = if (isLocked || psaSuspended || optionVersion.exists(_.toInt < maxVersion)) {
+      (optionVersion.map(_.toInt).getOrElse(0), AccessMode.PageAccessModeViewOnly)
     } else {
       (seqAFTOverview.isEmpty, seqAFTOverview.headOption.exists(_.compiledVersionAvailable)) match {
-        case (false, true) => AccessMode.PageAccessModeCompile
-        case _             => AccessMode.PageAccessModePreCompile
+        case (false, true) => (maxVersion, AccessMode.PageAccessModeCompile)
+        case _             => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
     }
+
     SessionAccessData(version, accessMode)
   }
 
@@ -151,10 +155,37 @@ class RequestCreationService @Inject()(
 
     for {
       optionLockedBy <- userAnswersCacheConnector.lockedBy(id)
-      seqAFTOverview <- aftConnector.getAftOverview(pstr)
+      seqAFTOverview <- getAftOverview(pstr)
       savedJson <- saveAll(optionLockedBy, seqAFTOverview)
     } yield {
       UserAnswers(savedJson.as[JsObject])
+    }
+  }
+
+  private def isOverviewApiDisabled: Boolean =
+    LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)
+
+  private def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
+    if (isOverviewApiDisabled) {
+      val quarter = StartQuarters.getQuarter(DateHelper.today)
+      val startDate: LocalDate = quarter.startDate
+      val endDate: LocalDate = quarter.endDate
+      println( "\nCalling get versions for:" + quarter.toString + " : " + startDate + " - " + endDate)
+      aftConnector
+        .getListOfVersions(pstr, startDate)
+        .map { aftVersion =>
+          aftVersion.map { _ =>
+            AFTOverview(
+              periodStartDate = startDate,
+              periodEndDate = endDate,
+              numberOfVersions = 1,
+              submittedVersionAvailable = false,
+              compiledVersionAvailable = true
+            )
+          }
+        }
+    } else { // After 1st July
+      aftConnector.getAftOverview(pstr)
     }
   }
 
