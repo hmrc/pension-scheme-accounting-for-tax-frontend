@@ -54,8 +54,7 @@ class RequestCreationService @Inject()(
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     schemeService: SchemeService,
-    minimalPsaConnector: MinimalPsaConnector,
-    aftReturnTidyService: AFTReturnTidyService
+    minimalPsaConnector: MinimalPsaConnector
 ) {
   private def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     aftConnector.getAFTDetails(pstr, startDate, aftVersion)
