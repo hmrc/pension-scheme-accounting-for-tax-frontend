@@ -26,6 +26,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.domain.PsaId
 import SampleData._
 import models.AccessMode
+import models.SchemeDetails
 import models.SessionAccessData
 import models.SessionData
 import models.UserAnswers
@@ -56,9 +57,15 @@ class RequestCreationServiceSpec extends SpecBase with MockitoSugar with ScalaFu
 
   private val jsObject = Json.obj( "one" -> "two")
   private val optionUA = Some(UserAnswers(jsObject))
-  val name = None
+  private val name = None
   private val sessionAccessData = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly)
   private val optionSD = Some(SessionData(sessionId, name, sessionAccessData))
+
+  private val optionVersion = Some("1")
+
+  private val schemeStatus = "test status"
+
+  private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus)
 
   private val requestCreationService = new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
 
@@ -68,7 +75,7 @@ class RequestCreationServiceSpec extends SpecBase with MockitoSugar with ScalaFu
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(optionSD))
   }
 
-  "Request creation service" must {
+  "createRequest" must {
     "create a request with  both user answers and session data" in {
       whenReady(requestCreationService.createRequest[AnyContent](psaIdInstance, srn, startDate)) { result =>
         val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, optionSD)
@@ -91,5 +98,17 @@ class RequestCreationServiceSpec extends SpecBase with MockitoSugar with ScalaFu
         result mustBe expectedResult
       }
     }
+  }
+
+  "createRequest" must {
+    "create a request with  both user answers and session data" in {
+
+      when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      whenReady(requestCreationService.retrieveAndCreateRequest[AnyContent](psaIdInstance, srn, startDate, optionVersion)) { result =>
+        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, optionSD)
+        result mustBe expectedResult
+      }
+    }
+
   }
 }
