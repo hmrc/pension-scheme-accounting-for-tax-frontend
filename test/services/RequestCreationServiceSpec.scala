@@ -46,7 +46,7 @@ import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RequestCreationServiceSpec extends SpecBase with AsyncWordSpec with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+class RequestCreationServiceSpec extends SpecBase  with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -103,17 +103,17 @@ class RequestCreationServiceSpec extends SpecBase with AsyncWordSpec with MustMa
     }
   }
 
-  "retrieveAndCreateRequest" must {
-    "create a request" when {
-      "??? " in {
-        whenReady(requestCreationService.retrieveAndCreateRequest[AnyContent](psaIdInstance, srn, startDate, optionVersion)) { result =>
-          val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, optionSD)
-          result mustBe expectedResult
-        }
-      }
-
-    }
-  }
+  //"retrieveAndCreateRequest" must {
+  //  "create a request" when {
+  //    "??? " in {
+  //      whenReady(requestCreationService.retrieveAndCreateRequest[AnyContent](psaIdInstance, srn, startDate, optionVersion)) { result =>
+  //        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, optionSD)
+  //        result mustBe expectedResult
+  //      }
+  //    }
+  //
+  //  }
+  //}
 
   /*
 
