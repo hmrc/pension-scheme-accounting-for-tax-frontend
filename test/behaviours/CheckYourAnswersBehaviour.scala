@@ -46,7 +46,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(mockAftConnector)
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
 
@@ -104,7 +104,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswers))
 
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())).thenReturn(dummyCall)
 
