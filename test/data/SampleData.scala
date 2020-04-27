@@ -81,13 +81,17 @@ object SampleData {
   val accessMode = AccessMode.PageAccessModeCompile
   val accessModeViewOnly = AccessMode.PageAccessModeViewOnly
 
-  def sessionAccessData(version: Int= version.toInt, accessMode: AccessMode= accessMode) = {
+  def sessionAccessData(version: Int = version.toInt, accessMode: AccessMode = accessMode) =
     SessionAccessData(version, accessMode)
-  }
 
-  def sessionData(sessionId: String= sessionId, name: Option[String]= lockedByName, sessionAccessData: SessionAccessData= sessionAccessData()) = {
+  val sessionAccessDataCompile = sessionAccessData(version.toInt, accessMode)
+
+  def sessionData(
+                   sessionId: String = sessionId,
+                   name: Option[String]= lockedByName,
+                   sessionAccessData: SessionAccessData = sessionAccessDataCompile
+                 ) =
     SessionData(sessionId, lockedByName, sessionAccessData)
-  }
 
   def userAnswersWithSchemeName: UserAnswers =
     UserAnswers(Json.obj(

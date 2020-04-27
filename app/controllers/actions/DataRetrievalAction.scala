@@ -19,21 +19,16 @@ package controllers.actions
 import java.time.LocalDate
 
 import com.google.inject.ImplementedBy
-import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.AccessMode
-import models.SessionData
-import models.UserAnswers
-import models.requests.{OptionalDataRequest, IdentifierRequest}
-import pages.IsPsaSuspendedQuery
-import play.api.libs.json.JsObject
+import models.requests.IdentifierRequest
+import models.requests.OptionalDataRequest
 import play.api.mvc.ActionTransformer
-import play.api.mvc.Request
 import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class DataRetrievalImpl(
     srn: String,

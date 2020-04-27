@@ -26,13 +26,17 @@ import scala.concurrent.{ExecutionContext, Future}
 import SampleData._
 
 class FakeDataRetrievalAction(json: Option[UserAnswers],
-                              sessionData: SessionData = sessionData(
-                                sessionAccessData = sessionAccessData(
-                                  accessMode = accessModeViewOnly
-                                )
-                              )
+                              sessionData: SessionData = FakeDataRetrievalAction.defaultSessionData
                              ) extends DataRetrievalAction {
   override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, sessionData)
+}
+
+object FakeDataRetrievalAction {
+  val defaultSessionData = sessionData(
+    sessionAccessData = sessionAccessData(
+      accessMode = accessModeViewOnly
+    )
+  )
 }
 
 class FakeDataRetrieval(dataToReturn: Option[UserAnswers], sessionData: SessionData) extends DataRetrieval {

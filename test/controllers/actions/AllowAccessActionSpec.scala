@@ -18,6 +18,7 @@ package controllers.actions
 
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import models.requests.DataRequest
 import models.requests.OptionalDataRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -30,7 +31,7 @@ import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
@@ -39,7 +40,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   class TestHarness(
                      srn: String
                    )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService) {
-    def test(optionalDataRequest: OptionalDataRequest[_]): Future[Option[Result]] = this.filter(optionalDataRequest)
+    def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
   "Allow Access Action" must {
@@ -52,10 +53,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
           .set(IsPsaSuspendedQuery, value = false).toOption.get
 
-      val optionalDataRequest = OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(ua))
+      val dataRequest = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, Some(SampleData.sessionData()))
 
       val testHarness = new TestHarness(srn = SampleData.srn)
-      whenReady(testHarness.test(optionalDataRequest)) { result =>
+      whenReady(testHarness.test(dataRequest)) { result =>
         result mustBe None
         srnCaptor.getValue mustBe SampleData.srn
       }
