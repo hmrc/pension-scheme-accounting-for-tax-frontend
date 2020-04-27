@@ -20,11 +20,11 @@ import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-trait CYAHelper extends FormatHelper {
+trait CYAHelper {
 
   def total(total: BigDecimal): Row = Row(
     key = Key(msg"total", classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric", "govuk-!-font-weight-bold")),
-    value = Value(Literal(s"${formatCurrencyAmountAsString(total)}"))
+    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(total)}"))
   )
 
   def yesOrNo(answer: Boolean): Content =

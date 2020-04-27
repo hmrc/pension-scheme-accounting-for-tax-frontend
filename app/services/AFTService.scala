@@ -98,7 +98,8 @@ class AFTService @Inject()(
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
-
+println("\n\n\n schemeDetails.pstr : "+schemeDetails.pstr)
+println("\n\n\n schemeDetails : "+schemeDetails)
     val futureUserAnswers = optionVersion match {
       case None =>
         aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>

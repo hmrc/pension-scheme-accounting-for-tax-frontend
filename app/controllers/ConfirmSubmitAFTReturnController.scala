@@ -25,7 +25,7 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import javax.inject.Inject
 import models.{GenericViewModel, Mode}
 import navigators.CompoundNavigator
-import pages.ConfirmSubmitAFTReturnPage
+import pages.{ConfirmSubmitAFTReturnPage, PSTRQuery}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -58,6 +58,10 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
     (identify andThen getData(srn, startDate) andThen
       allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
+
+
+      println("\n\n\n srn: "+srn)
+      println("\n\n\n pstr: "+request.userAnswers.get(PSTRQuery))
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
           case None        => form
           case Some(value) => form.fill(value)

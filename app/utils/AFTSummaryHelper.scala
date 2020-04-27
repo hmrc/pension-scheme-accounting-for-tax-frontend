@@ -30,7 +30,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 
-class AFTSummaryHelper extends FormatHelper {
+class AFTSummaryHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
@@ -79,7 +79,7 @@ class AFTSummaryHelper extends FormatHelper {
     summaryDataUK(ua, srn, startDate).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
@@ -99,7 +99,7 @@ class AFTSummaryHelper extends FormatHelper {
     summaryDataNonUK(ua, srn, startDate).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
@@ -120,7 +120,7 @@ class AFTSummaryHelper extends FormatHelper {
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate).map(_.totalAmount).sum)}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate).map(_.totalAmount).sum)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = Nil
     ))

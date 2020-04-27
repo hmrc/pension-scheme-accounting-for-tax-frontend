@@ -904,6 +904,11 @@ confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.hint.text = You can still make amendments to this return even after youʼve submitted it.
 confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
 
+confirmSubmitAFTReturn.allCharges.table.h1 = All charges (except overseas transfer charge)
+confirmSubmitAFTReturn.overseasCharge.table.h1 = Overseas transfer charge
+confirmSubmitAFTReturn.total.for = Total for submission {0}
+confirmSubmitAFTReturn.difference.between = Difference between submissions {0} and {1}
+
 declaration.title = Declaration
 declaration.heading = Declaration
 declaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that:
@@ -935,4 +940,6 @@ amendQuarters.error.required = Select which quarter you want to view
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
+
+
 

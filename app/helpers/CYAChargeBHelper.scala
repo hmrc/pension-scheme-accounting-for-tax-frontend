@@ -43,7 +43,7 @@ class CYAChargeBHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"chargeB.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",

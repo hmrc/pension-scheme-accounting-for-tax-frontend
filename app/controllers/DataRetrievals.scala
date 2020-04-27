@@ -42,6 +42,13 @@ object DataRetrievals {
     }
   }
 
+  def retrieveSchemeWithPSTRAndVersion(block: (String, String, Int) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.userAnswers.get(VersionNumberQuery)) match {
+      case (Some(schemeName), Some(pstr), Some(versionNumber)) => block(schemeName, pstr, versionNumber)
+      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
   def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, Quarter) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSAEmailQuery), request.userAnswers.get(QuarterPage)) match {
