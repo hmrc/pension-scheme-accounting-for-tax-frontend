@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -52,10 +52,12 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[AllowAccessService].toInstance(mockAllowAccessService),
-      bind[AFTService].toInstance(mockAFTService)
+      bind[AFTService].toInstance(mockAFTService),
+      bind[DataUpdateAction].toInstance(fakeDataUpdateAction)
     )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
 
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
@@ -107,6 +109,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "AFTSummary Controller" must {
     "return OK and the correct view for a GET where no version is present in the request and call the aft service" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+      fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -127,6 +130,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       val location = "redirect"
       val alternativeLocation = Redirect(location)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+      fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       when(mockAllowAccessService
         .filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(AFTSummaryPage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
 
@@ -138,6 +142,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return OK and the correct view for a GET where a version is present in the request" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+      fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -163,6 +168,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
@@ -179,6 +185,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
 
@@ -195,6 +202,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
 
@@ -206,6 +214,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "return a BAD REQUEST when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
@@ -216,6 +225,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "redirect to Session Expired page for a POST when there is no data" in {
       mutableFakeDataRetrievalAction.setDataToReturn(None)
+      fakeDataUpdateAction.setDataToReturn(None)
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

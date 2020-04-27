@@ -17,7 +17,7 @@
 package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -56,11 +56,13 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val retrievedUA = userAnswersWithSchemeName
     .setOrException(IsPsaSuspendedQuery, value = false)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AuditService].toInstance(mockAuditService),
     bind[AllowAccessService].toInstance(mockAllowAccessService),
-    bind[AFTService].toInstance(mockAFTService)
+    bind[AFTService].toInstance(mockAFTService),
+    bind[DataUpdateAction].toInstance(fakeDataUpdateAction)
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
@@ -90,6 +92,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "return OK with the correct view and call the aft service" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -140,6 +143,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         reset(mockAuditService)
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 

@@ -138,7 +138,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual dummyCall.url
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any(), any(), any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -149,7 +149,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       status(result) mustEqual BAD_REQUEST
 
       verify(mockRenderer, times(1)).render(any(), any())(any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any(), any(), any())(any(), any())
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {
