@@ -37,7 +37,7 @@ class EmailConnector @Inject()(
     appConfig: FrontendAppConfig,
     http: HttpClient
 ) {
-  def callbackUrl: String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response"
+  def callbackUrl(journeyType: String): String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/$journeyType/email-response"
 
   def sendEmail(
       journeyType: String,
@@ -47,7 +47,7 @@ class EmailConnector @Inject()(
   )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl)
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(journeyType))
 
     val jsonData = Json.toJson(sendEmailReq)
 
