@@ -109,6 +109,6 @@ class DeclarationController @Inject()(
       ("AFTReturn", config.fileAFTReturnTemplateId)
     }
 
-    emailConnector.sendEmail(journeyType, email, templateId, pstr, templateParams)
+    emailConnector.sendEmail(journeyType, email, templateId, templateParams)
   }
 }

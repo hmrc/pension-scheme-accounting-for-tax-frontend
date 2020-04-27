@@ -91,7 +91,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -102,7 +102,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
       journeyTypeCaptor.getValue mustEqual "AFTReturn"
@@ -113,7 +113,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter.map(_.setOrException(VersionNumberQuery, versionNumber)))
 
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -121,7 +121,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
-      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), any(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
       journeyTypeCaptor.getValue mustEqual "AFTAmend"
