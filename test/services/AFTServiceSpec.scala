@@ -27,7 +27,7 @@ import data.SampleData
 import data.SampleData._
 import models.SchemeStatus.Open
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{AFTVersion, Quarter, UserAnswers}
+import models.{AFTVersion, AccessMode, Quarter, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -61,15 +61,18 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
 
   private val emptyUserAnswers = UserAnswers()
+  private val sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile)
+  private val sessionAccessDataViewOnly = SessionAccessData(1, AccessMode.PageAccessModeViewOnly)
+  private val sessionData = SessionData("1", Some("name"), sessionAccessData)
+  private val sessionDataViewOnlyData = SessionData("1", Some("name"), sessionAccessDataViewOnly)
 
-  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers))
+  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers), Some(sessionData))
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
+    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, Some(sessionData))
 
   private def optionalDataRequest(viewOnly: Boolean): OptionalDataRequest[_] = OptionalDataRequest(
-    fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), viewOnly
-  )
+    fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), Some(sessionDataViewOnlyData))
   private val email = "test@test.com"
 
   override def beforeEach(): Unit = {
@@ -77,7 +80,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false)))
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(true)
   }
 
@@ -123,20 +126,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
         val uaAfterSave = UserAnswers(jsonCaptor.getValue)
         uaAfterSave.get(IsNewReturn) mustBe None
-      }
-    }
-  }
-
-  "getAFTDetails" must {
-    "connect to the aft backend service with the specified arguments and return what the connector returns" in {
-      val startDate = "start date"
-      val aftVersion = "aft version"
-      val jsonReturnedFromConnector = userAnswersWithSchemeNamePstrQuarter.data
-      when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(jsonReturnedFromConnector))
-
-      whenReady(aftService.getAFTDetails(pstr, startDate, aftVersion)) { result =>
-        result mustBe jsonReturnedFromConnector
-        verify(mockAFTConnector, times(1)).getAFTDetails(Matchers.eq(pstr), Matchers.eq(startDate), Matchers.eq(aftVersion))(any(), any())
       }
     }
   }

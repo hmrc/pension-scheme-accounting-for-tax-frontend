@@ -132,7 +132,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.saveAndLock(cacheId = "testId", json) map {
+      connector.save(cacheId = "testId", json, lockReturn = true) map {
         _ mustEqual json
       }
     }

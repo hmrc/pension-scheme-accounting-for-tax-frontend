@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -28,7 +29,9 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
+import SampleData._
 
+import scala.concurrent
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -49,14 +52,14 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "set addRequiredDetailsToUserAnswers to 'None' and viewOnly flag to false in the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future(None)
-        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())).thenReturn (Future.successful(Some(SampleData.sessionData())))
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isEmpty mustBe true
-          result.viewOnly mustBe false
+          result.sessionData.map(_.isEditable) mustBe Some(true)
         }
       }
     }
@@ -65,42 +68,45 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly flag to true and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj()))
-        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(true)
+        //when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(true)
+        when(dataCacheConnector.getSessionData(any())(any(), any())).thenReturn (Future.successful(Some(SampleData.sessionData(
+          sessionAccessData = sessionAccessData(
+            accessMode = accessModeViewOnly)))))
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true
-          result.viewOnly mustBe true
+          result.sessionData.map(_.isViewOnly) mustBe Some(true)
         }
       }
 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly to true if psa is suspended and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj("isPsaSuspended" -> true)))
-        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn (Future.successful(Some(SampleData.sessionData())))
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true
-          result.viewOnly mustBe true
+          result.sessionData.map(_.isViewOnly) mustBe Some(true)
         }
       }
 
       "build a addRequiredDetailsToUserAnswers object, set viewOnly to false if psa is not suspended, isLocked is false and add it to the request" in {
         val dataCacheConnector = mock[UserAnswersCacheConnector]
         when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future.successful(Some(Json.obj("isPsaSuspended" -> false)))
-        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn Future(false)
+        when(dataCacheConnector.getSessionData(any())(any(), any())) thenReturn (Future.successful(Some(SampleData.sessionData())))
         val action = new Harness(dataCacheConnector)
 
         val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true
-          result.viewOnly mustBe false
+          result.sessionData.map(_.isViewOnly) mustBe Some(false)
         }
       }
     }

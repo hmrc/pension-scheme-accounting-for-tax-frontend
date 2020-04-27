@@ -25,7 +25,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{AFTOverview, MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTOverview, AccessMode, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -75,6 +75,19 @@ object SampleData {
       country = "GB",
       postcode = Some("ZZ1 1ZZ")
     )
+
+  val sessionId = "1234567890"
+  val lockedByName = Some("Name")
+  val accessMode = AccessMode.PageAccessModeCompile
+  val accessModeViewOnly = AccessMode.PageAccessModeViewOnly
+
+  def sessionAccessData(version: Int= version.toInt, accessMode: AccessMode= accessMode) = {
+    SessionAccessData(version, accessMode)
+  }
+
+  def sessionData(sessionId: String= sessionId, name: Option[String]= lockedByName, sessionAccessData: SessionAccessData= sessionAccessData()) = {
+    SessionData(sessionId, lockedByName, sessionAccessData)
+  }
 
   def userAnswersWithSchemeName: UserAnswers =
     UserAnswers(Json.obj(

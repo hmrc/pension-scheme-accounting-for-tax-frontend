@@ -18,19 +18,27 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import models.UserAnswers
+import data.SampleData
+import models.{SessionData, UserAnswers}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
+import SampleData._
 
-class FakeDataRetrievalAction(json: Option[UserAnswers], viewOnly: Boolean = false) extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, viewOnly)
+class FakeDataRetrievalAction(json: Option[UserAnswers],
+                              sessionData: SessionData = sessionData(
+                                sessionAccessData = sessionAccessData(
+                                  accessMode = accessModeViewOnly
+                                )
+                              )
+                             ) extends DataRetrievalAction {
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, sessionData)
 }
 
-class FakeDataRetrieval(dataToReturn: Option[UserAnswers], viewOnly: Boolean) extends DataRetrieval {
+class FakeDataRetrieval(dataToReturn: Option[UserAnswers], sessionData: SessionData) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, viewOnly))
+    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, Some(sessionData)))
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
