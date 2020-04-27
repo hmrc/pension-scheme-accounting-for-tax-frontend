@@ -18,8 +18,10 @@ package forms
 
 import base.SpecBase
 import config.FrontendAppConfig
+import data.SampleData._
 import forms.behaviours.OptionFieldBehaviours
-import models.{Quarters, StartQuarters}
+import models.{Quarter, QuarterType}
+import models.Quarters._
 import play.api.data.FormError
 
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
@@ -27,17 +29,18 @@ class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
   implicit val config: FrontendAppConfig = frontendAppConfig
   private val testYear = 2021
   private val errorKey = "quarters.error.required"
-  val form = new QuartersFormProvider()(errorKey, testYear)
+  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020, q12021)
+  val form = new QuartersFormProvider()(errorKey, quarters)
 
   ".value" must {
 
     val fieldName = "value"
     val requiredKey = "quarters.error.required"
 
-    behave like optionsField[Quarters](
+    behave like optionsField[QuarterType](
       form,
       fieldName,
-      validValues  = StartQuarters.values(2020),
+      validValues  = Seq(Q1, Q2),
       invalidError = FormError(fieldName, "error.invalid")
     )
 

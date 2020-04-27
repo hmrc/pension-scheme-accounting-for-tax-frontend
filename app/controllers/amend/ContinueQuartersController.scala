@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, Quarter}
+import models.{GenericViewModel, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -34,7 +34,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AmendQuartersController @Inject()(
+class ContinueQuartersController @Inject()(
                                          override val messagesApi: MessagesApi,
                                          identify: IdentifierAction,
                                          formProvider: QuartersFormProvider,
@@ -50,11 +50,11 @@ class AmendQuartersController @Inject()(
     with NunjucksSupport {
 
   private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("amendQuarters.error.required"), quarters)
+    formProvider(messages("continueQuarters.error.required"), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
           val quarters = displayQuarters.map(_.quarter)
@@ -64,11 +64,10 @@ class AmendQuartersController @Inject()(
             "startDate" -> None,
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters), displayQuarters),
-            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-            "year" -> year
+            "viewModel" -> viewModel(srn, schemeDetails.schemeName)
           )
 
-          renderer.render(template = "amend/amendQuarters.njk", json).map(Ok(_))
+          renderer.render(template = "amend/continueQuarters.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
@@ -76,9 +75,10 @@ class AmendQuartersController @Inject()(
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+    aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
           val quarters = displayQuarters.map(_.quarter)
@@ -93,27 +93,36 @@ class AmendQuartersController @Inject()(
                     "startDate" -> None,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, displayQuarters),
-                    "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-                    "year" -> year
+                    "viewModel" -> viewModel(srn, schemeDetails.schemeName)
                   )
-                  renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
+                  renderer.render(template = "amend/continueQuarters.njk", json).map(BadRequest(_))
                 }
               },
               value => {
-                Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
+                if (!aftOverviewElement.submittedVersionAvailable) {
+                  Future.successful(
+                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Some("1"))))
+                } else {
+                  Future.successful(
+                    Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                }
               }
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
+      }
     }
     }
   }
 
-  private def viewModel(srn: String, year: String, schemeName: String): GenericViewModel =
+  private def viewModel(srn: String, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.AmendQuartersController.onSubmit(srn, year).url,
+      submitUrl = routes.ContinueQuartersController.onSubmit(srn).url,
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
+
+  case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
 }

@@ -18,9 +18,7 @@ package models
 
 import java.time.LocalDate
 
-import models.StartQuarters.{Q1, Q2, Q3, Q4}
 import play.api.libs.json.{Format, Json}
-import utils.DateHelper.dateFormatterYMD
 
 case class Quarter(startDate: LocalDate, endDate: LocalDate)
 

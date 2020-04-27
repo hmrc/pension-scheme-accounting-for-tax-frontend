@@ -18,83 +18,114 @@ package controllers
 
 import audit.AuditService
 import config.FrontendAppConfig
+import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Quarters, StartQuarters}
+import models.LocalDateBinder._
+import models.{GenericViewModel, Quarter, Quarters, SubmittedHint}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.{AllowAccessService, QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
-import models.LocalDateBinder._
 
 class QuartersController @Inject()(
-    override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    formProvider: QuartersFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    schemeService: SchemeService,
-    auditService: AuditService,
-    aftService: AFTService,
-    allowService: AllowAccessService
+                                    override val messagesApi: MessagesApi,
+                                    userAnswersCacheConnector: UserAnswersCacheConnector,
+                                    navigator: CompoundNavigator,
+                                    identify: IdentifierAction,
+                                    getData: DataRetrievalAction,
+                                    allowAccess: AllowAccessActionProvider,
+                                    requireData: DataRequiredAction,
+                                    formProvider: QuartersFormProvider,
+                                    val controllerComponents: MessagesControllerComponents,
+                                    renderer: Renderer,
+                                    config: FrontendAppConfig,
+                                    schemeService: SchemeService,
+                                    aftConnector: AFTConnector,
+                                    auditService: AuditService,
+                                    quartersService: QuartersService,
+
+                                    allowService: AllowAccessService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(year: String)(implicit messages: Messages, config: FrontendAppConfig): Form[Quarters] =
-    formProvider(messages("quarters.error.required", year), year.toInt)
+  private def form(year: String, quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+    formProvider(messages("quarters.error.required", year), quarters)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      val json = Json.obj(
-        "srn" -> srn,
-        "startDate" -> None,
-        "form" -> form(year)(implicitly, config),
-        "radios" -> StartQuarters.radios(form(year)(implicitly, config), year.toInt)(implicitly, config),
-        "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-        "year" -> year
-      )
+      quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+        if (displayQuarters.nonEmpty) {
+          val quarters = displayQuarters.map(_.quarter)
 
-      renderer.render(template = "quarters.njk", json).map(Ok(_))
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> None,
+            "form" -> form(year, quarters),
+            "radios" -> Quarters.radios(form(year, quarters), displayQuarters),
+            "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+            "year" -> year
+          )
+
+          renderer.render(template = "quarters.njk", json).map(Ok(_))
+        } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
+      }
     }
   }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    form(year)(implicitly, config)
-      .bindFromRequest()
-      .fold(
-        formWithErrors => {
-          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> None,
-              "form" -> formWithErrors,
-              "radios" -> StartQuarters.radios(formWithErrors, year.toInt)(implicitly, config),
-              "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
-              "year" -> year
-            )
-            renderer.render(template = "quarters.njk", json).map(BadRequest(_))
-          }
-        },
-        value => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, StartQuarters.getStartDate(value, year.toInt))))
-      )
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+        quartersService.getStartQuarters(srn, schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
+          if (displayQuarters.nonEmpty) {
 
+            val quarters = displayQuarters.map(_.quarter)
+            form(year, quarters)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+                  schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+                    val json = Json.obj(
+                      fields = "srn" -> srn,
+                      "startDate" -> None,
+                      "form" -> formWithErrors,
+                      "radios" -> Quarters.radios(formWithErrors, displayQuarters),
+                      "viewModel" -> viewModel(srn, year, schemeDetails.schemeName),
+                      "year" -> year
+                    )
+                    renderer.render(template = "quarters.njk", json).map(BadRequest(_))
+                  }
+                },
+                value => {
+                  val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
+                  selectedDisplayQuarter.hintText match {
+                    case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate)))
+                    case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                    case _ =>
+                      val version = Some(aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected).numberOfVersions.toString)
+                      Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, version)))
+                  }
+                }
+              )
+          } else {
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
+        }
+      }
+    }
   }
 
   private def viewModel(srn: String, year: String, schemeName: String): GenericViewModel =
@@ -103,4 +134,6 @@ class QuartersController @Inject()(
       returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
       schemeName = schemeName
     )
+
+  case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
 }

@@ -103,6 +103,26 @@ class UserAnswersCacheConnectorImpl @Inject()(
           }
       }
   }
+
+  def lockedBy(srn: String, startDate: String)(implicit
+                                               ec: ExecutionContext,
+                                               hc: HeaderCarrier
+  ): Future[Option[String]] = {
+    http.url(lockUrl)
+      .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
+      .get()
+      .flatMap {
+        response =>
+          response.status match {
+            case NOT_FOUND =>
+              Future.successful(None)
+            case OK =>
+              Future.successful(Some(response.body))
+            case _ =>
+              Future.failed(new HttpException(response.body, response.status))
+          }
+      }
+  }
 }
 
 trait UserAnswersCacheConnector {
@@ -119,6 +139,8 @@ trait UserAnswersCacheConnector {
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
   def isLocked(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean]
+
+  def lockedBy(srn: String, startDate: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[String]]
 }
 
 

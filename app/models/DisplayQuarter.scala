@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package forms.amend
+package models
 
-import forms.mappings.Mappings
-import models.{AmendQuarters, Quarters}
-import play.api.data.Form
+case class DisplayQuarter(quarter: Quarter,
+                          displayYear: Boolean,
+                          lockedBy: Option[String],
+                          hintText: Option[DisplayQuarterHint])
 
-class AmendQuartersFormProvider extends Mappings {
-
-  def apply(errorKey: String, quarters: Seq[Quarters]): Form[Quarters] =
-    Form(
-      "value" -> enumerable[Quarters](requiredKey = errorKey)(AmendQuarters.enumerable(quarters))
-    )
-}
+sealed trait DisplayQuarterHint
+object LockedHint extends WithName("quarters.hint.locked") with DisplayQuarterHint
+object InProgressHint extends WithName("quarters.hint.inProgress") with DisplayQuarterHint
+object SubmittedHint extends WithName("quarters.hint.submitted") with DisplayQuarterHint
