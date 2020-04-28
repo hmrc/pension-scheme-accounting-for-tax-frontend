@@ -125,6 +125,7 @@ class AFTService @Inject()(
           minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
             uaWithStatus.setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
               .setOrException(PSAEmailQuery, psaDetails.email)
+              .setOrException(PSANameQuery, psaDetails.name)
           }
         case Some(_) =>
           Future.successful(uaWithStatus)

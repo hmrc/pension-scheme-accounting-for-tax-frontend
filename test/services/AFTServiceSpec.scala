@@ -71,11 +71,12 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), viewOnly
   )
   private val email = "test@test.com"
+  private val name = "Pension Scheme Administrator"
 
   override def beforeEach(): Unit = {
     reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false)))
+    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(true)
@@ -165,6 +166,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
           val expectedUAAfterSave = userAnswersWithSchemeName
             .setOrException(IsPsaSuspendedQuery, value = false)
             .setOrException(PSAEmailQuery, value = email)
+            .setOrException(PSANameQuery, value = name)
             .setOrException(IsNewReturn, value = true)
             .setOrException(AFTStatusQuery, value = aftStatus)
             .setOrException(SchemeStatusQuery, Open)
@@ -194,7 +196,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
           val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).
-            setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
+            setOrException(PSAEmailQuery, email).setOrException(PSANameQuery, name).setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -219,7 +221,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
           verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
           val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).
-            setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
+            setOrException(PSAEmailQuery, email).setOrException(PSANameQuery, name).setOrException(SchemeStatusQuery, Open)
           verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
         }
       }
@@ -227,7 +229,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "user is suspended" must {
       "NOT save with a lock" in {
-        when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = true)))
+        when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = true, None, None)))
         when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion](AFTVersion(1, LocalDate.now()))))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, None)) { case (_, _) =>
@@ -239,7 +241,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
     "viewOnly flag in the request is set to true" must {
       "NOT call saveAndLock but should call save" in {
         val uaToSave = userAnswersWithSchemeName
-          .setOrException(IsPsaSuspendedQuery, value = false).setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
+          .setOrException(IsPsaSuspendedQuery, value = false).setOrException(PSAEmailQuery, email).setOrException(PSANameQuery, name).setOrException(SchemeStatusQuery, Open)
         when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         whenReady(aftService.retrieveAFTRequiredDetails(srn, QUARTER_START_DATE, Some(version))

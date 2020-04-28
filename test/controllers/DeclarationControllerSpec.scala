@@ -70,6 +70,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
                                      quarter.startDate.format(dateFormatterStartDate),
                                      quarter.endDate.format(dateFormatterDMY)),
       "dateSubmitted" -> dateFormatterSubmittedDate.format(LocalDateTime.now()),
+      "psaName" -> psaName,
       "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id")
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$versionNumber") else Map.empty)
 
@@ -150,9 +151,11 @@ object DeclarationControllerSpec {
   private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[String])
   private val quarter = Quarter(QUARTER_START_DATE, QUARTER_END_DATE)
   private val versionNumber = 3
+  private val psaName = "test ltd"
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
   private val userAnswersWithPSTREmailQuarter: Option[UserAnswers] = userAnswers.map(
-    _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
+    _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(PSANameQuery, psaName))
+      .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
                                              returnUrl = dummyCall.url,

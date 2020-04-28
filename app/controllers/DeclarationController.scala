@@ -27,7 +27,7 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{Declaration, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, DeclarationPage, VersionNumberQuery}
+import pages.{AFTStatusQuery, DeclarationPage, PSANameQuery, VersionNumberQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -88,6 +88,7 @@ class DeclarationController @Inject()(
   private def sendEmail(email: String, quarter: Quarter, schemeName: String)(implicit request: DataRequest[_],
                                                                                            messages: Messages): Future[EmailStatus] = {
     val versionNumber = request.userAnswers.get(VersionNumberQuery)
+    val psaName = request.userAnswers.getOrException(PSANameQuery)
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
@@ -100,7 +101,8 @@ class DeclarationController @Inject()(
       "schemeName" -> schemeName,
       "accountingPeriod" -> accountingPeriod,
       "dateSubmitted" -> submittedDate,
-      "hmrcEmail" -> sendToEmailId
+      "hmrcEmail" -> sendToEmailId,
+      "psaName" -> psaName
     ) ++ versionNumber.map(vn => Map("submissionNumber" -> s"$vn")).getOrElse(Map.empty[String, String])
 
     val (journeyType, templateId) = if (versionNumber.nonEmpty) {

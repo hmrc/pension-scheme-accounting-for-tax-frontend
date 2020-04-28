@@ -26,7 +26,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
   import MinimalPsaConnector._
-
   def getMinimalPsaDetails(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
     val psaHc = hc.withExtraHeaders("psaId" -> psaId)
 
@@ -34,9 +33,36 @@ class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   }
 }
 object MinimalPsaConnector {
-  case class MinimalPSA(email: String, isPsaSuspended: Boolean)
+  case class MinimalPSA(
+      email: String,
+      isPsaSuspended: Boolean,
+      organisationName: Option[String],
+      individualDetails: Option[IndividualDetails]
+  ) {
+
+    def name: String = {
+      individualDetails
+        .map(_.fullName)
+        .orElse(organisationName)
+        .getOrElse("Pension Scheme Administrator")
+    }
+  }
 
   object MinimalPSA {
     implicit val format: Format[MinimalPSA] = Json.format[MinimalPSA]
+  }
+
+  case class IndividualDetails(
+      firstName: String,
+      middleName: Option[String],
+      lastName: String
+  ) {
+    def fullName: String = middleName match {
+      case Some(middle) => s"$firstName $middle $lastName"
+      case _            => s"$firstName $lastName"
+    }
+  }
+  object IndividualDetails {
+    implicit val format: Format[IndividualDetails] = Json.format[IndividualDetails]
   }
 }
