@@ -17,6 +17,7 @@
 package services
 
 import java.time.{LocalDateTime, LocalDate, LocalTime}
+import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
@@ -29,7 +30,7 @@ import models.SchemeStatus.statusByName
 import models.SessionData
 import models.SessionAccessData
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{SchemeDetails, StartQuarters, UserAnswers}
+import models.{Quarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier

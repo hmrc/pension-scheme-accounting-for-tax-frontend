@@ -16,14 +16,12 @@
 
 package connectors
 
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SendEmailRequest
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.crypto.ApplicationCrypto
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -35,36 +33,31 @@ case object EmailSent extends EmailStatus
 
 case object EmailNotSent extends EmailStatus
 
-@ImplementedBy(classOf[EmailConnectorImpl])
-trait EmailConnector {
+class EmailConnector @Inject()(
+    appConfig: FrontendAppConfig,
+    http: HttpClient
+) {
+  def callbackUrl(journeyType: String): String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/$journeyType/email-response"
 
-  def sendEmail(emailAddress: String, templateName: String, psaId: PsaId)
-               (implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus]
-}
-
-class EmailConnectorImpl @Inject()(
-                                    appConfig: FrontendAppConfig,
-                                    http: HttpClient,
-                                    crypto: ApplicationCrypto
-                                  ) extends EmailConnector {
-
-  override def sendEmail(
-                          emailAddress: String,
-                          templateName: String,
-                          psaId: PsaId
-                        )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
+  def sendEmail(
+      journeyType: String,
+      emailAddress: String,
+      templateName: String,
+      templateParams: Map[String, String]
+  )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, Map.empty, appConfig.emailSendForce)
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(journeyType))
 
     val jsonData = Json.toJson(sendEmailReq)
 
     http.POST(emailServiceUrl, jsonData).map { response =>
       response.status match {
         case ACCEPTED =>
+          Logger.debug(s"Email sent successfully for $journeyType")
           EmailSent
         case status =>
-          Logger.warn(s"Sending Email failed with response status $status")
+          Logger.warn(s"Sending Email failed for $journeyType with response status $status")
           EmailNotSent
       }
     } recoverWith logExceptions

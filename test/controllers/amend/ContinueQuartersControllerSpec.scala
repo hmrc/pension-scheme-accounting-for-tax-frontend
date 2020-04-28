@@ -41,7 +41,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -55,23 +55,22 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
-  val templateToBeRendered = "amend/amendQuarters.njk"
-  private val errorKey = "quarters.error.required"
-  private val year = "2022"
+  val templateToBeRendered = "amend/continueQuarters.njk"
+  private val errorKey = "continueQuarters.error.required"
   val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020)
   val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterContinueAmend, displayQuarterViewPast)
 
   val formProvider = new QuartersFormProvider()
   def form(quarters: Seq[Quarter]): Form[Quarter] = formProvider(errorKey, quarters)
 
-  lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
-  lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
+  lazy val httpPathGET: String = controllers.amend.routes.ContinueQuartersController.onPageLoad(srn).url
+  lazy val httpPathPOST: String = controllers.amend.routes.ContinueQuartersController.onSubmit(srn).url
 
   private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
     "radios" -> Quarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
+      submitUrl = controllers.amend.routes.ContinueQuartersController.onSubmit(srn).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
@@ -83,14 +82,14 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
-    when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
+    when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
   }
 
-  "AmendQuarters Controller" must {
+  "ContinueQuarters Controller" must {
     "return OK and the correct view for a GET" in {
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -108,7 +107,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "redirect to session expired page when quarters service returns an empty list" in {
-      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -130,13 +129,11 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual BAD_REQUEST
 
-
-
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
     }
 
     "redirect to session expired page when there quarters service returns an empty list for a POST" in {
-      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

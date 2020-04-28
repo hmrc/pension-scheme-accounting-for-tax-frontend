@@ -36,12 +36,12 @@ import javax.inject.Singleton
 import models.AFTOverview
 import models.AccessMode
 import models.LocalDateBinder._
+import models.Quarters
 import models.SchemeStatus.statusByName
 import models.SessionAccessData
 import models.requests.OptionalDataRequest
 import models.SchemeDetails
 import models.SessionData
-import models.StartQuarters
 import models.UserAnswers
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -165,7 +165,7 @@ class RequestCreationService @Inject()(
     LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)
 
   private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-    val endDate: LocalDate = StartQuarters.getQuarter(startDate).endDate
+    val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
     if (isOverviewApiDisabled) {
       aftConnector
         .getListOfVersions(pstr, startDate)
@@ -200,7 +200,7 @@ class RequestCreationService @Inject()(
         aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
           if (listOfVersions.isEmpty) {
             currentUserAnswers
-              .setOrException(QuarterPage, StartQuarters.getQuarter(startDate))
+              .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)

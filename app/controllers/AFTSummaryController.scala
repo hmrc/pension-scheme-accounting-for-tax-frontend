@@ -26,10 +26,10 @@ import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.{Quarters, GenericViewModel, Mode, NormalMode, UserAnswers}
 import models.GenericViewModel
 import models.Mode
 import models.NormalMode
-import models.StartQuarters
 import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
@@ -130,7 +130,7 @@ class AFTSummaryController @Inject()(
                       schemeName: String,
                       optionVersion: Option[String],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val endDate = StartQuarters.getQuarter(startDate).endDate
+    val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),

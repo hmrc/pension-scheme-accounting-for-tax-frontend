@@ -27,18 +27,28 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SessionData
 import models.chargeD.ChargeDDetails
-import models.{GenericViewModel, UserAnswers, Mode, StartQuarters, Index}
+import models.GenericViewModel
+import models.Index
+import models.Mode
+import models.Quarters
 import navigators.CompoundNavigator
-import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeD.ChargeDetailsPage
+import pages.chargeD.MemberDetailsPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
+import uk.gov.hmrc.viewmodels.DateInput
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -56,7 +66,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     with NunjucksSupport {
 
   private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeDDetails] = {
-    val endDate = StartQuarters.getQuarter(startDate).endDate
+    val endDate = Quarters.getQuarter(startDate).endDate
     formProvider(
       startDate,
       endDate,

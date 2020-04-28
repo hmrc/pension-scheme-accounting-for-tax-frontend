@@ -16,7 +16,6 @@
 
 package controllers
 
-import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 
 import config.FrontendAppConfig
@@ -35,6 +34,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
 
 import scala.concurrent.ExecutionContext
 
@@ -57,9 +57,9 @@ class ConfirmationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate) andThen allowSubmission).async {
       implicit request =>
         DataRetrievals.retrieveSchemeNameWithEmailAndQuarter { (schemeName, email, quarter) =>
-          val quarterStartDate = quarter.startDate.format(DateTimeFormatter.ofPattern("d MMMM"))
-          val quarterEndDate = quarter.endDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-          val submittedDate = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())
+          val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
+          val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
+          val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
           val listSchemesUrl = config.yourPensionSchemesUrl
           val versionNumber = request.userAnswers.get(VersionNumberQuery)
 
@@ -89,24 +89,24 @@ class ConfirmationController @Inject()(
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
                                    submittedDate: String, versionNumber: Option[Int]): Seq[SummaryList.Row] = {
     Seq(Row(
-      key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
+      key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(schemeName), classes = Nil),
       actions = Nil
     ),
       Row(
-        key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
-        value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
+        key = Key(msg"confirmation.table.accounting.period.label", classes = Seq("govuk-!-font-weight-regular")),
+        value = Value(msg"confirmation.table.accounting.period.value".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
         actions = Nil
       ),
       Row(
-        key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
+        key = Key(msg"confirmation.table.data.submitted.label", classes = Seq("govuk-!-font-weight-regular")),
         value = Value(Literal(submittedDate), classes = Nil),
         actions = Nil
       )
     ) ++ versionNumber.map{ vn =>
       Seq(
         Row(
-          key = Key(msg"confirmation.table.r4.c1", classes = Seq("govuk-!-font-weight-regular")),
+          key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
           value = Value(Literal(s"$vn"), classes = Nil),
           actions = Nil
         )

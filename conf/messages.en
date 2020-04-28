@@ -880,17 +880,17 @@ confirmation.aft.return.panel.h1 = Return submitted
 confirmation.aft.amendment.panel.h1 = Amended return submitted
 confirmation.aft.return.panel.text = Accounting for Tax
 confirmation.p1 = We have sent a confirmation email to
-confirmation.table.r1.c1 = Scheme
-confirmation.table.r2.c1 = Accounting period
-confirmation.table.r2.c2 = {0} to {1}
-confirmation.table.r3.c1 = Date submitted
-confirmation.table.r4.c1 = Submission number
+confirmation.table.scheme.label = Scheme
+confirmation.table.accounting.period.label = Accounting period
+confirmation.table.accounting.period.value = {0} to {1}
+confirmation.table.data.submitted.label = Date submitted
+confirmation.table.submission.number.label = Submission number
 
 confirmation.whatNext.h2 = What to do next
 confirmation.whatNext.p1 = If you need to make a payment for this submission, you must include a charge reference with your payment.
-confirmation.whatNext.p2.text1 = To get your charge reference send an email to
-confirmation.whatNext.p2.text2 = pensions.administration@hmrc.gov.uk
-confirmation.whatNext.p2.text3 = with these details:
+confirmation.whatNext.send.to = To get your charge reference send an email to
+confirmation.whatNext.send.to.email.id = pensions.administration@hmrc.gov.uk
+confirmation.whatNext.send.to.with.details = with these details:
 confirmation.whatNext.li.item1 = the name of the pension scheme
 confirmation.whatNext.li.item2 = the date and time of submission
 confirmation.whatNext.li.item3 = the submission number
@@ -919,6 +919,10 @@ quarters.q2.label = 1 April to 30 June
 quarters.q3.label = 1 July to 30 September
 quarters.q4.label = 1 October to 31 December
 quarters.error.required = Select the quarter of {0} you are submitting an AFT return for
+quarters.lockedBy = - locked by {0}
+quarters.hint.locked = You can view this return but you cannot make changes until it is unlocked
+quarters.hint.inProgress = Continue this return. It has already been started.
+quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Version
@@ -931,6 +935,9 @@ amendYears.error.required = Select which year you want to view
 
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
+
+continueQuarters.title = Which AFT return would you like to continue editing?
+continueQuarters.error.required = Select which AFT return you want to continue editing
 
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}

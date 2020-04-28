@@ -74,11 +74,12 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private def optionalDataRequest(viewOnly: Boolean): OptionalDataRequest[_] = OptionalDataRequest(
     fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), Some(sessionDataViewOnlyData))
   private val email = "test@test.com"
+  private val name = "Pension Scheme Administrator"
 
   override def beforeEach(): Unit = {
     reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
-    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false)))
+    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(true)
