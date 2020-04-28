@@ -96,14 +96,6 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
         result mustBe expectedResult
       }
     }
-
-    "create a request with no session data" in {
-      when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(None))
-      whenReady(requestCreationService.createRequest[AnyContent](psaIdInstance, srn, startDate)) { result =>
-        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, None, None)
-        result mustBe expectedResult
-      }
-    }
   }
 
   //"retrieveAndCreateRequest" must {
