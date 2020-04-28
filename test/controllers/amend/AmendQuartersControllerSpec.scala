@@ -78,7 +78,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockAFTConnector.getAftOverview(any())(any(), any()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -104,7 +104,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "redirect to session expired page when there is no data returned from overview api for a GET" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -132,7 +132,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "redirect to session expired page when there is no data returned from overview api for a POST" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

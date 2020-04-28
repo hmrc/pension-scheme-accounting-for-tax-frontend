@@ -143,6 +143,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeBDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 

@@ -118,8 +118,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
     }
   }
 
-  ".saveAndLock" must {
-    val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
+  ".save" must {
+    val lockUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
     val json = Json.obj(
       fields = "testId" -> "lock"
     )
@@ -150,7 +150,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
     }
   }
 
-  ".isLocked" must {
+  ".lockedBy" must {
 
     "return `None` when there is no data in the collection" in {
       server.stubFor(
@@ -160,23 +160,23 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.getSessionData(id = "testId") map {
+      connector.lockedBy(id = "testId") map {
         result =>
-          result mustBe false
+          result mustBe None
       }
     }
 
-    "return true if status is OK and data is present in the collection" in {
+    "return some value if status is OK and data is present in the collection" in {
       server.stubFor(
         get(urlEqualTo(isLockedUrl))
           .willReturn(
-            ok(Json.obj(fields = "testId" -> "locked").toString())
+            ok("joe")
           )
       )
 
-      connector.getSessionData(id = "testId") map {
+      connector.lockedBy(id = "testId") map {
         result =>
-          result mustBe true
+          result mustBe Some("joe")
       }
     }
 
@@ -189,7 +189,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
 
       recoverToExceptionIf[HttpException] {
-        connector.getSessionData(id = "testId")
+        connector.lockedBy(id = "testId")
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }

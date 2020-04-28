@@ -148,6 +148,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return redirect when zero amounts are submitted where new return flag is NOT set" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 
