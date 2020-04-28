@@ -141,12 +141,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
           case NOT_FOUND =>
             Future.successful(None)
           case OK =>
-            val name = Json.parse(response.body).validate[String] match {
-              case JsSuccess(value, _) =>
-                value
-              case JsError(errors)        => throw JsResultException(errors)
-            }
-            Future.successful(Some(name))
+            println( "\n>>>" + response.body)
+            Future.successful(Some(response.body))
           case _ => Future.failed(new HttpException(response.body, response.status))
         }
       }

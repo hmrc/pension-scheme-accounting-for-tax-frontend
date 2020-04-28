@@ -72,7 +72,7 @@ class RequestCreationService @Inject()(
       newRequest(data.map(dd => UserAnswers(dd.as[JsObject])), sessionData, id, psaId)
     }
     ff.foreach { pp =>
-      println( "\n\n>>>CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
+      println("\n\n>>>CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
     }
     ff
   }
@@ -91,7 +91,7 @@ class RequestCreationService @Inject()(
         }
     }
     ff.foreach { pp =>
-      println( "\n\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
+      println("\n\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
     }
     ff
   }
@@ -123,15 +123,19 @@ class RequestCreationService @Inject()(
 
   private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
+    val optionVersionAsInt = optionVersion.map(_.toInt)
 
-    val (version, accessMode) = if (isLocked || psaSuspended || optionVersion.exists(_.toInt < maxVersion)) {
-      (optionVersion.map(_.toInt).getOrElse(0), AccessMode.PageAccessModeViewOnly)
-    } else {
-      (seqAFTOverview.isEmpty, seqAFTOverview.headOption.exists(_.compiledVersionAvailable)) match {
-        case (false, true) => (maxVersion, AccessMode.PageAccessModeCompile)
-        case _             => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
+    val viewOnly = isLocked || psaSuspended || optionVersionAsInt.exists(_ < maxVersion)
+    val anyVersions = seqAFTOverview.nonEmpty
+    val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
+
+    val (version, accessMode) =
+      (viewOnly, anyVersions, isInCompile) match {
+        case (true, false, _)    => (1, AccessMode.PageAccessModeViewOnly)
+        case (true, true, _)     => (optionVersionAsInt.getOrElse(maxVersion), AccessMode.PageAccessModeViewOnly)
+        case (false, true, true) => (maxVersion, AccessMode.PageAccessModeCompile)
+        case _                   => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
-    }
 
     SessionAccessData(version, accessMode)
   }
@@ -158,7 +162,7 @@ class RequestCreationService @Inject()(
 
     for {
       optionLockedBy <- userAnswersCacheConnector.lockedBy(id)
-      seqAFTOverview <- getAftOverview(pstr)
+      seqAFTOverview <- getAftOverview(pstr, startDate)
       savedJson <- saveAll(optionLockedBy, seqAFTOverview)
     } yield {
       UserAnswers(savedJson.as[JsObject])
@@ -168,12 +172,10 @@ class RequestCreationService @Inject()(
   private def isOverviewApiDisabled: Boolean =
     LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)
 
-  private def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
+  private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
+    val endDate: LocalDate = StartQuarters.getQuarter(startDate).endDate
     if (isOverviewApiDisabled) {
-      val quarter = StartQuarters.getQuarter(DateHelper.today)
-      val startDate: LocalDate = quarter.startDate
-      val endDate: LocalDate = quarter.endDate
-      println( "\nCalling get versions for:" + quarter.toString + " : " + startDate + " - " + endDate)
+      println("\nCalling get versions for quarter starting " + startDate + " and ending " + endDate)
       aftConnector
         .getListOfVersions(pstr, startDate)
         .map { aftVersion =>
@@ -182,13 +184,17 @@ class RequestCreationService @Inject()(
               periodStartDate = startDate,
               periodEndDate = endDate,
               numberOfVersions = 1,
-              submittedVersionAvailable = false,
+              submittedVersionAvailable = false, // TODO: Any way to determine whether have submitted before 1st July?
               compiledVersionAvailable = true
             )
           }
         }
     } else { // After 1st July
-      aftConnector.getAftOverview(pstr)
+      aftConnector.getAftOverview(
+        pstr,
+        optionStartDate = Some(startDate),
+        optionEndDate = Some(endDate)
+      )
     }
   }
 

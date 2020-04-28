@@ -25,6 +25,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.domain.PsaId
 import SampleData._
+import config.FrontendAppConfig
 import models.AccessMode
 import models.SchemeDetails
 import models.SessionAccessData
@@ -51,6 +52,7 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
+  private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
   private val psaIdInstance = PsaId(psaId)
 
@@ -69,13 +71,14 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
 
   private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus)
 
-  private val requestCreationService = new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
+  private val requestCreationService = new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
 
   override def beforeEach(): Unit = {
-    reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
+    reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
     when(mockUserAnswersCacheConnector.fetch(any())(any(),any())).thenReturn(Future.successful(Some(jsObject)))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(optionSD))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-01")
   }
 
   "createRequest" must {
