@@ -5,6 +5,7 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
 
 {% block pageTitle %}
   {{ title(messages("confirmSubmitAFTReturn.title"), form.errors) }}
@@ -22,22 +23,39 @@
           }) }}
         {% endif %}
 
+        <h1 class="govuk-heading-xl">
+          <span class="govuk-caption-xl">{{ messages('confirmSubmitAFTReturn.h1.caption', versionNumber) }}</span>
+           {{ messages("confirmSubmitAFTReturn.title") }}
+        </h1>
+
+        <h3 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h3>
+
+        {{ govukSummaryList({
+                                classes: "govuk-!-margin-bottom-8",
+                                rows: tableRowsUK
+                            })
+        }}
+
+        <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
+
+        {{ govukSummaryList({
+                                rows: tableRowsNonUK
+                           })
+        }}
+
         <form action="{{ submitUrl }}" method="post">
 
           {{ csrf() | safe }}
 
           {{ govukRadios({
             name: 'value',
+            classes: "govuk-radios--inline",
             fieldset: {
               legend: {
-                text: messages('confirmSubmitAFTReturn.title'),
-                isPageHeading: true,
-                classes: "govuk-fieldset__legend--xl"
+                text: messages('confirmSubmitAFTReturn.radio.legend', versionNumber),
+                classes: "govuk-fieldset__legend--m"
               }
             },
-            hint: {
-                text: messages('confirmSubmitAFTReturn.hint.text')
-              },
             items: radios,
             errorMessage: form.value.error
           }) }}

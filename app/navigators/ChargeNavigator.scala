@@ -21,13 +21,13 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
+import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
+import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
+import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
 import models.LocalDateBinder._
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.Call
-import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
-import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
-import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
 
@@ -35,6 +35,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
     case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
     case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate)
     case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
+    case ConfirmSubmitAFTAmendmentPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
     case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
   }
 
@@ -70,10 +71,12 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
-    ua.get(AFTSummaryPage) match {
-      case Some(true) =>
+    (ua.get(AFTSummaryPage), ua.get(VersionNumberQuery)) match {
+      case (Some(true), _) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
-      case Some(false) =>
+      case (Some(false), Some(_)) =>
+        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+      case (Some(false), _) =>
         controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
       case _ => sessionExpiredPage
     }

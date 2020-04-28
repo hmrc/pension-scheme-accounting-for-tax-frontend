@@ -903,11 +903,13 @@ confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.hint.text = You can still make amendments to this return even after youʼve submitted it.
 confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
+confirmSubmitAFTReturn.radio.legend = Do you want to continue with submission {0}?
 
 confirmSubmitAFTReturn.allCharges.table.h1 = All charges (except overseas transfer charge)
 confirmSubmitAFTReturn.overseasCharge.table.h1 = Overseas transfer charge
 confirmSubmitAFTReturn.total.for = Total for submission {0}
 confirmSubmitAFTReturn.difference.between = Difference between submissions {0} and {1}
+confirmSubmitAFTReturn.h1.caption = Submission {0} draft
 
 declaration.title = Declaration
 declaration.heading = Declaration

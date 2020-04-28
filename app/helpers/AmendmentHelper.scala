@@ -15,7 +15,12 @@
  */
 
 package helpers
+import controllers.chargeB.{routes => _}
 import models.UserAnswers
+import play.api.i18n.Messages
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
 
 class AmendmentHelper {
 
@@ -31,6 +36,34 @@ class AmendmentHelper {
     val amountNonUK = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0))
 
     (amountUK, amountNonUK)
+  }
+
+  def amendmentSummaryRows(currentTotalAmountUK: BigDecimal, previousTotalAmountNonUK: BigDecimal, currentVersion: Int, previousVersion: Int)(
+    implicit messages: Messages): Seq[Row] = {
+    val differenceAmount = currentTotalAmountUK - previousTotalAmountNonUK
+    Seq(
+      Row(
+        key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmountUK)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+        actions = Nil
+      ),
+      Row(
+        key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(currentVersion), classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmountNonUK)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+        ),
+        actions = Nil
+      ),
+      Row(
+        key = Key(msg"confirmSubmitAFTReturn.difference.between".withArgs(previousVersion, currentVersion),
+          classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+        actions = Nil
+      )
+    )
   }
 
 }
