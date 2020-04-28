@@ -24,7 +24,7 @@ import models.{AFTVersion, UserAnswers}
 import models.{AFTOverview, UserAnswers}
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsNumber, Json}
+import play.api.libs.json.{JsBoolean, JsNumber, Json}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
 import models.LocalDateBinder._
@@ -42,6 +42,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return"
   private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
+  private val getIsAftNonZeroUrl = "/pension-scheme-accounting-for-tax/get-is-aft-non-zero"
   private val aftOverview: String = "/pension-scheme-accounting-for-tax/get-aft-overview"
 
   private val validAftOverviewResponse = Json.arr(
@@ -216,6 +217,46 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
       recoverToExceptionIf[Upstream5xxResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
         response.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+  "getIsAftNonZero" must {
+    val data = Json.obj(fields = "Id" -> "value")
+    val startDate = "2020-01-01"
+    val aftVersion = "1"
+
+    "return the boolean which backend has returned with an OK" in {
+      server.stubFor(
+        get(urlEqualTo(getIsAftNonZeroUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            ok(Json.stringify(JsBoolean(true)))
+          )
+      )
+
+      connector.getIsAftNonZero(pstr, startDate, aftVersion) map { response =>
+        response mustBe true
+      }
+    }
+
+    "return BAD REQUEST when the backend has returned BadRequestException" in {
+      server.stubFor(
+        get(urlEqualTo(getIsAftNonZeroUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(startDate))
+          .withHeader("aftVersion", equalTo(aftVersion))
+          .willReturn(
+            badRequest()
+          )
+      )
+
+      recoverToExceptionIf[BadRequestException] {
+        connector.getIsAftNonZero(pstr, startDate, aftVersion)
+      } map {
+        _.responseCode mustEqual Status.BAD_REQUEST
       }
     }
   }

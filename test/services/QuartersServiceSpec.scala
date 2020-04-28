@@ -80,15 +80,17 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
   }
 
   "getInProgressQuarters" must {
-    "give all quarters which are currently in progress when one of them is locked and one is unlocked" in {
+    "give all quarters which are currently in progress when one of them is locked and one is unlocked and" +
+      "skip quarters (q1 2021) which are in their first compile and zeroed out" in {
       when(mockAftConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(inProgress))
+      when(mockAftConnector.getIsAftNonZero(any(), Matchers.eq(q12021.startDate.toString), any())(any(), any()))
+        .thenReturn(Future.successful(false))
       when(mockUserAnswersConnector.lockedBy(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
         .thenReturn(Future.successful(Some(psaName)))
       whenReady(quartersService.getInProgressQuarters(srn, pstr)) { result =>
         result mustBe Seq(
           DisplayQuarter(q32020, displayYear = true, Some(psaName), Some(LockedHint)),
-          DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint)),
-          DisplayQuarter(q12021, displayYear = true, None, Some(InProgressHint))
+          DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))
         )
       }
     }
