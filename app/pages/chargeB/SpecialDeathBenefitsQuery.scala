@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package pages.chargeA
+package pages.chargeB
 
-import models.chargeA.ChargeDetails
-import pages.QuestionPage
+import pages.Page
 import play.api.libs.json.JsPath
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
+case object SpecialDeathBenefitsQuery extends Page {
 
-  override def path: JsPath = ShortServiceRefundQuery.path \ toString
+  def path: JsPath = JsPath \ toString
+  override def toString: String = "chargeBDetails"
 
-  override def toString: String = "chargeDetails"
 }
