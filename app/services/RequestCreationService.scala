@@ -86,6 +86,7 @@ class RequestCreationService @Inject()(
       }
       OptionalDataRequest[A](request, id, psaId, optionUA, None)
     }
+
     userAnswersCacheConnector.fetch(id).flatMap { data =>
       val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
       tuple.flatMap {
