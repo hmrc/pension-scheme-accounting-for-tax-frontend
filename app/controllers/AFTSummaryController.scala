@@ -26,13 +26,14 @@ import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, Mode, NormalMode, UserAnswers}
+import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
 import models.GenericViewModel
 import models.Mode
 import models.NormalMode
 import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
+import pages.ChargeTypePage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
@@ -87,7 +88,7 @@ class AFTSummaryController @Inject()(
   private def getFormattedStartDate(date: LocalDate): String = date.format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
           getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.forall(_.isEditable))
