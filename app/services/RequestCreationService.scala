@@ -43,6 +43,7 @@ import models.requests.OptionalDataRequest
 import models.SchemeDetails
 import models.SessionData
 import models.UserAnswers
+import pages.PSANameQuery
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
@@ -79,13 +80,54 @@ class RequestCreationService @Inject()(
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
 
-    implicit val optionalDataRequest: OptionalDataRequest[A] = OptionalDataRequest[A](request, id, psaId, None, None)
-    retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
-      case (_, ua) =>
-        userAnswersCacheConnector.getSessionData(id).map { sd =>
-          newRequest(Some(ua), sd, id, psaId)
-        }
+
+    def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
+      val optionUA = optionJsValue.map { jsValue =>
+        UserAnswers(jsValue.as[JsObject])
+      }
+      OptionalDataRequest[A](request, id, psaId, optionUA, None)
     }
+
+    userAnswersCacheConnector.fetch(id).flatMap { data =>
+      val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly,
+        implicitly,
+        optionalDataRequest(data))
+
+      tuple.flatMap { hh =>
+        userAnswersCacheConnector.getSessionData(id)
+      }
+
+      tuple.flatMap {
+        case (_, ua) =>
+          userAnswersCacheConnector.getSessionData(id).map { sd =>
+            newRequest(Some(ua), sd, id, psaId)
+          }
+
+      }
+    }
+
+    //for {
+    //  data <- userAnswersCacheConnector.fetch(id)
+    //  tuple <- retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly,
+    //    implicitly,
+    //    optionalDataRequest(data))
+    //  sd <- userAnswersCacheConnector.getSessionData(id)
+    //} yield {
+    //  case (_, ua) =>
+    //    userAnswersCacheConnector.getSessionData(id).map { sd =>
+    //      newRequest(Some(ua), sd, id, psaId)
+    //    }
+    //}
+
+
+
+
+    //retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
+    //  case (_, ua) =>
+    //    userAnswersCacheConnector.getSessionData(id).map { sd =>
+    //      newRequest(Some(ua), sd, id, psaId)
+    //    }
+    //}
   }
 
   private def newRequest[A](optionUserAnswers: Option[UserAnswers], sessionData: Option[SessionData], id: String, psaId: PsaId)(
@@ -221,6 +263,8 @@ class RequestCreationService @Inject()(
             uaWithStatus
               .setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
               .setOrException(PSAEmailQuery, psaDetails.email)
+              .setOrException(PSANameQuery, psaDetails.name)
+
           }
         case Some(_) =>
           Future.successful(uaWithStatus)
