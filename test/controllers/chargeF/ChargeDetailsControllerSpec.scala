@@ -140,6 +140,10 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
+      val expectedJson = Json.obj(
+        "chargeFDetails" -> Json.obj(ChargeDetailsPage.toString -> Json.toJson(chargeFChargeDetails))
+      )
+
       when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -152,7 +156,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture, any(), any())(any(), any())
 
-      jsonCaptor.getValue must containJson(Json.obj(ChargeDetailsPage.toString -> Json.toJson(chargeFChargeDetails)))
+      jsonCaptor.getValue must containJson(expectedJson)
 
       redirectLocation(result) mustBe Some(dummyCall.url)
     }
