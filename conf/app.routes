@@ -31,8 +31,8 @@ POST        /:srn/previous-return/:year/view-quarter                            
 
 GET         /:srn/previous-return/:startDate/amend-previous                                                                             controllers.amend.ReturnHistoryController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/previous-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTAmendmentController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
-POST        /:srn/previous-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTAmendmentController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String)
+GET         /:srn/previous-return/:startDate/want-to-submit                                                      controllers.amend.ConfirmSubmitAFTAmendmentController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/previous-return/:startDate/want-to-submit                                                      controllers.amend.ConfirmSubmitAFTAmendmentController.onSubmit(srn: String, startDate: String)
 
 GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
 POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)

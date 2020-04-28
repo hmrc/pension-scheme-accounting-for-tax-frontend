@@ -38,20 +38,20 @@ class AmendmentHelper {
     (amountUK, amountNonUK)
   }
 
-  def amendmentSummaryRows(currentTotalAmountUK: BigDecimal, previousTotalAmountNonUK: BigDecimal, currentVersion: Int, previousVersion: Int)(
+  def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int)(
     implicit messages: Messages): Seq[Row] = {
-    val differenceAmount = currentTotalAmountUK - previousTotalAmountNonUK
+    val differenceAmount = previousTotalAmount - currentTotalAmount
     Seq(
       Row(
         key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmountUK)}"),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
         actions = Nil
       ),
       Row(
         key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(currentVersion), classes = Seq("govuk-!-width-three-quarters")),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmountNonUK)}"),
+          Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
         ),
         actions = Nil
@@ -65,5 +65,4 @@ class AmendmentHelper {
       )
     )
   }
-
 }

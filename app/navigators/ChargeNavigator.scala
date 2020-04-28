@@ -75,7 +75,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
       case (Some(true), _) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
       case (Some(false), Some(_)) =>
-        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+        controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)
       case (Some(false), _) =>
         controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
       case _ => sessionExpiredPage

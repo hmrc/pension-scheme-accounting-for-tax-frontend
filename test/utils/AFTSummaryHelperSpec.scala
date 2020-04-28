@@ -35,7 +35,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach with FormatHelper {
+class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
 
   private val userAnswers = UserAnswers(Json.obj()).setOrException(
     pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00)).setOrException(
@@ -52,7 +52,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
   private def createRow(chargeType: ChargeType, amount: BigDecimal, href: Option[String]) = {
     Row(
       key = Key(msg"aft.summary.${chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(amount)}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = href.map { url =>
         List(
@@ -81,7 +81,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00), Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url)),
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-          value = Value(Literal(s"${formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
+          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
@@ -103,7 +103,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         createRow(ChargeTypeLumpSumDeath, BigDecimal(0.00), None),
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-          value = Value(Literal(s"${formatCurrencyAmountAsString(BigDecimal(100.00))}"),
+          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(100.00))}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),

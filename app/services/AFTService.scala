@@ -16,7 +16,7 @@
 
 package services
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
+import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
@@ -25,7 +25,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{DataRequest, OptionalDataRequest}
-import models.{StartQuarters, SchemeDetails, UserAnswers}
+import models.{Quarters, SchemeDetails, UserAnswers}
 import pages._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -98,15 +98,14 @@ class AFTService @Inject()(
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
-println("\n\n\n schemeDetails.pstr : "+schemeDetails.pstr)
-println("\n\n\n schemeDetails : "+schemeDetails)
+
     val futureUserAnswers = optionVersion match {
       case None =>
         aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
           if (listOfVersions.isEmpty) {
             currentUserAnswers
               .setOrException(IsNewReturn, true)
-              .setOrException(QuarterPage, StartQuarters.getQuarter(startDate))
+              .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
