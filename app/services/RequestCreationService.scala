@@ -41,7 +41,6 @@ import models.SchemeStatus.statusByName
 import models.SessionAccessData
 import models.requests.OptionalDataRequest
 import models.SchemeDetails
-import models.SessionData
 import models.UserAnswers
 import pages.PSANameQuery
 import play.api.libs.json._
@@ -70,7 +69,8 @@ class RequestCreationService @Inject()(
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
-      newRequest(data.map(dd => UserAnswers(dd.as[JsObject])), sessionData, id, psaId)
+      val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
+      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData)
     }
   }
 
@@ -92,21 +92,9 @@ class RequestCreationService @Inject()(
       tuple.flatMap {
         case (_, ua) =>
           userAnswersCacheConnector.getSessionData(id).map { sd =>
-            newRequest(Some(ua), sd, id, psaId)
+            OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
           }
       }
-    }
-  }
-
-  private def newRequest[A](optionUserAnswers: Option[UserAnswers], sessionData: Option[SessionData], id: String, psaId: PsaId)(
-      implicit request: Request[A]) = {
-    (optionUserAnswers, sessionData) match {
-      case (_, None) =>
-        OptionalDataRequest[A](request, id, psaId, None, None)
-      case (None, Some(_)) =>
-        OptionalDataRequest[A](request, id, psaId, None, sessionData)
-      case (Some(_), Some(_)) =>
-        OptionalDataRequest[A](request, id, psaId, optionUserAnswers, sessionData)
     }
   }
 

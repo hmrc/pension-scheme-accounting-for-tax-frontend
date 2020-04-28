@@ -19,10 +19,10 @@ package controllers.actions
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import models.requests.DataRequest
-import models.requests.OptionalDataRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
@@ -31,7 +31,8 @@ import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
