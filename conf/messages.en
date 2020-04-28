@@ -926,6 +926,10 @@ quarters.q2.label = 1 April to 30 June
 quarters.q3.label = 1 July to 30 September
 quarters.q4.label = 1 October to 31 December
 quarters.error.required = Select the quarter of {0} you are submitting an AFT return for
+quarters.lockedBy = - locked by {0}
+quarters.hint.locked = You can view this return but you cannot make changes until it is unlocked
+quarters.hint.inProgress = Continue this return. It has already been started.
+quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Version
@@ -938,6 +942,9 @@ amendYears.error.required = Select which year you want to view
 
 amendQuarters.title = Which AFT return do you want to view?
 amendQuarters.error.required = Select which quarter you want to view
+
+continueQuarters.title = Which AFT return would you like to continue editing?
+continueQuarters.error.required = Select which AFT return you want to continue editing
 
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}

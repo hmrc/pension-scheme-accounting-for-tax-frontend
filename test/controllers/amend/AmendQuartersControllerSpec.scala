@@ -20,10 +20,9 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.amend.AmendQuartersFormProvider
+import forms.QuartersFormProvider
 import matchers.JsonMatchers
-import models.AmendQuarters._
-import models.{AmendQuarters, Enumerable, GenericViewModel, Quarters, SchemeDetails, SchemeStatus}
+import models.{DisplayQuarter, Enumerable, GenericViewModel, Quarter, Quarters, SchemeDetails, SchemeStatus}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -37,7 +36,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.SchemeService
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -48,38 +47,43 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
   implicit val config: FrontendAppConfig = mockAppConfig
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
+  private val mockQuartersService: QuartersService = mock[QuartersService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
+    bind[QuartersService].toInstance(mockQuartersService),
     bind[AFTConnector].toInstance(mockAFTConnector)
   )
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
   val templateToBeRendered = "amend/amendQuarters.njk"
   private val errorKey = "quarters.error.required"
   private val year = "2022"
-  val formProvider = new AmendQuartersFormProvider()
-  def form(quarters: Seq[Quarters]): Form[Quarters] = formProvider(errorKey, quarters)
+  val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020)
+  val displayQuarters: Seq[DisplayQuarter] = Seq(displayQuarterLocked, displayQuarterContinueAmend, displayQuarterViewPast)
+
+  val formProvider = new QuartersFormProvider()
+  def form(quarters: Seq[Quarter]): Form[Quarter] = formProvider(errorKey, quarters)
 
   lazy val httpPathGET: String = controllers.amend.routes.AmendQuartersController.onPageLoad(srn, year).url
   lazy val httpPathPOST: String = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url
 
-  private def jsonToPassToTemplate(quarters: Seq[Quarters]): Form[Quarters] => JsObject = form => Json.obj(
+  private def jsonToPassToTemplate(quarters: Seq[DisplayQuarter]): Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> AmendQuarters.radios(form, quarters),
+    "radios" -> Quarters.radios(form, quarters),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.amend.routes.AmendQuartersController.onSubmit(srn, year).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName)
   )
 
-  private val quarters = Seq(Q1)
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("q1"))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q22020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAFTConnector.getAftOverview(any())(any(), any()))
-      .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
+      .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
+    when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
@@ -100,11 +104,11 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
-      jsonCaptor.getValue must containJson(jsonToPassToTemplate(quarters).apply(form(quarters)))
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate(displayQuarters).apply(form(quarters)))
     }
 
-    "redirect to session expired page when there is no data returned from overview api for a GET" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+    "redirect to session expired page when quarters service returns an empty list" in {
+      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpGETRequest(httpPathGET)).value
 
       status(result) mustEqual SEE_OTHER
@@ -117,7 +121,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2022-01-01").url)
+      redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, q22020.startDate.toString).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
@@ -129,8 +133,8 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
 
-    "redirect to session expired page when there is no data returned from overview api for a POST" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Nil))
+    "redirect to session expired page when there quarters service returns an empty list for a POST" in {
+      when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(Nil))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER

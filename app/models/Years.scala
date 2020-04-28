@@ -52,6 +52,8 @@ trait CommonYears extends Enumerable.Implicits {
       config.minimumYear
     }
   }
+
+  def startYears(implicit config: FrontendAppConfig): Seq[Int] = (minYear to currentYear).reverse
 }
 
 object StartYears extends CommonYears with Enumerable.Implicits {

@@ -16,7 +16,7 @@
 
 package pages
 
-import models.{Quarter, StartQuarters}
+import models.Quarter
 import play.api.libs.json.JsPath
 
 case object QuarterPage extends QuestionPage[Quarter] {
