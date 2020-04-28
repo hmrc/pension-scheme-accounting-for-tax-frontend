@@ -80,54 +80,21 @@ class RequestCreationService @Inject()(
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
 
-
     def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
       OptionalDataRequest[A](request, id, psaId, optionUA, None)
     }
-
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly,
-        implicitly,
-        optionalDataRequest(data))
-
-      tuple.flatMap { hh =>
-        userAnswersCacheConnector.getSessionData(id)
-      }
-
+      val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
       tuple.flatMap {
         case (_, ua) =>
           userAnswersCacheConnector.getSessionData(id).map { sd =>
             newRequest(Some(ua), sd, id, psaId)
           }
-
       }
     }
-
-    //for {
-    //  data <- userAnswersCacheConnector.fetch(id)
-    //  tuple <- retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly,
-    //    implicitly,
-    //    optionalDataRequest(data))
-    //  sd <- userAnswersCacheConnector.getSessionData(id)
-    //} yield {
-    //  case (_, ua) =>
-    //    userAnswersCacheConnector.getSessionData(id).map { sd =>
-    //      newRequest(Some(ua), sd, id, psaId)
-    //    }
-    //}
-
-
-
-
-    //retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
-    //  case (_, ua) =>
-    //    userAnswersCacheConnector.getSessionData(id).map { sd =>
-    //      newRequest(Some(ua), sd, id, psaId)
-    //    }
-    //}
   }
 
   private def newRequest[A](optionUserAnswers: Option[UserAnswers], sessionData: Option[SessionData], id: String, psaId: PsaId)(
