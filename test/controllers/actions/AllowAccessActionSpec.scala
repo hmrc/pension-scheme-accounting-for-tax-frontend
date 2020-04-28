@@ -39,7 +39,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   class TestHarness(
                      srn: String
-                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService) {
+                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService, None) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
