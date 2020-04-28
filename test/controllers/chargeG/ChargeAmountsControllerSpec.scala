@@ -22,16 +22,25 @@ import data.SampleData._
 import forms.chargeG.ChargeAmountsFormProvider
 import matchers.JsonMatchers
 import models.chargeG.ChargeAmounts
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import pages.IsNewReturn
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
+import pages.chargeG.ChargeAmountsPage
+import pages.chargeG.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{redirectLocation, route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.redirectLocation
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -153,8 +162,9 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
 
-    "return a BAD REQUEST when zero amount is submitted and the new return flag is set" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData.setOrException(IsNewReturn, true)))
+    "return a BAD REQUEST when zero amount is submitted and in precompile mode" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataPreCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesZero)).value
 

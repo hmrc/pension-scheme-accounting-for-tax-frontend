@@ -65,16 +65,12 @@ class RequestCreationService @Inject()(
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
-    val ff = for {
+    for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       newRequest(data.map(dd => UserAnswers(dd.as[JsObject])), sessionData, id, psaId)
     }
-    ff.foreach { pp =>
-      println("\n\n>>>CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
-    }
-    ff
   }
 
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
@@ -84,16 +80,12 @@ class RequestCreationService @Inject()(
     val id = s"$srn$startDate"
 
     implicit val optionalDataRequest: OptionalDataRequest[A] = OptionalDataRequest[A](request, id, psaId, None, None)
-    val ff = retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
+    retrieveAFTRequiredDetails(srn, startDate, optionVersion) flatMap {
       case (_, ua) =>
         userAnswersCacheConnector.getSessionData(id).map { sd =>
           newRequest(Some(ua), sd, id, psaId)
         }
     }
-    ff.foreach { pp =>
-      println("\n\n>>> RETRIEVE AND CREATE REQUEST CREATES SESSION DATA:-" + pp.sessionData)
-    }
-    ff
   }
 
   private def newRequest[A](optionUserAnswers: Option[UserAnswers], sessionData: Option[SessionData], id: String, psaId: PsaId)(
@@ -175,7 +167,6 @@ class RequestCreationService @Inject()(
   private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
     val endDate: LocalDate = StartQuarters.getQuarter(startDate).endDate
     if (isOverviewApiDisabled) {
-      println("\nCalling get versions for quarter starting " + startDate + " and ending " + endDate)
       aftConnector
         .getListOfVersions(pstr, startDate)
         .map { aftVersion =>
@@ -184,7 +175,7 @@ class RequestCreationService @Inject()(
               periodStartDate = startDate,
               periodEndDate = endDate,
               numberOfVersions = 1,
-              submittedVersionAvailable = false, // TODO: Any way to determine whether have submitted before 1st July?
+              submittedVersionAvailable = false,
               compiledVersionAvailable = true
             )
           }

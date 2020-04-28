@@ -136,8 +136,10 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
       verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
     }
 
-    "return a BAD REQUEST when zero amounts are submitted where new return flag is set" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.setOrException(IsNewReturn, true)))
+    "return a BAD REQUEST when zero amounts are submitted where in precompile mode" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataPreCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 
