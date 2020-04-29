@@ -40,10 +40,9 @@ import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -52,6 +51,7 @@ import scala.concurrent.Future
 
 class SponsoringEmployerAddressResultsController @Inject()(override val messagesApi: MessagesApi,
                                                            userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                           userAnswersService: UserAnswersService,
                                                            navigator: CompoundNavigator,
                                                            identify: IdentifierAction,
                                                            getData: DataRetrievalAction,
@@ -86,7 +86,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               case Some(addresses) =>
                 for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value))))
+                  updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value)), mode))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                 } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate))
             }
@@ -115,7 +115,8 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
     }
   }
 
-  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status)(implicit request: DataRequest[AnyContent]) = {
+  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status
+                         )(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
         case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

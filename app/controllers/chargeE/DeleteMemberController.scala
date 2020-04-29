@@ -30,17 +30,19 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, UserAnswersService}
 import helpers.ChargeEHelper.getAnnualAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
+
 import models.LocalDateBinder._
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                       userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
@@ -118,7 +120,8 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                       pstr =>
                         for {
                           interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
-                          updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
+                          updatedAnswers <- Future.fromTry(userAnswersService
+                            .set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate), interimAnswers))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))

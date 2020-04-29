@@ -27,13 +27,13 @@ import javax.inject.Inject
 import models.GenericViewModel
 import models.LocalDateBinder._
 import navigators.CompoundNavigator
-import pages.chargeF.{ChargeDetailsPage, DeregistrationQuery}
+import pages.chargeF.DeregistrationQuery
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -41,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                       userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
@@ -113,7 +114,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                     DataRetrievals.retrievePSTR {
                       pstr =>
                         for {
-                          updatedAnswers <- Future.fromTry(request.userAnswers.remove(DeregistrationQuery))
+                          updatedAnswers <- Future.fromTry(userAnswersService.remove(DeregistrationQuery))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))

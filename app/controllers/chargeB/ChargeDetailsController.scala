@@ -16,38 +16,33 @@
 
 package controllers.chargeB
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeB.ChargeDetailsFormProvider
 import javax.inject.Inject
+import models.LocalDateBinder._
+import models.{GenericViewModel, Mode}
 import models.chargeB.ChargeBDetails
-import models.GenericViewModel
-import models.Mode
 import navigators.CompoundNavigator
 import pages.chargeB.ChargeBDetailsPage
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import java.time.LocalDate
-
-import models.LocalDateBinder._
-import models.SessionData
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        userAnswersService: UserAnswersService,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
@@ -113,7 +108,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeBDetailsPage, value))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeBDetailsPage, value, mode, isMemberBased = false))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
           )

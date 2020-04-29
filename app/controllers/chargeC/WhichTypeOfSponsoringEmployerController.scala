@@ -33,6 +33,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Radios.Item
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -41,6 +42,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi: MessagesApi,
                                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                        userAnswersService: UserAnswersService,
                                                         navigator: CompoundNavigator,
                                                         identify: IdentifierAction,
                                                         getData: DataRetrievalAction,
@@ -106,7 +108,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(WhichTypeOfSponsoringEmployerPage(index), value))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(WhichTypeOfSponsoringEmployerPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate))
           )

@@ -23,25 +23,27 @@ import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
 import javax.inject.Inject
 import models.chargeG.ChargeAmounts
-import models.{Mode, GenericViewModel, UserAnswers, Index}
+import models.{GenericViewModel, Index, Mode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
+import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
 
 import models.LocalDateBinder._
 import models.SessionData
+import services.UserAnswersService
 
 class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        userAnswersService: UserAnswersService,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
@@ -114,7 +116,7 @@ class ChargeAmountsController @Inject()(override val messagesApi: MessagesApi,
             },
             value => {
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeAmountsPage(index), value))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeAmountsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeAmountsPage(index), mode, updatedAnswers, srn, startDate))
             }

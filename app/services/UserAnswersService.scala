@@ -26,31 +26,56 @@ import scala.util.Try
 
 class UserAnswersService {
 
+  /* Use this set for add/change journeys for a member or scheme based charge */
   def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true
+            )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
+    val status: String = if(mode == NormalMode) "New" else "Changed"
+    set(page, value, status, isMemberBased, request.userAnswers)
+  }
+
+  /* Use this set for deleting a member based charge */
+  def set[A](page: QuestionPage[A], value: A, userAnswers: UserAnswers
+                       )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
+
+    set(page, value, "Deleted", isMemberBased = true, userAnswers)
+  }
+
+  private def set[A](page: QuestionPage[A], value: A, status: String, isMemberBased: Boolean, userAnswers: UserAnswers
              )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
 
-        if(request.sessionData.sessionAccessData.version > 1) {
-          if(isMemberBased) {
+        if(request.sessionData.sessionAccessData.version > 1) { //this IS an amendment
+          if(isMemberBased) { //charge C, D, E or G
             val amendedVersionPath = JsPath(page.path.path.take(1) ++ List(KeyPathNode("amendedVersion")))
             val memberVersionPath = JsPath(page.path.path.init ++ List(KeyPathNode("memberAFTVersion")))
             val memberStatusPath = JsPath(page.path.path.init ++ List(KeyPathNode("memberStatus")))
-            val status = JsString(if(mode == NormalMode) "New" else "Changed")
 
-            request.userAnswers.set(page, value)
+
+            userAnswers.set(page, value)
               .flatMap(_.set(amendedVersionPath, JsNull))
               .flatMap(_.set(memberVersionPath, JsNull))
-              .flatMap(_.set(memberStatusPath, status))
+              .flatMap(_.set(memberStatusPath, JsString(status)))
 
-          } else {
+          } else { //charge A, B or F
             val amendedVersionPath = JsPath(page.path.path.init ++ List(KeyPathNode("amendedVersion")))
-            request.userAnswers.set(page, value).flatMap(_.set(amendedVersionPath, JsNull))
+            userAnswers.set(page, value)
+              .flatMap(_.set(amendedVersionPath, JsNull))
           }
-
-
-        } else {
-          request.userAnswers.set(page, value)
+        } else { //this is NOT an amendment
+          userAnswers.set(page, value)
         }
 
+  }
+
+
+  def remove[A](page: QuestionPage[A]
+               )(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
+    if(request.sessionData.sessionAccessData.version > 1) { //this IS an amendment
+      val amendedVersionPath = JsPath(page.path.path.init ++ List(KeyPathNode("amendedVersion")))
+        request.userAnswers.remove(page) //todo - this will change to zero-out call in PODS-4201
+          .flatMap(_.set(amendedVersionPath, JsNull))
+    } else { //this is NOT an amendment
+      request.userAnswers.remove(page)
+    }
   }
 
 }
