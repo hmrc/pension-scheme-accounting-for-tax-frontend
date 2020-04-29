@@ -26,12 +26,10 @@ import scala.util.Try
 
 class UserAnswersService {
 
-  def save[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true
+  def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true
              )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
-    request.sessionData match {
-      case Some(sessionData) =>
 
-        if(sessionData.sessionAccessData.version > 1) {
+        if(request.sessionData.sessionAccessData.version > 1) {
           if(isMemberBased) {
             val amendedVersionPath = JsPath(page.path.path.take(1) ++ List(KeyPathNode("amendedVersion")))
             val memberVersionPath = JsPath(page.path.path.init ++ List(KeyPathNode("memberAFTVersion")))
@@ -53,8 +51,6 @@ class UserAnswersService {
           request.userAnswers.set(page, value)
         }
 
-      case _ => request.userAnswers.set(page, value)
-    }
   }
 
 }
