@@ -66,7 +66,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -93,7 +93,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

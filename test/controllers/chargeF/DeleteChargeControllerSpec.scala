@@ -60,7 +60,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
     schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter

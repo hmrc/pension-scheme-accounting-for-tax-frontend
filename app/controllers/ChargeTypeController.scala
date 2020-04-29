@@ -115,7 +115,7 @@ class ChargeTypeController @Inject()(
   private def viewModel(schemeName: String, srn: String, startDate: LocalDate): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName
     )
   }

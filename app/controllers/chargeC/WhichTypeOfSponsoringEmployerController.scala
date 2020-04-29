@@ -66,7 +66,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
 
         val viewModel = GenericViewModel(
           submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -92,7 +92,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

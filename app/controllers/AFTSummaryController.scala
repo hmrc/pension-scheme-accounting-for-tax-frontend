@@ -148,7 +148,7 @@ class AFTSummaryController @Inject()(
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, version).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName
     )
   }

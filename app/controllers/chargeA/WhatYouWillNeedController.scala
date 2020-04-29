@@ -34,6 +34,7 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -57,7 +58,8 @@ class WhatYouWillNeedController @Inject()(
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
-      val viewModel = GenericViewModel(submitUrl = "", returnUrl = config.managePensionsSchemeSummaryUrl.format(srn), schemeName = schemeName)
+      val viewModel = GenericViewModel(submitUrl = "",
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url, schemeName = schemeName)
 
       renderer
         .render(

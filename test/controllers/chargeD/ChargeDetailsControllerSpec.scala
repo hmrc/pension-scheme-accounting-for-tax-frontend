@@ -42,13 +42,13 @@ import play.api.test.Helpers.route
 import play.api.test.Helpers.status
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import models.LocalDateBinder._
 import uk.gov.hmrc.viewmodels.DateInput
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
-import scala.concurrent.Future
-import models.LocalDateBinder._
 import utils.AFTConstants.QUARTER_END_DATE
 import utils.AFTConstants.QUARTER_START_DATE
+
+import scala.concurrent.Future
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -87,7 +87,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("dateOfEvent")),
     "memberName" -> "first last"

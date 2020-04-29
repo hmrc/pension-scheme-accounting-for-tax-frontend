@@ -65,7 +65,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
               submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               schemeName = schemeName
             )
 
@@ -96,7 +96,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                   val viewModel = GenericViewModel(
                     submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
-                    returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                     schemeName = schemeName
                   )
 

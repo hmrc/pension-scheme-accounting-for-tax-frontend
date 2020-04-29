@@ -65,7 +65,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 

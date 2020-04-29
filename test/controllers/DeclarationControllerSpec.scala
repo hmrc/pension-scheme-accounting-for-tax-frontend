@@ -158,8 +158,8 @@ object DeclarationControllerSpec {
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-                                             returnUrl = dummyCall.url,
-                                             schemeName = schemeName)
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      schemeName = schemeName)
   )
   private val amendAftReturnTemplateIdId = "pods_aft_amended_return"
   private val fileAFTReturnTemplateId = "pods_file_aft_return"

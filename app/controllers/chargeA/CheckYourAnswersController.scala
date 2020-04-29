@@ -77,7 +77,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               "list" -> helper.rows(request.sessionData.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeA",
