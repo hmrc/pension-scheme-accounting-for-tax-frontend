@@ -71,7 +71,7 @@ class RequestCreationService @Inject()(
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData)
+      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(throw new RuntimeException("No session data found")))
     }
   }
 
@@ -83,7 +83,7 @@ class RequestCreationService @Inject()(
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
 
-    def optionalDataRequest(optionJsValue: Option[JsValue]): OptionalDataRequest[A] = {
+    def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
@@ -94,8 +94,9 @@ class RequestCreationService @Inject()(
       val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
       tuple.flatMap {
         case (_, ua) =>
-          userAnswersCacheConnector.getSessionData(id).map { sd =>
-            OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
+          userAnswersCacheConnector.getSessionData(id).map {
+            case Some(sd) => OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
+            case _ => throw new RuntimeException("No session data found")
           }
       }
     }
