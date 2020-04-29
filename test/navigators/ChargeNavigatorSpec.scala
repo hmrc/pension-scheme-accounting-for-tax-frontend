@@ -37,6 +37,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
   private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
   private def aftSummaryNo: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, false).toOption
+  private def aftSummaryNoForAmendment: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, false).flatMap(_.set(VersionNumberQuery, value = 3)).toOption
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -55,11 +56,13 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate), aftSummaryNo),
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes),
+        row(AFTSummaryPage)(controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate), aftSummaryNoForAmendment),
         row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
+        row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
   }
 }
