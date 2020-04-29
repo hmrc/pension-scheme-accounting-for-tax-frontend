@@ -62,6 +62,22 @@ final case class UserAnswers(
     }
   }
 
+  def set(path: JsPath, value: JsValue): Try[UserAnswers] = {
+
+    val updatedData = data.setObject(path, Json.toJson(value)) match {
+      case JsSuccess(jsValue, _) =>
+        Success(jsValue)
+      case JsError(errors) =>
+        Failure(JsResultException(errors))
+    }
+
+    updatedData.flatMap {
+      d =>
+        val updatedAnswers = copy(data = d)
+        Success(updatedAnswers)
+    }
+  }
+
   def setOrException[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): UserAnswers = {
     set(page, value) match {
       case Success(ua) => ua
