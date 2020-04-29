@@ -27,11 +27,12 @@ import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeF.ChargeDetailsPage
 import pages.chargeD.MemberDetailsPage
+import pages.chargeF.DeregistrationQuery
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -43,7 +44,9 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers
+  with OptionValues with TryValues with ScalaFutures {
+
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val application: Application =
@@ -113,9 +116,11 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA: UserAnswers = answers.removeWithPath(ChargeDetailsPage.path)
+      val expectedUAFuture = Future.fromTry(answers.remove(DeregistrationQuery))
 
-      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
+      whenReady(expectedUAFuture) { answers =>
+        verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(answers))(any(), any())
+      }
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {

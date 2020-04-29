@@ -27,7 +27,7 @@ import javax.inject.Inject
 import models.GenericViewModel
 import models.LocalDateBinder._
 import navigators.CompoundNavigator
-import pages.chargeF.ChargeDetailsPage
+import pages.chargeF.{ChargeDetailsPage, DeregistrationQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -112,8 +112,8 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                   if (value) {
                     DataRetrievals.retrievePSTR {
                       pstr =>
-                        val updatedAnswers = request.userAnswers.removeWithPath(ChargeDetailsPage.path)
                         for {
+                          updatedAnswers <- Future.fromTry(request.userAnswers.remove(DeregistrationQuery))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
