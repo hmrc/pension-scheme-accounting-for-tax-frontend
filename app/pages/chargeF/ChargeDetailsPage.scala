@@ -24,5 +24,5 @@ case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
 
   override def path: JsPath = DeregistrationQuery.path \ toString
 
-  override def toString: String = "chargeFDetails"
+  override def toString: String = "chargeDetails"
 }
