@@ -201,13 +201,13 @@ class RequestCreationService @Inject()(
 
     val futureUserAnswers = optionVersion match {
       case None =>
-        aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
+        Future.successful(
             currentUserAnswers
               .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
-        }
+        )
       case Some(version) =>
         getAFTDetails(schemeDetails.pstr, startDate, version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
