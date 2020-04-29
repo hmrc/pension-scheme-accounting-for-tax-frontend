@@ -63,24 +63,20 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
-
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
+
   private val psaIdInstance = PsaId(psaId)
 
-  private val sessionId = "???"
+  private val sessionId = "session id"
   private val internalId = s"$srn$startDate"
 
-  private val jsObject = Json.obj("one" -> "two")
-  private val optionUA = Some(UserAnswers(jsObject))
   private val nameLockedBy = None
   private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile)
-  private val sessionAccessDataViewOnly = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly)
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
-  private val sdViewOnly = SessionData(sessionId, nameLockedBy, sessionAccessDataViewOnly)
 
   private val emptyUserAnswers = UserAnswers()
 
@@ -88,16 +84,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
   private val request: OptionalDataRequest[AnyContentAsEmpty.type] =
     OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
-
-  private def optionalDataRequest(viewOnly: Boolean): OptionalDataRequest[_] = OptionalDataRequest(
-    fakeRequest,
-    "",
-    psaIdInstance,
-    Some(UserAnswers()),
-    if (viewOnly) sd else sd
-  )
-
-  private val optionVersion = Some("1")
 
   private val schemeStatus = "Open"
 
@@ -120,27 +106,67 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockedBy(any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-01")
-    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(jsObject))
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
-
   }
 
   "createRequest" must {
-    //"create a request with user answers and session data" in {
-    //  whenReady(requestCreationService.createRequest(psaIdInstance, srn, startDate)(request, implicitly, implicitly)) { result =>
-    //    val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, optionUA, sd)
-    //    result mustBe expectedResult
-    //  }
-    //}
+    "create a request with user answers and session data" in {
+      val result = Await.result(
+        requestCreationService.createRequest(psaIdInstance, srn, startDate)(request, implicitly, implicitly),
+        Duration.Inf
+      )
+
+      val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, Some(userAnswersWithSchemeName), sd)
+      result mustBe expectedResult
+    }
   }
 
   "retrieveAndCreateRequest" when {
-    "no version is given and there are no versions in AFT and suspended flag is in user answers" must {
+
+
+    "requested version is less than latest and date is after 1st July" must {
+      "NOT save with a lock and create session access data with viewonly page access mode" in {
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        verify(mockUserAnswersCacheConnector, times(1))
+          .save(any(),
+            any(),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
+            Matchers.eq(false))(any(), any())
+      }
+    }
+  }
+
+  private def ook = {
+    "no version is given and there are no versions in AFT and suspended flag is in user answers and date is before 1st July" must {
       "NOT call get AFT details and " +
         "NOT retrieve the suspended flag from DES and " +
         "retrieve and the quarter, status, scheme name and pstr and " +
-        "save all of these with a lock" in {
+        "save all of these with a lock  and create session access data with pre-compile page access mode" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
 
         Await.result(
@@ -161,15 +187,20 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           .setOrException(SchemeStatusQuery, Open)
           .setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(), Matchers.eq(expectedUAAfterSave.data), any(), Matchers.eq(true))(any(), any())
+          .save(
+            any(),
+            Matchers.eq(expectedUAAfterSave.data),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModePreCompile))),
+            Matchers.eq(true)
+          )(any(), any())
       }
     }
 
-    "no version is given and there are ARE versions in AFT and suspended flag is not in user answers" must {
+    "no version is given and there are ARE versions in AFT and suspended flag is not in user answers and date is before 1st July" must {
       "NOT call get AFT details and " +
         "retrieve the suspended flag from DES and " +
         "retrieve scheme name and pstr and " +
-        "save all of these with a lock" in {
+        "save all of these with a lock and create session access data with compile page access mode" in {
 
         when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(seqAFTVersion))
 
@@ -192,15 +223,20 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           .setOrException(PSANameQuery, value = psaName)
           .setOrException(SchemeStatusQuery, Open)
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(), Matchers.eq(expectedUAAfterSave.data), any(), Matchers.eq(true))(any(), any())
+          .save(
+            any(),
+            Matchers.eq(expectedUAAfterSave.data),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile))),
+            Matchers.eq(true)
+          )(any(), any())
       }
     }
 
-    "a version is given and there are no versions in AFT and suspended flag is in user answers" must {
+    "a version is given and there are no versions in AFT and suspended flag is in user answers and date is before 1st July" must {
       "call get AFT details and " +
         "retrieve the suspended flag from DES and " +
         "NOT retrieve the quarter, status, scheme name or pstr (since these are retrieved by get aft details) and " +
-        "save with a lock" in {
+        "save with a lock and create session access data with pre-compile page access mode" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 4, 1)))
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
         Await.result(
@@ -220,12 +256,17 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           .setOrException(SchemeStatusQuery, Open)
 
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(), Matchers.eq(expectedUAAfterSave.data), any(), Matchers.eq(true))(any(), any())
+          .save(
+            any(),
+            Matchers.eq(expectedUAAfterSave.data),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModePreCompile))),
+            Matchers.eq(true)
+          )(any(), any())
       }
     }
 
-    "user is suspended" must {
-      "NOT save with a lock" in {
+    "user is suspended and date is before 1st July" must {
+      "NOT save with a lock and create session access data with viewonly page access mode" in {
         when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
           .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = true, None, None)))
         when(mockAftConnector.getListOfVersions(any(), any())(any(), any()))
@@ -237,12 +278,16 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           Duration.Inf
         )
 
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), Matchers.eq(false))(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).save(
+          any(),
+          any(),
+          Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
+          Matchers.eq(false))(any(), any())
       }
     }
 
-    "aft return is locked to another user" must {
-      "NOT save with a lock" in {
+    "aft return is locked to another user and date is before 1st July" must {
+      "NOT save with a lock and create session access data with viewonly page access mode" in {
         when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
           .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
         when(mockAftConnector.getListOfVersions(any(), any())(any(), any()))
@@ -255,44 +300,18 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           Duration.Inf
         )
 
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), Matchers.eq(false))(any(), any())
-      }
-    }
-
-    "requested version is less than latest and date is after 1st July" must {
-      "NOT save with a lock but create session access data with viewonly" in {
-        val multipleVersions = Seq[AFTOverview](
-          AFTOverview(
-            periodStartDate = LocalDate.of(2020, 4, 1),
-            periodEndDate = LocalDate.of(2020, 6, 28),
-            numberOfVersions = 2,
-            submittedVersionAvailable = true,
-            compiledVersionAvailable = true
-          )
-        )
-
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(multipleVersions))
-
-        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
-
-        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
-
-        Await.result(
-          requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
-          Duration.Inf
-        )
-
-        val sessionAccessData = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly)
-
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(), any(), Matchers.eq(Option(sessionAccessData)), Matchers.eq(false))(any(), any())
+          .save(any(),
+            any(),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
+            Matchers.eq(false))(any(), any())
       }
     }
 
-    "requested version is latest and date is after 1st July" must {
-      "NOT save with a lock but create session access data with compile" in {
+
+
+    "requested version is latest and date is after 1st July and compiled version is available" must {
+      "save with a lock and create session access data with compile page access mode" in {
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(
             periodStartDate = LocalDate.of(2020, 4, 1),
@@ -306,7 +325,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
-        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
 
@@ -316,11 +336,47 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           Duration.Inf
         )
 
-        val sessionAccessData = SessionAccessData(version = 2, accessMode = AccessMode.PageAccessModeCompile)
-
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(), any(), Matchers.eq(Option(sessionAccessData)), Matchers.eq(true))(any(), any())
+          .save(any(), any(), Matchers.eq(Option(SessionAccessData(version = 2, accessMode = AccessMode.PageAccessModeCompile))), Matchers.eq(true))(
+            any(),
+            any())
       }
     }
+
+    "requested version is latest and date is after 1st July and no compiled version is available" must {
+      "save with a lock and create session access data with pre-compile page access mode" in {
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 1,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = false
+          )
+        )
+
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        verify(mockUserAnswersCacheConnector, times(1))
+          .save(any(),
+            any(),
+            Matchers.eq(Option(SessionAccessData(version = 2, accessMode = AccessMode.PageAccessModePreCompile))),
+            Matchers.eq(true))(any(), any())
+      }
+
+    }
   }
+
 }

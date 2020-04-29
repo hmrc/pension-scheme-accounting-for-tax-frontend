@@ -144,7 +144,6 @@ class RequestCreationService @Inject()(
                 seqAFTOverview: Seq[AFTOverview])(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
       val sad: SessionAccessData =
         createSessionAccessData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
-println( "\n>>>ABOUT TO SAVE:" + ua.data)
       userAnswersCacheConnector
         .save(
           request.internalId,
