@@ -91,7 +91,9 @@ class RequestCreationService @Inject()(
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
+
       val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
+
       tuple.flatMap {
         case (_, ua) =>
           userAnswersCacheConnector.getSessionData(id).map {
@@ -142,7 +144,7 @@ class RequestCreationService @Inject()(
                 seqAFTOverview: Seq[AFTOverview])(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
       val sad: SessionAccessData =
         createSessionAccessData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
-
+println( "\n>>>ABOUT TO SAVE:" + ua.data)
       userAnswersCacheConnector
         .save(
           request.internalId,
@@ -195,6 +197,7 @@ class RequestCreationService @Inject()(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
+
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
     val futureUserAnswers = optionVersion match {
@@ -217,6 +220,7 @@ class RequestCreationService @Inject()(
 
     futureUserAnswers.flatMap { ua =>
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
+
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
