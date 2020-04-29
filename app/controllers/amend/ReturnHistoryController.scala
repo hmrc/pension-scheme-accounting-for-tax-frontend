@@ -21,40 +21,42 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import controllers.actions.{AllowAccessActionProvider, DataRetrievalAction, IdentifierAction}
+import controllers.actions.DataUpdateAction
+import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction}
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTVersion, Quarters}
+import models.{Quarters, AFTVersion}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import play.api.mvc.{Call, AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
 import scala.concurrent.ExecutionContext
 
 class ReturnHistoryController @Inject()(
-                                        schemeService: SchemeService,
-                                        aftConnector: AFTConnector,
-                                        override val messagesApi: MessagesApi,
-                                        identify: IdentifierAction,
-                                        getData: DataRetrievalAction,
-                                        allowAccess: AllowAccessActionProvider,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        renderer: Renderer,
-                                        config: FrontendAppConfig
+                                         schemeService: SchemeService,
+                                         aftConnector: AFTConnector,
+                                         override val messagesApi: MessagesApi,
+                                         identify: IdentifierAction,
+                                         getData: DataRetrievalAction,
+                                         updateData: DataUpdateAction,
+                                         allowAccess: AllowAccessActionProvider,
+                                         val controllerComponents: MessagesControllerComponents,
+                                         renderer: Renderer,
+                                         config: FrontendAppConfig
                                     )(implicit ec: ExecutionContext)
                                         extends FrontendBaseController
                                         with I18nSupport
                                         with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen updateData(srn, startDate, None)).async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
         def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
