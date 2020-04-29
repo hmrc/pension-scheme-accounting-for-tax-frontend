@@ -41,6 +41,7 @@ import models.SchemeStatus.statusByName
 import models.SessionAccessData
 import models.requests.OptionalDataRequest
 import models.SchemeDetails
+import models.SessionData
 import models.UserAnswers
 import pages.PSANameQuery
 import play.api.libs.json._
@@ -74,17 +75,19 @@ class RequestCreationService @Inject()(
     }
   }
 
+  def emptySessionData = SessionData("", None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
+
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
 
-    def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
+    def optionalDataRequest(optionJsValue: Option[JsValue]): OptionalDataRequest[A] = {
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
-      OptionalDataRequest[A](request, id, psaId, optionUA, None)
+      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData)
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
@@ -111,7 +114,7 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def createSessionData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+  private def createSessionAccessData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
     val optionVersionAsInt = optionVersion.map(_.toInt)
 
@@ -136,15 +139,15 @@ class RequestCreationService @Inject()(
       ec: ExecutionContext): Future[UserAnswers] = {
     def saveAll(optionLockedBy: Option[String],
                 seqAFTOverview: Seq[AFTOverview])(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-      val sd: SessionAccessData =
-        createSessionData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
+      val sad: SessionAccessData =
+        createSessionAccessData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
 
       userAnswersCacheConnector
         .save(
           request.internalId,
           ua.data,
-          optionSessionData = Some(sd),
-          lockReturn = sd.accessMode != AccessMode.PageAccessModeViewOnly
+          optionSessionData = Some(sad),
+          lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly
         )
     }
 

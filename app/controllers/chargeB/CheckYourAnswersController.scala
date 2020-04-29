@@ -64,7 +64,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             Json.obj(
               "srn" -> srn,
               "startDate" -> Some(startDate),
-              "list" -> helper.rows(request.sessionData.forall(_.isViewOnly), seqRows),
+              "list" -> helper.rows(request.sessionData.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
@@ -72,7 +72,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               ),
               "chargeName" -> "chargeB",
               "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
-              "canChange" -> !request.sessionData.forall(_.isViewOnly)
+              "canChange" -> !request.sessionData.isViewOnly
             )
           )
           .map(Ok(_))

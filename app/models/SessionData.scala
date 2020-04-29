@@ -29,6 +29,14 @@ case class SessionData(sessionId: String, name: Option[String], sessionAccessDat
   def isViewOnly = sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isEditable = !isViewOnly
   def isLocked = name.isDefined
+
+  def deriveMinimumChargeValueAllowed: BigDecimal = {
+    (sessionAccessData.accessMode, sessionAccessData.version) match {
+      case (AccessMode.PageAccessModePreCompile, 1) => BigDecimal("0.01")
+      case _                                        => BigDecimal("0.00")
+    }
+  }
+
 }
 
 object SessionData {
@@ -45,11 +53,4 @@ object SessionData {
       (JsPath \ "accessMode").read[AccessMode])(
       (sessionId, optionName, version, accessMode) => SessionData(sessionId, optionName, SessionAccessData(version, accessMode))
     )
-
-  def deriveMinimumChargeValueAllowed(optionSessionData: Option[SessionData]): BigDecimal = {
-    optionSessionData.map(osd => Tuple2(osd.sessionAccessData.accessMode, osd.sessionAccessData.version)) match {
-      case Some(Tuple2(AccessMode.PageAccessModePreCompile, 1)) => BigDecimal("0.01")
-      case _                                                    => BigDecimal("0.00")
-    }
-  }
 }

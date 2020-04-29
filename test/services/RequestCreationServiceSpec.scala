@@ -63,7 +63,7 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
   private val optionUA = Some(UserAnswers(jsObject))
   private val name = None
   private val sessionAccessData = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly)
-  private val optionSD = Some(SessionData(sessionId, name, sessionAccessData))
+  private val sd = SessionData(sessionId, name, sessionAccessData)
 
   private val optionVersion = Some("1")
 
@@ -76,7 +76,7 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
     when(mockUserAnswersCacheConnector.fetch(any())(any(),any())).thenReturn(Future.successful(Some(jsObject)))
-    when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(optionSD))
+    when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(Some(sd)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-01")
   }
@@ -84,7 +84,7 @@ class RequestCreationServiceSpec extends SpecBase  with MustMatchers with Mockit
   "createRequest" must {
     "create a request with user answers and session data" in {
       whenReady(requestCreationService.createRequest[AnyContent](psaIdInstance, srn, startDate)) { result =>
-        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, optionSD)
+        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, sd)
         result mustBe expectedResult
       }
     }

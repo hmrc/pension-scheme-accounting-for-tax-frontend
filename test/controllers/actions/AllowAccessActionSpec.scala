@@ -54,7 +54,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
           .set(IsPsaSuspendedQuery, value = false).toOption.get
 
-      val dataRequest = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, Some(SampleData.sessionData()))
+      val dataRequest = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, SampleData.sessionData())
 
       val testHarness = new TestHarness(srn = SampleData.srn)
       whenReady(testHarness.test(dataRequest)) { result =>

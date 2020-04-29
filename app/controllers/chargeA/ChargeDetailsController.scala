@@ -77,7 +77,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
-        val mininimumChargeValue:BigDecimal = SessionData.deriveMinimumChargeValueAllowed(request.sessionData)
+        val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
           case Some(value) => form(mininimumChargeValue).fill(value)
@@ -98,7 +98,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val mininimumChargeValue:BigDecimal = SessionData.deriveMinimumChargeValueAllowed(request.sessionData)
+        val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
         form(mininimumChargeValue)
           .bindFromRequest()
           .fold(

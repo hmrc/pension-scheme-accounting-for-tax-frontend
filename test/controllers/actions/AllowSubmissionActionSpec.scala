@@ -49,7 +49,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(allowService.allowSubmission(any())(any())) thenReturn Future(None)
         val action = new Harness(allowService)
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), Some(SampleData.sessionData())))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result mustBe None
@@ -62,7 +62,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(allowService.allowSubmission(any())(any())) thenReturn Future(Some(NotFound("Not Found")))
         val action = new Harness(allowService)
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), Some(SampleData.sessionData())))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result.value mustBe NotFound("Not Found")
