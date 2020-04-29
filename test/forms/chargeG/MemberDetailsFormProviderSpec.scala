@@ -22,6 +22,7 @@ import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
 import models.chargeG.MemberDetails
 import play.api.data.FormError
 import utils.AFTConstants.MIN_DATE
+import utils.DateHelper
 
 class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehaviours {
 
@@ -113,7 +114,7 @@ class MemberDetailsFormProviderSpec extends StringFieldBehaviours with DateBehav
     behave like dateFieldWithMax(
       form = form,
       key = dobKey,
-      max = LocalDate.now(),
+      max = DateHelper.today,
       formError = FormError(dobKey, "dob.error.future")
     )
 
