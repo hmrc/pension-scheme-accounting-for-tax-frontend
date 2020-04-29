@@ -22,14 +22,13 @@ import java.time.format.DateTimeFormatter
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData.{dummyCall, srn, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, UserAnswers}
-import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.BeforeAndAfterEach
+import org.mockito.{ArgumentCaptor, Mockito}
 import pages.{PSAEmailQuery, VersionNumberQuery}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -64,7 +63,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = SampleData.schemeName)
   )
 

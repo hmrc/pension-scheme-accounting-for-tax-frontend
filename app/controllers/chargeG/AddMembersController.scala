@@ -94,7 +94,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       implicit request: DataRequest[AnyContent]): JsObject = {
 
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate).url,
-                                     returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
     val members = getOverseasTransferMembers(request.userAnswers, srn, startDate)

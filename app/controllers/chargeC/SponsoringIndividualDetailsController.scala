@@ -63,7 +63,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -88,7 +88,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

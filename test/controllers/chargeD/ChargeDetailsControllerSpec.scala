@@ -16,13 +16,12 @@
 
 package controllers.chargeD
 
-import java.time.LocalDate
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeD.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
@@ -36,10 +35,9 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -78,7 +76,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("dateOfEvent")),
     "memberName" -> "first last"

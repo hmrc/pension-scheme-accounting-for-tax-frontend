@@ -74,7 +74,7 @@ class ConfirmationController @Inject()(
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               schemeName = schemeName
             )
           )

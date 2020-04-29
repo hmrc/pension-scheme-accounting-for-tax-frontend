@@ -42,6 +42,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTService, AllowAccessService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
 
@@ -70,7 +71,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = SampleData.schemeName)
   )
 
