@@ -19,6 +19,8 @@ package controllers.chargeC
 import java.time.LocalDate
 
 import connectors.AFTConnector
+import controllers.actions.DataUpdateAction
+import controllers.actions.MutableFakeDataUpdateAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -27,11 +29,12 @@ import models.AFTVersion
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, when, verify}
 import play.api.Application
 import play.api.inject.bind
+import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
@@ -53,6 +56,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
   private val versions = Seq(version1, version2, version3)
 
+  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
 
 
   private def versionsTable = Json.obj(
@@ -87,7 +91,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
+    bind[AFTConnector].toInstance(mockAFTConnector),
+      bind[DataUpdateAction].toInstance(fakeDataUpdateAction)
   )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
