@@ -52,11 +52,11 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
   private val sessionId = "1"
   private val optionLockedByName = Some("bob")
-  private def optionSessionData(sad:SessionAccessData) = Some(SessionData(sessionId, optionLockedByName, sad))
+  private def sessionData(sad:SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
   private val sessionAccessDataViewOnly = SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly)
   private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty) = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
-    DataRequest(request, "", PsaId(SampleData.psaId), ua, optionSessionData(sessionAccessDataViewOnly))
+    DataRequest(request, "", PsaId(SampleData.psaId), ua, sessionData(sessionAccessDataViewOnly))
   }
 
   override def beforeEach(): Unit = {

@@ -109,20 +109,20 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override def getSessionData(id: String)(implicit
                                           ec: ExecutionContext,
-                                          hc: HeaderCarrier): Future[Option[SessionData]] = {
+                                          hc: HeaderCarrier): Future[SessionData] = {
     http
       .url(sessionUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap { response =>
         response.status match {
-          case NOT_FOUND => Future.successful(None)
+          case NOT_FOUND => throw new RuntimeException("No session data found")
           case OK =>
             val sessionData = Json.parse(response.body).validate[SessionData] match {
               case JsSuccess(value, path) => value
               case JsError(errors)        => throw JsResultException(errors)
             }
-            Future.successful(Some(sessionData))
+            Future.successful(sessionData)
           case _ => Future.failed(new HttpException(response.body, response.status))
         }
       }
@@ -189,7 +189,7 @@ trait UserAnswersCacheConnector {
 
   def getSessionData(id: String)(implicit
                                  ec: ExecutionContext,
-                                 hc: HeaderCarrier): Future[Option[SessionData]]
+                                 hc: HeaderCarrier): Future[SessionData]
 
   def lockedBy(id: String)(implicit
                            ec: ExecutionContext,

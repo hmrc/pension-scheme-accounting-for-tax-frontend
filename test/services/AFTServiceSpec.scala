@@ -66,13 +66,13 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val sessionData = SessionData("1", Some("name"), sessionAccessData)
   private val sessionDataViewOnlyData = SessionData("1", Some("name"), sessionAccessDataViewOnly)
 
-  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers), Some(sessionData))
+  implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] = OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers), sessionData)
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, Some(sessionData))
+    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, sessionData)
 
   private def optionalDataRequest(viewOnly: Boolean): OptionalDataRequest[_] = OptionalDataRequest(
-    fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), Some(sessionDataViewOnlyData))
+    fakeRequest, "", PsaId(SampleData.psaId), Some(UserAnswers()), sessionDataViewOnlyData)
   private val email = "test@test.com"
   private val name = "Pension Scheme Administrator"
 

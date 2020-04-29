@@ -26,7 +26,7 @@ case class OptionalDataRequest[A] (
                                     internalId: String,
                                     psaId: PsaId,
                                     userAnswers: Option[UserAnswers],
-                                    sessionData: Option[SessionData]
+                                    sessionData: SessionData
                                   ) extends WrappedRequest[A](request)
 
 case class DataRequest[A] (
@@ -34,5 +34,5 @@ case class DataRequest[A] (
                             internalId: String,
                             psaId: PsaId,
                             userAnswers: UserAnswers,
-                            sessionData: Option[SessionData]
+                            sessionData: SessionData
                           ) extends WrappedRequest[A](request)

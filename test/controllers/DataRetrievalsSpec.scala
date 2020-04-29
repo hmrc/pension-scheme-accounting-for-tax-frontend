@@ -46,13 +46,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     val result: String => Future[Result] = {_ => Future.successful(Ok("success result"))}
     "return successful result when scheme name is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeName(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeName(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -64,13 +64,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(PSAEmailQuery, value = "test@test.com")).
         flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or email or quarter in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithEmailAndQuarter(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -82,13 +82,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(PSAEmailQuery, value = "test@test.com")).
         flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).flatMap(_.set(PSTRQuery, value = "test-pstr")).getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithPSTREmailAndQuarter(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or email or quarter in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeNameWithPSTREmailAndQuarter(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -100,13 +100,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     "return successful result when scheme name and quarter is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(QuarterPage, Quarter(startDate, endDate))).getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndQuarter(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or quarter in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndQuarter(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -116,13 +116,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     val result: String => Future[Result] = {_ => Future.successful(Ok("success result"))}
     "return successful result when pstr is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(PSTRQuery, value = "test pstr").getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrievePSTR(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no pstr in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrievePSTR(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -134,13 +134,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     "return successful result when scheme name and member is successfully retrieved from user answers" in {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(MemberDetailsPage(0), MemberDetails("test", "name", "ab200100a"))).getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(0))(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or member in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(0))(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -153,13 +153,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
       val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").
         flatMap(_.set(ChargeGMemberDetailsPage(0), ChargeGMemberDetails("test", "name", LocalDate.now(), "ab200100a")))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeMemberChargeG(ChargeGMemberDetailsPage(0))(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or member in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeMemberChargeG(ChargeGMemberDetailsPage(0))(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -173,7 +173,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation)).
         flatMap(_.set(SponsoringOrganisationDetailsPage(0), SponsoringOrganisationDetails("company", "test crn")))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndSponsoringEmployer(index = 0)(result)(request)
       status(res) must be(OK)
     }
@@ -183,13 +183,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual)).
         flatMap(_.set(SponsoringIndividualDetailsPage(0), MemberDetails("first", "last", "ab100100a")))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndSponsoringEmployer(index = 0)(result)(request)
       status(res) must be(OK)
     }
 
     "return session expired when there is no scheme name or company name or individual name in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.retrieveSchemeAndSponsoringEmployer(index = 0)(result)(request)
       redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -207,7 +207,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now())(result)(request)
       status(res) must be(OK)
     }
@@ -219,7 +219,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now())(result)(request)
       status(res) must be(OK)
     }
@@ -230,13 +230,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(SponsoringEmployerAddressPage(0), SponsoringEmployerAddress("line1", "line2", None, None, "GB", None))).
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
       redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
     }
 
     "return aft summary when there is no sponsoring employer details in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), Some(SampleData.sessionData()))
+      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
       redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
     }

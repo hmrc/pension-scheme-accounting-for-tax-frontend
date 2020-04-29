@@ -52,7 +52,7 @@ class DataRetrievalActionSpec extends ControllerSpecBase with ScalaFutures with 
       "do something" in {
         //val dataCacheConnector = mock[UserAnswersCacheConnector]
         //when(dataCacheConnector.fetch(any())(any(), any())) thenReturn Future(None)
-        //when(dataCacheConnector.getSessionData(any())(any(), any())).thenReturn (Future.successful(Some(SampleData.sessionData())))
+        //when(dataCacheConnector.getSessionData(any())(any(), any())).thenReturn (Future.successful(SampleData.sessionData()))
         //val action = new Harness(dataCacheConnector)
         //
         //val futureResult = action.callTransform(IdentifierRequest(fakeRequest, PsaId("A0000000")))
