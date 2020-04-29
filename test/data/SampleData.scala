@@ -25,7 +25,7 @@ import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrga
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{AFTOverview, MemberDetails, Quarter, SchemeDetails, SchemeStatus, UserAnswers}
+import models.{AFTOverview, DisplayQuarter, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SubmittedHint, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -34,6 +34,7 @@ import play.api.mvc.Call
 import utils.AFTConstants._
 
 object SampleData {
+  //scalastyle.off: magic.number
   val userAnswersId = "id"
   val psaId = "A0000000"
   val srn = "aa"
@@ -150,4 +151,23 @@ object SampleData {
       submittedVersionAvailable = true,
       compiledVersionAvailable = false
     )
+
+  val q22020: Quarter = Quarter(LocalDate.of(2020, 4, 1), LocalDate.of(2020, 6, 30))
+  val q32020: Quarter = Quarter(LocalDate.of(2020, 7, 1), LocalDate.of(2020, 9, 30))
+  val q42020: Quarter = Quarter(LocalDate.of(2020, 10, 1), LocalDate.of(2020, 12, 31))
+  val q12021: Quarter = Quarter(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 3, 31))
+
+  val displayQuarterLocked: DisplayQuarter = DisplayQuarter(q32020, displayYear = false, Some(psaId), Some(LockedHint))
+  val displayQuarterContinueAmend: DisplayQuarter = DisplayQuarter(q42020, displayYear = true, None, Some(InProgressHint))
+  val displayQuarterViewPast: DisplayQuarter = DisplayQuarter(q22020, displayYear = false, None, Some(SubmittedHint))
+  val displayQuarterStart: DisplayQuarter = DisplayQuarter(q12021, displayYear = false, None, None)
+
+  val aftOverviewQ22020: AFTOverview =
+    AFTOverview(q22020.startDate, q22020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+  val aftOverviewQ32020: AFTOverview =
+    AFTOverview(q32020.startDate, q32020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = true)
+  val aftOverviewQ42020: AFTOverview =
+    AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+  val aftOverviewQ12021: AFTOverview =
+    AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
 }

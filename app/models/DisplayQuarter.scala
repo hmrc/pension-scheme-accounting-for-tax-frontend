@@ -16,15 +16,12 @@
 
 package models
 
-import java.time.LocalDate
+case class DisplayQuarter(quarter: Quarter,
+                          displayYear: Boolean,
+                          lockedBy: Option[String],
+                          hintText: Option[DisplayQuarterHint])
 
-import play.api.libs.json.{Format, Json}
-
-case class Quarter(startDate: LocalDate, endDate: LocalDate)
-
-object Quarter {
-
-  implicit lazy val formats: Format[Quarter] =
-    Json.format[Quarter]
-}
-
+sealed trait DisplayQuarterHint
+object LockedHint extends WithName("quarters.hint.locked") with DisplayQuarterHint
+object InProgressHint extends WithName("quarters.hint.inProgress") with DisplayQuarterHint
+object SubmittedHint extends WithName("quarters.hint.submitted") with DisplayQuarterHint

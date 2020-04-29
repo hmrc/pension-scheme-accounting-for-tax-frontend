@@ -131,23 +131,23 @@ object ConfirmationControllerSpec {
   private def submitUrl = Call("GET", s"/manage-pension-scheme-accounting-for-tax/${SampleData.startDate}/${SampleData.srn}/sign-out")
 
   private def rows(hasVersion: Boolean) = Seq(Row(
-    key = Key(msg"confirmation.table.r1.c1", classes = Seq("govuk-!-font-weight-regular")),
+    key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),
     value = Value(Literal(SampleData.schemeName), classes = Nil),
     actions = Nil
   ),
     Row(
-      key = Key(msg"confirmation.table.r2.c1", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(msg"confirmation.table.r2.c2".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
+      key = Key(msg"confirmation.table.accounting.period.label", classes = Seq("govuk-!-font-weight-regular")),
+      value = Value(msg"confirmation.table.accounting.period.value".withArgs(quarterStartDate, quarterEndDate), classes = Nil),
       actions = Nil
     ),
     Row(
-      key = Key(msg"confirmation.table.r3.c1", classes = Seq("govuk-!-font-weight-regular")),
+      key = Key(msg"confirmation.table.data.submitted.label", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(LocalDateTime.now())), classes = Nil),
       actions = Nil
     )
   ) ++ (if(hasVersion) {
     Seq(Row(
-      key = Key(msg"confirmation.table.r4.c1", classes = Seq("govuk-!-font-weight-regular")),
+      key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(s"$versionNumber"), classes = Nil),
       actions = Nil
     ))

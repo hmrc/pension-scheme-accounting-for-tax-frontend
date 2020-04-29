@@ -24,6 +24,9 @@ GET         /:srn/new-return/:startDate/return-to-scheme-details                
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
 GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
 
+GET         /:srn/new-return/select-quarter-in-progress                                                                      controllers.amend.ContinueQuartersController.onPageLoad(srn: String)
+POST        /:srn/new-return/select-quarter-in-progress                                                                      controllers.amend.ContinueQuartersController.onSubmit(srn: String)
+
 GET         /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onPageLoad(srn: String)
 POST        /:srn/previous-return/view-year                                                                                 controllers.amend.AmendYearsController.onSubmit(srn: String)
 

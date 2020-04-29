@@ -20,8 +20,8 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.Quarters
 import models.LocalDateBinder._
-import models.StartQuarters
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import services.{AFTService, AllowAccessService, SchemeService}
@@ -59,11 +59,11 @@ class AFTAmendController @Inject()(
             val quartersSeq = aftOverview
               .filter(_.periodStartDate.getYear == yearsSeq.head)
               .map { overviewElement =>
-                StartQuarters.getQuarter(overviewElement.periodStartDate)
+                Quarters.getQuarter(overviewElement.periodStartDate)
               }
               .distinct
 
-            if (quartersSeq.nonEmpty && quartersSeq.size > 1) {
+            if (quartersSeq.size > 1) {
               Future.successful(Redirect(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, yearsSeq.head.toString)))
             } else {
               Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, quartersSeq.head.startDate)))
