@@ -54,7 +54,7 @@ class ReturnHistoryController @Inject()(
                                         with I18nSupport
                                         with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
         def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
