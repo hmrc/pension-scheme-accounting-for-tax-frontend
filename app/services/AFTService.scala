@@ -43,8 +43,6 @@ import scala.util.{Success, Failure}
 class AFTService @Inject()(
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    schemeService: SchemeService,
-    minimalPsaConnector: MinimalPsaConnector,
     aftReturnTidyService: AFTReturnTidyService
 ) {
 
