@@ -24,16 +24,16 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
 import javax.inject.Inject
-import models.GenericViewModel
 import models.LocalDateBinder._
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeB.ChargeBDetailsPage
+import pages.chargeB.{DeleteChargePage, SpecialDeathBenefitsQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -46,7 +46,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftService: AFTService,
+                                       deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -112,11 +112,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                   if (value) {
                     DataRetrievals.retrievePSTR {
                       pstr =>
-                        val updatedAnswers = request.userAnswers.removeWithPath(ChargeBDetailsPage.path)
                         for {
-                          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
+                          answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
+                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), SpecialDeathBenefitsQuery.path)
+                        } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
                     }
                   } else {
                     Future.successful(Redirect(controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))

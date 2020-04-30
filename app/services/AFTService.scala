@@ -40,18 +40,32 @@ class AFTService @Inject()(
     userAnswersCacheConnector: UserAnswersCacheConnector,
     schemeService: SchemeService,
     minimalPsaConnector: MinimalPsaConnector,
-    aftReturnTidyService: AFTReturnTidyService
+    aftReturnTidyService: AFTReturnTidyService,
+    aftReturnTidyServiceCopy: AFTReturnTidyServiceCopy
 ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
     val hasDeletedLastMemberOrEmployerFromLastCharge = !aftReturnTidyService.isAtLeastOneValidCharge(answers)
 
+    println("\n\n\n hasDeletedLastMemberOrEmployerFromLastCharge : "+hasDeletedLastMemberOrEmployerFromLastCharge)
+
+    println("\n\n\n hasLastChargeOnly :"+aftReturnTidyServiceCopy.hasLastChargeOnly(answers))
+
     val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
       aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
     } else {
       aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
     }
+
+    val uaCopy = if (aftReturnTidyServiceCopy.hasLastChargeOnly(answers)) {
+      aftReturnTidyServiceCopy.zeroOutLastCharge(answers)
+    } else {
+      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
+    }
+
+    println("\n\n\n userAnswers after reinstating old: "+ua)
+    println("\n\n\n userAnswers after reinstating new : "+uaCopy)
 
     aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
       if (hasDeletedLastMemberOrEmployerFromLastCharge) {

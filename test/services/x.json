@@ -1,0 +1,122 @@
+{
+  "chargeCDetails": {
+    "employers": [
+      {
+        "sponsoringIndividualDetails": {
+          "firstName": "testFirst",
+          "lastName": "testLast",
+          "isDeleted": false,
+          "nino": "AB100100A"
+        },
+        "memberStatus": "Changed",
+        "sponsoringEmployerAddress": {
+          "line1": "line1",
+          "line2": "line2",
+          "line3": "line3",
+          "line4": "line4",
+          "postcode": "NE20 0GG",
+          "country": "GB"
+        },
+        "memberAFTVersion": 1,
+        "chargeDetails": {
+          "amountTaxDue": 0,
+          "paymentDate": "2020-01-01"
+        },
+        "whichTypeOfSponsoringEmployer": "individual"
+      }
+    ],
+    "totalChargeAmount": 500.02,
+    "amendedVersion": 1
+  },
+  "chargeADetails": {
+    "amendedVersion": 2,
+    "chargeDetails": {
+      "totalAmtOfTaxDueAtHigherRate": 0,
+      "totalAmount": 0,
+      "numberOfMembers": 2,
+      "totalAmtOfTaxDueAtLowerRate": 0
+    }
+  },
+  "chargeEDetails": {
+    "totalChargeAmount": 200.02,
+    "members": [
+      {
+        "annualAllowanceYear": "2020",
+        "memberDetails": {
+          "firstName": "eFirstName",
+          "lastName": "eLastName",
+          "isDeleted": false,
+          "nino": "AE100100A"
+        },
+        "chargeDetails": {
+          "dateNoticeReceived": "2020-01-11",
+          "isPaymentMandatory": true,
+          "chargeAmount": 0
+        }
+      }
+    ]
+  },
+  "chargeBDetails": {
+    "chargeDetails": {
+      "amountTaxDue": 0,
+      "numberOfDeceased": 4
+    }
+  },
+  "chargeDDetails": {
+    "numberOfMembers": 2,
+    "totalChargeAmount": 200.02,
+    "members": [
+      {
+        "memberDetails": {
+          "firstName": "firstName",
+          "lastName": "lastName",
+          "isDeleted": false,
+          "nino": "AC100100A"
+        },
+        "chargeDetails": {
+          "dateOfEvent": "2020-01-10",
+          "taxAt55Percent": 0,
+          "taxAt25Percent": 0
+        }
+      }
+    ]
+  },
+  "chargeFDetails": {
+    "chargeDetails": {
+      "amountTaxDue": 0,
+      "deRegistrationDate": "1980-02-29"
+    }
+  },
+  "chargeGDetails": {
+    "totalChargeAmount": 1230.02,
+    "members": [
+      {
+        "memberDetails": {
+          "firstName": "Craig",
+          "lastName": "White",
+          "isDeleted": false,
+          "dob": "1980-02-29",
+          "nino": "AA012000A"
+        },
+        "chargeDetails": {
+          "qropsReferenceNumber": "300000",
+          "qropsTransferDate": "2016-02-29"
+        },
+        "chargeAmounts": {
+          "amountTaxDue": 0,
+          "amountTransferred": 0
+        }
+      }
+    ]
+  },
+  "aftStatus": "Compiled",
+  "declaration": {
+    "submittedBy": "PSA",
+    "submittedID": "A2000000",
+    "hasAgreed": true
+  },
+  "quarter": {
+    "startDate": "2019-01-01",
+    "endDate": "2019-03-31"
+  }
+}
