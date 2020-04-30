@@ -16,28 +16,19 @@
 
 package services
 
-import java.time.{LocalDateTime, LocalDate, LocalTime}
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, MinimalPsaConnector}
+import connectors.AFTConnector
 import javax.inject.Singleton
-import models.AFTOverview
-import models.AccessMode
-import models.LocalDateBinder._
-import models.SchemeStatus.statusByName
-import models.SessionData
-import models.SessionAccessData
-import models.requests.{DataRequest, OptionalDataRequest}
-import models.{Quarters, SchemeDetails, UserAnswers}
-import pages._
-import play.api.libs.json._
+import models.requests.DataRequest
+import models.UserAnswers
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
-import scala.concurrent.{Future, ExecutionContext}
-import scala.util.{Success, Failure}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 @Singleton
 class AFTService @Inject()(
