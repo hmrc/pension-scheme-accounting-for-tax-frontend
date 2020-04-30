@@ -59,8 +59,6 @@ class RequestCreationService @Inject()(
     minimalPsaConnector: MinimalPsaConnector,
     config: FrontendAppConfig
 ) {
-  private def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
-    aftConnector.getAFTDetails(pstr, startDate, aftVersion)
 
   def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
                                                                         executionContext: ExecutionContext,
@@ -208,7 +206,7 @@ class RequestCreationService @Inject()(
               .setOrException(PSTRQuery, schemeDetails.pstr)
         )
       case Some(version) =>
-        getAFTDetails(schemeDetails.pstr, startDate, version)
+        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
