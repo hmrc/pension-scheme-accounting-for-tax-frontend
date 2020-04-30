@@ -114,8 +114,9 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
                   for {
-                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
-                    updatedAnswers <- Future.fromTry(userAnswersService.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate), interimAnswers))
+                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index)
+                      .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
+                    updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), interimAnswers))
                     _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                     _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
