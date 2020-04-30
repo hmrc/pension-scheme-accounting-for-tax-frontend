@@ -75,12 +75,11 @@ class RequestCreationService @Inject()(
     }
   }
 
-  def emptySessionData = SessionData("", None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
-
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
+    def emptySessionData = SessionData("", None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
     val id = s"$srn$startDate"
 
     def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
