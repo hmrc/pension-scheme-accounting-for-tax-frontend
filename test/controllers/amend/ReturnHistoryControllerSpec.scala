@@ -19,8 +19,6 @@ package controllers.chargeC
 import java.time.LocalDate
 
 import connectors.AFTConnector
-import controllers.actions.DataUpdateAction
-import controllers.actions.MutableFakeDataUpdateAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -29,13 +27,17 @@ import models.AFTVersion
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
 import play.api.Application
 import play.api.inject.bind
-import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -55,9 +57,6 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
   private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
   private val versions = Seq(version1, version2, version3)
-
-  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
-
 
   private def versionsTable = Json.obj(
     "firstCellIsHeader" -> false,
@@ -91,8 +90,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector),
-      bind[DataUpdateAction].toInstance(fakeDataUpdateAction)
+    bind[AFTConnector].toInstance(mockAFTConnector)
   )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
