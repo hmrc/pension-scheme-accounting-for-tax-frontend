@@ -22,43 +22,36 @@ import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Singleton
 import models.UserAnswers
 import models.requests.DataRequest
-import pages._
 import play.api.libs.json.JsPath
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.DeleteChargeHelper
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    aftReturnTidyServiceCopy: AFTReturnTidyServiceCopy
+    deleteChargeHelper: DeleteChargeHelper
 ) {
 
-  def deleteAndFileAFTReturn(pstr: String, answers: UserAnswers, path: JsPath)
-                            (implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+  def deleteAndFileAFTReturn(pstr: String, answers: UserAnswers, path: Option[JsPath] = None)(implicit ec: ExecutionContext,
+                                                                                              hc: HeaderCarrier,
+                                                                                              request: DataRequest[_]): Future[Unit] = {
 
-    println("\n\n\n here in delete: "+answers)
-    val hasDeletedLastCharge = aftReturnTidyServiceCopy.hasLastChargeOnly(answers)
+    val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
 
-    println("\n\n\n hasDeletedLastCharge: "+hasDeletedLastCharge)
-    val ua = if (aftReturnTidyServiceCopy.hasLastChargeOnly(answers)) {
-      aftReturnTidyServiceCopy.zeroOutLastCharge(answers)
+    val updateAnswers = if (isDeletingLastCharge) {
+      deleteChargeHelper.zeroOutLastCharge(answers)
     } else {
-      println("\n\n\n answers : "+answers)
-      answers.removeWithPath(path)
+      path.map(noChargePath => answers.removeWithPath(noChargePath)).getOrElse(answers)
     }
-println("\n\n\n ua : "+ua)
-    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      if (hasDeletedLastCharge) {
+
+    aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
+      if (isDeletingLastCharge) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
-        ua.remove(IsNewReturn) match {
-          case Success(userAnswersWithIsNewReturnRemoved) =>
-            userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
-          case Failure(ex) => throw ex
-        }
+        userAnswersCacheConnector.save(request.internalId, updateAnswers.data).map(_ => ())
       }
     }
   }

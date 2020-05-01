@@ -39,43 +39,17 @@ class AFTService @Inject()(
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     schemeService: SchemeService,
-    minimalPsaConnector: MinimalPsaConnector,
-    aftReturnTidyService: AFTReturnTidyService,
-    aftReturnTidyServiceCopy: AFTReturnTidyServiceCopy
+    minimalPsaConnector: MinimalPsaConnector
 ) {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
-
-    val hasDeletedLastMemberOrEmployerFromLastCharge = !aftReturnTidyService.isAtLeastOneValidCharge(answers)
-
-    println("\n\n\n hasDeletedLastMemberOrEmployerFromLastCharge : "+hasDeletedLastMemberOrEmployerFromLastCharge)
-
-    println("\n\n\n hasLastChargeOnly :"+aftReturnTidyServiceCopy.hasLastChargeOnly(answers))
-
-    val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
-      aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
-    } else {
-      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
-    }
-
-    val uaCopy = if (aftReturnTidyServiceCopy.hasLastChargeOnly(answers)) {
-      aftReturnTidyServiceCopy.zeroOutLastCharge(answers)
-    } else {
-      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
-    }
-
-    println("\n\n\n userAnswers after reinstating old: "+ua)
-    println("\n\n\n userAnswers after reinstating new : "+uaCopy)
-
-    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      if (hasDeletedLastMemberOrEmployerFromLastCharge) {
-        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
-      } else {
-        ua.remove(IsNewReturn) match {
-          case Success(userAnswersWithIsNewReturnRemoved) =>
-            userAnswersCacheConnector.save(request.internalId, userAnswersWithIsNewReturnRemoved.data).map(_ => ())
-          case Failure(ex) => throw ex
-        }
+    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ =>
+      answers.remove(IsNewReturn) match {
+        case Success(userAnswersWithIsNewReturnRemoved) =>
+          userAnswersCacheConnector
+            .save(request.internalId, userAnswersWithIsNewReturnRemoved.data)
+            .map(_ => ())
+        case Failure(ex) => throw ex
       }
     }
   }
@@ -137,7 +111,8 @@ class AFTService @Inject()(
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
-            uaWithStatus.setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
+            uaWithStatus
+              .setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
               .setOrException(PSAEmailQuery, psaDetails.email)
               .setOrException(PSANameQuery, psaDetails.name)
           }

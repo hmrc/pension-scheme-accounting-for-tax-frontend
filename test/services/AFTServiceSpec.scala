@@ -51,15 +51,12 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
 
-  private val mockUserAnswersValidationService = mock[AFTReturnTidyService]
-  private val mockUserAnswersValidationServiceCopy = mock[AFTReturnTidyServiceCopy]
-
   private val aftStatus = "Compiled"
   private val psaId = PsaId(SampleData.psaId)
   private val internalId = "internal id"
 
   private val aftService = new AFTService(mockAFTConnector, mockUserAnswersCacheConnector,
-    mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService, mockUserAnswersValidationServiceCopy)
+    mockSchemeService, mockMinimalPsaConnector)
 
   private val emptyUserAnswers = UserAnswers()
 
@@ -75,12 +72,11 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val name = "Pension Scheme Administrator"
 
   override def beforeEach(): Unit = {
-    reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockUserAnswersValidationService)
+    reset(mockAFTConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(true)
   }
 
   "fileAFTReturn" must {
@@ -88,28 +84,13 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter.setOrException(IsNewReturn, true)
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaBeforeCalling))(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
-        verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
-        verify(mockUserAnswersValidationService, times(1)).removeChargesHavingNoMembersOrEmployers(any())
         val uaAfterSave = UserAnswers(jsonCaptor.getValue)
         uaAfterSave.get(IsNewReturn) mustBe None
-      }
-    }
-
-    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
-      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter.setOrException(IsNewReturn, true)
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
-      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("success")))
-      when(mockUserAnswersValidationService.isAtLeastOneValidCharge(any())).thenReturn(false)
-      whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
-        verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-        verify(mockUserAnswersValidationService, times(1)).isAtLeastOneValidCharge(any())
-        verify(mockUserAnswersValidationService, times(1)).reinstateDeletedMemberOrEmployer(any())
       }
     }
 
@@ -117,7 +98,6 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockUserAnswersValidationService.removeChargesHavingNoMembersOrEmployers(any())).thenReturn(uaBeforeCalling)
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>

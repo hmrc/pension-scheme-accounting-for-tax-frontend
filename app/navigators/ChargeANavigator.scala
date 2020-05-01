@@ -26,10 +26,9 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import models.LocalDateBinder._
-import services.AFTReturnTidyServiceCopy
-
+import utils.DeleteChargeHelper
 class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
-                                 aftReturnTidyServiceCopy: AFTReturnTidyServiceCopy, config: FrontendAppConfig) extends Navigator {
+                                 aftReturnTidyServiceCopy: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
