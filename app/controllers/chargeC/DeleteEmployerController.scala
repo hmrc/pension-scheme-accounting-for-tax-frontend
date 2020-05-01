@@ -62,7 +62,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,

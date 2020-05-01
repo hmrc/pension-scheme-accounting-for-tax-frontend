@@ -56,7 +56,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
-      allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
           case None        => form
@@ -82,8 +82,8 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen
-      allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
           .bindFromRequest()

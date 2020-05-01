@@ -59,7 +59,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
     formProvider(messages("deleteCharge.error.required", messages("chargeA").toLowerCase()))
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
       implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 

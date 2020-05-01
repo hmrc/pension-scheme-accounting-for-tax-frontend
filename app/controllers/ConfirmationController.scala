@@ -54,7 +54,7 @@ class ConfirmationController @Inject()(
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate) andThen allowSubmission).async {
       implicit request =>
         DataRetrievals.retrieveSchemeNameWithEmailAndQuarter { (schemeName, email, quarter) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)

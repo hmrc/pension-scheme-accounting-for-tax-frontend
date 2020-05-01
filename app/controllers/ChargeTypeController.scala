@@ -18,25 +18,34 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.AuditService
+import audit.StartAFTAuditEvent
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{ChargeType, GenericViewModel, NormalMode}
+import models.ChargeType
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.SchemeService
+import services.AFTService
+import services.AllowAccessService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -44,6 +53,7 @@ class ChargeTypeController @Inject()(
     navigator: CompoundNavigator,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
+    updateData: DataUpdateAction,
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: ChargeTypeFormProvider,
@@ -52,7 +62,8 @@ class ChargeTypeController @Inject()(
     config: FrontendAppConfig,
     auditService: AuditService,
     aftService: AFTService,
-    allowService: AllowAccessService
+    allowService: AllowAccessService,
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -60,25 +71,21 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate)).async { implicit request =>
-    aftService.retrieveAFTRequiredDetails(srn = srn, startDate = startDate, optionVersion = None).flatMap {
-      case (schemeDetails, userAnswers) =>
-        allowService.filterForIllegalPageAccess(srn, startDate = startDate, userAnswers, Some(ChargeTypePage)).flatMap {
-          case None =>
-            auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
-            val preparedForm = userAnswers.get(ChargeTypePage).fold(form)(form.fill)
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "form" -> preparedForm,
-              "radios" -> ChargeType.radios(preparedForm),
-              "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
-            )
-            renderer.render(template = "chargeType.njk", json).map(Ok(_))
-          case Some(alternativeLocation) => Future.successful(alternativeLocation)
-        }
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, None) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage))).async { implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
+        val json = Json.obj(
+          fields = "srn" -> srn,
+          "startDate" -> Some(startDate),
+          "form" -> preparedForm,
+          "radios" -> ChargeType.radios(preparedForm),
+          "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
+        )
+        renderer.render(template = "chargeType.njk", json).map(Ok(_))
+      }
     }
-  }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>

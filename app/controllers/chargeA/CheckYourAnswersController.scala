@@ -56,7 +56,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeAHelper(srn, startDate)
@@ -74,7 +74,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             ctx = Json.obj(
               "srn" -> srn,
               "startDate" -> Some(startDate),
-              "list" -> helper.rows(request.viewOnly, seqRows),
+              "list" -> helper.rows(request.sessionData.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
@@ -82,7 +82,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               ),
               "chargeName" -> "chargeA",
               "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
-              "canChange" -> !request.viewOnly
+              "canChange" -> !request.sessionData.isViewOnly
             )
           )
           .map(Ok(_))

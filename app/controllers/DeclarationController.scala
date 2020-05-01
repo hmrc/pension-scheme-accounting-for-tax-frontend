@@ -57,8 +57,8 @@ class DeclarationController @Inject()(
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-      andThen allowSubmission andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)
+      andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
           submitUrl = routes.DeclarationController.onSubmit(srn, startDate).url,
@@ -70,8 +70,8 @@ class DeclarationController @Inject()(
     }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-      andThen allowSubmission andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)
+      andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeNameWithPSTREmailAndQuarter { (schemeName, pstr, email, quarter) =>
         for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
