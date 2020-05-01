@@ -60,16 +60,19 @@ class RequestCreationService @Inject()(
     config: FrontendAppConfig
 ) {
 
+  private def emptySessionData(id:String) = SessionData(id, None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
+
   def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
+
     for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(throw new RuntimeException("No session data found")))
+      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(emptySessionData(id)))
     }
   }
 
@@ -77,14 +80,14 @@ class RequestCreationService @Inject()(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
-    def emptySessionData = SessionData("", None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
+
     val id = s"$srn$startDate"
 
     def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
-      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData)
+      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData(id))
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
