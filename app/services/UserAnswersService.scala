@@ -16,15 +16,17 @@
 
 package services
 
+import com.google.inject.Inject
 import models.requests.DataRequest
 import models.{Mode, NormalMode, UserAnswers}
 import pages.QuestionPage
 import play.api.libs.json._
 import play.api.mvc.AnyContent
+import utils.DeleteChargeHelper
 
 import scala.util.Try
 
-class UserAnswersService {
+class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   /* Use this set for add/change journeys for a member or scheme based charge */
   def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true
@@ -72,10 +74,9 @@ class UserAnswersService {
                )(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
     if(request.sessionData.sessionAccessData.version > 1) { //this IS an amendment
       val amendedVersionPath: JsPath = JsPath(page.path.path.init ++ List(KeyPathNode("amendedVersion")))
-        request.userAnswers.remove(page) //todo - this will change to zero-out call in PODS-4221
-          .flatMap(_.set(amendedVersionPath, JsNull))
+      deleteChargeHelper.zeroOutCharge(page, request.userAnswers).set(amendedVersionPath, JsNull)
     } else { //this is NOT an amendment
-      request.userAnswers.remove(page)
+      Try(request.userAnswers)
     }
   }
 

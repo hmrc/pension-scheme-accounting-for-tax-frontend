@@ -39,7 +39,7 @@ final case class UserAnswers(
       validate[A](member)
     }
 
-  private def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
+  def validate[A](jsValue: JsValue)(implicit rds: Reads[A]): A = {
     jsValue.validate[A].fold(
       invalid =
         errors =>

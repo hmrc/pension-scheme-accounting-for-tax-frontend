@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeCHelper.getSponsoringEmployers
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -31,11 +32,12 @@ import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{AFTService, UserAnswersService}
 import helpers.ChargeCHelper.getSponsoringEmployers
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -50,7 +52,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          getData: DataRetrievalAction,
                                          allowAccess: AllowAccessActionProvider,
                                          requireData: DataRequiredAction,
-                                         aftService: AFTService,
+                                         deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
                                          config: FrontendAppConfig,
@@ -118,7 +120,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                       .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
                     updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), interimAnswers))
                     _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                    _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
                 }
               } else {

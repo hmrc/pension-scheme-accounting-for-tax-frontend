@@ -20,6 +20,7 @@ import base.SpecBase
 import data.SampleData.sessionId
 import models.requests.DataRequest
 import models.{AccessMode, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.QuestionPage
@@ -28,6 +29,7 @@ import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import uk.gov.hmrc.domain.PsaId
+import utils.DeleteChargeHelper
 
 import scala.concurrent.Future
 
@@ -35,21 +37,25 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
   import UserAnswersServiceSpec._
 
-  val service: UserAnswersService = new UserAnswersService
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val service: UserAnswersService = new UserAnswersService(mockDeleteChargeHelper)
 
   ".remove" must {
     "FIRST COMPILE - set only the page value for a scheme level charge being deleted if version is 1" in {
 
       val resultFuture = Future.fromTry(service.remove(Page)(dataRequest(ua)))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers()}
+      whenReady(resultFuture){ _ mustBe ua}
     }
 
     "AMENDMENT - set amended version to null and the page value for a scheme level charge being deleted if version is 2" in {
+     when(mockDeleteChargeHelper.zeroOutCharge(Page, ua)).thenReturn(ua)
+
       val resultFuture = Future.fromTry(service.remove(Page)(dataRequest(ua, 2)))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "amendedVersion" -> JsNull
+        "amendedVersion" -> JsNull,
+         Page.toString -> pageValue
       ))}
     }
   }
@@ -207,7 +213,7 @@ object UserAnswersServiceSpec {
 
   val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
 
-  def memberUa(version: Int = 1, status: String = "New") = UserAnswers(Json.obj(
+  def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(

@@ -16,21 +16,22 @@
 
 package navigators
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes.{MemberDetailsController, _}
+import helpers.ChargeDHelper._
+import models.LocalDateBinder._
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeD.{AddMembersPage, _}
 import play.api.mvc.Call
-import helpers.ChargeDHelper._
-import java.time.LocalDate
-import models.LocalDateBinder._
-import services.AFTReturnTidyService
+import utils.DeleteChargeHelper
 
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
-                                 aftReturnTidyService: AFTReturnTidyService,
+                                 deleteChargeHelper: DeleteChargeHelper,
                                  config: FrontendAppConfig)
     extends Navigator {
 
@@ -44,10 +45,10 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
     if(getLifetimeAllowanceMembers(ua, srn, startDate).nonEmpty) {
       AddMembersController.onPageLoad(srn, startDate)
-    } else if(aftReturnTidyService.isAtLeastOneValidCharge(ua)) {
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
-    } else {
+    } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    } else {
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
