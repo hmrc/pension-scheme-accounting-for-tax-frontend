@@ -60,7 +60,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
                      optionEndDate:Option[LocalDate] = None)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
 
     val startDate = optionStartDate.fold(thisQuarterStartDate)(identity)
-    val endDate = optionStartDate.fold(thisQuarterEndDate)(identity)
+    val endDate = optionEndDate.fold(thisQuarterEndDate)(identity)
 
     val url = config.aftOverviewUrl
 

@@ -17,11 +17,12 @@
 package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import data.SampleData
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -33,7 +34,8 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private lazy val connector: UserAnswersCacheConnector = injector.instanceOf[UserAnswersCacheConnector]
-  private val aftReturnUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft"
+  private val aftReturnUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft"
+  private val sessionUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
 
   private val isLockedUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
@@ -82,6 +84,60 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       }
     }
   }
+
+
+
+
+  ".getSessionData" must {
+
+    "return `None` when there is no data in the collection" in {
+      server.stubFor(
+        get(urlEqualTo(sessionUrl))
+          .willReturn(
+            notFound
+          )
+      )
+
+      connector.getSessionData(id = "testId") map {
+        result =>
+          result mustNot be(defined)
+      }
+    }
+
+    "return data if data is present in the collection" in {
+      val sd = SampleData.sessionData()
+      val responseBodyFromDES = Json.toJson(sd)
+
+      server.stubFor(
+        get(urlEqualTo(sessionUrl))
+          .willReturn(
+            ok(responseBodyFromDES.toString())
+          )
+      )
+
+      connector.getSessionData(id = "testId") map {
+        result =>
+          result.value mustEqual sd
+      }
+    }
+
+    "return a failed future on upstream error" in {
+      server.stubFor(
+        get(urlEqualTo(sessionUrl))
+          .willReturn(
+            serverError
+          )
+      )
+
+      recoverToExceptionIf[HttpException] {
+        connector.getSessionData(id = "testId")
+      } map {
+        _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
+      }
+    }
+  }
+
+
 
   ".save" must {
     val json = Json.obj(

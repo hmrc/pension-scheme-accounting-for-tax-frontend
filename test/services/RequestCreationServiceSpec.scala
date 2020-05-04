@@ -16,206 +16,150 @@
 
 package services
 
-import base.SpecBase
-import connectors.AFTConnector
-import connectors.MinimalPsaConnector
-import connectors.cache.UserAnswersCacheConnector
-import data.SampleData
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.domain.PsaId
-import SampleData._
 import config.FrontendAppConfig
 import models.AccessMode
 import models.SchemeDetails
 import models.SessionAccessData
 import models.SessionData
-import models.UserAnswers
-import models.requests.OptionalDataRequest
-import org.scalatest.BeforeAndAfterEach
-import play.api.mvc.AnyContent
-import play.api.mvc.AnyContentAsEmpty
-import play.api.test.FakeRequest
-import org.mockito.Matchers._
-import org.mockito.Mockito.{reset, when}
-import org.scalatest.AsyncWordSpec
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
 import org.scalatest.MustMatchers
-import play.api.libs.json.JsObject
-import play.api.libs.json.JsString
-import play.api.libs.json.Json
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import java.time.LocalDate
 
-class RequestCreationServiceSpec extends SpecBase  with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+import base.SpecBase
+import connectors.cache.UserAnswersCacheConnector
+import connectors.AFTConnector
+import connectors.MinimalPsaConnector
+import connectors.MinimalPsaConnector.MinimalPSA
+import models.requests.OptionalDataRequest
+import models.AFTVersion
+import models.UserAnswers
+import org.mockito.Matchers.any
+import org.mockito.Mockito._
+import org.mockito.Matchers
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar
+import play.api.libs.json.Json
+import play.api.mvc.AnyContentAsEmpty
+import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants._
+import data.SampleData._
+import models.AFTOverview
+import models.Quarter
+import models.SchemeStatus.Open
+import pages.AFTStatusQuery
+import pages.IsPsaSuspendedQuery
+import pages.PSAEmailQuery
+import pages.PSANameQuery
+import pages.QuarterPage
+import pages.SchemeStatusQuery
+import utils.DateHelper
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+
+class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-  private implicit val req: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+
   private val psaIdInstance = PsaId(psaId)
 
-  private val sessionId = "???"
+  private val sessionId = "session id"
   private val internalId = s"$srn$startDate"
 
-  private val jsObject = Json.obj( "one" -> "two")
-  private val optionUA = Some(UserAnswers(jsObject))
-  private val name = None
-  private val sessionAccessData = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly)
-  private val sd = SessionData(sessionId, name, sessionAccessData)
+  private val nameLockedBy = None
+  private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile)
+  private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
-  private val optionVersion = Some("1")
+  private val emptyUserAnswers = UserAnswers()
 
-  private val schemeStatus = "test status"
+  private val aftStatus = "Compiled"
+
+  private val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+    OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+
+  private val schemeStatus = "Open"
 
   private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus)
 
-  private val requestCreationService = new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
+  private def requestCreationService =
+    new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
+
+  private val email = "test@test.com"
+  private val psaName = "Pension Scheme Administrator"
+
+  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1)))
 
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
-    when(mockUserAnswersCacheConnector.fetch(any())(any(),any())).thenReturn(Future.successful(Some(jsObject)))
-    when(mockUserAnswersCacheConnector.getSessionData(any())(any(),any())).thenReturn(Future.successful(Some(sd)))
+
+    when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
+      .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
+    when(mockUserAnswersCacheConnector.lockedBy(any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-01")
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+    when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
+    when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
   }
 
   "createRequest" must {
     "create a request with user answers and session data" in {
-      whenReady(requestCreationService.createRequest[AnyContent](psaIdInstance, srn, startDate)) { result =>
-        val expectedResult = OptionalDataRequest(req, internalId, psaIdInstance, optionUA, sd)
-        result mustBe expectedResult
+      val result = Await.result(
+        requestCreationService.createRequest(psaIdInstance, srn, startDate)(request, implicitly, implicitly),
+        Duration.Inf
+      )
+
+      val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, Some(userAnswersWithSchemeName), sd)
+      result mustBe expectedResult
+    }
+  }
+
+  "retrieveAndCreateRequest" when {
+
+
+    "requested version is less than latest and date is after 1st July" must {
+      "NOT save with a lock and create session access data with viewonly page access mode" in {
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        verify(mockUserAnswersCacheConnector, times(1))
+          .save(any(),
+            any(),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
+            Matchers.eq(false))(any(), any())
       }
     }
   }
 
-  //"retrieveAndCreateRequest" when {
-  //  "no version is given and there are no versions in AFT" must {
-  //    "NOT call get AFT details and " +
-  //      "retrieve the suspended flag from DES and " +
-  //      "set the IsNewReturn flag, and " +
-  //      "retrieve and the quarter, status, scheme name and pstr and " +
-  //      "save all of these with a lock" in {
-  //      when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, None)(implicitly, implicitly,
-  //        optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-  //        verify(mockAftConnector, times(1)).getListOfVersions(any(), any())(any(), any())
-  //
-  //        verify(mockAftConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
-  //
-  //        verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-  //        resultScheme mustBe schemeDetails
-  //
-  //        verify(mockMinimalPsaConnector, times(1)).getMinimalPsaDetails(Matchers.eq(psaId.id))(any(), any())
-  //
-  //        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-  //        val expectedUAAfterSave = userAnswersWithSchemeName
-  //          .setOrException(IsPsaSuspendedQuery, value = false)
-  //          .setOrException(PSAEmailQuery, value = email)
-  //          .setOrException(IsNewReturn, value = true)
-  //          .setOrException(AFTStatusQuery, value = aftStatus)
-  //          .setOrException(SchemeStatusQuery, Open)
-  //            .setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
-  //        verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
-  //      }
-  //    }
-  //  }
-  //
-  //  "no version is given and there ARE versions in AFT and suspended flag is not in user answers" must {
-  //    "NOT call get AFT details and " +
-  //      "retrieve the suspended flag from DES and " +
-  //      "NOT set the IsNewReturn flag and " +
-  //      "NOT retrieve the quarter, status, scheme name or pstr and" +
-  //      "save with a lock" in {
-  //      when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion](AFTVersion(1, LocalDate.now()))))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, None)) { case (resultScheme, _) =>
-  //        verify(mockAftConnector, times(1)).getListOfVersions(any(), any())(any(), any())
-  //
-  //        verify(mockAftConnector, never()).getAFTDetails(any(), any(), any())(any(), any())
-  //
-  //        resultScheme mustBe schemeDetails
-  //        verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-  //
-  //        verify(mockMinimalPsaConnector, times(1)).getMinimalPsaDetails(Matchers.eq(psaId.id))(any(), any())
-  //
-  //        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-  //        val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).
-  //          setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
-  //        verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
-  //      }
-  //    }
-  //  }
-  //
-  //  "a version is given" must {
-  //    "call get AFT details and " +
-  //      "retrieve and the suspended flag from DES and " +
-  //      "NOT set the IsNewReturn flag and " +
-  //      "NOT retrieve the quarter, status, scheme name or pstr (since these are retrieved by get aft details) and " +
-  //      "save with a lock" in {
-  //
-  //      when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(emptyUserAnswers.data))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, Some(version))(implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-  //        verify(mockAftConnector, times(1)).getAFTDetails(any(), any(), any())(any(), any())
-  //
-  //        resultScheme mustBe schemeDetails
-  //        verify(mockSchemeService, times(1)).retrieveSchemeDetails(Matchers.eq(psaId.id), Matchers.eq(srn))(any(), any())
-  //
-  //        verify(mockMinimalPsaConnector, times(1)).getMinimalPsaDetails(Matchers.eq(psaId.id))(any(), any())
-  //
-  //        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-  //        val expectedUAAfterSave = emptyUserAnswers.setOrException(IsPsaSuspendedQuery, value = false).
-  //          setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
-  //        verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), Matchers.eq(expectedUAAfterSave.data))(any(), any())
-  //      }
-  //    }
-  //  }
-  //
-  //  "user is suspended" must {
-  //    "NOT save with a lock" in {
-  //      when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any())).thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = true)))
-  //      when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion](AFTVersion(1, LocalDate.now()))))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, None)) { case (_, _) =>
-  //        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-  //      }
-  //    }
-  //  }
-  //
-  //  "viewOnly flag in the request is set to true" must {
-  //    "NOT call saveAndLock but should call save" in {
-  //      val uaToSave = userAnswersWithSchemeName
-  //        .setOrException(IsPsaSuspendedQuery, value = false).setOrException(PSAEmailQuery, email).setOrException(SchemeStatusQuery, Open)
-  //      when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, Some(version))
-  //      (implicitly, implicitly, optionalDataRequest(viewOnly = true))) { case (resultScheme, _) =>
-  //        resultScheme mustBe schemeDetails
-  //        verify(mockUserAnswersCacheConnector, never()).saveAndLock(any(), any())(any(), any())
-  //        verify(mockUserAnswersCacheConnector, times(1)).save(any(), Matchers.eq(uaToSave.data))(any(), any())
-  //
-  //      }
-  //    }
-  //  }
-  //
-  //  "viewOnly flag in the request is set to false" must {
-  //    "call saveAndLock but should NOT call save instead of save with lock" in {
-  //      when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
-  //        .thenReturn(Future.successful(userAnswersWithSchemeNamePstrQuarter.data))
-  //
-  //      whenReady(requestCreationService.retrieveAndCreateRequest(srn, QUARTER_START_DATE, Some(version))
-  //      (implicitly, implicitly, optionalDataRequest(viewOnly = false))) { case (resultScheme, _) =>
-  //        resultScheme mustBe schemeDetails
-  //        verify(mockUserAnswersCacheConnector, times(1)).saveAndLock(any(), any())(any(), any())
-  //        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
-  //      }
-  //    }
-  //  }
-  //}
-  //
-  //
 
 }
