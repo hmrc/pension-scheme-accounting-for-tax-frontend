@@ -16,7 +16,7 @@
 
 package services
 
-import pages.{AFTStatusQuery, AFTSummaryPage, IsPsaSuspendedQuery, PSAEmailQuery, PSANameQuery, PSTRQuery, Page, QuarterPage, SchemeNameQuery, SchemeStatusQuery}
+import pages.{IsPsaSuspendedQuery, PSTRQuery, SchemeNameQuery, Page, QuarterPage, PSAEmailQuery, AFTSummaryPage, PSANameQuery, SchemeStatusQuery, AFTStatusQuery}
 import play.api.mvc.Request
 import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
@@ -37,6 +37,7 @@ import models.requests.OptionalDataRequest
 import models.SchemeDetails
 import models.SessionData
 import models.UserAnswers
+import models.requests.DataRequest
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
@@ -69,6 +70,9 @@ class RequestCreationService @Inject()(
     }
   }
 
+  private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
+    request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
+
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String], optionCurrentPage: Option[Page])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
@@ -84,10 +88,10 @@ class RequestCreationService @Inject()(
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      (data, optionVersion, optionCurrentPage) match {
-        case (None, None, Some(AFTSummaryPage)) => Future.successful(optionalDataRequest(None))
+      (data, optionVersion, optionCurrentPage, isPreviousPageWithinAFT) match {
+        case (None, None, Some(AFTSummaryPage), true) =>
+          Future.successful(optionalDataRequest(None))
         case _ =>
-
           val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
 
           tuple.flatMap {
