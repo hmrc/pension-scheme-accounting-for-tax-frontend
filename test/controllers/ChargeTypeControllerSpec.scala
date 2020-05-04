@@ -17,7 +17,7 @@
 package controllers
 
 import audit.{AuditService, StartAFTAuditEvent}
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -25,7 +25,7 @@ import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
+import models.{ChargeType, Enumerable, GenericViewModel, SessionData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -40,8 +40,9 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService}
+import services.{AFTService, AllowAccessService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
 
@@ -56,11 +57,15 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val retrievedUA = userAnswersWithSchemeName
     .setOrException(IsPsaSuspendedQuery, value = false)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction
+  private val mockSchemeService = mock[SchemeService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AuditService].toInstance(mockAuditService),
     bind[AllowAccessService].toInstance(mockAllowAccessService),
-    bind[AFTService].toInstance(mockAFTService)
+    bind[AFTService].toInstance(mockAFTService),
+    bind[DataUpdateAction].toInstance(fakeDataUpdateAction),
+    bind[SchemeService].toInstance(mockSchemeService)
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
@@ -70,26 +75,28 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = SampleData.schemeName)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
-    when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, retrievedUA)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-
+    when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
   "ChargeType Controller" when {
     "on a GET" must {
 
       "return OK with the correct view and call the aft service" in {
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+//        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        fakeDataUpdateAction.setSessionData(SampleData.sessionData())
+
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -98,33 +105,17 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-        verify(mockAFTService, times(1)).retrieveAFTRequiredDetails(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(None))(any(), any(), any())
-        verify(mockAllowAccessService, times(1)).filterForIllegalPageAccess(Matchers.eq(srn), Matchers.eq(startDate), Matchers.eq(retrievedUA), Matchers.eq(Some(ChargeTypePage)), any())(any())
 
         templateCaptor.getValue mustEqual template
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
       }
 
-      "return alternative location when allow access service returns alternative location" in {
-        val location = "redirect"
-        val alternativeLocation = Redirect(location)
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), Matchers.eq(Some(ChargeTypePage)), any())(any())).thenReturn(Future.successful(Some(alternativeLocation)))
-
-        whenReady(route(application, httpGETRequest(httpPathGETVersion)).value) { result =>
-          result.header.status mustEqual SEE_OTHER
-          result.header.headers.get(LOCATION) mustBe Some(location)
-        }
-      }
-
       "return OK and the correct view for a GET when the question has previously been answered" in {
         val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
 
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+        fakeDataUpdateAction.setDataToReturn(Some(ua))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
-        when(mockAFTService.retrieveAFTRequiredDetails(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful((schemeDetails, ua)))
 
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
@@ -140,6 +131,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         reset(mockAuditService)
         val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
         val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
@@ -163,7 +155,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual SEE_OTHER
 
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture, any(), any())(any(), any())
 
         jsonCaptor.getValue must containJson(expectedJson)
 
@@ -178,7 +170,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual BAD_REQUEST
 
-        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
 
       }
 

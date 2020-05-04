@@ -19,9 +19,10 @@ package controllers.base
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{AllowAccessActionProvider, _}
+import controllers.actions.AllowAccessActionProvider
+import controllers.actions._
 import models.UserAnswers
-import models.requests.OptionalDataRequest
+import models.requests.DataRequest
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito
@@ -30,27 +31,33 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
-import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
-import play.api.test.Helpers.{GET, POST}
-import play.api.test.{FakeHeaders, FakeRequest}
-import services.SchemeService
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.GuiceableModule
+import play.api.mvc.ActionFilter
+import play.api.mvc.AnyContentAsEmpty
+import play.api.mvc.AnyContentAsFormUrlEncoded
+import play.api.mvc.Result
+import play.api.test.Helpers.GET
+import play.api.test.Helpers.POST
+import play.api.test.FakeHeaders
+import play.api.test.FakeRequest
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSugar {
 
-  val FakeActionFilter: ActionFilter[OptionalDataRequest] = new ActionFilter[OptionalDataRequest] {
+  val FakeActionFilter: ActionFilter[DataRequest] = new ActionFilter[DataRequest] {
     override protected def executionContext: ExecutionContext = global
 
-    override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
+    override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = Future.successful(None)
   }
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
-    when(mockAllowAccessActionProvider.apply(any(), any())).thenReturn(FakeActionFilter)
+    when(mockAllowAccessActionProvider.apply(any(), any(), any())).thenReturn(FakeActionFilter)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]

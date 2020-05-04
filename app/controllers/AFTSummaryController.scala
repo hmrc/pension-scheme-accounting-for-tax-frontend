@@ -21,25 +21,41 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{AllowAccessActionProvider, _}
+import controllers.actions.AllowAccessActionProvider
+import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, Mode, NormalMode, UserAnswers}
+import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
+import models.GenericViewModel
+import models.Mode
+import models.NormalMode
+import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
+import pages.ChargeTypePage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.{AFTService, AllowAccessService}
+import services.RequestCreationService
+import services.AFTService
+import services.AllowAccessService
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AFTSummaryController @Inject()(
     override val messagesApi: MessagesApi,
@@ -47,6 +63,7 @@ class AFTSummaryController @Inject()(
     navigator: CompoundNavigator,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
+    updateData: DataUpdateAction,
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: AFTSummaryFormProvider,
@@ -55,7 +72,9 @@ class AFTSummaryController @Inject()(
     config: FrontendAppConfig,
     aftSummaryHelper: AFTSummaryHelper,
     aftService: AFTService,
-    allowService: AllowAccessService
+    allowService: AllowAccessService,
+    requestCreationService: RequestCreationService,
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -69,15 +88,11 @@ class AFTSummaryController @Inject()(
   private def getFormattedStartDate(date: LocalDate): String = date.format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
-    (identify andThen getData(srn, startDate)).async { implicit request =>
-      aftService.retrieveAFTRequiredDetails(srn = srn, startDate, optionVersion = optionVersion).flatMap {
-        case (schemeDetails, userAnswers) =>
-          allowService.filterForIllegalPageAccess(srn, startDate, userAnswers, Some(AFTSummaryPage), optionVersion).flatMap {
-            case None =>
-              val json = getJson(form, userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, !request.viewOnly)
-              renderer.render("aftSummary.njk", json).map(Ok(_))
-            case Some(redirectLocation) => Future.successful(redirectLocation)
-          }
+    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        val json =
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+        renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
 
@@ -89,7 +104,7 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, !request.viewOnly)
+              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, request.sessionData.isEditable)
               renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
             },
             value => {
@@ -133,7 +148,7 @@ class AFTSummaryController @Inject()(
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, version).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName
     )
   }

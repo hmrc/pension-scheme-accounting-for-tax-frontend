@@ -57,7 +57,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
     formProvider("annualAllowanceYear.error.required")
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
           case Some(value) => form.fill(value)
@@ -66,7 +66,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
         val viewModel = GenericViewModel(
           submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -91,7 +91,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

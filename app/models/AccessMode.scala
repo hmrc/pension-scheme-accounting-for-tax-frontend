@@ -16,18 +16,20 @@
 
 package models
 
-import base.SpecBase
-import pages.IsNewReturn
+sealed trait AccessMode
 
+object AccessMode extends Enumerable.Implicits {
 
-class UserAnswersSpec extends SpecBase with Enumerable.Implicits {
-  "deriveMinimumChargeValueAllowed" must {
-    "return 0.01 when IsNewReturn is true" in {
-      UserAnswers.deriveMinimumChargeValueAllowed(UserAnswers().setOrException(IsNewReturn, true)) mustBe BigDecimal("0.01")
-    }
+  case object PageAccessModeViewOnly extends WithName("viewOnly") with AccessMode
+  case object PageAccessModePreCompile extends WithName("preCompile") with AccessMode
+  case object PageAccessModeCompile extends WithName("compile") with AccessMode
 
-    "return 0.00 when IsNewReturn is not present" in {
-      UserAnswers.deriveMinimumChargeValueAllowed(UserAnswers()) mustBe BigDecimal("0.00")
-    }
-  }
+  val values: Seq[AccessMode] = Seq(
+    PageAccessModeViewOnly,
+    PageAccessModePreCompile,
+    PageAccessModeCompile
+  )
+
+  implicit val enumerable: Enumerable[AccessMode] =
+    Enumerable(values.map(v => v.toString -> v): _*)
 }

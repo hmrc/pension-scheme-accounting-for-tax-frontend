@@ -56,7 +56,7 @@ class CannotChangeAFTReturnController @Inject()(
             "cannot-change-aft-return.njk",
             Json.obj(
               "schemeName" -> schemeName,
-              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+              "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
               "quarterEnd" -> quarter.endDate.format(dateFormatter),
               "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url

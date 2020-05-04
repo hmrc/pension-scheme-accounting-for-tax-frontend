@@ -43,14 +43,13 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val jsonToPassToTemplate = Json.obj(
     "viewModel" -> GenericViewModel(
       submitUrl = dummyCall.url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)

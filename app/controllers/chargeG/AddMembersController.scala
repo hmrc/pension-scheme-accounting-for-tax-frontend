@@ -59,7 +59,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider("chargeG.addMembers.error")
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
           renderer.render(template = "chargeG/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
@@ -94,7 +94,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       implicit request: DataRequest[AnyContent]): JsObject = {
 
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate).url,
-                                     returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
     val members = getOverseasTransferMembers(request.userAnswers, srn, startDate)
@@ -107,8 +107,8 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.viewOnly)),
-      "canChange" -> !request.viewOnly
+      "table" -> Json.toJson(mapToTable(members, !request.sessionData.isViewOnly)),
+      "canChange" -> !request.sessionData.isViewOnly
     )
 
   }

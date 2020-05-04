@@ -16,12 +16,23 @@
 
 package models.requests
 
+import models.SessionData
 import play.api.mvc.{Request, WrappedRequest}
 import models.UserAnswers
 import uk.gov.hmrc.domain.PsaId
 
-case class OptionalDataRequest[A] (request: Request[A], internalId: String, psaId: PsaId,
-                                   userAnswers: Option[UserAnswers], viewOnly: Boolean = false) extends WrappedRequest[A](request)
+case class OptionalDataRequest[A] (
+                                    request: Request[A],
+                                    internalId: String,
+                                    psaId: PsaId,
+                                    userAnswers: Option[UserAnswers],
+                                    sessionData: SessionData
+                                  ) extends WrappedRequest[A](request)
 
-case class DataRequest[A] (request: Request[A], internalId: String, psaId: PsaId,
-                           userAnswers: UserAnswers, viewOnly: Boolean = false) extends WrappedRequest[A](request)
+case class DataRequest[A] (
+                            request: Request[A],
+                            internalId: String,
+                            psaId: PsaId,
+                            userAnswers: UserAnswers,
+                            sessionData: SessionData
+                          ) extends WrappedRequest[A](request)

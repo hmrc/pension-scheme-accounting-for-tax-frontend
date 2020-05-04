@@ -19,7 +19,7 @@ package controllers.actions
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import models.UserAnswers
-import models.requests.OptionalDataRequest
+import models.requests.DataRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -40,7 +40,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
   }
 
   class Harness(allowService: AllowAccessService) extends AllowSubmissionActionImpl(allowService) {
-    def callTransform[A](request: OptionalDataRequest[A]): Future[Option[Result]] = filter(request)
+    def callTransform[A](request: DataRequest[A]): Future[Option[Result]] = filter(request)
   }
 
   "Allow Submission Action" when {
@@ -49,7 +49,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(allowService.allowSubmission(any())(any())) thenReturn Future(None)
         val action = new Harness(allowService)
 
-        val futureResult = action.callTransform(OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(UserAnswers())))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result mustBe None
@@ -62,7 +62,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(allowService.allowSubmission(any())(any())) thenReturn Future(Some(NotFound("Not Found")))
         val action = new Harness(allowService)
 
-        val futureResult = action.callTransform(OptionalDataRequest(fakeRequest, "", PsaId(SampleData.psaId), Option(UserAnswers())))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result.value mustBe NotFound("Not Found")

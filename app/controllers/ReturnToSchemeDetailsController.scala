@@ -19,38 +19,26 @@ package controllers
 import java.time.LocalDate
 
 import config.FrontendAppConfig
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import connectors.cache.UserAnswersCacheConnector
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
-import models.LocalDateBinder._
 
-class CannotStartAFTReturnController @Inject()(
+class ReturnToSchemeDetailsController @Inject()(
+    config: FrontendAppConfig,
     identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig
+    userAnswersCacheConnector: UserAnswersCacheConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
-        renderer
-          .render("cannot-start-aft-return.njk",
-                  Json.obj("schemeName" -> schemeName,
-                    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
-          .map(Ok(_))
-      }
+  def returnToSchemeDetails(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
+    val id = s"$srn$startDate"
+    userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.managePensionsSchemeSummaryUrl.format(srn)))
   }
 }

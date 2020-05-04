@@ -33,6 +33,7 @@ import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class WhatYouWillNeedController @Inject()(
     override val messagesApi: MessagesApi,
@@ -50,14 +51,15 @@ class WhatYouWillNeedController @Inject()(
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
 
       renderer
         .render(template = "chargeB/whatYouWillNeed.njk",
-                Json.obj(fields = "srn" -> srn, "startDate" -> Some(startDate), "schemeName" -> schemeName, "nextPage" -> nextPage.url))
+                Json.obj(fields = "srn" -> srn, "startDate" -> Some(startDate), "schemeName" -> schemeName, "nextPage" -> nextPage.url,
+                "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
         .map(Ok(_))
     }
 }

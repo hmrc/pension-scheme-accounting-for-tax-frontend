@@ -68,12 +68,12 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       presentPage(mode, srn, startDate, index, form, Ok)
     }
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       form
         .bindFromRequest()
         .fold(
@@ -122,7 +122,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
         case Some(addresses) =>
           val viewModel = GenericViewModel(
             submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
             schemeName = schemeName
           )
 
