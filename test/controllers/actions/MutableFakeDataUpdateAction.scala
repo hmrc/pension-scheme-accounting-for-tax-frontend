@@ -18,17 +18,12 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import models.AccessMode
-import models.SessionAccessData
-import models.SessionData
-import models.UserAnswers
-import models.requests.IdentifierRequest
-import models.requests.OptionalDataRequest
+import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class MutableFakeDataRetrievalAction extends DataRetrievalAction {
+class MutableFakeDataUpdateAction extends DataUpdateAction {
   private var dataToReturn: Option[UserAnswers] = None
   private var storedSessionData: SessionData = SessionData(
     sessionId = "1",
@@ -50,11 +45,11 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
     )
   }
 
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new MutableFakeDataRetrieval(storedSessionData, dataToReturn)
+  override def apply(srn: String, startDate: LocalDate, version: Option[String]): DataUpdate = new MutableFakeDataUpdate(storedSessionData, dataToReturn)
 }
 
-class MutableFakeDataRetrieval(sessionData: SessionData = MutableFakeDataRetrieval.sessionDataViewOnly, dataToReturn: Option[UserAnswers])
-    extends DataRetrieval {
+class MutableFakeDataUpdate(sessionData: SessionData = MutableFakeDataUpdate.sessionDataViewOnly, dataToReturn: Option[UserAnswers])
+    extends DataUpdate {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
     Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, sessionData))
@@ -63,7 +58,7 @@ class MutableFakeDataRetrieval(sessionData: SessionData = MutableFakeDataRetriev
     scala.concurrent.ExecutionContext.Implicits.global
 }
 
-object MutableFakeDataRetrieval {
+object MutableFakeDataUpdate {
   private val sessionDataViewOnly: SessionData = SessionData(
     sessionId = "1",
     name = None,

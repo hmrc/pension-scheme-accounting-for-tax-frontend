@@ -24,12 +24,12 @@ class DeleteChargeHelper {
 
   def zeroOutLastCharge(ua: UserAnswers): UserAnswers = {
 
-    val jsonTransformer: Reads[JsObject] = zeroOutChargeA orElse
+    val zeroOutTransformer: Reads[JsObject] = zeroOutChargeA orElse
       zeroOutChargeB orElse zeroOutChargeC orElse zeroOutChargeD orElse
       zeroOutChargeE orElse zeroOutChargeF orElse zeroOutChargeG
 
     if (hasLastChargeOnly(ua)) {
-      ua.data.transform(jsonTransformer) match {
+      ua.data.transform(zeroOutTransformer) match {
         case JsSuccess(value, _) => UserAnswers(value)
         case _                   => ua
       }
@@ -51,8 +51,8 @@ class DeleteChargeHelper {
 
     if (allNonEmptyCharges.size == 1) {
       allNonEmptyCharges.headOption match {
-        case Some((_, "chargeCDetails"))                                      => isLastChargeC(ua)
-        case Some((_, chargeType)) if memberLevelCharges.contains(chargeType) => isLastCharge(ua, chargeType)
+        case Some((_, "chargeCDetails"))                                      => isLastMemberC(ua)
+        case Some((_, chargeType)) if memberLevelCharges.contains(chargeType) => isLastMember(ua, chargeType)
         case _                                                                => true
       }
     } else {
@@ -60,13 +60,13 @@ class DeleteChargeHelper {
     }
   }
 
-  private def isLastCharge(ua: UserAnswers, chargeType: String): Boolean = {
+  private def isLastMember(ua: UserAnswers, chargeType: String): Boolean = {
     val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
     getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) == 0 &&
     getMembersOrEmployersCount(memberDetailsPath, isDeleted = true) > 0
   }
 
-  private def isLastChargeC(ua: UserAnswers): Boolean = {
+  private def isLastMemberC(ua: UserAnswers): Boolean = {
     val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
     val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
 

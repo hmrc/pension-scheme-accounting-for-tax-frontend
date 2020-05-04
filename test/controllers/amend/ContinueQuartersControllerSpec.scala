@@ -80,7 +80,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockAFTConnector.getAftOverview(any())(any(), any()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getInProgressQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -129,7 +129,7 @@ class ContinueQuartersControllerSpec extends ControllerSpecBase with NunjucksSup
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
     }
 
     "redirect to session expired page when there quarters service returns an empty list for a POST" in {

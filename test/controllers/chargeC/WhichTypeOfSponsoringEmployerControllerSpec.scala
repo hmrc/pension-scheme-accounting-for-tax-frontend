@@ -36,7 +36,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
@@ -51,7 +51,8 @@ class WhichTypeOfSponsoringEmployerControllerSpec
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeIndividual).success.value
+  private val answers: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(
+    WhichTypeOfSponsoringEmployerPage(index), SponsoringEmployerTypeIndividual).success.value
 
   def onwardRoute: Call = Call("GET", "/foo")
 
@@ -62,7 +63,8 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
   private def httpPathPOST: String = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, index).url
 
-  private def viewModel = GenericViewModel(submitUrl = httpPathPOST, returnUrl = onwardRoute.url, schemeName = schemeName)
+  private def viewModel = GenericViewModel(submitUrl = httpPathPOST,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 
@@ -123,7 +125,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
 
     "redirect to the next page when valid data is submitted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))

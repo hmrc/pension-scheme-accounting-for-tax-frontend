@@ -59,13 +59,15 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
     formProvider(messages("deleteCharge.error.required", messages("chargeF").toLowerCase()))
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+      implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-        val viewModel = GenericViewModel(
-          submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName
-        )
+
+            val viewModel = GenericViewModel(
+              submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+              schemeName = schemeName
+            )
 
         val json = Json.obj(
           "srn" -> srn,
@@ -88,11 +90,11 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
           .fold(
             formWithErrors => {
 
-              val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-                schemeName = schemeName
-              )
+                  val viewModel = GenericViewModel(
+                    submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
+                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                    schemeName = schemeName
+                  )
 
               val json = Json.obj(
                 "srn" -> srn,

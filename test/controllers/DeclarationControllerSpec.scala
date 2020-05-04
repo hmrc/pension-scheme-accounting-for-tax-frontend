@@ -93,7 +93,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -102,7 +102,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
       verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -115,7 +115,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter.map(_.setOrException(VersionNumberQuery, versionNumber)))
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -158,8 +158,8 @@ object DeclarationControllerSpec {
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-                                             returnUrl = dummyCall.url,
-                                             schemeName = schemeName)
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      schemeName = schemeName)
   )
   private val amendAftReturnTemplateIdId = "pods_aft_amended_return"
   private val fileAFTReturnTemplateId = "pods_file_aft_return"

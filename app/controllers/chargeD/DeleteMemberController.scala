@@ -60,13 +60,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
     formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate) andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
               submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               schemeName = schemeName
             )
 
@@ -97,7 +97,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                   val viewModel = GenericViewModel(
                     submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
-                    returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                     schemeName = schemeName
                   )
 

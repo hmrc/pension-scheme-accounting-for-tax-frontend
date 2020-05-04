@@ -21,22 +21,29 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.GenericViewModel
+import models.NormalMode
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import pages.IsNewReturn
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import pages.chargeA.ChargeDetailsPage
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -71,13 +78,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
@@ -117,7 +124,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture, any(), any())(any(), any())
 
       jsonCaptor.getValue must containJson(expectedJson)
 
@@ -131,11 +138,13 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
     }
 
-    "return a BAD REQUEST when zero amounts are submitted where new return flag is set" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers.map(_.setOrException(IsNewReturn, true)))
+    "return a BAD REQUEST when zero amounts are submitted where in precompile mode" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataPreCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 
@@ -144,6 +153,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return redirect when zero amounts are submitted where new return flag is NOT set" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesWithZeroAmount)).value
 

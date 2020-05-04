@@ -18,25 +18,28 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import com.google.inject.{ImplementedBy, Inject}
-import models.UserAnswers
-import models.requests.OptionalDataRequest
-import play.api.mvc.{ActionFilter, Result}
+import com.google.inject.ImplementedBy
+import com.google.inject.Inject
+import models.requests.DataRequest
+import pages.Page
+import play.api.mvc.ActionFilter
+import play.api.mvc.Result
 import services.AllowAccessService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService)(implicit val executionContext: ExecutionContext)
-    extends ActionFilter[OptionalDataRequest] {
-  override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] =
-    allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers.getOrElse(UserAnswers()))(request)
+class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService, optionPage:Option[Page])(implicit val executionContext: ExecutionContext)
+    extends ActionFilter[DataRequest] {
+  override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] =
+    allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers, optionPage)(request)
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate): ActionFilter[OptionalDataRequest]
+  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None): ActionFilter[DataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(allowService: AllowAccessService)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate) = new AllowAccessAction(srn, startDate, allowService)
+  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None) = new AllowAccessAction(srn, startDate, allowService, optionPage)
 }

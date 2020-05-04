@@ -21,7 +21,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
 import data.SampleData._
-import models.UserAnswers
+import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -42,12 +42,14 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  private val sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile)
+  private val sessionData = SessionData("1", Some("name"), sessionAccessData)
   private val emptyUserAnswers = UserAnswers()
   implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-    OptionalDataRequest(fakeRequest, "internal id", PsaId(SampleData.psaId), Some(emptyUserAnswers))
+    OptionalDataRequest(fakeRequest, "internal id", PsaId(SampleData.psaId), Some(emptyUserAnswers), sessionData)
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua)
+    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, sessionData)
 
   private val deleteChargeService = new DeleteAFTChargeService(mockAFTConnector, mockUserAnswersCacheConnector, mockDeleteChargeHelper)
 
@@ -64,9 +66,9 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
 
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, emptyUserAnswers)(implicitly, implicitly, dataRequest(emptyUserAnswers))) { _ =>
         verify(mockDeleteChargeHelper, times(1)).zeroOutLastCharge(any())
-        verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), any())(any(), any())
+        verify(mockAFTConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never()).save(any(), any(), any(), any())(any(), any())
       }
     }
 
@@ -79,12 +81,12 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
           fields = "chargeBDetails" -> Json.obj(fields = "totalAmount" -> 400.00)
         ))
       when(mockDeleteChargeHelper.hasLastChargeOnly(any())).thenReturn(false)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, ua, Some(ShortServiceRefundQuery.path))(implicitly, implicitly, dataRequest(ua))) {
         _ =>
           verify(mockAFTConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(uaWithoutChargeA))(any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
           verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
       }
     }

@@ -88,7 +88,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
@@ -119,7 +119,7 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
     "redirect to next page when valid data is submitted" in {
 
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
@@ -128,13 +128,13 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
       status(result) mustEqual BAD_REQUEST
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
     }
   }
 }

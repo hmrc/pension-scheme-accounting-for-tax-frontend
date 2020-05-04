@@ -60,7 +60,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
     schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -69,7 +69,6 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
   "DeleteCharge Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
@@ -96,7 +95,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
@@ -116,8 +115,6 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
