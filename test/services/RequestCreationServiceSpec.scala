@@ -34,7 +34,8 @@ import connectors.cache.UserAnswersCacheConnector
 import connectors.AFTConnector
 import connectors.MinimalPsaConnector
 import connectors.MinimalPsaConnector.MinimalPSA
-import models.requests.OptionalDataRequest
+import data.SampleData
+import models.requests.{DataRequest, OptionalDataRequest}
 import models.AFTVersion
 import models.UserAnswers
 import org.mockito.Matchers.any
@@ -155,8 +156,13 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       }
     }
 
-    "when no user answers, no version and AFTSummaryPage" must {
+    "when no user answers, no version, AFTSummaryPage and previous URL is within AFT" must {
       "create empty data request" in {
+
+        val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
+
+        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+        OptionalDataRequest(fakeRequest.withHeaders(referer :_*), internalId, psaIdInstance, Some(emptyUserAnswers), sd)
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
@@ -170,6 +176,42 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         )
 
         result.userAnswers mustBe None
+      }
+    }
+
+    "when no user answers, no version, AFTSummaryPage and previous URL is NOT within AFT" must {
+      "create data request with details" in {
+
+        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+          OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers.isDefined mustBe true
       }
     }
 
