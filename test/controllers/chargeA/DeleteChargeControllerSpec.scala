@@ -31,11 +31,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-<<<<<<< HEAD
 import pages.chargeA.ShortServiceRefundQuery
-=======
-import pages.chargeA.ChargeDetailsPage
->>>>>>> 8396533... PODS-4165-releasing lock on return to links
 import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -104,12 +100,9 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
-<<<<<<< HEAD
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-=======
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
->>>>>>> 8396533... PODS-4165-releasing lock on return to links
+
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

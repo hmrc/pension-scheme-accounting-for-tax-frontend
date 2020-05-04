@@ -55,8 +55,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-<<<<<<< HEAD
-=======
   private val templateToBeRendered = "declaration.njk"
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
@@ -68,7 +66,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       schemeName = schemeName)
   )
 
->>>>>>> 8396533... PODS-4165-releasing lock on return to links
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(mockRenderer, mockEmailConnector, mockAFTService, mockUserAnswersCacheConnector, mockCompoundNavigator)

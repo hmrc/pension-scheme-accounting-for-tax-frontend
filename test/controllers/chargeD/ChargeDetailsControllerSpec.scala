@@ -22,41 +22,21 @@ import data.SampleData._
 import forms.chargeD.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeD.ChargeDDetails
-import models.GenericViewModel
-import models.NormalMode
-import models.UserAnswers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.when
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
-import pages.chargeD.ChargeDetailsPage
-import pages.chargeD.MemberDetailsPage
+import org.mockito.Mockito.{times, verify, when}
+import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.test.Helpers.redirectLocation
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers._
+import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
-<<<<<<< HEAD
-import uk.gov.hmrc.viewmodels.DateInput
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-
-import scala.concurrent.Future
-import models.LocalDateBinder._
-import utils.AFTConstants.QUARTER_END_DATE
-import utils.AFTConstants.QUARTER_START_DATE
-=======
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 import scala.concurrent.Future
->>>>>>> 8396533... PODS-4165-releasing lock on return to links
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
