@@ -87,7 +87,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
 
         val viewModel = GenericViewModel(
           submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -115,7 +115,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

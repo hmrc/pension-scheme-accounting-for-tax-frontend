@@ -65,7 +65,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
         val viewModel = GenericViewModel(
           submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -92,7 +92,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

@@ -66,7 +66,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
 
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName)
 
         val json = Json.obj(
@@ -87,7 +87,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
           formWithErrors => {
             val viewModel = GenericViewModel(
               submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               schemeName = schemeName)
 
             val json = Json.obj(
@@ -104,7 +104,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
               case Nil =>
                 val viewModel = GenericViewModel(
                 submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName)
 
                 val json = Json.obj(

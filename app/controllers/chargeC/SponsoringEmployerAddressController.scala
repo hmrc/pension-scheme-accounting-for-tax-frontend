@@ -91,7 +91,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         }
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -121,7 +121,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

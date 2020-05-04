@@ -43,7 +43,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val jsonToPassToTemplate = Json.obj(
     "viewModel" -> GenericViewModel(
       submitUrl = dummyCall.url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 

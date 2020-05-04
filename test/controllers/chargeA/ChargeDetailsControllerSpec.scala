@@ -21,6 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeA.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.GenericViewModel
 import models.NormalMode
@@ -43,7 +44,6 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -78,7 +78,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
 

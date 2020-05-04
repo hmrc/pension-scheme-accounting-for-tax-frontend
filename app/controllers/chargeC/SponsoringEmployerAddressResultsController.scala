@@ -123,7 +123,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
         case Some(addresses) =>
           val viewModel = GenericViewModel(
             submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
             schemeName = schemeName
           )
 

@@ -21,6 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeD.ChargeDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.GenericViewModel
 import models.NormalMode
@@ -42,6 +43,7 @@ import play.api.test.Helpers.route
 import play.api.test.Helpers.status
 import play.api.test.Helpers._
 import play.twirl.api.Html
+<<<<<<< HEAD
 import uk.gov.hmrc.viewmodels.DateInput
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -49,6 +51,12 @@ import scala.concurrent.Future
 import models.LocalDateBinder._
 import utils.AFTConstants.QUARTER_END_DATE
 import utils.AFTConstants.QUARTER_START_DATE
+=======
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+
+import scala.concurrent.Future
+>>>>>>> 8396533... PODS-4165-releasing lock on return to links
 
 class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -87,7 +95,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeD.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("dateOfEvent")),
     "memberName" -> "first last"

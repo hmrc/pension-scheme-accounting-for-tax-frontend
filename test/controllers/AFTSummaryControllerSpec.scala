@@ -101,7 +101,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "list" -> summaryHelper.summaryListData(UserAnswers(), SampleData.srn, startDate),
     "viewModel" -> GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
-      returnUrl = testManagePensionsUrl.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )

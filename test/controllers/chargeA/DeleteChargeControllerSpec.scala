@@ -31,7 +31,11 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
+<<<<<<< HEAD
 import pages.chargeA.ShortServiceRefundQuery
+=======
+import pages.chargeA.ChargeDetailsPage
+>>>>>>> 8396533... PODS-4165-releasing lock on return to links
 import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -63,7 +67,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
     schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -75,7 +79,6 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
   "DeleteCharge Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
@@ -101,8 +104,12 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
+<<<<<<< HEAD
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+=======
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+>>>>>>> 8396533... PODS-4165-releasing lock on return to links
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -126,8 +133,6 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
 

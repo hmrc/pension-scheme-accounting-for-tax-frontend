@@ -91,7 +91,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeE.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = dummyCall.url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName),
     "date" -> DateInput.localDate(form("dateNoticeReceived")),
     "radios" -> Radios.yesNo(form("isPaymentMandatory")),

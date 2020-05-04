@@ -68,7 +68,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
         val viewModel = GenericViewModel(
           submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
 
@@ -93,7 +93,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
 

@@ -19,6 +19,7 @@ GET         /unauthorised                                                       
 
 GET         /accessibility-statement                                                                                            controllers.AccessibilityController.onPageLoad
 
+GET         /:srn/new-return/:startDate/return-to-scheme-details                                                            controllers.ReturnToSchemeDetailsController.returnToSchemeDetails(srn: String, startDate: String)
 
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
 GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
