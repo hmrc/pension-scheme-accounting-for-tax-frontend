@@ -51,12 +51,7 @@ import data.SampleData._
 import models.AFTOverview
 import models.Quarter
 import models.SchemeStatus.Open
-import pages.AFTStatusQuery
-import pages.IsPsaSuspendedQuery
-import pages.PSAEmailQuery
-import pages.PSANameQuery
-import pages.QuarterPage
-import pages.SchemeStatusQuery
+import pages.{AFTStatusQuery, AFTSummaryPage, ChargeTypePage, IsPsaSuspendedQuery, PSAEmailQuery, PSANameQuery, QuarterPage, SchemeStatusQuery}
 import utils.DateHelper
 
 import scala.concurrent.Await
@@ -148,7 +143,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"), None)(request, implicitly, implicitly),
           Duration.Inf
         )
 
@@ -157,6 +152,54 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             any(),
             Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
             Matchers.eq(false))(any(), any())
+      }
+    }
+
+    "when no user answers, no version and AFTSummaryPage" must {
+      "create empty data request" in {
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers mustBe None
+      }
+    }
+
+    "when no user answers, no version and ChargeTypePage" must {
+      "create non-empty data request" in {
+
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(ChargeTypePage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers.isDefined mustBe true
       }
     }
   }

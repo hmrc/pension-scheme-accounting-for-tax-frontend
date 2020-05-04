@@ -88,7 +88,7 @@ class AFTSummaryController @Inject()(
   private def getFormattedStartDate(date: LocalDate): String = date.format(dateFormatterStartDate)
 
   def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+    (identify andThen updateData(srn, startDate, optionVersion, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
           getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)

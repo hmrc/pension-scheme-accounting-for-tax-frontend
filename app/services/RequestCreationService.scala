@@ -16,13 +16,7 @@
 
 package services
 
-import pages.AFTStatusQuery
-import pages.IsPsaSuspendedQuery
-import pages.PSAEmailQuery
-import pages.PSTRQuery
-import pages.QuarterPage
-import pages.SchemeNameQuery
-import pages.SchemeStatusQuery
+import pages.{AFTStatusQuery, AFTSummaryPage, IsPsaSuspendedQuery, PSAEmailQuery, PSANameQuery, PSTRQuery, Page, QuarterPage, SchemeNameQuery, SchemeStatusQuery}
 import play.api.mvc.Request
 import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
@@ -43,7 +37,6 @@ import models.requests.OptionalDataRequest
 import models.SchemeDetails
 import models.SessionData
 import models.UserAnswers
-import pages.PSANameQuery
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
@@ -76,7 +69,7 @@ class RequestCreationService @Inject()(
     }
   }
 
-  def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
+  def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String], optionCurrentPage: Option[Page])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
@@ -91,14 +84,18 @@ class RequestCreationService @Inject()(
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
+      (data, optionVersion, optionCurrentPage) match {
+        case (None, None, Some(AFTSummaryPage)) => Future.successful(optionalDataRequest(None))
+        case _ =>
 
-      val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
+          val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
 
-      tuple.flatMap {
-        case (_, ua) =>
-          userAnswersCacheConnector.getSessionData(id).map {
-            case Some(sd) => OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
-            case _ => throw new RuntimeException("No session data found")
+          tuple.flatMap {
+            case (_, ua) =>
+              userAnswersCacheConnector.getSessionData(id).map {
+                case Some(sd) => OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
+                case _ => throw new RuntimeException("No session data found")
+              }
           }
       }
     }
