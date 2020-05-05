@@ -28,13 +28,13 @@ import config.FrontendAppConfig
 import models.LocalDateBinder._
 import utils.DeleteChargeHelper
 class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
-                                 aftReturnTidyServiceCopy: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
+                                 deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
     case ChargeDetailsPage    => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
-    case DeleteChargePage if aftReturnTidyServiceCopy.hasLastChargeOnly(ua) =>
+    case DeleteChargePage if deleteChargeHelper.hasLastChargeOnly(ua) =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     case DeleteChargePage =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
