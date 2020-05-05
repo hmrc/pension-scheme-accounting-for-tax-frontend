@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package pages.chargeA
 
-import models.chargeF.ChargeDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.Page
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
-
-  override def path: JsPath = DeregistrationQuery.path \ toString
-
-  override def toString: String = "chargeDetails"
-}
+case object DeleteChargePage extends Page

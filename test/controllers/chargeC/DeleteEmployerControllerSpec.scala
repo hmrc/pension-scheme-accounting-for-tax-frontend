@@ -16,13 +16,14 @@
 
 package controllers.chargeC
 
-import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.DeleteFormProvider
 import matchers.JsonMatchers
-import models.{GenericViewModel, SponsoringEmployerType, UserAnswers}
+import models.LocalDateBinder._
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -38,11 +39,10 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 
 class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
 
@@ -68,12 +68,13 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
     .set(ChargeCDetailsPage(1), chargeCDetails).success.value
     .set(PSTRQuery, pstr).success.value
 
-  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
 
   private val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
+      Seq(bind[DeleteAFTChargeService].toInstance(mockDeleteAFTChargeService))).build()
 
 
   private def onwardRoute = Call("GET", "/foo")
@@ -160,7 +161,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
 
@@ -178,15 +179,15 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true)).toOption.get
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
-
-      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
+        Matchers.eq(expectedUA), any())(any(), any(), any())
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
@@ -204,7 +205,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
         .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true)).toOption.get
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
-      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
+        Matchers.eq(expectedUA), any())(any(), any(), any())
     }
   }
 }

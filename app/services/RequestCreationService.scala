@@ -59,19 +59,20 @@ class RequestCreationService @Inject()(
     minimalPsaConnector: MinimalPsaConnector,
     config: FrontendAppConfig
 ) {
-  private def getAFTDetails(pstr: String, startDate: String, aftVersion: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
-    aftConnector.getAFTDetails(pstr, startDate, aftVersion)
+
+  private def emptySessionData(id:String) = SessionData(id, None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
 
   def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
+
     for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(throw new RuntimeException("No session data found")))
+      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(emptySessionData(id)))
     }
   }
 
@@ -81,17 +82,20 @@ class RequestCreationService @Inject()(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
+
     val id = s"$srn$startDate"
 
     def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
-      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData)
+      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData(id))
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
+
       val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
+
       tuple.flatMap {
         case (_, ua) =>
           userAnswersCacheConnector.getSessionData(id).map {
@@ -142,7 +146,6 @@ class RequestCreationService @Inject()(
                 seqAFTOverview: Seq[AFTOverview])(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
       val sad: SessionAccessData =
         createSessionAccessData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
-
       userAnswersCacheConnector
         .save(
           request.internalId,
@@ -195,28 +198,26 @@ class RequestCreationService @Inject()(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
+
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
     val futureUserAnswers = optionVersion match {
       case None =>
-        aftConnector.getListOfVersions(schemeDetails.pstr, startDate).map { listOfVersions =>
-          if (listOfVersions.isEmpty) {
+        Future.successful(
             currentUserAnswers
               .setOrException(QuarterPage, Quarters.getQuarter(startDate))
               .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
-          } else {
-            currentUserAnswers
-          }
-        }
+        )
       case Some(version) =>
-        getAFTDetails(schemeDetails.pstr, startDate, version)
+        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, version)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 
     futureUserAnswers.flatMap { ua =>
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
+
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>

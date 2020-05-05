@@ -16,27 +16,25 @@
 
 package navigators
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import models.{NormalMode, SponsoringEmployerType, CheckMode, UserAnswers}
-import pages.Page
-import pages.chargeC._
-import play.api.mvc.Call
 import controllers.chargeC.routes._
 import helpers.ChargeCHelper._
-import services.AFTReturnTidyService
-import java.time.LocalDate
-
-import SponsoringEmployerType._
 import models.LocalDateBinder._
-import pages.chargeC.SponsoringEmployerAddressSearchPage
-import pages.chargeC.SponsoringEmployerAddressSearchPage
+import models.SponsoringEmployerType._
+import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
+import pages.Page
+import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
+import play.api.mvc.Call
+import utils.DeleteChargeHelper
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
-                                 aftReturnTidyService: AFTReturnTidyService,
+                                 deleteChargeHelper: DeleteChargeHelper,
                                  config: FrontendAppConfig)
-    extends Navigator {
+  extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
 
@@ -83,11 +81,11 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteEmployerPage if getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
       AddEmployersController.onPageLoad(srn, startDate)
 
-    case DeleteEmployerPage if aftReturnTidyService.isAtLeastOneValidCharge(ua) =>
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteEmployerPage if deleteChargeHelper.hasLastChargeOnly(ua) =>
+      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
 
     case DeleteEmployerPage =>
-      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   //scalastyle:on cyclomatic.complexity

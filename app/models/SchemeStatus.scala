@@ -41,7 +41,7 @@ object SchemeStatus extends Enumerable.Implicits {
   )
 
   def statusByName(name: String): SchemeStatus =
-    values.find(_.toString == name).getOrElse(throw new IllegalArgumentException("Unknown value"))
+    values.find(_.toString == name).getOrElse(throw new IllegalArgumentException("Unknown value:" + name))
 
   implicit val enumerable: Enumerable[SchemeStatus] =
     Enumerable(values.map(v => v.toString -> v): _*)

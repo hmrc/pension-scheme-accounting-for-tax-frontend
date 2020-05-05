@@ -16,13 +16,7 @@
 
 package pages.chargeF
 
-import models.chargeF.ChargeDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.Page
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
+case object DeleteChargePage extends Page
 
-  override def path: JsPath = DeregistrationQuery.path \ toString
-
-  override def toString: String = "chargeDetails"
-}

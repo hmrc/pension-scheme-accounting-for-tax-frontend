@@ -16,12 +16,16 @@
 
 package controllers.chargeE
 
+import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeEHelper.getAnnualAllowanceMembers
 import javax.inject.Inject
+import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
@@ -30,15 +34,11 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, UserAnswersService}
-import helpers.ChargeEHelper.getAnnualAllowanceMembers
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{ExecutionContext, Future}
-import java.time.LocalDate
-
-import models.LocalDateBinder._
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -48,12 +48,12 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftService: AFTService,
+                                       deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -124,12 +124,12 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
 
                           updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), interimAnswers))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                     }
                   } else {
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
-                }
+                  }
               )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
