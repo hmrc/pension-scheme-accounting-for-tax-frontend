@@ -33,7 +33,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, DeleteAFTChargeService}
 import helpers.ChargeGHelper.getOverseasTransferMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -47,12 +47,12 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftService: AFTService,
+                                       deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -121,12 +121,12 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                           interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true)))
                           updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                     }
                   } else {
                     Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
-                }
+                  }
               )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
