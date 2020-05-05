@@ -42,19 +42,18 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   ".remove" must {
     "FIRST COMPILE - set only the page value for a scheme level charge being deleted if version is 1" in {
 
-      val resultFuture = Future.fromTry(service.remove(Page)(dataRequest(ua)))
+      val result = service.remove(Page)(dataRequest(ua))
 
-      whenReady(resultFuture){ _ mustBe ua}
+       result mustBe ua
     }
 
     "AMENDMENT - set amended version to null and the page value for a scheme level charge being deleted if version is 2" in {
-      when(mockDeleteChargeHelper.zeroOutCharge(Page, ua)).thenReturn(ua)
-      val resultFuture = Future.fromTry(service.remove(Page)(dataRequest(ua, 2)))
+      when(mockDeleteChargeHelper.zeroOutCharge(Page, uaVersion2)).thenReturn(uaVersion2)
+      val result = service.remove(Page)(dataRequest(uaVersion2, 2))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "amendedVersion" -> JsNull,
+       result mustBe UserAnswers(Json.obj(
         Page.toString -> pageValue
-      ))}
+      ))
     }
   }
 
@@ -65,8 +64,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       val resultFuture = Future.fromTry(service.set(Page, pageValue, NormalMode, isMemberBased = false)(dataRequest(version =  2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        Page.toString -> pageValue,
-        "amendedVersion" -> JsNull
+        Page.toString -> pageValue
       ))}
     }
 
@@ -109,12 +107,10 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
                     Json.obj(
                         MemberPage.toString -> "value",
-                        "memberAFTVersion"-> JsNull,
                         "memberStatus" -> "New"
                     )
-          ),
-          "amendedVersion" -> JsNull)
-      ))}
+          )
+      )))}
     }
 
     "AMENDMENT - set amended version, member version to null, status to Changed and the page value" +
@@ -126,11 +122,9 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberAFTVersion"-> JsNull,
               "memberStatus" -> "Changed"
             )
-          ),
-          "amendedVersion" -> JsNull)
+          ))
       ))}
     }
 
@@ -143,11 +137,9 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberAFTVersion"-> JsNull,
               "memberStatus" -> "New"
             )
-          ),
-          "amendedVersion" -> JsNull)
+          ))
       ))}
     }
 
@@ -160,11 +152,9 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberAFTVersion"-> JsNull,
               "memberStatus" -> "Deleted"
             )
-          ),
-          "amendedVersion" -> JsNull)
+          ))
       ))}
     }
 
@@ -177,11 +167,9 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberAFTVersion"-> JsNull,
               "memberStatus" -> "New"
             )
-          ),
-          "amendedVersion" -> JsNull)
+          ))
       ))}
     }
   }
@@ -210,6 +198,7 @@ object UserAnswersServiceSpec {
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))
 
   val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
+  val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue, "amendedVersion" -> 1))
 
   def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
@@ -220,7 +209,7 @@ object UserAnswersServiceSpec {
           "memberStatus" -> status
         )
       ),
-      "amendedVersion" -> JsNull)
+      "amendedVersion" -> version)
   ))
 }
 

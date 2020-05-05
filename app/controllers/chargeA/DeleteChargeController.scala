@@ -112,10 +112,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               if (value) {
-                DataRetrievals.retrievePSTR {
-                  pstr =>
-                    for {
-                      updatedAnswers <- Future.fromTry(userAnswersService.remove(ShortServiceRefundQuery))
+                DataRetrievals.retrievePSTR { pstr =>
+
+                  val updatedAnswers = userAnswersService.remove(ShortServiceRefundQuery)
+                  for {
                       answersJs <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                       _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery.path))
                     } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))

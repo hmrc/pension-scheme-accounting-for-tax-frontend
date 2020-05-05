@@ -37,15 +37,14 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
         val status: String = if(mode == NormalMode) "New" else getCorrectStatus(page, "Changed", request.userAnswers)
 
-        request.userAnswers.set(page, value)
-          .flatMap(_.set(amendedVersionPath(page), JsNull))
-          .flatMap(_.set(memberVersionPath(page), JsNull))
-          .flatMap(_.set(memberStatusPath(page), JsString(status)))
+        request.userAnswers
+          .removeWithPath(amendedVersionPath(page))
+          .removeWithPath(memberVersionPath(page))
+          .set(page, value).flatMap(_.set(memberStatusPath(page), JsString(status)))
 
       } else { //charge A, B or F
         val amendedVersionPath: JsPath = JsPath(page.path.path.init ++ List(KeyPathNode("amendedVersion")))
-        request.userAnswers.set(page, value)
-          .flatMap(_.set(amendedVersionPath, JsNull))
+        request.userAnswers.removeWithPath(amendedVersionPath).set(page, value)
       }
     } else { //this is NOT an amendment
       request.userAnswers.set(page, value)
@@ -59,9 +58,10 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
             val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", userAnswers))
 
-            userAnswers.set(amendedVersionPath(page), JsNull)
-              .flatMap(_.set(memberVersionPath(page), JsNull))
-              .flatMap(_.set(memberStatusPath(page), updatedStatus))
+      userAnswers
+        .removeWithPath(amendedVersionPath(page))
+        .removeWithPath(memberVersionPath(page))
+        .set(memberStatusPath(page), updatedStatus)
 
 
         } else { //this is NOT an amendment
@@ -71,12 +71,12 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
 
   def remove[A](page: QuestionPage[A]
-               )(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
+               )(implicit request: DataRequest[AnyContent]): UserAnswers = {
     if(request.sessionData.sessionAccessData.version > 1) { //this IS an amendment
       val amendedVersionPath: JsPath = JsPath(page.path.path.init ++ List(KeyPathNode("amendedVersion")))
-        deleteChargeHelper.zeroOutCharge(page, request.userAnswers).set(amendedVersionPath, JsNull)
+        deleteChargeHelper.zeroOutCharge(page, request.userAnswers).removeWithPath(amendedVersionPath)
     } else { //this is NOT an amendment
-      Try(request.userAnswers)
+      request.userAnswers
     }
   }
 
