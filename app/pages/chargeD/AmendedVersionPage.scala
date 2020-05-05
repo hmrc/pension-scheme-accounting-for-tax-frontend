@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package pages
+package pages.chargeD
 
+import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object IsNewReturn extends QuestionPage[Boolean] {
+case object AmendedVersionPage extends QuestionPage[String] {
 
-  override def path: JsPath = JsPath \ toString
+  override def path: JsPath = JsPath \ "chargeDDetails" \ toString
 
-  override def toString: String = "isNewReturn"
+  override def toString: String = "amendedVersion"
 }
+

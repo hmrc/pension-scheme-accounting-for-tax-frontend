@@ -29,6 +29,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
+import models.LocalDateBinder._
 
 class CannotStartAFTReturnController @Inject()(
     identify: IdentifierAction,
@@ -47,7 +48,8 @@ class CannotStartAFTReturnController @Inject()(
       DataRetrievals.retrieveSchemeName { schemeName =>
         renderer
           .render("cannot-start-aft-return.njk",
-                  Json.obj("schemeName" -> schemeName, "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)))
+                  Json.obj("schemeName" -> schemeName,
+                    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
           .map(Ok(_))
       }
   }

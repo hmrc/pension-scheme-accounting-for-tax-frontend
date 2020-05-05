@@ -16,7 +16,6 @@
 
 package controllers.chargeF
 
-import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -29,27 +28,28 @@ import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.PSTRQuery
-import pages.chargeF.ChargeDetailsPage
 import pages.chargeD.MemberDetailsPage
+import pages.chargeF.{DeleteChargePage, DeregistrationQuery}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
 class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val mockAftConnector: AFTConnector = mock[AFTConnector]
+  private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
   private val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[AFTConnector].toInstance(mockAftConnector))).build()
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[DeleteAFTChargeService].toInstance(mockDeleteAFTChargeService))).build()
 
-  private def onwardRoute = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+  private def onwardRoute: Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
 
   private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required",  messages("chargeF").toLowerCase()))
@@ -60,14 +60,11 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = onwardRoute.url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
     schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
-
-  private val answers: UserAnswers = userAnswers
-    .set(PSTRQuery, pstr).success.value
 
   "DeleteCharge Controller" must {
 
@@ -99,8 +96,9 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =
@@ -113,16 +111,15 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA: UserAnswers = answers.removeWithPath(ChargeDetailsPage.path)
-
-      verify(mockAftConnector, times(1)).fileAFTReturn(Matchers.eq(pstr), Matchers.eq(expectedUA))(any(), any())
+      verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
+        any(), Matchers.eq(Some(DeregistrationQuery.path)))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))

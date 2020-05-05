@@ -19,50 +19,36 @@ package controllers.actions
 import java.time.LocalDate
 
 import com.google.inject.ImplementedBy
-import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.UserAnswers
-import models.requests.{IdentifierRequest, OptionalDataRequest}
-import pages.IsPsaSuspendedQuery
-import play.api.libs.json.JsObject
+import models.requests.IdentifierRequest
+import models.requests.OptionalDataRequest
 import play.api.mvc.ActionTransformer
+import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class DataRetrievalImpl(
     srn: String,
     startDate: LocalDate,
-    val userAnswersCacheConnector: UserAnswersCacheConnector
+    requestCreationService:RequestCreationService
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrieval {
-
+  
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
-    val id = s"$srn$startDate"
-    for {
-      data <- userAnswersCacheConnector.fetch(id)
-      isLocked <- userAnswersCacheConnector.isLocked(id)
-    } yield {
-      data match {
-        case None =>
-          OptionalDataRequest(request.request, id, request.psaId, None, isLocked)
-        case Some(uaJsValue) =>
-          val ua = UserAnswers(uaJsValue.as[JsObject])
-          val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
-          OptionalDataRequest(request.request, id, request.psaId, Some(ua), isLocked || psaSuspended)
-      }
-    }
+    requestCreationService.createRequest(request.psaId, srn, startDate)(request,implicitly, implicitly)
   }
 }
 
 class DataRetrievalActionImpl @Inject()(
-    userAnswersCacheConnector: UserAnswersCacheConnector
+                                         requestCreationService:RequestCreationService
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval =
+    new DataRetrievalImpl(srn, startDate, requestCreationService)
 }
 
 @ImplementedBy(classOf[DataRetrievalImpl])
@@ -71,4 +57,38 @@ trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataReq
 @ImplementedBy(classOf[DataRetrievalActionImpl])
 trait DataRetrievalAction {
   def apply(srn: String, startDate: LocalDate): DataRetrieval
+}
+
+
+
+
+
+class DataUpdateImpl(
+                         srn: String,
+                         startDate: LocalDate,
+                         optionVersion:Option[String],
+                         requestCreationService:RequestCreationService
+                       )(implicit val executionContext: ExecutionContext)
+  extends DataUpdate {
+
+  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    requestCreationService.retrieveAndCreateRequest(request.psaId, srn, startDate, optionVersion)(request,implicitly, implicitly)
+  }
+}
+
+class DataUpdateActionImpl @Inject()(
+                                         requestCreationService:RequestCreationService
+                                       )(implicit val executionContext: ExecutionContext)
+  extends DataUpdateAction {
+  override def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate =
+    new DataUpdateImpl(srn, startDate, optionVersion, requestCreationService)
+}
+
+@ImplementedBy(classOf[DataUpdateImpl])
+trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataRequest]
+
+@ImplementedBy(classOf[DataUpdateActionImpl])
+trait DataUpdateAction {
+  def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate
 }

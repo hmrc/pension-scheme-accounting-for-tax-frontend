@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package pages.chargeB
 
-import base.SpecBase
-import pages.IsNewReturn
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
+case object AmendedVersionPage extends QuestionPage[String] {
 
-class UserAnswersSpec extends SpecBase with Enumerable.Implicits {
-  "deriveMinimumChargeValueAllowed" must {
-    "return 0.01 when IsNewReturn is true" in {
-      UserAnswers.deriveMinimumChargeValueAllowed(UserAnswers().setOrException(IsNewReturn, true)) mustBe BigDecimal("0.01")
-    }
+  override def path: JsPath = SpecialDeathBenefitsQuery.path \ toString
 
-    "return 0.00 when IsNewReturn is not present" in {
-      UserAnswers.deriveMinimumChargeValueAllowed(UserAnswers()) mustBe BigDecimal("0.00")
-    }
-  }
+  override def toString: String = "amendedVersion"
 }

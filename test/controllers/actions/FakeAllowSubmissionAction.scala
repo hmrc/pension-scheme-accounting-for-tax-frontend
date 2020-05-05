@@ -16,14 +16,15 @@
 
 package controllers.actions
 
-import models.requests.OptionalDataRequest
+import models.requests.DataRequest
 import play.api.mvc.Result
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class FakeAllowSubmissionAction extends AllowSubmissionAction {
   override protected def executionContext: ExecutionContext = global
 
-  override protected def filter[A](request: OptionalDataRequest[A]): Future[Option[Result]] = Future.successful(None)
+  override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = Future.successful(None)
 }
