@@ -19,41 +19,23 @@ package services
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import connectors.cache.UserAnswersCacheConnector
 import connectors.AFTConnector
 import javax.inject.Singleton
-import models.requests.DataRequest
 import models.UserAnswers
+import models.requests.DataRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AFTService @Inject()(
-    aftConnector: AFTConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    aftReturnTidyService: AFTReturnTidyService
+    aftConnector: AFTConnector
 ) {
-
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
-    val hasDeletedLastMemberOrEmployerFromLastCharge = !aftReturnTidyService.isAtLeastOneValidCharge(answers)
-
-    val ua = if (hasDeletedLastMemberOrEmployerFromLastCharge) {
-      aftReturnTidyService.reinstateDeletedMemberOrEmployer(answers)
-    } else {
-      aftReturnTidyService.removeChargesHavingNoMembersOrEmployers(answers)
-    }
-
-    aftConnector.fileAFTReturn(pstr, ua).flatMap { _ =>
-      if (hasDeletedLastMemberOrEmployerFromLastCharge) {
-        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
-      } else {
-        Future.successful(())
-      }
+    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ => Future.successful(())
     }
   }
 

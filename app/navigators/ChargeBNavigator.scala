@@ -20,17 +20,24 @@ import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
-import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
+import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import java.time.LocalDate
-import models.LocalDateBinder._
 
-class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+import config.FrontendAppConfig
+import models.LocalDateBinder._
+import utils.DeleteChargeHelper
+class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
     case ChargeBDetailsPage   => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteChargePage if deleteChargeHelper.hasLastChargeOnly(ua) =>
+      Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    case DeleteChargePage =>
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
