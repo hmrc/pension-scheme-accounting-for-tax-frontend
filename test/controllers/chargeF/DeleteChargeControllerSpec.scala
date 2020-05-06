@@ -115,7 +115,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
       redirectLocation(result).value mustEqual onwardRoute.url
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        any(), Matchers.eq(Some(DeregistrationQuery.path)))(any(), any(), any())
+        any(), Matchers.eq(Some(DeregistrationQuery)))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {

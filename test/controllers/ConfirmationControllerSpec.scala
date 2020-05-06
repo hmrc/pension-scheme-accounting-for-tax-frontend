@@ -53,13 +53,13 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private def json(hasVersion: Boolean): JsObject = Json.obj(
+  private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,
     "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
       .toString()}").toString(),
     "email" -> email,
-    "list" -> rows(hasVersion),
-    "hasVersionNumber" -> hasVersion,
+    "list" -> rows(isAmendment),
+    "isAmendment" -> isAmendment,
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
@@ -94,7 +94,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(hasVersion = false))
+      jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 
     "return OK and the correct view for amendment for a GET" in {
@@ -108,7 +108,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(hasVersion = true))
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
