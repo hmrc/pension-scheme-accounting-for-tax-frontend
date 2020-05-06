@@ -40,7 +40,7 @@ class AmendmentHelper {
 
   def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int)(
     implicit messages: Messages): Seq[Row] = {
-    val differenceAmount = previousTotalAmount - currentTotalAmount
+    val differenceAmount = currentTotalAmount - previousTotalAmount
     Seq(
       Row(
         key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
@@ -49,7 +49,7 @@ class AmendmentHelper {
         actions = Nil
       ),
       Row(
-        key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(currentVersion), classes = Seq("govuk-!-width-three-quarters")),
+        key = Key(msg"confirmSubmitAFTReturn.total.for.draft", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(
           Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
@@ -57,7 +57,7 @@ class AmendmentHelper {
         actions = Nil
       ),
       Row(
-        key = Key(msg"confirmSubmitAFTReturn.difference.between".withArgs(previousVersion, currentVersion),
+        key = Key(msg"confirmSubmitAFTReturn.difference",
           classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),

@@ -71,7 +71,7 @@ class AmendmentHelperSpec extends SpecBase {
           actions = Nil
         ),
         Row(
-          key = Key(msg"confirmSubmitAFTReturn.difference.between".withArgs(previousVersion, currentVersion),
+          key = Key(msg"confirmSubmitAFTReturn.difference".withArgs(previousVersion, currentVersion),
             classes = Seq("govuk-!-width-three-quarters")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
