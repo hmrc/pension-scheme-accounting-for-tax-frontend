@@ -54,50 +54,60 @@ class QuartersService @Inject()(
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
-        val displayQuarters: Seq[Future[DisplayQuarter]] =
+        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =
           aftOverview
-          .filter(_.compiledVersionAvailable)
-          .map { overviewElement =>
+            .filter(_.compiledVersionAvailable)
+            .map { overviewElement =>
 
-            val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
-            userAnswersCacheConnector.lockedBy(srn, overviewElement.periodStartDate).map {
-              case Some(lockingPsa) => DisplayQuarter(quarter, displayYear = true, Some(lockingPsa), Some(LockedHint))
-              case None => //TODO - Add code to ignore zeroed out charges here in PODS-4201
-                DisplayQuarter(quarter, displayYear = true, None, Some(InProgressHint))
+              val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
+              userAnswersCacheConnector.lockedBy(srn, overviewElement.periodStartDate).flatMap {
+                case Some(lockingPsa) =>
+                  Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, Some(lockingPsa), Some(LockedHint))))
+                case None =>
+                  if(overviewElement.numberOfVersions == 1) {
+                    aftConnector.getIsAftNonZero(pstr, overviewElement.periodStartDate.toString, "1").map {
+                      case true => Seq(DisplayQuarter(quarter, displayYear = true, None, Some(InProgressHint)))
+                      case _ => Nil
+                    }
+                  } else {
+                    Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, None, Some(InProgressHint))))
+                  }
+              }
             }
-          }
 
-        Future.sequence(displayQuarters)
+        Future.sequence(displayQuarters).map(_.flatten)
       } else {
         Future.successful(Nil)
       }
     }
   }
 
-
   def getStartQuarters(srn: String, pstr: String, year: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
-        val displayQuarters =  availableQuarters(year)(config).map { x =>
+        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =  availableQuarters(year)(config).map { x =>
             val availableQuarter = getQuarter(x, year)
 
-              userAnswersCacheConnector.lockedBy(srn, availableQuarter.startDate).map {
-                case Some(lockingPsa) => DisplayQuarter(availableQuarter, displayYear = false, Some(lockingPsa), Some(LockedHint))
+              userAnswersCacheConnector.lockedBy(srn, availableQuarter.startDate).flatMap {
+                case Some(lockingPsa) => Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockingPsa), Some(LockedHint))))
                 case _ =>
                   val overviewElementForAvailableQuarter = aftOverview.filter(_.periodStartDate == availableQuarter.startDate)
                   if (overviewElementForAvailableQuarter.nonEmpty) {
                     if(overviewElementForAvailableQuarter.head.submittedVersionAvailable) {
-                      DisplayQuarter(availableQuarter, displayYear = false, None, Some(SubmittedHint))
+                      Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(SubmittedHint))))
                     } else {
-                      DisplayQuarter(availableQuarter, displayYear = false, None, Some(InProgressHint))
+                       aftConnector.getIsAftNonZero(pstr, overviewElementForAvailableQuarter.head.periodStartDate.toString, "1").map {
+                        case true => Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(InProgressHint)))
+                        case _ => Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None))
+                      }
                     }
                   } else {
-                    DisplayQuarter(availableQuarter, displayYear = false, None, None)
+                    Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None)))
                   }
               }
           }
-        Future.sequence(displayQuarters)
+        Future.sequence(displayQuarters).map(_.flatten)
       } else {
         val displayQuarters =  availableQuarters(year)(config).map { x =>
           val availableQuarter = getQuarter(x, year)
