@@ -16,13 +16,6 @@
 
 package pages.chargeA
 
-import models.chargeA.ChargeDetails
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+import pages.Page
 
-case object ChargeDetailsPage extends QuestionPage[ChargeDetails] {
-
-  override def path: JsPath = ShortServiceRefundQuery.path \ toString
-
-  override def toString: String = "chargeDetails"
-}
+case object DeleteChargePage extends Page
