@@ -24,16 +24,16 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
 import javax.inject.Inject
-import models.GenericViewModel
 import models.LocalDateBinder._
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeA.ChargeDetailsPage
+import pages.chargeA.{DeleteChargePage, ShortServiceRefundQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -46,7 +46,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        getData: DataRetrievalAction,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
-                                       aftService: AFTService,
+                                       deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -61,67 +61,66 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
       implicit request =>
-      DataRetrievals.retrieveSchemeName { schemeName =>
+        DataRetrievals.retrieveSchemeName { schemeName =>
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
-              schemeName = schemeName
-            )
+          val viewModel = GenericViewModel(
+            submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+            schemeName = schemeName
+          )
 
-            val json = Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "form" -> form,
-              "viewModel" -> viewModel,
-              "radios" -> Radios.yesNo(form(implicitly)("value")),
-              "chargeName" -> "chargeA"
-            )
+          val json = Json.obj(
+            "srn" -> srn,
+            "startDate" -> Some(startDate),
+            "form" -> form,
+            "viewModel" -> viewModel,
+            "radios" -> Radios.yesNo(form(implicitly)("value")),
+            "chargeName" -> "chargeA"
+          )
 
-            renderer.render("deleteCharge.njk", json).map(Ok(_))
-      }
+          renderer.render("deleteCharge.njk", json).map(Ok(_))
+        }
     }
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
-            form
-              .bindFromRequest()
-              .fold(
-                formWithErrors => {
+        form
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-                  val viewModel = GenericViewModel(
-                    submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-                    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
-                    schemeName = schemeName
-                  )
-
-                  val json = Json.obj(
-                    "srn" -> srn,
-                    "startDate" -> Some(startDate),
-                    "form" -> formWithErrors,
-                    "viewModel" -> viewModel,
-                    "radios" -> Radios.yesNo(formWithErrors("value")),
-                    "chargeName" -> "chargeA"
-                  )
-
-                  renderer.render("deleteCharge.njk", json).map(BadRequest(_))
-
-                },
-                value =>
-                  if (value) {
-                    DataRetrievals.retrievePSTR {
-                      pstr =>
-                        val updatedAnswers = request.userAnswers.removeWithPath(ChargeDetailsPage.path)
-                        for {
-                          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
-                    }
-                  } else {
-                    Future.successful(Redirect(controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
-                  }
+              val viewModel = GenericViewModel(
+                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                schemeName = schemeName
               )
+
+              val json = Json.obj(
+                "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> formWithErrors,
+                "viewModel" -> viewModel,
+                "radios" -> Radios.yesNo(formWithErrors("value")),
+                "chargeName" -> "chargeA"
+              )
+
+              renderer.render("deleteCharge.njk", json).map(BadRequest(_))
+
+            },
+            value =>
+              if (value) {
+                DataRetrievals.retrievePSTR {
+                  pstr =>
+                    for {
+                      answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery.path))
+                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
+                }
+              } else {
+                Future.successful(Redirect(controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
+              }
+          )
       }
     }
 }

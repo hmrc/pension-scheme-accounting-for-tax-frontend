@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
+import helpers.ChargeCHelper.getSponsoringEmployers
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -31,11 +32,10 @@ import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
-import helpers.ChargeCHelper.getSponsoringEmployers
+import services.DeleteAFTChargeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -49,12 +49,12 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          getData: DataRetrievalAction,
                                          allowAccess: AllowAccessActionProvider,
                                          requireData: DataRequiredAction,
-                                         aftService: AFTService,
+                                         deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
                                          config: FrontendAppConfig,
                                          renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -116,19 +116,19 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                     interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
                     updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
                     _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                    _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate)))
-            }
+              }
           )
       }
     }
   private def saveDeletion(ua: UserAnswers, index: Int): Try[UserAnswers] =
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
-     ua.get(SponsoringIndividualDetailsPage(index)),
-     ua.get(SponsoringOrganisationDetailsPage(index))) match {
+      ua.get(SponsoringIndividualDetailsPage(index)),
+      ua.get(SponsoringOrganisationDetailsPage(index))) match {
       case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
         ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
