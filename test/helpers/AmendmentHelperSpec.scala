@@ -28,7 +28,7 @@ import uk.gov.hmrc.viewmodels._
 
 class AmendmentHelperSpec extends SpecBase {
 
-  val amendmentHelper = new AmendmentHelper
+  private val amendmentHelper = new AmendmentHelper
 
   "getTotalAmount" must {
 
@@ -48,8 +48,8 @@ class AmendmentHelperSpec extends SpecBase {
   "amendmentSummaryRows" must {
     val previousVersion = 2
     val currentVersion = 3
-    val previousTotalAmount = BigDecimal(8000.00)
-    val currentTotalAmount = BigDecimal(5000.00)
+    val previousTotalAmount = BigDecimal(5000.00)
+    val currentTotalAmount = BigDecimal(8000.00)
     val differenceAmount = BigDecimal(3000.00)
 
     "return all the summary list rows" in {
@@ -71,7 +71,7 @@ class AmendmentHelperSpec extends SpecBase {
           actions = Nil
         ),
         Row(
-          key = Key(msg"confirmSubmitAFTReturn.difference".withArgs(previousVersion, currentVersion),
+          key = Key(msg"confirmSubmitAFTReturn.difference",
             classes = Seq("govuk-!-width-three-quarters")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
