@@ -82,10 +82,12 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def getCorrectStatus[A](page: QuestionPage[A], updatedStatus: String, userAnswers: UserAnswers)(implicit request: DataRequest[AnyContent]): String = {
 
-    val previousVersion = userAnswers.get(memberVersionPath(page)).getOrElse(throw MissingVersion)
+    val previousVersion = userAnswers.get(memberVersionPath(page))
     val prevMemberStatus = userAnswers.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
 
-   if((previousVersion == JsNull || previousVersion.as[Int] == mainVersion) && prevMemberStatus.as[String].equals("New")) {
+    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == mainVersion
+
+   if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
       "New"
     } else {
      updatedStatus

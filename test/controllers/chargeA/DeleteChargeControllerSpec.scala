@@ -117,7 +117,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
       redirectLocation(result).value mustEqual onwardRoute.url
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        any(), Matchers.eq(Some(ShortServiceRefundQuery.path)))(any(), any(), any())
+        any(), Matchers.eq(Some(ShortServiceRefundQuery)))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {

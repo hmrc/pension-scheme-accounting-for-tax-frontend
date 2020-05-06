@@ -27,7 +27,7 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{Declaration, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, DeclarationPage, PSANameQuery, VersionNumberQuery}
+import pages.{AFTStatusQuery, DeclarationPage, PSANameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -72,22 +72,21 @@ class DeclarationController @Inject()(
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)
       andThen allowSubmission).async { implicit request =>
-      DataRetrievals.retrieveSchemeNameWithPSTREmailAndQuarter { (schemeName, pstr, email, quarter) =>
+      DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
         for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
           updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
-          _ <- sendEmail(email, quarter, schemeName)
+          _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
     }
 
-  private def sendEmail(email: String, quarter: Quarter, schemeName: String)(implicit request: DataRequest[_],
+  private def sendEmail(email: String, quarter: Quarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(implicit request: DataRequest[_],
                                                                                            messages: Messages): Future[EmailStatus] = {
-    val versionNumber = request.userAnswers.get(VersionNumberQuery)
     val psaName = request.userAnswers.getOrException(PSANameQuery)
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
@@ -103,9 +102,9 @@ class DeclarationController @Inject()(
       "dateSubmitted" -> submittedDate,
       "hmrcEmail" -> sendToEmailId,
       "psaName" -> psaName
-    ) ++ versionNumber.map(vn => Map("submissionNumber" -> s"$vn")).getOrElse(Map.empty[String, String])
+    ) ++ (if(isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
-    val (journeyType, templateId) = if (versionNumber.nonEmpty) {
+    val (journeyType, templateId) = if (isAmendment) {
       ("AFTAmend", config.amendAftReturnTemplateIdId)
     } else {
       ("AFTReturn", config.fileAFTReturnTemplateId)

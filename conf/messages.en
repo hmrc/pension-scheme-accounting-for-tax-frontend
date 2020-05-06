@@ -9,6 +9,7 @@ site.delete.hidden = Change {0}
 site.no = No
 site.yes = Yes
 site.continue = Continue
+site.viewOrChange = View or change
 site.save_and_continue = Save and continue
 site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
@@ -903,6 +904,14 @@ confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.hint.text = You can still make amendments to this return even after youʼve submitted it.
 confirmSubmitAFTReturn.error.required = Select yes if you want to submit this AFT return to HMRC
+confirmSubmitAFTReturn.radio.legend = Do you want to continue with this draft?
+
+confirmSubmitAFTReturn.allCharges.table.h1 = All charges (except overseas transfer charge)
+confirmSubmitAFTReturn.overseasCharge.table.h1 = Overseas transfer charge
+confirmSubmitAFTReturn.total.for = Total for submission {0}
+confirmSubmitAFTReturn.total.for.draft = Total for this draft
+confirmSubmitAFTReturn.difference = Difference
+confirmSubmitAFTReturn.h1.caption = Draft
 
 declaration.title = Declaration
 declaration.heading = Declaration
@@ -942,4 +951,6 @@ continueQuarters.error.required = Select which AFT return you want to continue e
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
+
+
 

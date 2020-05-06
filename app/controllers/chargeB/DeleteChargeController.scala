@@ -113,10 +113,9 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
 
-                  val updatedAnswers = userAnswersService.remove(SpecialDeathBenefitsQuery)
                   for {
-                      answersJs <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(SpecialDeathBenefitsQuery.path))
+                      answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(SpecialDeathBenefitsQuery))
                     } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
                 }
               } else {

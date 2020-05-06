@@ -33,7 +33,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, UserAnswersService}
 import services.DeleteAFTChargeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -42,7 +41,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                       userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
@@ -113,11 +111,9 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
-
-                  val updatedAnswers = userAnswersService.remove(ShortServiceRefundQuery)
                   for {
-                      answersJs <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery.path))
+                      answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery))
                     } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
                 }
               } else {

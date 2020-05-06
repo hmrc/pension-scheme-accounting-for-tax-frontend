@@ -43,7 +43,8 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.Future
 
-class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
+  with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockDeleteAFTChargeService: DeleteAFTChargeService = mock[DeleteAFTChargeService]
   private val application: Application =
@@ -112,7 +113,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
       redirectLocation(result).value mustEqual onwardRoute.url
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        any(), Matchers.eq(Some(SpecialDeathBenefitsQuery.path)))(any(), any(), any())
+        any(), Matchers.eq(Some(SpecialDeathBenefitsQuery)))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {

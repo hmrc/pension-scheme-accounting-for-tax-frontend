@@ -43,7 +43,7 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"dob.cya.label".withArgs(answer.fullName), classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.dob.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.dob.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -81,7 +81,7 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"chargeG.chargeDetails.qropsTransferDate.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.qropsTransferDate.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.qropsTransferDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -97,7 +97,7 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
     Seq(
       Row(
         key = Key(msg"chargeG.chargeAmount.transferred", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -108,7 +108,7 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"chargeG.chargeAmount.taxDue", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-thirdt run" +
           "")),
         actions = List(
           Action(
