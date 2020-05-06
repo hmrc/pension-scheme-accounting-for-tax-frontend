@@ -46,6 +46,16 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     http.GET[JsValue](url)(implicitly, aftHc, implicitly)
   }
 
+  def getIsAftNonZero(pstr: String, startDate: String, aftVersion: String
+                     )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Boolean] = {
+    val url = config.isAftNonZero
+    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "startDate" -> startDate, "aftVersion" -> aftVersion)
+    http.GET[HttpResponse](url)(implicitly, aftHc, implicitly).map { response =>
+      require(response.status == Status.OK)
+      response.json.as[Boolean]
+    }
+  }
+
   def getListOfVersions(pstr: String, startDate: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTVersion]] = {
     val url = config.aftListOfVersions
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
