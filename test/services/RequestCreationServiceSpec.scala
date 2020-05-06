@@ -16,50 +16,29 @@
 
 package services
 
-import config.FrontendAppConfig
-import models.AccessMode
-import models.SchemeDetails
-import models.SessionAccessData
-import models.SessionData
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.when
-import org.scalatest.MustMatchers
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import java.time.LocalDate
 
 import base.SpecBase
-import connectors.cache.UserAnswersCacheConnector
-import connectors.AFTConnector
-import connectors.MinimalPsaConnector
+import config.FrontendAppConfig
+import connectors.{AFTConnector, MinimalPsaConnector}
 import connectors.MinimalPsaConnector.MinimalPSA
+import connectors.cache.UserAnswersCacheConnector
+import data.SampleData._
+import models.{AFTOverview, AFTVersion, AccessMode, SchemeDetails, SessionAccessData, SessionData, UserAnswers}
 import models.requests.OptionalDataRequest
-import models.AFTVersion
-import models.UserAnswers
-import org.mockito.Matchers.any
-import org.mockito.Mockito._
 import org.mockito.Matchers
-import org.scalatest.BeforeAndAfterEach
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when, _}
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
-import data.SampleData._
-import models.AFTOverview
-import models.Quarter
-import models.SchemeStatus.Open
-import pages.AFTStatusQuery
-import pages.IsPsaSuspendedQuery
-import pages.PSAEmailQuery
-import pages.PSANameQuery
-import pages.QuarterPage
-import pages.SchemeStatusQuery
 import utils.DateHelper
 
-import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {

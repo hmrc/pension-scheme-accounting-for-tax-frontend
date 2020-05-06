@@ -32,10 +32,10 @@ import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsPath, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.DeleteAFTChargeService
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -44,6 +44,7 @@ import scala.util.Try
 
 class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          userAnswersCacheConnector: UserAnswersCacheConnector,
+                                         userAnswersService: UserAnswersService,
                                          navigator: CompoundNavigator,
                                          identify: IdentifierAction,
                                          getData: DataRetrievalAction,
@@ -113,8 +114,9 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
                   for {
-                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index))
-                    updatedAnswers <- Future.fromTry(interimAnswers.set(TotalChargeAmountPage, totalAmount(interimAnswers, srn, startDate)))
+                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index)
+                      .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
+                    updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), interimAnswers))
                     _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))

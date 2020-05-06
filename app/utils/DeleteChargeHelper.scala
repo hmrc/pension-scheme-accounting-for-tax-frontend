@@ -17,6 +17,10 @@
 package utils
 
 import models.UserAnswers
+import pages.QuestionPage
+import pages.chargeA.ShortServiceRefundQuery
+import pages.chargeB.SpecialDeathBenefitsQuery
+import pages.chargeF.DeregistrationQuery
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsObject, Json, Reads, __, _}
 
@@ -35,6 +39,21 @@ class DeleteChargeHelper {
       }
     } else {
       ua
+    }
+  }
+
+  def zeroOutCharge[A](page: QuestionPage[A], ua: UserAnswers): UserAnswers = {
+
+    val zeroOutTransformer: Reads[JsObject] = page match {
+      case ShortServiceRefundQuery => zeroOutChargeA
+      case SpecialDeathBenefitsQuery => zeroOutChargeB
+      case DeregistrationQuery => zeroOutChargeF
+      case _ => __.json.put(Json.obj())
+    }
+
+    ua.data.transform(zeroOutTransformer) match {
+      case JsSuccess(value, _) => UserAnswers(value)
+      case _                   => ua
     }
   }
 

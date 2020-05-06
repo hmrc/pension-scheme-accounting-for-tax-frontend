@@ -21,12 +21,12 @@ import models.chargeA.ChargeDetails
 import models.chargeB.ChargeBDetails
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeA.{ChargeDetailsPage => chargeADetailsPage}
-import pages.chargeB.ChargeBDetailsPage
+import pages.chargeA.{ShortServiceRefundQuery, ChargeDetailsPage => chargeADetailsPage}
+import pages.chargeB.{ChargeBDetailsPage, SpecialDeathBenefitsQuery}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage}
 import pages.chargeD.{ChargeDetailsPage => chargeDDetailsPage, MemberDetailsPage => chargeDMemberDetailsPage}
 import pages.chargeE.{ChargeDetailsPage => chargeEDetailsPage, MemberDetailsPage => chargeEMemberDetailsPage}
-import pages.chargeF.{ChargeDetailsPage => chargeFDetailsPage}
+import pages.chargeF.{DeregistrationQuery, ChargeDetailsPage => chargeFDetailsPage}
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage => chargeGMemberDetailsPage}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
@@ -80,6 +80,25 @@ class DeleteChargeHelperSpec extends FreeSpec with MustMatchers with OptionValue
         result.get(ChargeAmountsPage(0)).value.amountTaxDue mustBe 0
         result.get(ChargeAmountsPage(0)).value.amountTransferred mustBe 0
         result.get(chargeGMemberDetailsPage(0)).value.isDeleted mustBe false
+      }
+    }
+  }
+
+  "zeroOutCharge" - {
+    " must zero out the amounts for scheme level charges for a specific charge " - {
+      "charge A" in {
+        val result = deleteChargeHelper.zeroOutCharge(ShortServiceRefundQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(chargeADetailsPage).value mustBe ChargeDetails(2, Some(0), Some(0), 0)
+      }
+
+      "charge B" in {
+        val result = deleteChargeHelper.zeroOutCharge(SpecialDeathBenefitsQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(ChargeBDetailsPage).value mustBe ChargeBDetails(4, 0)
+      }
+
+      "charge F" in {
+        val result = deleteChargeHelper.zeroOutCharge(DeregistrationQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(chargeFDetailsPage).value.amountTaxDue mustBe 0
       }
     }
   }
@@ -313,6 +332,31 @@ object DeleteChargeHelperSpec {
       |      }
       |    ],
       |    "totalChargeAmount": 1230.02
+      |  }
+      |}""".stripMargin).as[JsObject]
+
+  private val allSchemeLevelCharges = Json.parse(
+    """{
+      |  "chargeADetails": {
+      |    "chargeDetails": {
+      |      "numberOfMembers": 2,
+      |      "totalAmtOfTaxDueAtLowerRate": 200.02,
+      |      "totalAmtOfTaxDueAtHigherRate": 200.02,
+      |      "totalAmount": 200.02
+      |    },
+      |    "amendedVersion": 2
+      |  },
+      |  "chargeBDetails": {
+      |    "chargeDetails": {
+      |      "numberOfDeceased": 4,
+      |      "amountTaxDue": 55.55
+      |    }
+      |  },
+      |  "chargeFDetails": {
+      |    "chargeDetails": {
+      |      "amountTaxDue": 200.02,
+      |      "deRegistrationDate": "1980-02-29"
+      |    }
       |  }
       |}""".stripMargin).as[JsObject]
 }
