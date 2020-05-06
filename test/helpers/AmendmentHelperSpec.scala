@@ -20,10 +20,9 @@ import java.time.LocalDate
 
 import base.SpecBase
 import models.chargeB.ChargeBDetails
-import models.{UserAnswers, chargeA}
 import models.chargeF.ChargeDetails
+import models.{UserAnswers, chargeA}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 

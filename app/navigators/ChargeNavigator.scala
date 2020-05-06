@@ -71,12 +71,10 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
-    (ua.get(AFTSummaryPage), ua.get(VersionNumberQuery)) match {
-      case (Some(true), _) =>
+    ua.get(AFTSummaryPage) match {
+      case Some(true) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
-      case (Some(false), Some(_)) =>
-        controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)
-      case (Some(false), _) =>
+      case Some(false) =>
         controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
       case _ => sessionExpiredPage
     }

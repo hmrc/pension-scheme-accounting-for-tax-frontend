@@ -62,8 +62,8 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
   private val form = formProvider()
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen allowAccess(srn, startDate)
-      andThen allowSubmission andThen requireData).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen
+      requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       val preparedForm = request.userAnswers.get(ConfirmSubmitAFTAmendmentPage) match {
         case None        => form
         case Some(value) => form.fill(value)
@@ -74,7 +74,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
 
   def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
-      allowAccess(srn, startDate) andThen allowSubmission andThen requireData).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       form
         .bindFromRequest()
         .fold(

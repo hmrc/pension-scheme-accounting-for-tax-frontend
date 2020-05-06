@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% set panelH1 %}
-    {% if hasVersionNumber %}
+    {% if isAmendment %}
      {{ messages("confirmation.aft.amendment.panel.h1") }}
      {% else %}
      {{ messages("confirmation.aft.return.panel.h1") }}
@@ -50,7 +50,7 @@
          <div><ul class="govuk-list govuk-list--bullet">
             <li>{{messages("confirmation.whatNext.li.item1")}}</li>
             <li>{{messages("confirmation.whatNext.li.item2")}}</li>
-            {% if hasVersionNumber %}
+            {% if isAmendment %}
                 <li>{{messages("confirmation.whatNext.li.item3")}}</li>
             {% endif %}
         </ul></div>

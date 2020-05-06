@@ -25,11 +25,11 @@ import data.SampleData
 import data.SampleData.{dummyCall, srn, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, UserAnswers}
+import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{PSAEmailQuery, VersionNumberQuery}
+import pages.PSAEmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -83,6 +83,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "return OK and the correct view for submission for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(PSAEmailQuery, email).getOrElse(UserAnswers())))
 
@@ -98,8 +99,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "return OK and the correct view for amendment for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        setOrException(PSAEmailQuery, email).setOrException(VersionNumberQuery, versionNumber)))
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(PSAEmailQuery, email)))
 
       val result = route(application, request).value
       status(result) mustEqual OK

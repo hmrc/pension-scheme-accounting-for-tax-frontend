@@ -101,13 +101,6 @@ object SampleData {
       "pstr" -> pstr)
     )
 
-  def userAnswersWithSchemeNamePSTRAndVersion: UserAnswers =
-    UserAnswers(Json.obj(
-      "schemeName" -> schemeName,
-      "pstr" -> pstr,
-    "versionNumber" -> 3)
-    )
-
   def userAnswersWithSchemeNamePstrQuarter: UserAnswers =
     UserAnswers(Json.obj(
       "schemeName" -> schemeName,

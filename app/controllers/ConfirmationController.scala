@@ -24,7 +24,6 @@ import controllers.actions._
 import javax.inject.Inject
 import models.GenericViewModel
 import models.LocalDateBinder._
-import pages.VersionNumberQuery
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -56,20 +55,19 @@ class ConfirmationController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate) andThen allowSubmission).async {
       implicit request =>
-        DataRetrievals.retrieveSchemeNameWithEmailAndQuarter { (schemeName, email, quarter) =>
+        DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
           val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
           val listSchemesUrl = config.yourPensionSchemesUrl
-          val versionNumber = request.userAnswers.get(VersionNumberQuery)
 
-          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, versionNumber)
+          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
 
           val json = Json.obj(
             fields = "srn" -> srn,
             "panelHtml" -> confirmationPanelText.toString(),
             "email" -> email,
-            "hasVersionNumber" -> versionNumber.nonEmpty,
+            "isAmendment" -> isAmendment,
             "list" -> rows,
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
@@ -87,7 +85,7 @@ class ConfirmationController @Inject()(
     }
 
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
-                                   submittedDate: String, versionNumber: Option[Int]): Seq[SummaryList.Row] = {
+                                   submittedDate: String, amendedVersion: Option[Int]): Seq[SummaryList.Row] = {
     Seq(Row(
       key = Key(msg"confirmation.table.scheme.label", classes = Seq("govuk-!-font-weight-regular")),
       value = Value(Literal(schemeName), classes = Nil),
@@ -103,7 +101,7 @@ class ConfirmationController @Inject()(
         value = Value(Literal(submittedDate), classes = Nil),
         actions = Nil
       )
-    ) ++ versionNumber.map{ vn =>
+    ) ++ amendedVersion.map{ vn =>
       Seq(
         Row(
           key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
