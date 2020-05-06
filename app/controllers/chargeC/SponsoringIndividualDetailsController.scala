@@ -34,10 +34,13 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 import java.time.LocalDate
+
 import models.LocalDateBinder._
+import services.UserAnswersService
 
 class SponsoringIndividualDetailsController @Inject()(override val messagesApi: MessagesApi,
                                                       userAnswersCacheConnector: UserAnswersCacheConnector,
+                                                      userAnswersService: UserAnswersService,
                                                       navigator: CompoundNavigator,
                                                       identify: IdentifierAction,
                                                       getData: DataRetrievalAction,
@@ -103,7 +106,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringIndividualDetailsPage(index), value))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(SponsoringIndividualDetailsPage(index), mode, updatedAnswers, srn, startDate))
           )

@@ -1,0 +1,78 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/radios/macro.njk"        import govukRadios %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+
+{% block pageTitle %}
+  {{ title(messages("confirmSubmitAFTReturn.title"), form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if form.errors.length > 0 %}
+          {{ govukErrorSummary({
+            "titleText": messages("error.summary.title"),
+            "errorList": form.errors
+          }) }}
+        {% endif %}
+
+        <h1 class="govuk-heading-xl">
+          <span class="govuk-caption-xl">{{ messages('confirmSubmitAFTReturn.h1.caption') }}</span>
+           {{ messages("confirmSubmitAFTReturn.title") }}
+        </h1>
+
+        <h3 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h3>
+
+        {% if tableRowsUK.nonEmpty %}
+            {{ govukSummaryList({
+                                    classes: "govuk-!-margin-bottom-8",
+                                    rows: tableRowsUK
+                                })
+            }}
+        {% endif %}
+        {% if tableRowsNonUK.nonEmpty %}
+            <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
+
+            {{ govukSummaryList({
+                                    rows: tableRowsNonUK
+                               })
+            }}
+        {% endif %}
+
+        <form action="{{ submitUrl }}" method="post">
+
+          {{ csrf() | safe }}
+
+          {{ govukRadios({
+            name: 'value',
+            classes: "govuk-radios--inline",
+            fieldset: {
+              legend: {
+                text: messages('confirmSubmitAFTReturn.radio.legend'),
+                classes: "govuk-fieldset__legend--m"
+              }
+            },
+            items: radios,
+            errorMessage: form.value.error
+          }) }}
+
+          {{ govukButton({
+            text: messages("site.continue"),
+            attributes: {id: "submit"}
+          }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+    <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}

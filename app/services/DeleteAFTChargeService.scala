@@ -22,7 +22,8 @@ import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Singleton
 import models.UserAnswers
 import models.requests.DataRequest
-import play.api.libs.json.JsPath
+import pages.QuestionPage
+import play.api.mvc.AnyContent
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DeleteChargeHelper
 
@@ -30,21 +31,28 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(
-                                        aftConnector: AFTConnector,
-                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        deleteChargeHelper: DeleteChargeHelper
-                                      ) {
+    aftConnector: AFTConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    deleteChargeHelper: DeleteChargeHelper,
+    userAnswersService: UserAnswersService
+) {
 
-  def deleteAndFileAFTReturn(pstr: String, answers: UserAnswers, path: Option[JsPath] = None)(implicit ec: ExecutionContext,
-                                                                                              hc: HeaderCarrier,
-                                                                                              request: DataRequest[_]): Future[Unit] = {
+  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers, page: Option[QuestionPage[A]] = None)(
+      implicit ec: ExecutionContext,
+      hc: HeaderCarrier,
+      request: DataRequest[AnyContent]): Future[Unit] = {
 
     val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
+    val isAmendment = request.sessionData.sessionAccessData.version > 1
 
-    val updateAnswers = if (isDeletingLastCharge) {
-      deleteChargeHelper.zeroOutLastCharge(answers)
+    val updateAnswers = if (isAmendment) {
+      page.map(removePage => userAnswersService.remove(removePage)).getOrElse(answers)
     } else {
-      path.map(noChargePath => answers.removeWithPath(noChargePath)).getOrElse(answers)
+      if (isDeletingLastCharge) {
+        deleteChargeHelper.zeroOutLastCharge(answers)
+      } else {
+        page.map(noChargePath => answers.removeWithPath(noChargePath.path)).getOrElse(answers)
+      }
     }
 
     aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>

@@ -25,11 +25,11 @@ import data.SampleData
 import data.SampleData.{dummyCall, srn, userAnswersWithSchemeNamePstrQuarter}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, UserAnswers}
+import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{PSAEmailQuery, VersionNumberQuery}
+import pages.PSAEmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
@@ -53,13 +53,13 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private def json(hasVersion: Boolean): JsObject = Json.obj(
+  private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,
     "panelHtml" -> Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
       .toString()}").toString(),
     "email" -> email,
-    "list" -> rows(hasVersion),
-    "hasVersionNumber" -> hasVersion,
+    "list" -> rows(isAmendment),
+    "isAmendment" -> isAmendment,
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
@@ -83,6 +83,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "return OK and the correct view for submission for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(PSAEmailQuery, email).getOrElse(UserAnswers())))
 
@@ -93,13 +94,13 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(hasVersion = false))
+      jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 
     "return OK and the correct view for amendment for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        setOrException(PSAEmailQuery, email).setOrException(VersionNumberQuery, versionNumber)))
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(PSAEmailQuery, email)))
 
       val result = route(application, request).value
       status(result) mustEqual OK
@@ -107,7 +108,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
-      jsonCaptor.getValue must containJson(json(hasVersion = true))
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {

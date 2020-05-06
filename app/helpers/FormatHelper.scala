@@ -20,7 +20,7 @@ import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.util.{Currency, Locale}
 
-trait FormatHelper {
+object FormatHelper {
 
   val currencyFormatter: NumberFormat = {
     val cf = java.text.NumberFormat.getCurrencyInstance(new Locale("en", "GB"))

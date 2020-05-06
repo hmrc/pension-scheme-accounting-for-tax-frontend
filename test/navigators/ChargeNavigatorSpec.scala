@@ -57,9 +57,10 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes),
         row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
+        row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
   }
 }

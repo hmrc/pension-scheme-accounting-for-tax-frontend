@@ -131,7 +131,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
     Seq(
       Row(
         key = Key(msg"chargeC.paymentDate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(chargeDetails.paymentDate.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(chargeDetails.paymentDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -142,7 +142,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"chargeC.totalTaxDue.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
             content = msg"site.edit",

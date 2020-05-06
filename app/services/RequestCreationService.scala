@@ -76,6 +76,8 @@ class RequestCreationService @Inject()(
     }
   }
 
+  def emptySessionData = SessionData("", None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
+
   def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
