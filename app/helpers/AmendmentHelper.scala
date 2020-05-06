@@ -31,7 +31,8 @@ class AmendmentHelper {
       ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
       ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
       ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0))).sum
+      ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0))
+    ).sum
 
     val amountNonUK = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0))
 
@@ -39,30 +40,33 @@ class AmendmentHelper {
   }
 
   def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int)(
-    implicit messages: Messages): Seq[Row] = {
+      implicit messages: Messages): Seq[Row] = {
     val differenceAmount = currentTotalAmount - previousTotalAmount
-    Seq(
-      Row(
-        key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-        actions = Nil
-      ),
-      Row(
-        key = Key(msg"confirmSubmitAFTReturn.total.for.draft", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+    if (previousTotalAmount == 0 && currentTotalAmount == 0) {
+      Nil
+    } else {
+      Seq(
+        Row(
+          key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(previousVersion), classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(previousTotalAmount)}"),
+                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+          actions = Nil
         ),
-        actions = Nil
-      ),
-      Row(
-        key = Key(msg"confirmSubmitAFTReturn.difference",
-          classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-        actions = Nil
+        Row(
+          key = Key(msg"confirmSubmitAFTReturn.total.for.draft", classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(
+            Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          ),
+          actions = Nil
+        ),
+        Row(
+          key = Key(msg"confirmSubmitAFTReturn.difference", classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(differenceAmount)}"),
+                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+          actions = Nil
+        )
       )
-    )
+    }
   }
 }

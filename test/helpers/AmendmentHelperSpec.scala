@@ -63,7 +63,7 @@ class AmendmentHelperSpec extends SpecBase {
           actions = Nil
         ),
         Row(
-          key = Key(msg"confirmSubmitAFTReturn.total.for".withArgs(currentVersion), classes = Seq("govuk-!-width-three-quarters")),
+          key = Key(msg"confirmSubmitAFTReturn.total.for.draft", classes = Seq("govuk-!-width-three-quarters")),
           value = Value(
             Literal(s"${FormatHelper.formatCurrencyAmountAsString(currentTotalAmount)}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
