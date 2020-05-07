@@ -30,20 +30,21 @@
 
         <h3 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h3>
 
-            {{ govukSummaryList({
-                                    classes: "govuk-!-margin-bottom-8",
-                                    rows: tableRowsUK
-                                })
-            }}
+            {% if tableRowsUK.length > 0 %}
+                {{ govukSummaryList({
+                                        classes: "govuk-!-margin-bottom-8",
+                                        rows: tableRowsUK
+                                    })
+                }}
+            {% endif %}
+            {% if tableRowsNonUK.length > 0 %}
+                <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
 
-        {% if tableRowsNonUK.nonEmpty %}
-            <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
-
-            {{ govukSummaryList({
-                                    rows: tableRowsNonUK
-                               })
-            }}
-        {% endif %}
+                {{ govukSummaryList({
+                                        rows: tableRowsNonUK
+                                   })
+                }}
+            {% endif %}
 
         <form action="{{ submitUrl }}" method="post">
 
