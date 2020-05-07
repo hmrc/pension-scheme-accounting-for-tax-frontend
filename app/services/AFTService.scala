@@ -25,6 +25,7 @@ import models.UserAnswers
 import models.requests.DataRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
+import models.JourneyType
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -35,7 +36,10 @@ class AFTService @Inject()(
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
-    aftConnector.fileAFTReturn(pstr, answers).flatMap { _ => Future.successful(())
+    val isAmendment = request.sessionData.sessionAccessData.version > 1
+    val journeyType = if (isAmendment) JourneyType.AFT_AMEND else JourneyType.AFT_RETURN
+
+    aftConnector.fileAFTReturn(pstr, answers, journeyType).flatMap { _ => Future.successful(())
     }
   }
 
