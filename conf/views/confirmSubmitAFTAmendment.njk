@@ -30,13 +30,12 @@
 
         <h3 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h3>
 
-        {% if tableRowsUK.nonEmpty %}
             {{ govukSummaryList({
                                     classes: "govuk-!-margin-bottom-8",
                                     rows: tableRowsUK
                                 })
             }}
-        {% endif %}
+
         {% if tableRowsNonUK.nonEmpty %}
             <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
 
