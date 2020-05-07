@@ -109,6 +109,9 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
           schemeName = schemeName
         )
 
+        val x = amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion)
+
+        x.size > 0
         val json = Json.obj(
           fields = "srn" -> srn,
           "startDate" -> Some(startDate),
