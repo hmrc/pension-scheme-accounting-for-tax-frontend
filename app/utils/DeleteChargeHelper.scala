@@ -62,10 +62,13 @@ class DeleteChargeHelper {
 
     val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
     val schemeLevelCharges = Seq("chargeADetails", "chargeBDetails", "chargeFDetails")
+    def isSchemeLevelChargeNonZero(chargeDetails: String): Boolean = {
+      (json \ chargeDetails).isDefined && (json \ chargeDetails \ "chargeDetails"\ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
+    }
 
     val allNonEmptyCharges: Seq[(Boolean, String)] =
       (memberLevelCharges.map(chargeDetails => ((json \ chargeDetails).isDefined, chargeDetails)) ++
-        schemeLevelCharges.map(chargeDetails => ((json \ chargeDetails).isDefined, chargeDetails)))
+        schemeLevelCharges.map(chargeDetails => (isSchemeLevelChargeNonZero(chargeDetails), chargeDetails)))
         .filter(_._1)
 
     if (allNonEmptyCharges.size == 1) {
@@ -91,17 +94,16 @@ class DeleteChargeHelper {
 
     getMembersOrEmployersCount(individualPath, isDeleted = false) == 0 &&
       getMembersOrEmployersCount(orgPath, isDeleted = false) == 0 &&
-      (getMembersOrEmployersCount(individualPath, isDeleted = true) > 0 ||
-        getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
+      (getMembersOrEmployersCount(individualPath, isDeleted = true) > 0 || getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
   }
 
   private def zeroOutChargeA: Reads[JsObject] =
     updateJson(__ \ 'chargeADetails \ 'chargeDetails,
       Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
 
-  private def zeroOutChargeB: Reads[JsObject] = updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
+  private def zeroOutChargeB: Reads[JsObject] = updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
 
-  private def zeroOutChargeF: Reads[JsObject] = updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
+  private def zeroOutChargeF: Reads[JsObject] = updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
 
   private def zeroOutChargeC: Reads[JsObject] = {
     updateArray(__ \ 'chargeCDetails \ 'employers) {

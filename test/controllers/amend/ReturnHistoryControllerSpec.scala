@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package controllers.chargeC
+package controllers.amend
 
 import java.time.LocalDate
 
 import connectors.AFTConnector
+import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -99,6 +100,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
+    when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }

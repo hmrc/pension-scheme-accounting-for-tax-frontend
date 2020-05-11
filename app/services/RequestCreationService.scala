@@ -155,10 +155,8 @@ class RequestCreationService @Inject()(
         )
     }
 
-    val id = s"$srn$startDate"
-
     for {
-      optionLockedBy <- userAnswersCacheConnector.lockedBy(id)
+      optionLockedBy <- userAnswersCacheConnector.lockedBy(srn, startDate)
       seqAFTOverview <- getAftOverview(pstr, startDate)
       savedJson <- saveAll(optionLockedBy, seqAFTOverview)
     } yield {
