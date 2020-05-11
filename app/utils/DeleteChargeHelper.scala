@@ -58,43 +58,47 @@ class DeleteChargeHelper {
   }
 
   def hasLastChargeOnly(ua: UserAnswers): Boolean = {
+
+    val allCharges: Seq[String] =
+      Seq("chargeADetails", "chargeBDetails", "chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeFDetails", "chargeGDetails")
+
+    val allNonEmptyCharges: Seq[(Boolean, String)] = allCharges.map(charge => (isChargeNonZero(charge, ua), charge)).filter(_._1)
+println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n allNonEmptyCharges "+allNonEmptyCharges)
+    allNonEmptyCharges.size <= 1
+  }
+
+  private def isChargeNonZero(chargeDetails: String, ua: UserAnswers): Boolean = {
+    val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
     val json = ua.data
 
-    val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
-    val schemeLevelCharges = Seq("chargeADetails", "chargeBDetails", "chargeFDetails")
-    def isSchemeLevelChargeNonZero(chargeDetails: String): Boolean = {
-      (json \ chargeDetails).isDefined && (json \ chargeDetails \ "chargeDetails"\ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
-    }
-
-    val allNonEmptyCharges: Seq[(Boolean, String)] =
-      (memberLevelCharges.map(chargeDetails => ((json \ chargeDetails).isDefined, chargeDetails)) ++
-        schemeLevelCharges.map(chargeDetails => (isSchemeLevelChargeNonZero(chargeDetails), chargeDetails)))
-        .filter(_._1)
-
-    if (allNonEmptyCharges.size == 1) {
-      allNonEmptyCharges.headOption match {
-        case Some((_, "chargeCDetails"))                                      => isLastMemberC(ua)
-        case Some((_, chargeType)) if memberLevelCharges.contains(chargeType) => isLastMember(ua, chargeType)
-        case _                                                                => true
-      }
-    } else {
-      false
+    chargeDetails match {
+      case "chargeCDetails" => isLastMemberC(ua)
+      case chargeType if memberLevelCharges.contains(chargeType) => isLastMember(ua, chargeType)
+      case _ => (json \ chargeDetails).isDefined && (json \ chargeDetails \ "chargeDetails"\ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
     }
   }
 
   private def isLastMember(ua: UserAnswers, chargeType: String): Boolean = {
     val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
-    getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) == 0 &&
-      getMembersOrEmployersCount(memberDetailsPath, isDeleted = true) > 0
+
+    println(s">>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n In CHARGE $chargeType")
+    println("getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) "+getMembersOrEmployersCount(memberDetailsPath, isDeleted = false))
+    println("getMembersOrEmployersCount(memberDetailsPath, isDeleted = true) "+getMembersOrEmployersCount(memberDetailsPath, isDeleted = true))
+
+    getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) > 0
   }
 
   private def isLastMemberC(ua: UserAnswers): Boolean = {
     val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
     val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
 
-    getMembersOrEmployersCount(individualPath, isDeleted = false) == 0 &&
-      getMembersOrEmployersCount(orgPath, isDeleted = false) == 0 &&
-      (getMembersOrEmployersCount(individualPath, isDeleted = true) > 0 || getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
+    println(">>>>>>>>>>>>>>>>>>>>>>>>>>>> \n\n In CHARGE C")
+    println("getMembersOrEmployersCount(individualPath, isDeleted = false) "+getMembersOrEmployersCount(individualPath, isDeleted = false))
+    println("getMembersOrEmployersCount(orgPath, isDeleted = false) "+getMembersOrEmployersCount(orgPath, isDeleted = false))
+    println("getMembersOrEmployersCount(individualPath, isDeleted = true "+getMembersOrEmployersCount(individualPath, isDeleted = true))
+    println("getMembersOrEmployersCount(orgPath, isDeleted = true "+getMembersOrEmployersCount(orgPath, isDeleted = true))
+
+    getMembersOrEmployersCount(individualPath, isDeleted = false) + getMembersOrEmployersCount(orgPath, isDeleted = false) > 0
   }
 
   private def zeroOutChargeA: Reads[JsObject] =
