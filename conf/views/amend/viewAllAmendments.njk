@@ -1,0 +1,35 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block pageTitle %}
+  {{ title(messages("allAmendments.h1")) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        <span class="govuk-caption-xl">{{schemeName}}</span>
+
+        <h1 class="govuk-heading-xl">{{messages("allAmendments.h1")}}</h1>
+        {% if addedTable.rows.length > 0 %}
+            {{ govukTable(addedTable) }}
+        {% endif %}
+
+        {% if deletedTable.rows.length > 0 %}
+            {{ govukTable(deletedTable) }}
+        {% endif %}
+
+         {% if updatedTable.rows.length > 0 %}
+            {{ govukTable(updatedTable) }}
+        {% endif %}
+      </div>
+    </div>
+
+   <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+
+{% endblock %}

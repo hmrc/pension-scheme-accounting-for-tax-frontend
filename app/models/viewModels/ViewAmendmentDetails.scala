@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package pages.chargeF
+package models.viewModels
+import models.AmendedChargeStatus
 
-import pages.QuestionPage
-import play.api.libs.json.JsPath
+case class ViewAmendmentDetails(memberDetails: String, chargeType: String, chargeAmount: String, status: AmendedChargeStatus) {
 
-case object AmendedVersionPage extends QuestionPage[Int] {
-
-  override def path: JsPath = DeregistrationQuery.path \ toString
-
-  override def toString: String = "amendedVersion"
 }

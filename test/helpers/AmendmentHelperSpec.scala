@@ -22,14 +22,15 @@ import base.SpecBase
 import models.chargeB.ChargeBDetails
 import models.chargeF.ChargeDetails
 import models.{UserAnswers, chargeA}
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
 class AmendmentHelperSpec extends SpecBase {
-
+import AmendmentHelperSpec._
   private val amendmentHelper = new AmendmentHelper
-
+/*
   "getTotalAmount" must {
 
     "return sum of the total amounts of all charges for UK/NonUK" in {
@@ -79,5 +80,154 @@ class AmendmentHelperSpec extends SpecBase {
         )
       )
     }
+  }*/
+
+  "getAllAmendments" must {
+    "return all the amendment details for Charge C" in {
+      val res = amendmentHelper.getAllAmendments(UserAnswers(userAnswersRequestJson.as[JsObject]))
+
+    }
   }
+}
+
+object AmendmentHelperSpec {
+  private val userAnswersRequestJson = Json.parse(
+    """{
+      |  "aftStatus": "Compiled",
+      |  "quarter": {
+      |    "startDate": "2019-01-01",
+      |    "endDate": "2019-03-31"
+      |  },
+      |  "chargeADetails": {
+      |    "chargeDetails": {
+      |      "numberOfMembers": 2,
+      |      "totalAmtOfTaxDueAtLowerRate": 200.02,
+      |      "totalAmtOfTaxDueAtHigherRate": 200.02,
+      |      "totalAmount": 200.02
+      |    },
+      |    "amendedVersion": 2
+      |  },
+      |  "chargeBDetails": {
+      |    "chargeDetails": {
+      |      "numberOfDeceased": 4,
+      |      "amountTaxDue": 55.55
+      |    }
+      |  },
+      |  "chargeCDetails": {
+      |    "employers": [
+      |      {
+      |        "whichTypeOfSponsoringEmployer": "individual",
+      |        "memberStatus": "Changed",
+      |        "memberAFTVersion": 1,
+      |        "chargeDetails": {
+      |          "paymentDate": "2020-01-01",
+      |          "amountTaxDue": 500.02
+      |        },
+      |        "sponsoringIndividualDetails": {
+      |          "firstName": "testFirst",
+      |          "lastName": "testLast",
+      |          "nino": "AB100100A"
+      |        },
+      |        "sponsoringEmployerAddress": {
+      |          "line1": "line1",
+      |          "line2": "line2",
+      |          "line3": "line3",
+      |          "line4": "line4",
+      |          "postcode": "NE20 0GG",
+      |          "country": "GB"
+      |        }
+      |      }
+      |    ],
+      |    "totalChargeAmount": 500.02,
+      |    "amendedVersion": 1
+      |  },
+      |  "chargeDDetails": {
+      |    "numberOfMembers": 2,
+      |    "members": [
+      |      {
+      |        "memberStatus": "Deleted",
+      |        "memberAFTVersion": 1,
+      |        "memberDetails": {
+      |          "firstName": "firstName",
+      |          "lastName": "lastName",
+      |          "nino": "AC100100A",
+      |          "isDeleted": true
+      |        },
+      |        "chargeDetails": {
+      |          "dateOfEvent": "2020-01-10",
+      |          "taxAt25Percent": 100,
+      |          "taxAt55Percent": 100.02
+      |        }
+      |      },
+      |      {
+      |        "memberStatus": "New",
+      |        "memberAFTVersion": 1,
+      |        "memberDetails": {
+      |          "firstName": "secondName",
+      |          "lastName": "lastName",
+      |          "nino": "AC100100A",
+      |          "isDeleted": true
+      |        },
+      |        "chargeDetails": {
+      |          "dateOfEvent": "2020-01-10",
+      |          "taxAt25Percent": 100,
+      |          "taxAt55Percent": 100.02
+      |        }
+      |      }
+      |    ],
+      |    "totalChargeAmount": 200.02
+      |  },
+      |  "chargeEDetails": {
+      |    "members": [
+      |      {
+      |        "memberDetails": {
+      |          "firstName": "eFirstName",
+      |          "lastName": "eLastName",
+      |          "nino": "AE100100A",
+      |          "isDeleted": false
+      |        },
+      |        "annualAllowanceYear": "2020",
+      |        "chargeDetails": {
+      |          "dateNoticeReceived": "2020-01-11",
+      |          "chargeAmount": 200.02,
+      |          "isPaymentMandatory": true
+      |        }
+      |      }
+      |    ],
+      |    "totalChargeAmount": 200.02
+      |  },
+      |  "chargeFDetails": {
+      |    "chargeDetails": {
+      |      "amountTaxDue": 200.02,
+      |      "deRegistrationDate": "1980-02-29"
+      |    }
+      |  },
+      |  "chargeGDetails": {
+      |    "members": [
+      |      {
+      |        "memberDetails": {
+      |          "firstName": "Craig",
+      |          "lastName": "White",
+      |          "dob": "1980-02-29",
+      |          "nino": "AA012000A",
+      |          "isDeleted": false
+      |        },
+      |        "chargeDetails": {
+      |          "qropsReferenceNumber": "300000",
+      |          "qropsTransferDate": "2016-02-29"
+      |        },
+      |        "chargeAmounts": {
+      |          "amountTransferred": 45670.02,
+      |          "amountTaxDue": 4560.02
+      |        }
+      |      }
+      |    ],
+      |    "totalChargeAmount": 1230.02
+      |  },
+      |  "declaration" : {
+      |    "submittedBy" : "PSA",
+      |    "submittedID" : "A2000000",
+      |    "hasAgreed" : true
+      |  }
+      |}""".stripMargin)
 }
