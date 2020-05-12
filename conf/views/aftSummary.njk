@@ -31,13 +31,13 @@
         {{ messages('aft.summary.heading', quarterStartDate, quarterEndDate) }}
       </h1>
 
+        {{ searchbox() }}
+
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
-ONE
-{{ searchbox("hjhjhjjh") }}
-TWO
+
 
           {{ govukSummaryList({
             rows: list

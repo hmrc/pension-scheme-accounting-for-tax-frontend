@@ -1,3 +1,29 @@
-{% macro searchbox(boxContent) %}
-    hello this is macro
+{% macro searchbox(params) %}
+
+    {% from "govuk/components/input/macro.njk" import govukInput %}
+    {% from "govuk/components/button/macro.njk" import govukButton %}
+
+   <form action="" method="post" autocomplete="off">
+   {{ csrf() | safe }}
+    <div class="govuk-form-group" >
+        {{ govukInput({
+          label: {
+            text: "Search for a member"
+          },
+          id: "search-member",
+          name: "search-member",
+          hint: {
+            text: "Search by name or National Insurance number"
+          }
+        }) }}
+
+        {{ govukButton({
+          text: "Search",
+          classes: "govuk-button--secondary"
+        }) }}
+
+    </div>
+    </form>
+
+
 {% endmacro %}

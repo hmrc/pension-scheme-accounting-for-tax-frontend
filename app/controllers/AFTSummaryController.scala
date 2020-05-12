@@ -97,6 +97,17 @@ class AFTSummaryController @Inject()(
       }
     }
 
+  def onSearchMember(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        println("/n/n/n" +" I'm here ")
+        val json =
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+        renderer.render("aftSummary.njk", json).map(Ok(_))
+      }
+    }
+
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndQuarterWithAmendment { (schemeName, quarter, isAmendment) =>
