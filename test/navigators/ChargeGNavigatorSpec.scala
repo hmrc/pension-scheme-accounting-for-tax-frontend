@@ -23,7 +23,7 @@ import models.LocalDateBinder._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeG._
-import pages.{Page, chargeA}
+import pages.{Page, chargeA, chargeB}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -45,7 +45,7 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
         row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), onlyOneCharge),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeGMember))
       )
 
@@ -73,4 +73,6 @@ object ChargeGNavigatorSpec {
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
   private val onlyOneCharge = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption
+  private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
+    .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
 }

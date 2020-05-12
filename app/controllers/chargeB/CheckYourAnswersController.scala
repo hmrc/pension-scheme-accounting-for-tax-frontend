@@ -82,17 +82,12 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String = {
-
-    println(">>>>>>>>>>>>>>>>>>>>>>>.. deleteChargeHelper.hasLastChargeOnly(request.userAnswers) "
-      +deleteChargeHelper.hasLastChargeOnly(request.userAnswers))
-
-    if(deleteChargeHelper.hasLastChargeOnly(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
+  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
+    if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
       routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
     } else {
       routes.DeleteChargeController.onPageLoad(srn, startDate).url
     }
-  }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
