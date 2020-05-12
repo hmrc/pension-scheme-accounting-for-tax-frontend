@@ -26,14 +26,13 @@ import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
+import models.Quarters
 import models.GenericViewModel
 import models.Mode
 import models.NormalMode
 import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
-import pages.ChargeTypePage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
@@ -47,6 +46,7 @@ import renderer.Renderer
 import services.RequestCreationService
 import services.AFTService
 import services.AllowAccessService
+import services.MemberSearchService
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -74,7 +74,8 @@ class AFTSummaryController @Inject()(
     aftService: AFTService,
     allowService: AllowAccessService,
     requestCreationService: RequestCreationService,
-    schemeService: SchemeService
+    schemeService: SchemeService,
+    memberSearchService: MemberSearchService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -101,10 +102,13 @@ class AFTSummaryController @Inject()(
     (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        println("/n/n/n" +" I'm here ")
-        val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
-        renderer.render("aftSummary.njk", json).map(Ok(_))
+        memberSearchService.search(request.userAnswers, srn, startDate, "") match {
+          case Nil => Future.successful(Ok("test"))
+          case seqListRows =>
+            val json =
+              getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+            renderer.render("aftSummary.njk", json).map(Ok(_))
+        }
       }
     }
 
@@ -124,10 +128,9 @@ class AFTSummaryController @Inject()(
                 userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
                   Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
                 }
-              } else if(!value && isAmendment) {
+              } else if (!value && isAmendment) {
                 Future.successful(Redirect(controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)))
-              }
-              else {
+              } else {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
                     Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
@@ -156,7 +159,8 @@ class AFTSummaryController @Inject()(
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> getFormattedStartDate(startDate),
       "quarterEndDate" -> getFormattedEndDate(endDate),
-      "canChange" -> canChange
+      "canChange" -> canChange,
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
     )
   }
 

@@ -1,9 +1,9 @@
-{% macro searchbox(params) %}
+{% macro searchbox(searchURL) %}
 
     {% from "govuk/components/input/macro.njk" import govukInput %}
     {% from "govuk/components/button/macro.njk" import govukButton %}
 
-   <form action="" method="post" autocomplete="off">
+   <form action="{{searchURL}}" method="post" autocomplete="off">
    {{ csrf() | safe }}
     <div class="govuk-form-group" >
         {{ govukInput({

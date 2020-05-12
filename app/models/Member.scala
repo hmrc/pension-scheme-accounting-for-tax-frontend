@@ -29,7 +29,10 @@ case class Member(index: Int, name: String, nino: String, amount: BigDecimal, vi
 
 }
 
+
 object Member {
     implicit lazy val formats: Format[Member] =
         Json.format[Member]
 }
+
+
