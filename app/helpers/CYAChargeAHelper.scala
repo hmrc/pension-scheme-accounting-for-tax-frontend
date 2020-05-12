@@ -44,7 +44,7 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
   def chargeAAmountLowerRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountLowerRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtLowerRate.getOrElse(BigDecimal(0.00)))}"),
         classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
@@ -59,7 +59,7 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
   def chargeAAmountHigherRate(answer: models.chargeA.ChargeDetails): Row = {
     Row(
       key = Key(msg"chargeA.chargeDetails.amountHigherRate.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmtOfTaxDueAtHigherRate.getOrElse(BigDecimal(0.00)))}"),
         classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(

@@ -41,18 +41,18 @@ import viewmodels.Table.Cell
 import scala.concurrent.ExecutionContext
 
 class ReturnHistoryController @Inject()(
-                                         schemeService: SchemeService,
-                                         aftConnector: AFTConnector,
-                                         override val messagesApi: MessagesApi,
-                                         identify: IdentifierAction,
-                                         allowAccess: AllowAccessActionProvider,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         renderer: Renderer,
-                                         config: FrontendAppConfig
-                                    )(implicit ec: ExecutionContext)
-                                        extends FrontendBaseController
-                                        with I18nSupport
-                                        with NunjucksSupport {
+    schemeService: SchemeService,
+    aftConnector: AFTConnector,
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    allowAccess: AllowAccessActionProvider,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
@@ -84,9 +84,9 @@ class ReturnHistoryController @Inject()(
 
     val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
-    def link(data: AFTVersion)(implicit messages: Messages): Html = {
+    def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
       Html(
-        s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages("site.view")}" +
+        s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages(linkText)}" +
           s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
     }
 
@@ -96,14 +96,15 @@ class ReturnHistoryController @Inject()(
       Cell(msg"")
     )
 
-    val rows = versions.map { data =>
+    val rows = versions.zipWithIndex.map { data =>
+      val (version, index) = data
+      val linkText = if (index == 0) "site.viewOrChange" else "site.view"
       Seq(
-        Cell(msg"returnHistory.submission".withArgs(data.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(data), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
       )
     }
-
     Table(head = head, rows = rows)
   }
 

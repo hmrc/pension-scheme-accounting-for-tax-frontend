@@ -28,6 +28,9 @@ final case class UserAnswers(
   def get[A](page: QuestionPage[A])(implicit rds: Reads[A]): Option[A] =
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
 
+  def get(path: JsPath)(implicit rds: Reads[JsValue]): Option[JsValue] =
+    Reads.optionNoError(Reads.at(path)).reads(data).getOrElse(None)
+
   def getOrException[A](page: QuestionPage[A])(implicit rds: Reads[A]): A =
     get(page).getOrElse(throw new RuntimeException("Expected a value but none found for " + page))
 
@@ -62,6 +65,22 @@ final case class UserAnswers(
     }
   }
 
+  def set(path: JsPath, value: JsValue): Try[UserAnswers] = {
+
+    val updatedData = data.setObject(path, Json.toJson(value)) match {
+      case JsSuccess(jsValue, _) =>
+        Success(jsValue)
+      case JsError(errors) =>
+        Failure(JsResultException(errors))
+    }
+
+    updatedData.flatMap {
+      d =>
+        val updatedAnswers = copy(data = d)
+        Success(updatedAnswers)
+    }
+  }
+
   def setOrException[A](page: QuestionPage[A], value: A)(implicit writes: Writes[A]): UserAnswers = {
     set(page, value) match {
       case Success(ua) => ua
@@ -79,12 +98,11 @@ final case class UserAnswers(
   }
 
   def remove[A](page: QuestionPage[A]): Try[UserAnswers] = {
-
-    val updatedData = data.setObject(page.path, JsNull) match {
+    val updatedData = data.removeObject(page.path) match {
       case JsSuccess(jsValue, _) =>
         Success(jsValue)
       case JsError(_) =>
-        Success(data)
+        throw new RuntimeException("Unable to remove page: " + page)
     }
 
     updatedData.flatMap {

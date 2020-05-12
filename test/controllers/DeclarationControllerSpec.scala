@@ -21,10 +21,11 @@ import java.time.LocalDateTime
 import connectors.{EmailConnector, EmailSent}
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, Quarter, UserAnswers}
+import models.{AccessMode, GenericViewModel, Quarter, SessionAccessData, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
@@ -54,6 +55,17 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   )
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
+  private val templateToBeRendered = "declaration.njk"
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
+
+  private val jsonToPassToTemplate = Json.obj(
+    fields = "viewModel" -> GenericViewModel(
+      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      schemeName = schemeName)
+  )
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -112,8 +124,8 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     }
 
     "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter.map(_.setOrException(VersionNumberQuery, versionNumber)))
-
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
+      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData = SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)

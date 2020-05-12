@@ -60,7 +60,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
     Seq(
       Row(
         key = Key(msg"chargeDDetails.dateOfEvent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.dateOfEvent.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.dateOfEvent.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -71,7 +71,8 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"taxAt25Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(
+          answer.taxAt25Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -82,7 +83,8 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"taxAt55Percent.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(
+          answer.taxAt55Percent.getOrElse(BigDecimal(0.00)))}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",

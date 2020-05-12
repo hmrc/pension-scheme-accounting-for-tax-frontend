@@ -76,7 +76,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
     Seq(
       Row(
         key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(s"${formatCurrencyAmountAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.chargeAmount)}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",
@@ -87,7 +87,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       ),
       Row(
         key = Key(msg"chargeEDetails.dateNoticeReceived.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.dateNoticeReceived.format(dateFormatter)), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.dateNoticeReceived.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = msg"site.edit",

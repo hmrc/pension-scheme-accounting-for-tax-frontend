@@ -42,6 +42,7 @@ import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
+import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.DateInput
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -51,6 +52,7 @@ import scala.concurrent.Future
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        userAnswersService: UserAnswersService,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
@@ -133,7 +135,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeCDetailsPage(index), value))
+                updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeCDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate))
           )
