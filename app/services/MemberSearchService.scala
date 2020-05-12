@@ -63,7 +63,8 @@ class MemberSearchService @Inject()(
   private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages) = {
-    aftSummaryHelper.summaryListData(ua, srn, startDate)
+    //aftSummaryHelper.summaryListData(ua, srn, startDate)
+    Nil
 //Seq[MemberSearch]
   }
 

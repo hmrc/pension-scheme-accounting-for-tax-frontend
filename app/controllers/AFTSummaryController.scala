@@ -53,6 +53,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -93,7 +94,8 @@ class AFTSummaryController @Inject()(
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion,
+            aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),request.sessionData.isEditable)
         renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
@@ -102,13 +104,10 @@ class AFTSummaryController @Inject()(
     (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        memberSearchService.search(request.userAnswers, srn, startDate, "") match {
-          case Nil => Future.successful(Ok("test"))
-          case seqListRows =>
             val json =
-              getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
-            renderer.render("aftSummary.njk", json).map(Ok(_))
-        }
+              getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion,
+                memberSearchService.search(request.userAnswers, srn, startDate, ""), request.sessionData.isEditable)
+            renderer.render("aftSearchResults.njk", json).map(Ok(_))
       }
     }
 
@@ -120,7 +119,8 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, request.sessionData.isEditable)
+              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion,
+                aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate), request.sessionData.isEditable)
               renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
             },
             value => {
@@ -148,13 +148,14 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String],
+                      listOfRows:Seq[Row],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
+      "list" -> listOfRows,
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> getFormattedStartDate(startDate),
