@@ -134,7 +134,7 @@ class AmendmentHelper {
       .flatMap { nomPath =>
         currentUa.get(chargeDetailsPage.path \ nomPath).map(validate[Int](_)).map(nom => messages("allAmendments.numberOfMembers", nom))
       }
-      .getOrElse("N/A")
+      .getOrElse(messages("allAmendments.noMembers"))
 
     //For deleted scheme level charge the current amount will be 0, so, show the amount from the previous version
     val amount = if (currentTotalAmount == 0) previousTotalAmount else currentTotalAmount

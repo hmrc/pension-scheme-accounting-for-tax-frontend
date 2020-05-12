@@ -19,19 +19,29 @@ package helpers
 import java.time.LocalDate
 
 import base.SpecBase
+import data.SampleData
+import models.AmendedChargeStatus.{Added, Deleted, Updated}
+import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeLumpSumDeath, ChargeTypeShortService}
+import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
-import models.chargeF.ChargeDetails
+import models.chargeF.{ChargeDetails => ChargeFDetails}
+import models.requests.DataRequest
+import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, chargeA}
-import play.api.libs.json.{JsObject, Json}
+import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
+import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
+import pages.chargeB.ChargeBDetailsPage
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
 class AmendmentHelperSpec extends SpecBase {
-import AmendmentHelperSpec._
+
   private val amendmentHelper = new AmendmentHelper
-/*
-  "getTotalAmount" must {
+
+  /*"getTotalAmount" must {
 
     "return sum of the total amounts of all charges for UK/NonUK" in {
       val ua = UserAnswers().setOrException(pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00))
@@ -42,7 +52,7 @@ import AmendmentHelperSpec._
         .setOrException(pages.chargeB.ChargeBDetailsPage, ChargeBDetails(3, BigDecimal(5000.00)))
         .setOrException(pages.chargeG.TotalChargeAmountPage, BigDecimal(34220.00))
 
-      amendmentHelper.getTotalAmount(ua) mustEqual (BigDecimal(13100.00), BigDecimal(34220.00))
+      amendmentHelper.getTotalAmount(ua) mustEqual Tuple2(BigDecimal(13100.00), BigDecimal(34220.00))
     }
   }
 
@@ -82,152 +92,117 @@ import AmendmentHelperSpec._
     }
   }*/
 
-  "getAllAmendments" must {
-    "return all the amendment details for Charge C" in {
-      val res = amendmentHelper.getAllAmendments(UserAnswers(userAnswersRequestJson.as[JsObject]))
+  "getAllAmendments" when {
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
 
+    "called with chargeA" must {
+
+      "return all the added amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(100.00), Some(200.00), 300.00))
+        val previousUa = UserAnswers()
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeShortService.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Added))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the deleted amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(0), Some(0), 0))
+        val previousUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(100.00), Some(200.00), 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeShortService.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Deleted))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the updated amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(200.00), Some(200.00), 400.00))
+        val previousUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(100.00), Some(200.00), 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeShortService.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)), Updated))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+    }
+
+    "called with chargeB" must {
+
+      "return all the added amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeBDetailsPage, ChargeBDetails(2, 300.00))
+        val previousUa = UserAnswers()
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeLumpSumDeath.toString, FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Added))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the deleted amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeBDetailsPage, ChargeBDetails(2, 0))
+        val previousUa = UserAnswers().setOrException(ChargeBDetailsPage, ChargeBDetails(2, 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeLumpSumDeath.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Deleted))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the updated amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeBDetailsPage, ChargeBDetails(2, 400.00))
+        val previousUa = UserAnswers().setOrException(ChargeBDetailsPage, ChargeBDetails(2, 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.numberOfMembers", 2), ChargeTypeLumpSumDeath.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)), Updated))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+    }
+
+    "called with chargeF" must {
+
+      "return all the added amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeFDetailsPage, ChargeFDetails(LocalDate.now(), 300.00))
+        val previousUa = UserAnswers()
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.noMembers"), ChargeTypeDeRegistration.toString, FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Added))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the deleted amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeFDetailsPage, ChargeFDetails(LocalDate.now(), 0))
+        val previousUa = UserAnswers().setOrException(ChargeFDetailsPage, ChargeFDetails(LocalDate.now(), 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.noMembers", 2), ChargeTypeDeRegistration.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)), Deleted))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+
+      "return all the updated amendments" in {
+        val currentUa = UserAnswers().setOrException(ChargeFDetailsPage, ChargeFDetails(LocalDate.now(), 400.00))
+        val previousUa = UserAnswers().setOrException(ChargeFDetailsPage, ChargeFDetails(LocalDate.now(), 300.00))
+
+        val expectedRows = Seq(ViewAmendmentDetails(
+          messages("allAmendments.noMembers", 2), ChargeTypeDeRegistration.toString,
+          FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)), Updated))
+
+        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+      }
+    }
+
+    "called with all the charges" must {
+
+      "return all the amendment rows" in {
+
+      }
     }
   }
-}
-
-object AmendmentHelperSpec {
-  private val userAnswersRequestJson = Json.parse(
-    """{
-      |  "aftStatus": "Compiled",
-      |  "quarter": {
-      |    "startDate": "2019-01-01",
-      |    "endDate": "2019-03-31"
-      |  },
-      |  "chargeADetails": {
-      |    "chargeDetails": {
-      |      "numberOfMembers": 2,
-      |      "totalAmtOfTaxDueAtLowerRate": 200.02,
-      |      "totalAmtOfTaxDueAtHigherRate": 200.02,
-      |      "totalAmount": 200.02
-      |    },
-      |    "amendedVersion": 2
-      |  },
-      |  "chargeBDetails": {
-      |    "chargeDetails": {
-      |      "numberOfDeceased": 4,
-      |      "amountTaxDue": 55.55
-      |    }
-      |  },
-      |  "chargeCDetails": {
-      |    "employers": [
-      |      {
-      |        "whichTypeOfSponsoringEmployer": "individual",
-      |        "memberStatus": "Changed",
-      |        "memberAFTVersion": 1,
-      |        "chargeDetails": {
-      |          "paymentDate": "2020-01-01",
-      |          "amountTaxDue": 500.02
-      |        },
-      |        "sponsoringIndividualDetails": {
-      |          "firstName": "testFirst",
-      |          "lastName": "testLast",
-      |          "nino": "AB100100A"
-      |        },
-      |        "sponsoringEmployerAddress": {
-      |          "line1": "line1",
-      |          "line2": "line2",
-      |          "line3": "line3",
-      |          "line4": "line4",
-      |          "postcode": "NE20 0GG",
-      |          "country": "GB"
-      |        }
-      |      }
-      |    ],
-      |    "totalChargeAmount": 500.02,
-      |    "amendedVersion": 1
-      |  },
-      |  "chargeDDetails": {
-      |    "numberOfMembers": 2,
-      |    "members": [
-      |      {
-      |        "memberStatus": "Deleted",
-      |        "memberAFTVersion": 1,
-      |        "memberDetails": {
-      |          "firstName": "firstName",
-      |          "lastName": "lastName",
-      |          "nino": "AC100100A",
-      |          "isDeleted": true
-      |        },
-      |        "chargeDetails": {
-      |          "dateOfEvent": "2020-01-10",
-      |          "taxAt25Percent": 100,
-      |          "taxAt55Percent": 100.02
-      |        }
-      |      },
-      |      {
-      |        "memberStatus": "New",
-      |        "memberAFTVersion": 1,
-      |        "memberDetails": {
-      |          "firstName": "secondName",
-      |          "lastName": "lastName",
-      |          "nino": "AC100100A",
-      |          "isDeleted": true
-      |        },
-      |        "chargeDetails": {
-      |          "dateOfEvent": "2020-01-10",
-      |          "taxAt25Percent": 100,
-      |          "taxAt55Percent": 100.02
-      |        }
-      |      }
-      |    ],
-      |    "totalChargeAmount": 200.02
-      |  },
-      |  "chargeEDetails": {
-      |    "members": [
-      |      {
-      |        "memberDetails": {
-      |          "firstName": "eFirstName",
-      |          "lastName": "eLastName",
-      |          "nino": "AE100100A",
-      |          "isDeleted": false
-      |        },
-      |        "annualAllowanceYear": "2020",
-      |        "chargeDetails": {
-      |          "dateNoticeReceived": "2020-01-11",
-      |          "chargeAmount": 200.02,
-      |          "isPaymentMandatory": true
-      |        }
-      |      }
-      |    ],
-      |    "totalChargeAmount": 200.02
-      |  },
-      |  "chargeFDetails": {
-      |    "chargeDetails": {
-      |      "amountTaxDue": 200.02,
-      |      "deRegistrationDate": "1980-02-29"
-      |    }
-      |  },
-      |  "chargeGDetails": {
-      |    "members": [
-      |      {
-      |        "memberDetails": {
-      |          "firstName": "Craig",
-      |          "lastName": "White",
-      |          "dob": "1980-02-29",
-      |          "nino": "AA012000A",
-      |          "isDeleted": false
-      |        },
-      |        "chargeDetails": {
-      |          "qropsReferenceNumber": "300000",
-      |          "qropsTransferDate": "2016-02-29"
-      |        },
-      |        "chargeAmounts": {
-      |          "amountTransferred": 45670.02,
-      |          "amountTaxDue": 4560.02
-      |        }
-      |      }
-      |    ],
-      |    "totalChargeAmount": 1230.02
-      |  },
-      |  "declaration" : {
-      |    "submittedBy" : "PSA",
-      |    "submittedID" : "A2000000",
-      |    "hasAgreed" : true
-      |  }
-      |}""".stripMargin)
 }

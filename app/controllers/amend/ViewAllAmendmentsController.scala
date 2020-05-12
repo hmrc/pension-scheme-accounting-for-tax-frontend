@@ -20,17 +20,13 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, GenericViewModel, UserAnswers}
-import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -41,17 +37,13 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesApi,
-                                            userAnswersCacheConnector: UserAnswersCacheConnector,
-                                            navigator: CompoundNavigator,
                                             identify: IdentifierAction,
                                             getData: DataRetrievalAction,
                                             allowAccess: AllowAccessActionProvider,
-                                            allowSubmission: AllowSubmissionAction,
                                             requireData: DataRequiredAction,
-                                            formProvider: ConfirmSubmitAFTReturnFormProvider,
                                             val controllerComponents: MessagesControllerComponents,
                                             config: FrontendAppConfig,
                                             aftConnector: AFTConnector,
@@ -73,7 +65,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
             val viewModel = GenericViewModel(
-              submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate).url,
+              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )

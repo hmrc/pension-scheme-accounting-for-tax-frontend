@@ -952,7 +952,8 @@ deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
 
-allAmendments.h1 = Changes made in this submission
+allAmendments.title = Changes made in this draft
+allAmendments.h1.caption = Draft
 allAmendments.memberDetails.h1 = Member details
 allAmendments.chargeType.h1 = Charge type
 allAmendments.chargeAmount.h1 = Charge amount
@@ -968,6 +969,10 @@ allAmendments.charge.type.deRegistration = De-registration
 allAmendments.charge.type.overseasTransfer = Overseas transfer
 allAmendments.charge.type.shortService = Short service refund lump sum
 allAmendments.numberOfMembers = {0} members
+allAmendments.noMembers = N/A
+return.to.submission = Return to total return for this draft
+
+allAmendments.view.changes.link = View changes made in this draft
 
 
 

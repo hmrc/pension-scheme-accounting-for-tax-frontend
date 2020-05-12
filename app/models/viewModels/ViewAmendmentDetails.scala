@@ -17,6 +17,4 @@
 package models.viewModels
 import models.AmendedChargeStatus
 
-case class ViewAmendmentDetails(memberDetails: String, chargeType: String, chargeAmount: String, status: AmendedChargeStatus) {
-
-}
+case class ViewAmendmentDetails(memberDetails: String, chargeType: String, chargeAmount: String, status: AmendedChargeStatus)

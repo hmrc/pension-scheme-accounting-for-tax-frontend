@@ -37,12 +37,12 @@ import viewmodels.Table.Cell
 
 object ChargeCHelper {
 
-  def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
+  private def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption
       .map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-  def getEmployerDetails(ua: UserAnswers, index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
+  private def getEmployerDetails(ua: UserAnswers, index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
     case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
     case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
   }
