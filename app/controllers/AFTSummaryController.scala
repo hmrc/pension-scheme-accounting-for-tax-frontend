@@ -19,6 +19,7 @@ package controllers
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import services.MemberSearchService.MemberRow
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.AllowAccessActionProvider
@@ -83,8 +84,8 @@ class AFTSummaryController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private val memberSearchForm = memberSearchFormProvider()
   private val form = formProvider()
+  private val memberSearchForm = memberSearchFormProvider()
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
   private def getFormattedEndDate(date: LocalDate): String = date.format(dateFormatterDMY)
@@ -138,7 +139,7 @@ class AFTSummaryController @Inject()(
                 val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
                 println("\n\nSearch results:" + searchResults)
                 val json =
-                  getJson(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                  getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
                 println("\nJSON for nunjucks:" + json)
                 renderer.render(template = "aftSearchResults.njk", json).map(Ok(_))
@@ -197,6 +198,32 @@ class AFTSummaryController @Inject()(
                       optionVersion: Option[String],
                       listOfRows: Seq[Row],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
+    val endDate = Quarters.getQuarter(startDate).endDate
+    Json.obj(
+      "srn" -> srn,
+      "startDate" -> Some(startDate),
+      "form" -> form,
+      "formSearchText" -> formSearchText,
+      "list" -> listOfRows,
+      "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
+      "radios" -> Radios.yesNo(form("value")),
+      "quarterStartDate" -> getFormattedStartDate(startDate),
+      "quarterEndDate" -> getFormattedEndDate(endDate),
+      "canChange" -> canChange,
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
+    )
+  }
+
+  private def getJsonWithSearchResults[A](
+                          form: Form[Boolean],
+                          formSearchText: Form[String],
+                          ua: UserAnswers,
+                          srn: String,
+                          startDate: LocalDate,
+                          schemeName: String,
+                          optionVersion: Option[String],
+                          listOfRows: Seq[MemberRow],
+                          canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     println( "\n>>>>" + formSearchText)
     Json.obj(

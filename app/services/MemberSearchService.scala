@@ -18,57 +18,35 @@ package services
 
 import java.time.LocalDate
 
-import com.google.inject.Inject
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
-import connectors.AFTConnector
+import play.api.libs.json.Writes
+import play.api.libs.functional.syntax._
+
+import scala.language.implicitConversions
+import play.api.libs.json.Json
 import helpers.ChargeCHelper
 import helpers.ChargeDHelper
 import helpers.ChargeEHelper
 import helpers.ChargeGHelper
-import helpers.FormatHelper
 import javax.inject.Singleton
 import models.ChargeType
 import models.Member
 import models.UserAnswers
-import pages.chargeC.ChargeCDetailsPage
-import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
 import uk.gov.hmrc.viewmodels.SummaryList.Value
-import uk.gov.hmrc.viewmodels.Text.Literal
-import utils.AFTSummaryHelper
-import config.FrontendAppConfig
-import play.api.data.Form
 import play.api.i18n.Messages
+import services.MemberSearchService.MemberRow
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Text, _}
-import utils.DateHelper._
-import viewmodels.Radios.Radio
-import viewmodels.{Hint, LabelClasses, Radios}
+import uk.gov.hmrc.viewmodels._
 
 import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService {
-  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+  import MemberSearchService._
 
-  case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
-
-    def linkIdRemove = s"$id-remove"
-
-    def linkIdView = s"$id-view"
-  }
-
-  object MemberSummary {
-    implicit lazy val formats: Format[Member] =
-      Json.format[Member]
-  }
-
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[Row] = {
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[MemberRow] = {
     listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
   }
 
@@ -88,14 +66,9 @@ class MemberSearchService {
     chargeDMembers ++ chargeEMembers ++ chargeGMembers ++ chargeCMembers
   }
 
-  def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[Row] = {
-    listOfMembers.flatMap { data =>
+  private def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[MemberRow] = {
+    listOfMembers.map { data =>
 
-    val rowName =
-      Seq(Row(
-        key = Key(msg"aft.summary.search.Name", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${data.name}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      ))
     val rowNino =
       data.nino match {
         case None => Nil
@@ -115,8 +88,31 @@ class MemberSearchService {
           value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ))
 
-      rowName ++ rowNino ++ rowChargeType ++ rowAmount
+      MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount)
     }
   }
+}
 
+object MemberSearchService {
+  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+
+  case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"member-$index"
+
+    def linkIdRemove = s"$id-remove"
+
+    def linkIdView = s"$id-view"
+  }
+
+  object MemberSummary {
+    implicit lazy val formats: Format[Member] =
+      Json.format[Member]
+  }
+
+  case class MemberRow(h2:String, rows:Seq[Row])
+  object MemberRow {
+    implicit def writes(implicit messages: Messages): Writes[MemberRow] =
+      ((JsPath \ "h2").write[String] and
+        (JsPath \ "rows").write[Seq[Row]])(mr => (mr.h2, mr.rows))
+  }
 }

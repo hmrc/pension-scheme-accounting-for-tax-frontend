@@ -58,11 +58,18 @@
                   }
                 }) }}
 
-<ul>
+
   {% for row in list %}
-  <li>{{ row.key.text }}: {{ row.value.text }}</li>
+    <h2>{{ row.h2 }}</h2>
+
+    {% for rowb in row.rows %}
+        <ul>
+            <li> {{ rowb.key.text }}  </li>
+        </ul>
+    {% endfor %}
+
   {% endfor %}
-</ul>
+
 
 
                 {{ govukSummaryList({
