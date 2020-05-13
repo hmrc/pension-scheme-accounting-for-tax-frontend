@@ -96,17 +96,19 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     val head = Seq(
       Cell(msg"allAmendments.memberDetails.h1", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"allAmendments.chargeType.h1", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"allAmendments.chargeAmount.h1", classes = Seq("govuk-!-width-one-quarter"))
+      Cell(msg"allAmendments.chargeAmount.h1", classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric", "govuk-!-font-weight-bold"))
     )
 
     val rows = allAmendments.map { data =>
       Seq(
         Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter")),
         Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
       )
     }
 
-    Table(caption = Some(messages(s"allAmendments.table.caption.$caption")), head = head, rows = rows)
+    Table(captionClasses=Seq("govuk-heading-m"), caption = Some(messages(s"allAmendments.table.caption.$caption")), head = head, rows = rows,
+      attributes = Map("role"->"grid"))
+
   }
 }
