@@ -47,7 +47,6 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
                                                     allowAccess: AllowAccessActionProvider,
-                                                    allowSubmission: AllowSubmissionAction,
                                                     requireData: DataRequiredAction,
                                                     formProvider: ConfirmSubmitAFTReturnFormProvider,
                                                     val controllerComponents: MessagesControllerComponents,

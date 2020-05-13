@@ -28,10 +28,10 @@ class AmendmentHelper {
     val amountUK = Seq(
       ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
       ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+      ua.get(pages.chargeF.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
       ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
       ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0))
+      ua.get(pages.chargeB.ChargeBDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0))
     ).sum
 
     val amountNonUK = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0))

@@ -52,7 +52,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       val result = service.remove(Page)(dataRequest(uaVersion2, 2))
 
        result mustBe UserAnswers(Json.obj(
-        Page.toString -> pageValue
+        Page.toString -> Json.obj("value" -> pageValue)
       ))
     }
   }
@@ -198,7 +198,7 @@ object UserAnswersServiceSpec {
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))
 
   val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
-  val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue, "amendedVersion" -> 1))
+  val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
 
   def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
