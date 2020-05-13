@@ -89,28 +89,33 @@ class MemberSearchService {
   }
 
   def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[Row] = {
-    listOfMembers.map { data =>
+    listOfMembers.flatMap { data =>
 
+    val rowName =
+      Seq(Row(
+        key = Key(msg"aft.summary.search.Name", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${data.name}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      ))
+    val rowNino =
       data.nino match {
-        case None =>
+        case None => Nil
+        case Some(n) => Seq(Row(
+              key = Key(msg"chargeC.sponsoringIndividualDetails.nino.label", classes = Seq("govuk-!-width-three-quarters")),
+              value = Value(Literal(s"$n"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            ))
       }
+      val rowChargeType =
+        Seq(Row(
+          key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(Literal(s"${data.chargeType.toString}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ))
+      val rowAmount =
+        Seq(Row(
+          key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ))
 
-
-      Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-        actions = if (data.amount > BigDecimal(0)) {
-          List(
-            Action(
-              content = msg"site.view",
-              href = data.viewLink,
-              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-            )
-          )
-        } else {
-          Nil
-        }
-      )
+      rowName ++ rowNino ++ rowChargeType ++ rowAmount
     }
   }
 

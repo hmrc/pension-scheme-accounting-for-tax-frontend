@@ -437,6 +437,9 @@ aft.summary.search.error.required = Enter name or National Insurance number
 aft.summary.search.hint = Search by name or National Insurance number
 aft.summary.search.label = Search for a member
 aft.summary.search.button = Search
+aft.summary.search.chargeType = Charge Type
+aft.summary.search.amount = Amount
+aft.summary.search.Name = Name
 
 chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
