@@ -7,8 +7,7 @@
 {% from "govuk/components/radios/macro.njk"        import govukRadios %}
 {% from "govuk/components/table/macro.njk"         import govukTable %}
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
-
-{% from "macros/searchbox.njk"                         import searchbox %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
 
 {% block pageTitle %}
   {{ title(messages("aft.summary.title", viewModel.schemeName), form.errors) }}
@@ -31,7 +30,34 @@
         {{ messages('aft.summary.heading', quarterStartDate, quarterEndDate) }}
       </h1>
 
-        {{ searchbox(searchURL) }}
+       <form action="{{searchURL}}" method="post" autocomplete="off">
+           {{ csrf() | safe }}
+
+            <div class="govuk-form-group" >
+                {{ govukInput({
+                  id: "searchText",
+                  label: {
+                    text: "Search for a member",
+                    isPageHeading: false,
+                    classes: "govuk-label--s"
+                  },
+                  name: "searchText",
+                  type: "text",
+                  value: formSearchText.searchText.value,
+                  classes: "govuk-input--width-10",
+                  errorMessage: formSearchText.searchText.error,
+                  hint: {
+                    text: "Search by name or National Insurance number"
+                  }
+                }) }}
+
+                {{ govukButton({
+                  text: "Search",
+                  classes: "govuk-button--secondary"
+                }) }}
+
+            </div>
+        </form>
 
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
