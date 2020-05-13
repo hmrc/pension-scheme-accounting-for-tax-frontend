@@ -90,6 +90,12 @@ class MemberSearchService {
 
   def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[Row] = {
     listOfMembers.map { data =>
+
+      data.nino match {
+        case None =>
+      }
+
+
       Row(
         key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),

@@ -58,6 +58,56 @@
                   }
                 }) }}
 
+<ul>
+  {% for row in list %}
+  <li>{{ row.key.text }}: {{ row.value.text }}</li>
+  {% endfor %}
+</ul>
+
+
+                {{ govukSummaryList({
+                  rows: [
+                    {
+                      key: {
+                             text: "Name"
+                             }
+                             },
+                    {
+                      key: {
+                        text: "Name"
+                      },
+                      value: {
+                        text: "Sarah Philips"
+                      }
+                    },
+                    {
+                      key: {
+                        text: "Date of birth"
+                      },
+                      value: {
+                        text: "5 January 1978"
+                      }
+                    },
+                    {
+                      actions: {
+                                              items: [
+                                                {
+                                                  href: "#",
+                                                  text: "Change",
+                                                  visuallyHiddenText: "name"
+                                                },
+                                                  {
+                                                                                                  href: "#",
+                                                                                                  text: "view",
+                                                                                                  visuallyHiddenText: "name"
+                                                                                                }
+                                              ]
+                                            }
+                                        }
+
+                  ]
+                }) }}
+
                 {{ govukButton({
                   text: messages('aft.summary.search.button'),
                   classes: "govuk-button--secondary"
