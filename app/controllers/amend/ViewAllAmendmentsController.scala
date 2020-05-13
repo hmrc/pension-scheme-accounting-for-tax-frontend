@@ -65,7 +65,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
             val viewModel = GenericViewModel(
-              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None).url,
+              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$amendedVersion")).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )

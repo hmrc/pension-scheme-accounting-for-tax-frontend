@@ -32,8 +32,8 @@
       </div>
     </div>
 
-    <span><a href="{{ viewModel.submitUrl }}" class="govuk-link"> {{ messages("return.to.submission") }}</a></span>
+    <p class="govuk-body"><a href="{{ viewModel.submitUrl }}" class="govuk-link"> {{ messages("return.to.submission") }}</a></p>
 
-    <span><a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a></span>
+    <p class="govuk-body"><a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a></p>
 
 {% endblock %}

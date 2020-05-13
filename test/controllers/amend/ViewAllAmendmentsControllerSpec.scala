@@ -109,7 +109,7 @@ class ViewAllAmendmentsControllerSpec
     fields = "srn" -> srn,
     "startDate" -> Some(startDate),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None).url,
+      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$versionNumber")).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName
     ),
@@ -121,7 +121,7 @@ class ViewAllAmendmentsControllerSpec
   mutableFakeDataRetrievalAction.setSessionData(
     SampleData.sessionData(sessionAccessData = sessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
 
-  "ConfirmSubmitAFTAmendment Controller" must {
+  "ViewAllAmendments Controller" must {
 
     "return OK and the correct view for a GET" in {
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
