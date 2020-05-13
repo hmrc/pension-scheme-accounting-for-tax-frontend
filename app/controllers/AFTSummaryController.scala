@@ -53,7 +53,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.Row
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -94,8 +94,16 @@ class AFTSummaryController @Inject()(
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion,
-            aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),request.sessionData.isEditable)
+          getJson(
+            form,
+            request.userAnswers,
+            srn,
+            startDate,
+            schemeDetails.schemeName,
+            optionVersion,
+            aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+            request.sessionData.isEditable
+          )
         renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
@@ -104,10 +112,17 @@ class AFTSummaryController @Inject()(
     (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-            val json =
-              getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion,
-                memberSearchService.search(request.userAnswers, srn, startDate, ""), request.sessionData.isEditable)
-            renderer.render("aftSearchResults.njk", json).map(Ok(_))
+        val searchResults = Nil //memberSearchService.search(request.userAnswers, srn, startDate, "")
+
+        println( "\n\nSearch results:" + searchResults)
+
+        val json =
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+            optionVersion, searchResults, request.sessionData.isEditable)
+
+        println( "\nJSON for nunjucks:" + json)
+
+        renderer.render("aftSearchResults.njk", json).map(Ok(_))
       }
     }
 
@@ -119,8 +134,16 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion,
-                aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate), request.sessionData.isEditable)
+              val json = getJson(
+                formWithErrors,
+                ua,
+                srn,
+                startDate,
+                schemeName,
+                optionVersion,
+                aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+                request.sessionData.isEditable
+              )
               renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
             },
             value => {
@@ -148,7 +171,7 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String],
-                      listOfRows:Seq[Row],
+                      listOfRows: Seq[Row],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(

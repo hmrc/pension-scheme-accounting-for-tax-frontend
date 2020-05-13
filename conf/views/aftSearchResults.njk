@@ -36,10 +36,23 @@
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
-          {{list}}
-           {% if list.isEmpty %}
-           There are no matching results.
-           {% endif %}
+
+          {% if list.length > 0 %}
+            {{ messages("results") }}
+            {{ govukSummaryList({
+               rows: list
+            }) }}
+          {% else %}
+            <h2>
+                {{ messages("aft.summary.search.noResults.h2") }}
+            </h2>
+            <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
+               <ul class="govuk-list govuk-list--bullet">
+                  <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
+                  <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
+               </ul>
+
+          {% endif %}
 
           {% if canChange %}
               {{ govukRadios({

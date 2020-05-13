@@ -23,36 +23,14 @@ import controllers.chargeB.{routes => _}
 import helpers.{CYAHelper, FormatHelper}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.Member
 import models.{ChargeType, UserAnswers}
 import play.api.i18n.Messages
-import play.api.libs.json.Format
-import play.api.libs.json.Json
 import play.api.mvc.Call
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 
 class AFTSummaryHelper {
-
-
-  case class MemberSearch(index: Int, name: String, nino: String, chargeType: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
-
-    def removeLinkId = s"$id-remove"
-
-    def viewLinkId = s"$id-view"
-
-  }
-
-  object MemberSearch {
-    implicit lazy val formats: Format[Member] =
-      Json.format[Member]
-  }
-
-  private def memberSearchResult(ua: UserAnswers, srn: String, startDate:LocalDate): Seq[MemberSearch] = {
-    Nil
-  }
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
@@ -96,27 +74,6 @@ class AFTSummaryHelper {
       href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
     )
   )
-
-  def memberSearchRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] = {
-    //memberSearchResult(ua, srn, startDate).map { data =>
-    //  Row(
-    //    key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-    //    value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-    //    actions = if (data.totalAmount > BigDecimal(0)) {
-    //      List(
-    //        Action(
-    //          content = msg"site.view",
-    //          href = data.href.url,
-    //          visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-    //        )
-    //      )
-    //    } else {
-    //      Nil
-    //    }
-    //  )
-    //}
-    Nil
-  }
 
   private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
     summaryDataUK(ua, srn, startDate).map { data =>

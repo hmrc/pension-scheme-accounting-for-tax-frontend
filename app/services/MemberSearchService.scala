@@ -16,42 +16,40 @@
 
 package services
 
-import pages.AFTStatusQuery
-import pages.IsPsaSuspendedQuery
-import pages.PSAEmailQuery
-import pages.PSTRQuery
-import pages.QuarterPage
-import pages.SchemeNameQuery
-import pages.SchemeStatusQuery
-import play.api.mvc.Request
-import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.AFTConnector
-import connectors.MinimalPsaConnector
+import helpers.ChargeCHelper
+import helpers.ChargeDHelper
+import helpers.ChargeEHelper
+import helpers.ChargeGHelper
+import helpers.FormatHelper
 import javax.inject.Singleton
-import models.AFTOverview
-import models.AccessMode
-import models.LocalDateBinder._
-import models.Quarters
-import models.SchemeStatus.statusByName
-import models.SessionAccessData
-import models.requests.OptionalDataRequest
-import models.SchemeDetails
-import models.SessionData
+import models.ChargeType
+import models.Member
 import models.UserAnswers
-import pages.PSANameQuery
+import pages.chargeC.ChargeCDetailsPage
 import play.api.i18n.Messages
 import play.api.libs.json._
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.viewmodels.SummaryList.Action
+import uk.gov.hmrc.viewmodels.SummaryList.Key
+import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.Value
+import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTSummaryHelper
-import utils.DateHelper
+import config.FrontendAppConfig
+import play.api.data.Form
+import play.api.i18n.Messages
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Text, _}
+import utils.DateHelper._
+import viewmodels.Radios.Radio
+import viewmodels.{Hint, LabelClasses, Radios}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService @Inject()(
@@ -62,10 +60,57 @@ class MemberSearchService @Inject()(
 ) {
   private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages) = {
-    //aftSummaryHelper.summaryListData(ua, srn, startDate)
-    Nil
-//Seq[MemberSearch]
+  case class MemberSummary(index: Int, name: String, nino: String, chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+    def id = s"member-$index"
+
+    def linkIdRemove = s"$id-remove"
+
+    def linkIdView = s"$id-view"
+  }
+
+  object MemberSummary {
+    implicit lazy val formats: Format[Member] =
+      Json.format[Member]
+  }
+
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[Row] = {
+    listOfRows(listOfMembers(ua, srn, startDate))
+  }
+
+  private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
+    MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
+
+  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
+    val chargeDMembers = ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .map(toMemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
+    val chargeEMembers = ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .map(toMemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
+    val chargeGMembers = ChargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
+      .map(toMemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
+    val chargeCMembers = ChargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).map { employer =>
+      MemberSummary(employer.index, employer.name, "????", ChargeType.ChargeTypeAuthSurplus, employer.amount, employer.viewLink, employer.removeLink)
+    }
+    chargeDMembers ++ chargeEMembers ++ chargeGMembers ++ chargeCMembers
+  }
+
+  def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[Row] = {
+    listOfMembers.map { data =>
+      Row(
+        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+        actions = if (data.amount > BigDecimal(0)) {
+          List(
+            Action(
+              content = msg"site.view",
+              href = data.viewLink,
+              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            )
+          )
+        } else {
+          Nil
+        }
+      )
+    }
   }
 
 }
