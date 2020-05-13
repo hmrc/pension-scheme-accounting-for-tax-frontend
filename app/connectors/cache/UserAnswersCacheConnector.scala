@@ -128,25 +128,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
-  override def lockedBy(id: String)(implicit
-                                          ec: ExecutionContext,
-                                          hc: HeaderCarrier): Future[Option[String]] = {
-    http
-      .url(lockedByUrl)
-      .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
-      .get()
-      .flatMap { response =>
-        response.status match {
-          case NOT_FOUND =>
-            Future.successful(None)
-          case OK =>
-            Future.successful(Some(response.body))
-          case _ => Future.failed(new HttpException(response.body, response.status))
-        }
-      }
-  }
-
-  def lockedBy(srn: String, startDate: String)(implicit
+  override def lockedBy(srn: String, startDate: String)(implicit
                                                ec: ExecutionContext,
                                                hc: HeaderCarrier
   ): Future[Option[String]] = {
@@ -190,10 +172,6 @@ trait UserAnswersCacheConnector {
   def getSessionData(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier): Future[Option[SessionData]]
-
-  def lockedBy(id: String)(implicit
-                           ec: ExecutionContext,
-                           hc: HeaderCarrier): Future[Option[String]]
 
   def lockedBy(srn: String, startDate: String)(implicit
                                                ec: ExecutionContext,

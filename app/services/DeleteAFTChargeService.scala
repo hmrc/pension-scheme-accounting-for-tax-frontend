@@ -41,7 +41,6 @@ class DeleteAFTChargeService @Inject()(
       implicit ec: ExecutionContext,
       hc: HeaderCarrier,
       request: DataRequest[AnyContent]): Future[Unit] = {
-
     val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
     val isAmendment = request.sessionData.sessionAccessData.version > 1
 
@@ -56,7 +55,7 @@ class DeleteAFTChargeService @Inject()(
     }
 
     aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
-      if (isDeletingLastCharge) {
+      if (isDeletingLastCharge && !isAmendment) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
         userAnswersCacheConnector.save(request.internalId, updateAnswers.data).map(_ => ())
