@@ -37,7 +37,7 @@
                 {{ govukInput({
                   id: "searchText",
                   label: {
-                    text: "Search for a member",
+                    text: messages('aft.summary.search.label'),
                     isPageHeading: false,
                     classes: "govuk-label--s"
                   },
@@ -47,12 +47,12 @@
                   classes: "govuk-input--width-10",
                   errorMessage: formSearchText.searchText.error,
                   hint: {
-                    text: "Search by name or National Insurance number"
+                    text: messages('aft.summary.search.hint')
                   }
                 }) }}
 
                 {{ govukButton({
-                  text: "Search",
+                  text: messages('aft.summary.search.button'),
                   classes: "govuk-button--secondary"
                 }) }}
 
