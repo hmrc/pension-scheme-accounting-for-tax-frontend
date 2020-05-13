@@ -60,7 +60,7 @@ class MemberSearchService @Inject()(
 ) {
   private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
-  case class MemberSummary(index: Int, name: String, nino: String, chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+  case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
     def id = s"member-$index"
 
     def linkIdRemove = s"$id-remove"
@@ -78,7 +78,7 @@ class MemberSearchService @Inject()(
   }
 
   private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
-    MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
+    MemberSummary(member.index, member.name, Some(member.nino), chargeType, member.amount, member.viewLink, member.removeLink)
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
     val chargeDMembers = ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
@@ -88,7 +88,7 @@ class MemberSearchService @Inject()(
     val chargeGMembers = ChargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
       .map(toMemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
     val chargeCMembers = ChargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).map { employer =>
-      MemberSummary(employer.index, employer.name, "????", ChargeType.ChargeTypeAuthSurplus, employer.amount, employer.viewLink, employer.removeLink)
+      MemberSummary(employer.index, employer.name, employer.nino, ChargeType.ChargeTypeAuthSurplus, employer.amount, employer.viewLink, employer.removeLink)
     }
     chargeDMembers ++ chargeEMembers ++ chargeGMembers ++ chargeCMembers
   }

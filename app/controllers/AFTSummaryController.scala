@@ -112,7 +112,7 @@ class AFTSummaryController @Inject()(
     (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val searchResults = Nil //memberSearchService.search(request.userAnswers, srn, startDate, "")
+        val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, "")
 
         println( "\n\nSearch results:" + searchResults)
 
