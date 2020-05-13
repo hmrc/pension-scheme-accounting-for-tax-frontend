@@ -107,8 +107,13 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
       )
     }
 
-    Table(captionClasses=Seq("govuk-heading-m"), caption = Some(messages(s"allAmendments.table.caption.$caption")), head = head, rows = rows,
-      attributes = Map("role"->"grid"))
+    Table(
+      captionClasses = Seq("govuk-heading-m"),
+      caption = Some(messages(s"allAmendments.table.caption.$caption")),
+      head = head,
+      rows = rows,
+      attributes = Map("role" -> "grid")
+    )
 
   }
 }
