@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.AllowAccessActionProvider
 import controllers.actions._
-import forms.AFTSummaryFormProvider
+import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.Quarters
@@ -68,6 +68,7 @@ class AFTSummaryController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: AFTSummaryFormProvider,
+    memberSearchFormProvider: MemberSearchFormProvider,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
@@ -82,6 +83,7 @@ class AFTSummaryController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
+  private val memberSearchForm = memberSearchFormProvider()
   private val form = formProvider()
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
@@ -111,20 +113,36 @@ class AFTSummaryController @Inject()(
   def onSearchMember(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, "")
-
-        println( "\n\nSearch results:" + searchResults)
-
-        val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
-            optionVersion, searchResults, request.sessionData.isEditable)
-
-        println( "\nJSON for nunjucks:" + json)
-
-        renderer.render("aftSearchResults.njk", json).map(Ok(_))
+        schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+          memberSearchForm
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                val ua = request.userAnswers
+                val json = getJson(
+                  formWithErrors,
+                  ua,
+                  srn,
+                  startDate,
+                  schemeDetails.schemeName,
+                  optionVersion,
+                  aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+                  request.sessionData.isEditable
+                )
+                renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
+              },
+              value => {
+                val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
+                println("\n\nSearch results:" + searchResults)
+                val json =
+                  getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                    optionVersion, searchResults, request.sessionData.isEditable)
+                println("\nJSON for nunjucks:" + json)
+                renderer.render("aftSearchResults.njk", json).map(Ok(_))
+              }
+            )
+        }
       }
-    }
 
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>

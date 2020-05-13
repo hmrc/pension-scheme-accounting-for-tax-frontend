@@ -433,6 +433,7 @@ aft.summary.search.noResults.h2 = There are no matching results.
 aft.summary.search.noResults.p1 = Improve your search results by:
 aft.summary.search.noResults.b1 = double-checking your spelling
 aft.summary.search.noResults.b2 = double-checking any National Insurance numbers
+aft.summary.search.error.required = Enter name or National Insurance number
 
 chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}

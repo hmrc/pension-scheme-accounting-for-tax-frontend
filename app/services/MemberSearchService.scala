@@ -52,12 +52,7 @@ import viewmodels.{Hint, LabelClasses, Radios}
 import scala.language.implicitConversions
 
 @Singleton
-class MemberSearchService @Inject()(
-    aftConnector: AFTConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    config: FrontendAppConfig,
-    aftSummaryHelper: AFTSummaryHelper
-) {
+class MemberSearchService {
   private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
   case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
@@ -74,7 +69,7 @@ class MemberSearchService @Inject()(
   }
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[Row] = {
-    listOfRows(listOfMembers(ua, srn, startDate))
+    listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
   }
 
   private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
