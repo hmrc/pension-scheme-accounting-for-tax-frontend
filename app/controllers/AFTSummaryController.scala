@@ -98,6 +98,7 @@ class AFTSummaryController @Inject()(
         val json =
           getJson(
             form,
+            memberSearchForm,
             request.userAnswers,
             srn,
             startDate,
@@ -120,6 +121,7 @@ class AFTSummaryController @Inject()(
               formWithErrors => {
                 val ua = request.userAnswers
                 val json = getJson(
+                  form,
                   formWithErrors,
                   ua,
                   srn,
@@ -129,16 +131,17 @@ class AFTSummaryController @Inject()(
                   aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
                   request.sessionData.isEditable
                 )
-                renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
+                renderer.render(template = "aftSearchResults.njk", json).map(BadRequest(_))
               },
               value => {
+                val preparedForm: Form[String] = memberSearchForm.fill(value)
                 val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
                 println("\n\nSearch results:" + searchResults)
                 val json =
-                  getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                  getJson(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
                 println("\nJSON for nunjucks:" + json)
-                renderer.render("aftSearchResults.njk", json).map(Ok(_))
+                renderer.render(template = "aftSearchResults.njk", json).map(Ok(_))
               }
             )
         }
@@ -154,6 +157,7 @@ class AFTSummaryController @Inject()(
               val ua = request.userAnswers
               val json = getJson(
                 formWithErrors,
+                memberSearchForm,
                 ua,
                 srn,
                 startDate,
@@ -183,7 +187,9 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getJson[A](form: Form[A],
+  private def getJson[A](
+                      form: Form[Boolean],
+                      formSearchText: Form[String],
                       ua: UserAnswers,
                       srn: String,
                       startDate: LocalDate,
@@ -192,10 +198,12 @@ class AFTSummaryController @Inject()(
                       listOfRows: Seq[Row],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
+    println( "\n>>>>" + formSearchText)
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
+      "formSearchText" -> formSearchText,
       "list" -> listOfRows,
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),

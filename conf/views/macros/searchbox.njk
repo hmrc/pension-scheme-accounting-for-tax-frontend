@@ -4,25 +4,34 @@
     {% from "govuk/components/button/macro.njk" import govukButton %}
 
    <form action="{{searchURL}}" method="post" autocomplete="off">
-   {{ csrf() | safe }}
-    <div class="govuk-form-group" >
-        {{ govukInput({
-          label: {
-            text: "Search for a member"
-          },
-          id: "searchText",
-          name: "searchText",
-          hint: {
-            text: "Search by name or National Insurance number"
-          }
-        }) }}
+       {{ csrf() | safe }}
 
-        {{ govukButton({
-          text: "Search",
-          classes: "govuk-button--secondary"
-        }) }}
 
-    </div>
+
+        <div class="govuk-form-group" >
+            {{ govukInput({
+              id: "searchText",
+              label: {
+                text: "Search for a member",
+                isPageHeading: false,
+                classes: "govuk-label--s"
+              },
+              name: "searchText",
+              type: "text",
+              value: formSearchText.searchText.value,
+              classes: "govuk-input--width-10",
+              errorMessage: formSearchText.searchText.error,
+              hint: {
+                text: "Search by name or National Insurance number"
+              }
+            }) }}
+
+            {{ govukButton({
+              text: "Search",
+              classes: "govuk-button--secondary"
+            }) }}
+
+        </div>
     </form>
 
 
