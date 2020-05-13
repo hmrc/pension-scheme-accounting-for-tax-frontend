@@ -24,6 +24,6 @@ class MemberSearchFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> text("aft.summary.search.error.required")
+      "searchText" -> text("aft.summary.search.error.required")
     )
 }

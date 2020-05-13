@@ -183,7 +183,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getJson(form: Form[Boolean],
+  private def getJson[A](form: Form[A],
                       ua: UserAnswers,
                       srn: String,
                       startDate: LocalDate,
