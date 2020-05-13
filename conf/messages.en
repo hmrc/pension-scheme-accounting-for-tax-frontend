@@ -429,6 +429,15 @@ aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits ch
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
 
+aft.summary.search.noResults.h2 = There are no matching results.
+aft.summary.search.noResults.p1 = Improve your search results by:
+aft.summary.search.noResults.b1 = double-checking your spelling
+aft.summary.search.noResults.b2 = double-checking any National Insurance numbers
+aft.summary.search.error.required = Enter name or National Insurance number
+aft.summary.search.hint = Search by name or National Insurance number
+aft.summary.search.label = Search for a member
+aft.summary.search.button = Search
+
 chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
 chargeG.chargeDetails.qropsReferenceNumber.label = QROPS reference number

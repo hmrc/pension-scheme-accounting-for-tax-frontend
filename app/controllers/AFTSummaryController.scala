@@ -23,17 +23,16 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.AllowAccessActionProvider
 import controllers.actions._
-import forms.AFTSummaryFormProvider
+import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
+import models.Quarters
 import models.GenericViewModel
 import models.Mode
 import models.NormalMode
 import models.UserAnswers
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
-import pages.ChargeTypePage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
@@ -47,12 +46,14 @@ import renderer.Renderer
 import services.RequestCreationService
 import services.AFTService
 import services.AllowAccessService
+import services.MemberSearchService
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
+import uk.gov.hmrc.viewmodels.SummaryList.Row
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -67,6 +68,7 @@ class AFTSummaryController @Inject()(
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: AFTSummaryFormProvider,
+    memberSearchFormProvider: MemberSearchFormProvider,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
@@ -74,12 +76,14 @@ class AFTSummaryController @Inject()(
     aftService: AFTService,
     allowService: AllowAccessService,
     requestCreationService: RequestCreationService,
-    schemeService: SchemeService
+    schemeService: SchemeService,
+    memberSearchService: MemberSearchService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
+  private val memberSearchForm = memberSearchFormProvider()
   private val form = formProvider()
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
@@ -92,10 +96,56 @@ class AFTSummaryController @Inject()(
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+          getJson(
+            form,
+            memberSearchForm,
+            request.userAnswers,
+            srn,
+            startDate,
+            schemeDetails.schemeName,
+            optionVersion,
+            aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+            request.sessionData.isEditable
+          )
         renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
+
+  def onSearchMember(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, optionVersion) andThen requireData andThen
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+        schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+          memberSearchForm
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                val ua = request.userAnswers
+                val json = getJson(
+                  form,
+                  formWithErrors,
+                  ua,
+                  srn,
+                  startDate,
+                  schemeDetails.schemeName,
+                  optionVersion,
+                  aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+                  request.sessionData.isEditable
+                )
+                renderer.render(template = "aftSearchResults.njk", json).map(BadRequest(_))
+              },
+              value => {
+                val preparedForm: Form[String] = memberSearchForm.fill(value)
+                val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
+                println("\n\nSearch results:" + searchResults)
+                val json =
+                  getJson(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                    optionVersion, searchResults, request.sessionData.isEditable)
+                println("\nJSON for nunjucks:" + json)
+                renderer.render(template = "aftSearchResults.njk", json).map(Ok(_))
+              }
+            )
+        }
+      }
 
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
@@ -105,7 +155,17 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, ua, srn, startDate, schemeName, optionVersion, request.sessionData.isEditable)
+              val json = getJson(
+                formWithErrors,
+                memberSearchForm,
+                ua,
+                srn,
+                startDate,
+                schemeName,
+                optionVersion,
+                aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+                request.sessionData.isEditable
+              )
               renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
             },
             value => {
@@ -113,10 +173,9 @@ class AFTSummaryController @Inject()(
                 userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
                   Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
                 }
-              } else if(!value && isAmendment) {
+              } else if (!value && isAmendment) {
                 Future.successful(Redirect(controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)))
-              }
-              else {
+              } else {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
                     Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
@@ -128,24 +187,30 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getJson(form: Form[Boolean],
+  private def getJson[A](
+                      form: Form[Boolean],
+                      formSearchText: Form[String],
                       ua: UserAnswers,
                       srn: String,
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String],
+                      listOfRows: Seq[Row],
                       canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
+    println( "\n>>>>" + formSearchText)
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
+      "formSearchText" -> formSearchText,
+      "list" -> listOfRows,
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> getFormattedStartDate(startDate),
       "quarterEndDate" -> getFormattedEndDate(endDate),
-      "canChange" -> canChange
+      "canChange" -> canChange,
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
     )
   }
 
