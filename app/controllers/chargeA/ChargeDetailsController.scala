@@ -80,8 +80,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form(mininimumChargeValue).fill(value)
-          case None        => form(mininimumChargeValue)
+          case Some(value) if value.totalAmount > BigDecimal(0.00) => form(mininimumChargeValue).fill(value)
+          case _        => form(mininimumChargeValue)
         }
 
         val json = Json.obj(

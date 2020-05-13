@@ -81,8 +81,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form(mininimumChargeValue, startDate).fill(value)
-          case None        => form(mininimumChargeValue, startDate)
+          case Some(value) if value.amountTaxDue > BigDecimal(0.00) => form(mininimumChargeValue, startDate).fill(value)
+          case _        => form(mininimumChargeValue, startDate)
         }
 
         val viewModel = GenericViewModel(
