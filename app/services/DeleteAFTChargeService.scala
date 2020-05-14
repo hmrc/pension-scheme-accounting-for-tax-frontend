@@ -17,7 +17,6 @@
 package services
 
 import com.google.inject.Inject
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Singleton
 import models.UserAnswers
@@ -31,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(
-    aftConnector: AFTConnector,
+    aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     deleteChargeHelper: DeleteChargeHelper,
     userAnswersService: UserAnswersService
@@ -54,7 +53,7 @@ class DeleteAFTChargeService @Inject()(
       }
     }
 
-    aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
+    aftService.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
       if (isDeletingLastCharge && !isAmendment) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
