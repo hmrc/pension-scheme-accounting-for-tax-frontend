@@ -58,23 +58,18 @@ class MemberSearchService {
       .map(toMemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
     val chargeGMembers = ChargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
       .map(toMemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
-    val chargeCMembers = ChargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).map { employer =>
-      MemberSummary(employer.index, employer.name, employer.nino, ChargeType.ChargeTypeAuthSurplus, employer.amount, employer.viewLink, employer.removeLink)
-    }
-    chargeDMembers ++ chargeEMembers ++ chargeGMembers ++ chargeCMembers
+    chargeDMembers ++ chargeEMembers ++ chargeGMembers
   }
 
   private def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[MemberRow] = {
     listOfMembers.map { data =>
 
     val rowNino =
-      data.nino match {
-        case None => Nil
-        case Some(n) => Seq(Row(
-              key = Key(msg"chargeC.sponsoringIndividualDetails.nino.label", classes = Seq("govuk-!-width-three-quarters")),
-              value = Value(Literal(s"$n"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-            ))
-      }
+        Seq(Row(
+          key = Key(msg"chargeC.sponsoringIndividualDetails.nino.label", classes = Seq("govuk-!-width-three-quarters")),
+          value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ))
+
       val rowChargeType =
         Seq(Row(
           key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
@@ -110,15 +105,14 @@ object MemberSearchService {
   private def toMessageKey(chargeType:ChargeType):String =
     chargeType match {
       case ChargeType.ChargeTypeAnnualAllowance => "aft.summary.annualAllowance.description"
-      case ChargeType.ChargeTypeAuthSurplus => "aft.summary.authSurplus.description"
       case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
   private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
-    MemberSummary(member.index, member.name, Some(member.nino), chargeType, member.amount, member.viewLink, member.removeLink)
+    MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
 
-  case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+  case class MemberSummary(index: Int, name: String, nino: String, chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
     def id = s"member-$index"
 
     def linkIdRemove = s"$id-remove"
