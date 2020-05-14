@@ -126,7 +126,10 @@ object MemberSearchService {
       Json.format[Member]
   }
 
+  case class Anchor(href:String, content:String)
+
   case class MemberRow(h2:String, rows:Seq[Row], actions:Seq[Action])
+
   object MemberRow {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and

@@ -132,7 +132,7 @@ class AFTSummaryController @Inject()(
                   aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
                   request.sessionData.isEditable
                 )
-                renderer.render(template = "aftSearchResults.njk", json).map(BadRequest(_))
+                renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
               },
               value => {
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
@@ -142,7 +142,7 @@ class AFTSummaryController @Inject()(
                   getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
                 println("\nJSON for nunjucks:" + json)
-                renderer.render(template = "aftSearchResults.njk", json).map(Ok(_))
+                renderer.render(template = "aftSummary.njk", json).map(Ok(_))
               }
             )
         }
