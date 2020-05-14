@@ -21,16 +21,18 @@ import java.time.LocalDate
 import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeD.ChargeDetailsPage
 import play.api.i18n.Messages
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import AddMembersHelper.mapChargeXMembersToTable
 import com.google.inject.Inject
 import viewmodels.Table
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import utils.DeleteChargeHelper
 
 class ChargeDHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
+  def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
     val members = for {
         (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
@@ -51,11 +53,12 @@ class ChargeDHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     members.flatten
   }
 
-  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
+  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): Seq[Member] =
     getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers): Call =
-    if(deleteChargeHelper.isLastCharge(ua)) {
+  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeD.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
     } else {
       controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index)

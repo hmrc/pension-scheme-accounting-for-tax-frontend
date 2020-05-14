@@ -22,11 +22,12 @@ import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.requests.DataRequest
 import models.{Employer, UserAnswers}
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DeleteChargeHelper
@@ -35,12 +36,14 @@ import viewmodels.Table.Cell
 
 class ChargeCHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] = {
+  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
     def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
+    def getEmployerDetails(index: Int): Option[(String, Boolean)] =
+      ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
         case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
         case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
       }
@@ -61,11 +64,11 @@ class ChargeCHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] =
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Employer] =
     getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers): Call =
-    if(deleteChargeHelper.isLastCharge(ua)) {
+  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
     } else {
       controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)

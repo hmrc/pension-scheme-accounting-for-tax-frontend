@@ -77,13 +77,13 @@ class ChargeCHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
 
   ".getOverseasTransferEmployers" must {
     "return all the members added in charge G" in {
-      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
+      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate)(request()) mustBe expectedAllEmployers
     }
   }
 
   ".getOverseasTransferEmployersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
+      chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate)(request()) mustBe expectedEmployersIncludingDeleted
     }
   }
 

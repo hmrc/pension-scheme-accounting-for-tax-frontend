@@ -26,6 +26,7 @@ import forms.DeleteFormProvider
 import helpers.ChargeEHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
@@ -137,6 +138,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal =
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): BigDecimal =
     chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
 }

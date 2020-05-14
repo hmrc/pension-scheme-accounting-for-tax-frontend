@@ -27,6 +27,7 @@ import helpers.ChargeCHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.requests.DataRequest
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
@@ -139,6 +140,6 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       case _ => Try(ua)
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal =
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): BigDecimal =
     chargeCHelper.getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
 }

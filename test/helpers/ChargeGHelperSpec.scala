@@ -68,13 +68,13 @@ class ChargeGHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
 
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
     }
   }
 
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      chargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      chargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
     }
   }
 
