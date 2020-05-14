@@ -23,7 +23,6 @@ import play.api.libs.functional.syntax._
 
 import scala.language.implicitConversions
 import play.api.libs.json.Json
-import helpers.ChargeCHelper
 import helpers.ChargeDHelper
 import helpers.ChargeEHelper
 import helpers.ChargeGHelper
@@ -47,39 +46,45 @@ import scala.language.implicitConversions
 class MemberSearchService {
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[MemberRow] = {
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages): Seq[MemberRow] = {
     listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
   }
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
-    val chargeDMembers = ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
-    val chargeEMembers = ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
-    val chargeGMembers = ChargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
+    val chargeDMembers = ChargeDHelper
+      .getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
+    val chargeEMembers = ChargeEHelper
+      .getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
+    val chargeGMembers = ChargeGHelper
+      .getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
     chargeDMembers ++ chargeEMembers ++ chargeGMembers
   }
 
-  private def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[MemberRow] = {
+  private def listOfRows(listOfMembers: Seq[MemberSummary]): Seq[MemberRow] = {
     listOfMembers.map { data =>
-
-    val rowNino =
-        Seq(Row(
-          key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ))
+      val rowNino =
+        Seq(
+          Row(
+            key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-three-quarters")),
+            value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          ))
 
       val rowChargeType =
-        Seq(Row(
-          key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Message(s"${toMessageKey(data.chargeType)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ))
+        Seq(
+          Row(
+            key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
+            value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"),
+                          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          ))
       val rowAmount =
-        Seq(Row(
-          key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ))
+        Seq(
+          Row(
+            key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-three-quarters")),
+            value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          ))
 
       val actions = List(
         Action(
@@ -102,17 +107,21 @@ class MemberSearchService {
 object MemberSearchService {
   private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
-  private def toMessageKey(chargeType:ChargeType):String =
+  private def getDescriptionMessageKeyFromChargeType(chargeType: ChargeType): String =
     chargeType match {
-      case ChargeType.ChargeTypeAnnualAllowance => "aft.summary.annualAllowance.description"
+      case ChargeType.ChargeTypeAnnualAllowance  => "aft.summary.annualAllowance.description"
       case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
-      case _ => "aft.summary.lifeTimeAllowance.description"
+      case _                                     => "aft.summary.lifeTimeAllowance.description"
     }
 
-  private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
-    MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
-
-  case class MemberSummary(index: Int, name: String, nino: String, chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+  private case class MemberSummary(index: Int,
+                                   name: String,
+                                   nino: String,
+                                   chargeType: ChargeType,
+                                   amount: BigDecimal,
+                                   viewLink: String,
+                                   removeLink: String,
+                                   isDeleted: Boolean = false) {
     def id = s"member-$index"
 
     def linkIdRemove = s"$id-remove"
@@ -120,20 +129,19 @@ object MemberSearchService {
     def linkIdView = s"$id-view"
   }
 
-  object MemberSummary {
+  private object MemberSummary {
     implicit lazy val formats: Format[Member] =
       Json.format[Member]
+    def apply(member: Member, chargeType: ChargeType): MemberSummary =
+      MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
   }
 
-  case class Anchor(href:String, content:String)
-
-  case class MemberRow(h2:String, rows:Seq[Row], actions:Seq[Action])
+  case class MemberRow(h2: String, rows: Seq[Row], actions: Seq[Action])
 
   object MemberRow {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and
-        (JsPath \ "actions").write[Seq[Action]]
-        )(mr => (mr.h2, mr.rows, mr.actions))
+        (JsPath \ "actions").write[Seq[Action]])(mr => Tuple3(mr.h2, mr.rows, mr.actions))
   }
 }
