@@ -36,7 +36,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
 import uk.gov.hmrc.viewmodels.SummaryList.Value
 import play.api.i18n.Messages
-import services.MemberSearchService.MemberRow
+import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.Text.Message
 import uk.gov.hmrc.viewmodels._
@@ -50,9 +50,6 @@ class MemberSearchService {
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[MemberRow] = {
     listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
   }
-
-  private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
-    MemberSummary(member.index, member.name, Some(member.nino), chargeType, member.amount, member.viewLink, member.removeLink)
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
     val chargeDMembers = ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
@@ -89,9 +86,21 @@ class MemberSearchService {
           value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ))
 
-      MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount)
+      val actions = List(
+        Action(
+          content = msg"site.view",
+          href = data.viewLink,
+          visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+        )
+      )
+
+      MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
     }
   }
+}
+
+object MemberSearchService {
+  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
 
   private def toMessageKey(chargeType:ChargeType):String =
     chargeType match {
@@ -101,10 +110,8 @@ class MemberSearchService {
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
-}
-
-object MemberSearchService {
-  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+  private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
+    MemberSummary(member.index, member.name, Some(member.nino), chargeType, member.amount, member.viewLink, member.removeLink)
 
   case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
     def id = s"member-$index"
@@ -119,10 +126,12 @@ object MemberSearchService {
       Json.format[Member]
   }
 
-  case class MemberRow(h2:String, rows:Seq[Row])
+  case class MemberRow(h2:String, rows:Seq[Row], actions:Seq[Action])
   object MemberRow {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
-      ((JsPath \ "h2").write[String] and
-        (JsPath \ "rows").write[Seq[Row]])(mr => (mr.h2, mr.rows))
+      ((JsPath \ "name").write[String] and
+        (JsPath \ "rows").write[Seq[Row]] and
+        (JsPath \ "actions").write[Seq[Action]]
+        )(mr => (mr.h2, mr.rows, mr.actions))
   }
 }

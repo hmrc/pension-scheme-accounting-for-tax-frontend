@@ -58,17 +58,22 @@
                   }
                 }) }}
 
-                {% for row in list %}
-                  <h2>{{ row.h2 }}</h2>
-                  {{ govukSummaryList({
-                    rows: row.rows
-                  }) }}
-                {% endfor %}
-
                 {{ govukButton({
                   text: messages('aft.summary.search.button'),
                   classes: "govuk-button--secondary"
                 }) }}
+
+                {% for row in list %}
+                  <h2>{{ row.name }}</h2>
+                  {{ govukSummaryList({
+                    rows: row.rows
+                  }) }}
+
+                  {% for action in row.actions %}
+                    <a href="{{ action.href }}"> wwwww {{ action.content }}  </a>
+                  {% endfor %}
+
+                {% endfor %}
 
             </div>
         </form>
