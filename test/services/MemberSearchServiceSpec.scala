@@ -44,14 +44,23 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
   import MemberSearchServiceSpec._
 
   "Search" must {
-    "return valid results when searching with a valid name when case not matching" in {
+    "return one valid result when searching with a valid name when case not matching" in {
       memberSearchService.search(ua, srn, startDate, memberDetailsD1.firstName.toLowerCase) mustBe
-        searchResultsMemberDetails(memberDetailsD1, "83.44")
+        searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44")
+    }
+
+    "return several valid results when searching across all 3 charge types with a valid name when case not matching" in {
+      val expected = searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44") ++
+        searchResultsMemberDetailsChargeD(memberDetailsD2, "83.44", 1) ++
+        searchResultsMemberDetailsChargeE(memberDetailsE1, "33.44") /*++
+        searchResultsMemberDetailsChargeG(memberDetailsG2, "50.00", 1)*/
+
+      memberSearchService.search(ua, srn, startDate, memberDetailsD1.lastName.toLowerCase) mustBe expected
     }
 
     "return valid results when searching with a valid nino when case not matching" in {
       memberSearchService.search(ua, srn, startDate, memberDetailsD1.nino.toLowerCase) mustBe
-        searchResultsMemberDetails(memberDetailsD1, "83.44")
+        searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44")
     }
 
     "return no results when nothing matches" in {
@@ -74,10 +83,9 @@ object MemberSearchServiceSpec {
   private val memberDetailsE1: MemberDetails = MemberDetails("Steph", "Bloggs", "AB123453C")
   private val memberDetailsE2: MemberDetails = MemberDetails("Brian", "Blessed", "AB123454C")
   private val memberDetailsG1: models.chargeG.MemberDetails = models.chargeG.MemberDetails("first", "last", LocalDate.now(), "AB123455C")
-  private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bloggs", LocalDate.now(), "AB123456C")
+  private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bliggs", LocalDate.now(), "AB123456C")
 
-  private def searchResultsMemberDetails(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
-
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -104,6 +112,70 @@ object MemberSearchServiceSpec {
           Message("site.remove"),
           controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
           Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
+        )
+      )
+    )
+  )
+
+  private def searchResultsMemberDetailsChargeE(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+    MemberRow(
+      memberDetails.fullName,
+      Seq(
+        Row(
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        )
+      ),
+      Seq(
+        Action(
+          Message("site.view"),
+          controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+        ),
+        Action(
+          Message("site.remove"),
+          controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+        )
+      )
+    )
+  )
+
+  private def searchResultsMemberDetailsChargeG(memberDetails: models.chargeG.MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+    MemberRow(
+      memberDetails.fullName,
+      Seq(
+        Row(
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        )
+      ),
+      Seq(
+        Action(
+          Message("site.view"),
+          controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+        ),
+        Action(
+          Message("site.remove"),
+          controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
         )
       )
     )
