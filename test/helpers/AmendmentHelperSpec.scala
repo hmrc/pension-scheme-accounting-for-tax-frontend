@@ -41,7 +41,7 @@ class AmendmentHelperSpec extends SpecBase {
         .setOrException(pages.chargeB.ChargeBDetailsPage, ChargeBDetails(3, BigDecimal(5000.00)))
         .setOrException(pages.chargeG.TotalChargeAmountPage, BigDecimal(34220.00))
 
-      amendmentHelper.getTotalAmount(ua) mustEqual (BigDecimal(13100.00), BigDecimal(34220.00))
+      amendmentHelper.getTotalAmount(ua) mustEqual Tuple2(BigDecimal(13100.00), BigDecimal(34220.00))
     }
   }
 
