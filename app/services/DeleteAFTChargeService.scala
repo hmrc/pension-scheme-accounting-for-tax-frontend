@@ -42,9 +42,8 @@ class DeleteAFTChargeService @Inject()(
       request: DataRequest[AnyContent]): Future[Unit] = {
 
     val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
-    val isAmendment = request.sessionData.sessionAccessData.version > 1
 
-    val updateAnswers = if (isAmendment) {
+    val updateAnswers = if (request.isAmendment) {
       page.map(removePage => userAnswersService.remove(removePage)).getOrElse(answers)
     } else {
       if (isDeletingLastCharge) {
