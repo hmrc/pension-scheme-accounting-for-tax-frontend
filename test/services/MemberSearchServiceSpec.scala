@@ -20,10 +20,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData._
-import data.SampleData.memberDetails
 import helpers.FormatHelper
-import models.Index
-import models.chargeB.ChargeBDetails
 import models.MemberDetails
 import models.UserAnswers
 import models.YearRange
@@ -32,7 +29,6 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results
 import services.MemberSearchService.MemberRow
-import services.MemberSearchServiceSpec.memberDetailsD1
 import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
