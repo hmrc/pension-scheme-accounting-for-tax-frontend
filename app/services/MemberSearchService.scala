@@ -66,7 +66,7 @@ class MemberSearchService {
 
     val rowNino =
         Seq(Row(
-          key = Key(msg"chargeC.sponsoringIndividualDetails.nino.label", classes = Seq("govuk-!-width-three-quarters")),
+          key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-three-quarters")),
           value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ))
 
