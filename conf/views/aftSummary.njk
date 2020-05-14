@@ -35,94 +35,83 @@
            {{ csrf() | safe }}
 
             <div class="govuk-form-group" >
+                {{ govukInput({
+                  id: "searchText",
+                  label: {
+                    text: messages('aft.summary.search.label'),
+                    isPageHeading: false,
+                    classes: "govuk-label--m"
+                  },
+                  name: "searchText",
+                  type: "text",
+                  value: formSearchText.searchText.value,
+                  classes: "govuk-!-width-one-third",
+                  errorMessage: formSearchText.searchText.error,
+                  hint: {
+                    text: messages('aft.summary.search.hint')
+                  }
+                }) }}
 
-                    {{ govukInput({
-                      id: "searchText",
-                      label: {
-                        text: messages('aft.summary.search.label'),
-                        isPageHeading: false,
-                        classes: "govuk-label--m"
-                      },
-                      name: "searchText",
-                      type: "text",
-                      value: formSearchText.searchText.value,
-                      classes: "govuk-!-width-one-third",
-                      errorMessage: formSearchText.searchText.error,
-                      hint: {
-                        text: messages('aft.summary.search.hint')
-                      }
-                    }) }}
-
-                     {% if formSearchText.searchText.value %}
-
-                     {{ govukButton({
-                                       text: messages('aft.summary.searchAgain.button'),
-                                       classes: "govuk-button--secondary"
-                                        }) }}
-                      <p><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
-
-                     {% else %}
-
-                                {{ govukButton({
-                                           text: messages('aft.summary.search.button'),
-                                           classes: "govuk-button--secondary"
-                                         }) }}
-
-                     {% endif  %}
-
-            </div>
                 {% if formSearchText.searchText.value %}
-
-                    {% for row in list %}
-                      <h2 class="govuk-heading-m">{{ row.name }}</h2>
-                      {{ govukSummaryList({
-                        rows: row.rows,
-                        classes: "govuk-!-margin-bottom-5"
-                      }) }}
-
-
-                      <ul class="govuk-list">
-                      {% for action in row.actions %}
-                      <li class="govuk-!-display-inline-block govuk-!-margin-right-3">
-                        <a class="govuk-link" href="{{ action.href }}">{{ action.text }}
-                        <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }}</span>
-                        </a>
-                        </li>
-                      {% endfor %}
-                      </ul>
-                    {% endfor %}
+                    {{ govukButton({
+                      text: messages('aft.summary.searchAgain.button'),
+                      classes: "govuk-button--secondary"
+                    }) }}
+                    <p><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
 
                 {% else %}
-                <h2>
-                                    {{ messages("aft.summary.search.noResults.h2") }}
-                                </h2>
-                                <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
-                                   <ul class="govuk-list govuk-list--bullet">
-                                      <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
-                                      <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
-                                   </ul>
+                    {{ govukButton({
+                      text: messages('aft.summary.search.button'),
+                      classes: "govuk-button--secondary"
+                    }) }}
+
+                {% endif  %}
+            </div>
+
+            {% if formSearchText.searchText.value %}
+                {% if list.length == 0 %}
+                   <h2>
+                       {{ messages("aft.summary.search.noResults.h2") }}
+                   </h2>
+                   <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
+                   <ul class="govuk-list govuk-list--bullet">
+                      <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
+                      <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
+                   </ul>
+
+                {% else %}
+                   {% for row in list %}
+                     <h2 class="govuk-heading-m">{{ row.name }}</h2>
+                     {{ govukSummaryList({
+                       rows: row.rows,
+                       classes: "govuk-!-margin-bottom-5"
+                     }) }}
+
+                     <ul class="govuk-list">
+                         {% for action in row.actions %}
+                           <li class="govuk-!-display-inline-block govuk-!-margin-right-3">
+                               <a class="govuk-link" href="{{ action.href }}">{{ action.text }}
+                                   <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }}</span>
+                               </a>
+                           </li>
+                         {% endfor %}
+                     </ul>
+                   {% endfor %}
 
                 {% endif %}
-
-
+            {% endif %}
         </form>
-
-
-
 
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
-            {% if formSearchText.searchText.value |length == 0 %}
-              {% if list.length > 0 %}
-                {{ govukSummaryList({
-                   rows: list
-                }) }}
-              {% else %}
-
-
-              {% endif %}
+          {% if formSearchText.searchText.value |length == 0 %}
+            {% if list.length > 0 %}
+              {{ govukSummaryList({
+                 rows: list
+              }) }}
+            {% endif %}
           {% endif %}
 
           {% if canChange %}
