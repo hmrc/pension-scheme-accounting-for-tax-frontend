@@ -72,6 +72,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   /* Use this remove for deleting a scheme based charge */
   def remove[A](page: QuestionPage[A]
                )(implicit request: DataRequest[AnyContent]): UserAnswers = {
+
     if(request.isAmendment) { //this IS an amendment
       val amendedVersionPath: JsPath = page.path \ "amendedVersion"
       deleteChargeHelper.zeroOutCharge(page, request.userAnswers).removeWithPath(amendedVersionPath)
