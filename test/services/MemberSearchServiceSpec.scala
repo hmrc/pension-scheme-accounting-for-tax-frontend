@@ -20,6 +20,8 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData._
+import data.SampleData.memberDetails
+import models.Index
 import models.chargeB.ChargeBDetails
 import models.MemberDetails
 import models.UserAnswers
@@ -29,6 +31,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.Results
 import services.MemberSearchService.MemberRow
+import services.MemberSearchServiceSpec.memberDetailsD1
 import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
@@ -38,52 +41,69 @@ import uk.gov.hmrc.viewmodels.Text.Message
 
 class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
+  import MemberSearchServiceSpec._
+
+  "Search" must {
+    "return valid results when searching with a valid name when case not matching" in {
+      memberSearchService.search(ua, srn, startDate, memberDetailsD1.firstName.toLowerCase) mustBe
+        searchResultsMemberDetails(memberDetailsD1, "83.44")
+    }
+
+    "return valid results when searching with a valid nino when case not matching" in {
+      memberSearchService.search(ua, srn, startDate, memberDetailsD1.nino.toLowerCase) mustBe
+        searchResultsMemberDetails(memberDetailsD1, "83.44")
+    }
+
+    "return no results when nothing matches" in {
+      memberSearchService.search(ua, srn, startDate, "ZZ098765A") mustBe Nil
+    }
+  }
+
+}
+
+object MemberSearchServiceSpec {
+  private val startDate = LocalDate.of(2020, 4, 1)
+  private val startDateAsString = "2020-04-01"
+  private val srn = "srn"
+
   private val memberSearchService = new MemberSearchService
 
-  private val chargeBDetails: ChargeBDetails = ChargeBDetails(4, chargeAmount1)
   private val memberDetailsD1: MemberDetails = MemberDetails("Ann", "Bloggs", "AB123451C")
   private val memberDetailsD2: MemberDetails = MemberDetails("Joe", "Bloggs", "AB123452C")
+  private val memberDetailsD3: MemberDetails = MemberDetails("Ann", "Smithers", "AB123451C", isDeleted = true)
   private val memberDetailsE1: MemberDetails = MemberDetails("Steph", "Bloggs", "AB123453C")
   private val memberDetailsE2: MemberDetails = MemberDetails("Brian", "Blessed", "AB123454C")
   private val memberDetailsG1: models.chargeG.MemberDetails = models.chargeG.MemberDetails("first", "last", LocalDate.now(), "AB123455C")
   private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bloggs", LocalDate.now(), "AB123456C")
-//  private val memberDetailsDeleted: MemberDetails = MemberDetails("Jill", "Bloggs", "AB123457C", isDeleted = true)
-//  private val memberGDetailsDeleted: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Jill", "Bloggs", LocalDate.now(), "AB123458C", isDeleted = true)
 
-  private val memberDetailsAnn = Seq(
+  private def searchResultsMemberDetails(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+
     MemberRow(
-      memberDetailsD1.fullName,
+      memberDetails.fullName,
       Seq(
         Row(
           Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal("AB123451C"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          Seq()
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          Seq()
+          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal("83.44"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-          Seq()
+          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
         Action(
           Message("site.view"),
-          "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/check-your-answers",
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
-          Seq(),
-          Map()
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
         ),
         Action(
           Message("site.remove"),
-          "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/remove-charge",
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
-          Seq(),
-          Map()
+          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
+          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
         )
       )
     )
@@ -93,8 +113,10 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     userAnswersWithSchemeNamePstrQuarter
       .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsD1)
       .setOrException(pages.chargeD.MemberDetailsPage(1), memberDetailsD2)
+      .setOrException(pages.chargeD.MemberDetailsPage(2), memberDetailsD3)
       .setOrException(pages.chargeD.ChargeDetailsPage(0), chargeDDetails)
       .setOrException(pages.chargeD.ChargeDetailsPage(1), chargeDDetails)
+      .setOrException(pages.chargeD.ChargeDetailsPage(2), chargeDDetails)
       .setOrException(pages.chargeD.TotalChargeAmountPage, BigDecimal(66.88))
       .setOrException(pages.chargeE.MemberDetailsPage(0), memberDetailsE1)
       .setOrException(pages.chargeE.MemberDetailsPage(1), memberDetailsE2)
@@ -108,25 +130,4 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
       .setOrException(pages.chargeG.ChargeAmountsPage(0), chargeAmounts)
       .setOrException(pages.chargeG.ChargeAmountsPage(1), chargeAmounts2)
       .setOrException(pages.chargeG.TotalChargeAmountPage, BigDecimal(66.88))
-
-  "Search" must {
-    "return valid results when searching with a valid name" in {
-      val name = memberDetailsD1.firstName
-      val expected = memberDetailsAnn
-      memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), name) mustBe expected
-    }
-
-    "return valid results when searching with a valid nino" in {
-      val nino = memberDetailsD1.nino
-      val expected = memberDetailsAnn
-      memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), nino) mustBe expected
-    }
-
-    "return no results when nothing matches" in {
-      val nino = "ZZ098765A"
-
-      memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), nino) mustBe Nil
-    }
-  }
-
 }

@@ -32,28 +32,24 @@ import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService {
-
   import MemberSearchService._
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages): Seq[MemberRow] = {
-    val isNino = true
+    val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean =
-      x =>
-        if (searchText.matches(ninoRegex)) x.nino == searchText
-        else x.name.contains(searchText)
-    listOfRows(listOfMembers(ua, srn, startDate)
-      .filter(searchFunc))
+      if (searchTextUpper.matches(ninoRegex)) _.nino.toUpperCase == searchTextUpper else _.name.toUpperCase.contains(searchTextUpper)
+    listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc))
   }
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
     val chargeDMembers = ChargeDHelper
-      .getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .getLifetimeAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
     val chargeEMembers = ChargeEHelper
-      .getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
+      .getAnnualAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
     val chargeGMembers = ChargeGHelper
-      .getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
+      .getOverseasTransferMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
     chargeDMembers ++ chargeEMembers ++ chargeGMembers
   }
@@ -109,7 +105,7 @@ object MemberSearchService {
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
-  case class MemberRow(h2: String, rows: Seq[Row], actions: Seq[Action])
+  case class MemberRow(name: String, rows: Seq[Row], actions: Seq[Action])
 
   private case class MemberSummary(index: Int,
                                    name: String,
@@ -130,7 +126,7 @@ object MemberSearchService {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and
-        (JsPath \ "actions").write[Seq[Action]]) (mr => Tuple3(mr.h2, mr.rows, mr.actions))
+        (JsPath \ "actions").write[Seq[Action]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
   }
 
   private object MemberSummary {
