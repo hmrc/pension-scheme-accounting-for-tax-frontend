@@ -38,6 +38,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.Value
 import play.api.i18n.Messages
 import services.MemberSearchService.MemberRow
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.Message
 import uk.gov.hmrc.viewmodels._
 
 import scala.language.implicitConversions
@@ -80,7 +81,7 @@ class MemberSearchService {
       val rowChargeType =
         Seq(Row(
           key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
-          value = Value(Literal(s"${data.chargeType.toString}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          value = Value(Message(s"${toMessageKey(data.chargeType)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ))
       val rowAmount =
         Seq(Row(
@@ -91,6 +92,15 @@ class MemberSearchService {
       MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount)
     }
   }
+
+  private def toMessageKey(chargeType:ChargeType):String =
+    chargeType match {
+      case ChargeType.ChargeTypeAnnualAllowance => "aft.summary.annualAllowance.description"
+      case ChargeType.ChargeTypeAuthSurplus => "aft.summary.authSurplus.description"
+      case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
+      case _ => "aft.summary.lifeTimeAllowance.description"
+    }
+
 }
 
 object MemberSearchService {

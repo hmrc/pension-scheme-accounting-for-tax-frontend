@@ -58,62 +58,12 @@
                   }
                 }) }}
 
-
-  {% for row in list %}
-    <h2>{{ row.h2 }}</h2>
-
-    {% for rowb in row.rows %}
-        <ul>
-            <li> {{ rowb.key.text }}  </li>
-        </ul>
-    {% endfor %}
-
-  {% endfor %}
-
-
-
-                {{ govukSummaryList({
-                  rows: [
-                    {
-                      key: {
-                             text: "Name"
-                             }
-                             },
-                    {
-                      key: {
-                        text: "Name"
-                      },
-                      value: {
-                        text: "Sarah Philips"
-                      }
-                    },
-                    {
-                      key: {
-                        text: "Date of birth"
-                      },
-                      value: {
-                        text: "5 January 1978"
-                      }
-                    },
-                    {
-                      actions: {
-                                              items: [
-                                                {
-                                                  href: "#",
-                                                  text: "Change",
-                                                  visuallyHiddenText: "name"
-                                                },
-                                                  {
-                                                                                                  href: "#",
-                                                                                                  text: "view",
-                                                                                                  visuallyHiddenText: "name"
-                                                                                                }
-                                              ]
-                                            }
-                                        }
-
-                  ]
-                }) }}
+                {% for row in list %}
+                  <h2>{{ row.h2 }}</h2>
+                  {{ govukSummaryList({
+                    rows: row.rows
+                  }) }}
+                {% endfor %}
 
                 {{ govukButton({
                   text: messages('aft.summary.search.button'),

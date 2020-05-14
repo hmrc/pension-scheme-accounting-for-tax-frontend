@@ -428,6 +428,10 @@ aft.summary.lumpSumDeath.row = Special lump sum death benefits charges
 aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits charges
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
+aft.summary.annualAllowance.description = Annual allowance
+aft.summary.authSurplus.description = Authorised surplus
+aft.summary.lifeTimeAllowance.description = Lifetime allowance
+aft.summary.overseasTransfer.description = Overseas transfer
 
 aft.summary.search.noResults.h2 = There are no matching results.
 aft.summary.search.noResults.p1 = Improve your search results by:
