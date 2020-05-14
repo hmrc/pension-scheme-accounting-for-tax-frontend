@@ -18,36 +18,31 @@ package services
 
 import java.time.LocalDate
 
-import play.api.libs.json.Writes
-import play.api.libs.functional.syntax._
-
-import scala.language.implicitConversions
-import play.api.libs.json.Json
-import helpers.ChargeDHelper
-import helpers.ChargeEHelper
-import helpers.ChargeGHelper
+import helpers.{ChargeDHelper, ChargeEHelper, ChargeGHelper}
 import javax.inject.Singleton
-import models.ChargeType
-import models.Member
-import models.UserAnswers
-import play.api.libs.json._
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
+import models.{ChargeType, Member, UserAnswers}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.Action
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.Text.Message
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Json, Writes, _}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
 import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService {
+
   import MemberSearchService._
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages): Seq[MemberRow] = {
-    listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
+    val isNino = true
+    val searchFunc: MemberSummary => Boolean =
+      x =>
+        if (searchText.matches(ninoRegex)) x.nino == searchText
+        else x.name.contains(searchText)
+    listOfRows(listOfMembers(ua, srn, startDate)
+      .filter(searchFunc))
   }
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
@@ -77,7 +72,7 @@ class MemberSearchService {
           Row(
             key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
             value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"),
-                          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+              classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
           ))
       val rowAmount =
         Seq(
@@ -105,14 +100,16 @@ class MemberSearchService {
 }
 
 object MemberSearchService {
-  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}"
 
   private def getDescriptionMessageKeyFromChargeType(chargeType: ChargeType): String =
     chargeType match {
-      case ChargeType.ChargeTypeAnnualAllowance  => "aft.summary.annualAllowance.description"
+      case ChargeType.ChargeTypeAnnualAllowance => "aft.summary.annualAllowance.description"
       case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
-      case _                                     => "aft.summary.lifeTimeAllowance.description"
+      case _ => "aft.summary.lifeTimeAllowance.description"
     }
+
+  case class MemberRow(h2: String, rows: Seq[Row], actions: Seq[Action])
 
   private case class MemberSummary(index: Int,
                                    name: String,
@@ -122,26 +119,26 @@ object MemberSearchService {
                                    viewLink: String,
                                    removeLink: String,
                                    isDeleted: Boolean = false) {
-    def id = s"member-$index"
-
     def linkIdRemove = s"$id-remove"
 
     def linkIdView = s"$id-view"
-  }
 
-  private object MemberSummary {
-    implicit lazy val formats: Format[Member] =
-      Json.format[Member]
-    def apply(member: Member, chargeType: ChargeType): MemberSummary =
-      MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
+    def id = s"member-$index"
   }
-
-  case class MemberRow(h2: String, rows: Seq[Row], actions: Seq[Action])
 
   object MemberRow {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and
-        (JsPath \ "actions").write[Seq[Action]])(mr => Tuple3(mr.h2, mr.rows, mr.actions))
+        (JsPath \ "actions").write[Seq[Action]]) (mr => Tuple3(mr.h2, mr.rows, mr.actions))
   }
+
+  private object MemberSummary {
+    implicit lazy val formats: Format[Member] =
+      Json.format[Member]
+
+    def apply(member: Member, chargeType: ChargeType): MemberSummary =
+      MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
+  }
+
 }

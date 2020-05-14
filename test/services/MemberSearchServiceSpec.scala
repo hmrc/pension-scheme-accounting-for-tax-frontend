@@ -50,6 +50,45 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 //  private val memberDetailsDeleted: MemberDetails = MemberDetails("Jill", "Bloggs", "AB123457C", isDeleted = true)
 //  private val memberGDetailsDeleted: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Jill", "Bloggs", LocalDate.now(), "AB123458C", isDeleted = true)
 
+  private val memberDetailsAnn = Seq(
+    MemberRow(
+      memberDetailsD1.fullName,
+      Seq(
+        Row(
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal("AB123451C"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+          Seq()
+        ),
+        Row(
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+          Seq()
+        ),
+        Row(
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal("83.44"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+          Seq()
+        )
+      ),
+      Seq(
+        Action(
+          Message("site.view"),
+          "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/check-your-answers",
+          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
+          Seq(),
+          Map()
+        ),
+        Action(
+          Message("site.remove"),
+          "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/remove-charge",
+          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
+          Seq(),
+          Map()
+        )
+      )
+    )
+  )
+
   private def ua: UserAnswers =
     userAnswersWithSchemeNamePstrQuarter
       .setOrException(pages.chargeD.MemberDetailsPage(0), memberDetailsD1)
@@ -72,51 +111,15 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
   "Search" must {
     "return valid results when searching with a valid name" in {
-      val name = "Ann"
+      val name = memberDetailsD1.firstName
+      val expected = memberDetailsAnn
+      memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), name) mustBe expected
+    }
 
-      val expected = Seq(
-        MemberRow(
-          memberDetailsD1.fullName,
-          Seq(
-            Row(
-              Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-              Value(Literal("AB123451C"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-              Seq()
-            ),
-            Row(
-              Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-              Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-              Seq()
-            ),
-            Row(
-              Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-              Value(Literal("83.44"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-              Seq()
-            )
-          ),
-          Seq(
-            Action(
-              Message("site.view"),
-              "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/check-your-answers",
-              Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
-              Seq(),
-              Map()
-            ),
-            Action(
-              Message("site.remove"),
-              "/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-04-01/lifetime-allowance-charge/1/remove-charge",
-              Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row")),
-              Seq(),
-              Map()
-            )
-          )
-        )
-      )
-
-      val x = memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), name)
-      println(x)
-      x mustBe expected
-
+    "return valid results when searching with a valid nino" in {
+      val nino = memberDetailsD1.nino
+      val expected = memberDetailsAnn
+      memberSearchService.search(ua, "srn", LocalDate.of(2020, 4, 1), nino) mustBe expected
     }
 
     "return no results when nothing matches" in {
