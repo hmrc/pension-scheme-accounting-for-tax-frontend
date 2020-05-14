@@ -22,10 +22,15 @@ import base.SpecBase
 import data.SampleData
 import models.LocalDateBinder._
 import models.{Member, MemberDetails, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
-class ChargeDHelperSpec extends SpecBase {
+class ChargeDHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -52,15 +57,23 @@ class ChargeDHelperSpec extends SpecBase {
     expectedMember(SampleData.memberDetailsDeleted, 2)
   )
 
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeDHelper: ChargeDHelper = new ChargeDHelper(mockDeleteChargeHelper)
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      ChargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      chargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
-import helpers.ChargeEHelper._
+import helpers.ChargeEHelper
 import models.LocalDateBinder._
 import models.{NormalMode, UserAnswers}
 import pages.Page
@@ -32,10 +32,12 @@ import utils.DeleteChargeHelper
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
+                                 chargeEHelper: ChargeEHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
@@ -43,7 +45,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
-    if(getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
+    if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
       AddMembersController.onPageLoad(srn, startDate)
     } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))

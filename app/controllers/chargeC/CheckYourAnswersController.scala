@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
-import helpers.CYAChargeCHelper
+import helpers.{CYAChargeCHelper, ChargeCHelper}
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
@@ -33,7 +33,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import helpers.ChargeCHelper._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
@@ -49,6 +48,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           chargeCHelper: ChargeCHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -90,7 +90,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)

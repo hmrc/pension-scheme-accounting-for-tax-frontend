@@ -22,6 +22,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
+import helpers.ChargeEHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -34,7 +35,6 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import helpers.ChargeEHelper.{getAnnualAllowanceMembers, mapToTable}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
@@ -50,6 +50,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      requireData: DataRequiredAction,
                                      formProvider: AddMembersFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
+                                     chargeEHelper: ChargeEHelper,
                                      config: FrontendAppConfig,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -97,7 +98,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = getAnnualAllowanceMembers(request.userAnswers, srn, startDate)
+    val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate)
 
     Json.obj(
       "srn" -> srn,
@@ -107,7 +108,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.sessionData.isViewOnly)),
+      "table" -> Json.toJson(chargeEHelper.mapToTable(members, !request.sessionData.isViewOnly)),
       "canChange" -> !request.sessionData.isViewOnly
     )
 

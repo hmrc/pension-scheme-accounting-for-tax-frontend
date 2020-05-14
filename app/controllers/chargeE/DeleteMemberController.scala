@@ -23,7 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import helpers.ChargeEHelper.getAnnualAllowanceMembers
+import helpers.ChargeEHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
@@ -51,6 +51,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
+                                       chargeEHelper: ChargeEHelper,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -136,5 +137,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal =
+    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
 }

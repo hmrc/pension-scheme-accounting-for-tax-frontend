@@ -22,10 +22,10 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeC.routes._
-import helpers.ChargeCHelper._
+import helpers.ChargeCHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
-import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{CheckMode, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
 import play.api.mvc.Call
@@ -33,10 +33,12 @@ import utils.DeleteChargeHelper
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
+                                 chargeCHelper: ChargeCHelper,
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
@@ -78,7 +80,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case AddEmployersPage =>
       addEmployers(ua, srn, startDate)
 
-    case DeleteEmployerPage if getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
+    case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
       AddEmployersController.onPageLoad(srn, startDate)
 
     case DeleteEmployerPage if deleteChargeHelper.hasLastChargeOnly(ua) =>

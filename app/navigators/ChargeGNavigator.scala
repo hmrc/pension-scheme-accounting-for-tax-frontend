@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
-import helpers.ChargeGHelper._
+import helpers.ChargeGHelper
 import models.LocalDateBinder._
 import models.{NormalMode, UserAnswers}
 import pages.Page
@@ -30,10 +30,14 @@ import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.Call
 import utils.DeleteChargeHelper
 
-class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector, deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig)
+class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 deleteChargeHelper: DeleteChargeHelper,
+                                 chargeGHelper: ChargeGHelper,
+                                 config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
@@ -41,7 +45,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
-    if (getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
+    if (chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
       AddMembersController.onPageLoad(srn, startDate)
     } else if (deleteChargeHelper.hasLastChargeOnly(ua)) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))

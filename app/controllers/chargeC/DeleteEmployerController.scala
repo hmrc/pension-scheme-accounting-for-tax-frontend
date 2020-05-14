@@ -23,7 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import helpers.ChargeCHelper.getSponsoringEmployers
+import helpers.ChargeCHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -53,6 +53,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
+                                         chargeCHelper: ChargeCHelper,
                                          config: FrontendAppConfig,
                                          renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -138,5 +139,6 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       case _ => Try(ua)
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal =
+    chargeCHelper.getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
 }

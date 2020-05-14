@@ -23,10 +23,12 @@ import pages.chargeE.ChargeDetailsPage
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import AddMembersHelper.mapChargeXMembersToTable
+import com.google.inject.Inject
 import viewmodels.Table
 import models.LocalDateBinder._
+import utils.DeleteChargeHelper
 
-object ChargeEHelper {
+class ChargeEHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
@@ -40,7 +42,7 @@ object ChargeEHelper {
             member.nino,
             chargeDetails.chargeAmount,
             viewUrl(index, srn, startDate).url,
-            removeUrl(index, srn, startDate).url,
+            removeUrl(index, srn, startDate, ua).url,
             member.isDeleted
           )
         }
@@ -52,8 +54,14 @@ object ChargeEHelper {
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
     getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
+  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers): Call =
+    if(deleteChargeHelper.isLastCharge(ua)) {
+      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+    } else {
+      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+    }
+
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeE", members, canChange)

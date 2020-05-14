@@ -23,12 +23,17 @@ import data.SampleData
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.{Employer, MemberDetails, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
 import scala.collection.mutable.ArrayBuffer
 
-class ChargeCHelperSpec extends SpecBase {
+class ChargeCHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -58,20 +63,27 @@ class ChargeCHelperSpec extends SpecBase {
       viewLink(1), removeLink(1))
   )
 
-
   def expectedEmployersIncludingDeleted: Seq[Employer] = expectedAllEmployers ++ Seq(
     expectedEmployer(SampleData.memberDetailsDeleted, 2)
   )
 
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeCHelper: ChargeCHelper = new ChargeCHelper(mockDeleteChargeHelper)
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
   ".getOverseasTransferEmployers" must {
     "return all the members added in charge G" in {
-      ChargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
+      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
     }
   }
 
   ".getOverseasTransferEmployersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
+      chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
     }
   }
 

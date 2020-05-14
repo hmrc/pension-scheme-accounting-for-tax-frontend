@@ -23,7 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import helpers.ChargeGHelper.getOverseasTransferMembers
+import helpers.ChargeGHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
@@ -51,6 +51,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        deleteAFTChargeService: DeleteAFTChargeService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
+                                       chargeGHelper: ChargeGHelper,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -135,5 +136,5 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getOverseasTransferMembers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).map(_.amount).sum
 }

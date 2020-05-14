@@ -21,15 +21,17 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
-import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
-import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
+import helpers.{ChargeCHelper, ChargeDHelper, ChargeEHelper, ChargeGHelper}
 import models.LocalDateBinder._
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.Call
 
-class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeNavigator @Inject()(config: FrontendAppConfig,
+                                val dataCacheConnector: UserAnswersCacheConnector,
+                               chargeDHelper: ChargeDHelper,
+                               chargeEHelper: ChargeEHelper,
+                               chargeGHelper: ChargeGHelper) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
     case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
@@ -66,9 +68,12 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
     }
   //scalastyle:on cyclomatic.complexity
 
-  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(AFTSummaryPage) match {

@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeDHelper
+import helpers.{CYAChargeDHelper, ChargeDHelper}
 import models.LocalDateBinder._
 import models.chargeD.ChargeDDetails
 import models.{GenericViewModel, Index, NormalMode}
@@ -35,7 +35,6 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
-import helpers.ChargeDHelper.getLifetimeAllowanceMembers
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
@@ -51,6 +50,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           chargeDHelper: ChargeDHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -91,7 +91,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage(index))) match {
         case (Some(pstr), Some(chargeDetails)) =>
-          val totalAmount: BigDecimal = getLifetimeAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum
+          val totalAmount: BigDecimal = chargeDHelper.getLifetimeAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum
 
           val updatedChargeDetails: ChargeDDetails = chargeDetails.copy(
             taxAt25Percent = Option(chargeDetails.taxAt25Percent.getOrElse(BigDecimal(0.00))),

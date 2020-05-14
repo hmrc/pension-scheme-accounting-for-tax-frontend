@@ -23,10 +23,15 @@ import data.SampleData
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.{Member, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
-class ChargeGHelperSpec extends SpecBase {
+class ChargeGHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -42,7 +47,7 @@ class ChargeGHelperSpec extends SpecBase {
 
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
-  def expectedMember(memberDetails: MemberDetails, index: Int) =
+  def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[Member] = Seq(
@@ -53,15 +58,23 @@ class ChargeGHelperSpec extends SpecBase {
     expectedMember(SampleData.memberGDetailsDeleted, 2)
   )
 
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeGHelper: ChargeGHelper = new ChargeGHelper(mockDeleteChargeHelper)
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      ChargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
     }
   }
 
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      chargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
     }
   }
 

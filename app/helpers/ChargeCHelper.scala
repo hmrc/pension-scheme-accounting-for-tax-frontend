@@ -18,6 +18,7 @@ package helpers
 
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
@@ -28,10 +29,11 @@ import play.api.libs.json.JsArray
 import play.api.mvc.Call
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DeleteChargeHelper
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-object ChargeCHelper {
+class ChargeCHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] = {
     def numberOfEmployersIncludingDeleted:Int = (ua.data \ "chargeCDetails" \ "employers")
@@ -51,7 +53,7 @@ object ChargeCHelper {
             name,
             chargeDetails.amountTaxDue,
             viewUrl(index, srn, startDate).url,
-            removeUrl(index, srn, startDate).url,
+            removeUrl(index, srn, startDate, ua).url,
             isDeleted
           )
         }
@@ -62,9 +64,14 @@ object ChargeCHelper {
   def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] =
     getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers): Call =
+    if(deleteChargeHelper.isLastCharge(ua)) {
+      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+    } else {
+      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
+    }
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(
