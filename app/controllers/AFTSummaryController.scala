@@ -137,11 +137,9 @@ class AFTSummaryController @Inject()(
               value => {
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
                 val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
-                println("\n\nSearch results:" + searchResults)
                 val json =
                   getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
-                println("\nJSON for nunjucks:" + json)
                 renderer.render(template = "aftSummary.njk", json).map(Ok(_))
               }
             )

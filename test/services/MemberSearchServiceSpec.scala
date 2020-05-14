@@ -90,41 +90,7 @@ object MemberSearchServiceSpec {
   private val memberDetailsG1: models.chargeG.MemberDetails = models.chargeG.MemberDetails("first", "last", LocalDate.now(), "AB123455C")
   private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bloggs", LocalDate.now(), "AB123456C")
 
-  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
-    MemberRow(
-      memberDetails.fullName,
-      Seq(
-        Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ),
-        Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ),
-        Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
 
-          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-
-          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        )
-      ),
-      Seq(
-        Action(
-          Message("site.view"),
-          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
-        ),
-        Action(
-          Message("site.remove"),
-          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
-        )
-      )
-    )
-  )
 
   private def searchResultsMemberDetailsChargeE(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
     MemberRow(
@@ -144,7 +110,6 @@ object MemberSearchServiceSpec {
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
 
-          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
@@ -178,7 +143,6 @@ object MemberSearchServiceSpec {
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
             classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(

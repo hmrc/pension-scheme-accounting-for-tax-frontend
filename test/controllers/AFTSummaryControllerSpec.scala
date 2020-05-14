@@ -21,8 +21,9 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import forms.AFTSummaryFormProvider
+import helpers.FormatHelper
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
+import models.{Enumerable, GenericViewModel, MemberDetails, Quarter, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -36,12 +37,16 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Call, Results}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.{AFTService, AllowAccessService, MemberSearchService, SchemeService}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import services.MemberSearchService.MemberRow
+import services.MemberSearchServiceSpec.{srn, startDateAsString}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 
 class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
   with Enumerable.Implicits with Results with ScalaFutures {
@@ -49,6 +54,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
   private val mockSchemeService = mock[SchemeService]
+  private val mockMemberSearchService = mock[MemberSearchService]
   private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
 
   private val extraModules: Seq[GuiceableModule] =
@@ -56,7 +62,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       bind[AllowAccessService].toInstance(mockAllowAccessService),
       bind[AFTService].toInstance(mockAFTService),
       bind[DataUpdateAction].toInstance(fakeDataUpdateAction),
-      bind[SchemeService].toInstance(mockSchemeService)
+      bind[SchemeService].toInstance(mockSchemeService),
+      bind[MemberSearchService].toInstance(mockMemberSearchService)
     )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -71,6 +78,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private def httpPathGETVersion: String = controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, Some(SampleData.version)).url
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
+
+  private def httpPathPostSearch: String = controllers.routes.AFTSummaryController.onSearchMember(SampleData.srn, startDate, None).url
 
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
@@ -87,7 +96,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   override def beforeEach: Unit = {
     super.beforeEach()
-    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
+    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
@@ -105,7 +114,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
-
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   "AFTSummary Controller" must {
@@ -209,6 +217,22 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
       application.stop()
+    }
+
+    "display search results when Search is triggered" in {
+      val searchResult = SampleData.searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
+
+      when(mockMemberSearchService.search(any(),any(),any(),any())(any()))
+        .thenReturn(searchResult)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
+
+      val result = route(application, httpPOSTRequest(httpPathPostSearch, Map("searchText" -> Seq("Search")))).value
+
+      status(result) mustEqual OK
+
+      verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))
     }
   }
 }
