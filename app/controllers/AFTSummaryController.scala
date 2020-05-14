@@ -237,7 +237,8 @@ class AFTSummaryController @Inject()(
       "quarterStartDate" -> getFormattedStartDate(startDate),
       "quarterEndDate" -> getFormattedEndDate(endDate),
       "canChange" -> canChange,
-      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url,
+      "aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
     )
   }
 

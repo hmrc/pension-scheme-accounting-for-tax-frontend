@@ -57,16 +57,18 @@
                 }) }}
 
                 {% if formSearchText.searchText.value %}
+                    <div><a href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></div>
+
                     {% for row in list %}
+                        <section>
                       <h2>{{ row.name }}</h2>
                       {{ govukSummaryList({
                         rows: row.rows
                       }) }}
-
                       {% for action in row.actions %}
                         <div><a href="{{ action.href }}">{{ action.text }}</a></div>
                       {% endfor %}
-
+                        </section>
                     {% endfor %}
 
                 {% endif %}
