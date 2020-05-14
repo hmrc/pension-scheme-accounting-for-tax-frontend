@@ -97,18 +97,18 @@ object MemberSearchServiceSpec {
       memberDetails.fullName,
       Seq(
         Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-one-half")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-one-half")),
           Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-one-half")),
 
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half"))
         )
       ),
       Seq(
@@ -131,18 +131,18 @@ object MemberSearchServiceSpec {
       memberDetails.fullName,
       Seq(
         Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-one-half")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-one-half")),
           Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-one-half")),
 
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half"))
 
         )
       ),
@@ -166,17 +166,17 @@ object MemberSearchServiceSpec {
       memberDetails.fullName,
       Seq(
         Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-one-half")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-one-half")),
           Value(Message("aft.summary.overseasTransfer.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-one-half")),
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half"))
         )
       ),
       Seq(

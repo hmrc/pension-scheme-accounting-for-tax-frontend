@@ -41,7 +41,6 @@
        <form action="{{searchURL}}" method="post" autocomplete="off">
            {{ csrf() | safe }}
 
-            <div class="govuk-form-group" >
                 {{ govukInput({
                   id: "searchText",
                   label: {
@@ -50,9 +49,9 @@
                     classes: "govuk-label--m"
                   },
                   name: "searchText",
-                  type: "text",
+                  type: "search",
                   value: formSearchText.searchText.value,
-                  classes: "govuk-!-width-one-third",
+                  classes: "govuk-!-width-one-half",
                   errorMessage: formSearchText.searchText.error,
                   hint: {
                     text: messages('aft.summary.search.hint')
@@ -64,7 +63,7 @@
                       text: messages('aft.summary.searchAgain.button'),
                       classes: "govuk-button--secondary"
                     }) }}
-                    <p><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
+                    <p class="govuk-body"><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
 
                 {% else %}
                     {{ govukButton({
@@ -73,20 +72,22 @@
                     }) }}
 
                 {% endif  %}
-            </div>
 
             {% if formSearchText.searchText.value %}
                 {% if list.length == 0 %}
-                   <h2>
+                <div class="govuk-form-group">
+                   <h3 class="govuk-heading-m">
                        {{ messages("aft.summary.search.noResults.h2") }}
-                   </h2>
-                   <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
+                   </h3>
+                   <p class="govuk-body">{{ messages("aft.summary.search.noResults.p1") }}</p>
                    <ul class="govuk-list govuk-list--bullet">
                       <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
                       <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
                    </ul>
-
+                </div>
                 {% else %}
+                 <div class="govuk-form-group">
+                    <p class="govuk-body">{{list.length}} {{ messages("aft.summary.search.results") }}</p>
                    {% for row in list %}
                      <h2 class="govuk-heading-m">{{ row.name }}</h2>
                      {{ govukSummaryList({
@@ -104,7 +105,7 @@
                          {% endfor %}
                      </ul>
                    {% endfor %}
-
+                </div>
                 {% endif %}
             {% endif %}
         </form>
