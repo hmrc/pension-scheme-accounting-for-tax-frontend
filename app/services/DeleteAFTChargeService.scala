@@ -53,7 +53,7 @@ class DeleteAFTChargeService @Inject()(
     }
 
     aftService.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
-      if (isDeletingLastCharge && !isAmendment) {
+      if (isDeletingLastCharge && !request.isAmendment) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
         userAnswersCacheConnector.save(request.internalId, updateAnswers.data).map(_ => ())
