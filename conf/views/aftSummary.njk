@@ -8,6 +8,7 @@
 {% from "govuk/components/table/macro.njk"         import govukTable %}
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
 {% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
 
 {% block pageTitle %}
   {{ title(messages("aft.summary.title", viewModel.schemeName), form.errors) }}
@@ -34,80 +35,92 @@
            {{ csrf() | safe }}
 
             <div class="govuk-form-group" >
-                {{ govukInput({
-                  id: "searchText",
-                  label: {
-                    text: messages('aft.summary.search.label'),
-                    isPageHeading: false,
-                    classes: "govuk-label--s"
-                  },
-                  name: "searchText",
-                  type: "text",
-                  value: formSearchText.searchText.value,
-                  classes: "govuk-input--width-10",
-                  errorMessage: formSearchText.searchText.error,
-                  hint: {
-                    text: messages('aft.summary.search.hint')
-                  }
-                }) }}
 
+                    {{ govukInput({
+                      id: "searchText",
+                      label: {
+                        text: messages('aft.summary.search.label'),
+                        isPageHeading: false,
+                        classes: "govuk-label--m"
+                      },
+                      name: "searchText",
+                      type: "text",
+                      value: formSearchText.searchText.value,
+                      classes: "govuk-!-width-one-third",
+                      errorMessage: formSearchText.searchText.error,
+                      hint: {
+                        text: messages('aft.summary.search.hint')
+                      }
+                    }) }}
 
+                     {% if formSearchText.searchText.value %}
+
+                     {{ govukButton({
+                                       text: messages('aft.summary.searchAgain.button'),
+                                       classes: "govuk-button--secondary"
+                                        }) }}
+                      <p><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
+
+                     {% else %}
+
+                                {{ govukButton({
+                                           text: messages('aft.summary.search.button'),
+                                           classes: "govuk-button--secondary"
+                                         }) }}
+
+                     {% endif  %}
+
+            </div>
                 {% if formSearchText.searchText.value %}
-                    {{ govukButton({
-                          text: messages('aft.summary.searchAgain.button'),
-                          classes: "govuk-button--secondary"
-                        }) }}
-
-                    <div><a href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></div>
 
                     {% for row in list %}
-                        <div class="form-group">
                       <h2 class="govuk-heading-m">{{ row.name }}</h2>
                       {{ govukSummaryList({
-                        rows: row.rows
+                        rows: row.rows,
+                        classes: "govuk-!-margin-bottom-5"
                       }) }}
-                      <div>
+
+
+                      <ul class="govuk-list">
                       {% for action in row.actions %}
+                      <li class="govuk-!-display-inline-block govuk-!-margin-right-3">
                         <a class="govuk-link" href="{{ action.href }}">{{ action.text }}
                         <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }}</span>
                         </a>
-
+                        </li>
                       {% endfor %}
-                      </div>
-                      </div>
+                      </ul>
                     {% endfor %}
 
                 {% else %}
-                
-                    {{ govukButton({
-                      text: messages('aft.summary.search.button'),
-                      classes: "govuk-button--secondary"
-                    }) }}
+                <h2>
+                                    {{ messages("aft.summary.search.noResults.h2") }}
+                                </h2>
+                                <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
+                                   <ul class="govuk-list govuk-list--bullet">
+                                      <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
+                                      <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
+                                   </ul>
 
                 {% endif %}
 
-            </div>
+
         </form>
+
+
+
 
         <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
-          {% if formSearchText.searchText.value %}
-          {% else %}
+            {% if formSearchText.searchText.value |length == 0 %}
               {% if list.length > 0 %}
                 {{ govukSummaryList({
                    rows: list
                 }) }}
               {% else %}
-                <h2>
-                    {{ messages("aft.summary.search.noResults.h2") }}
-                </h2>
-                <p>{{ messages("aft.summary.search.noResults.p1") }}</p>
-                   <ul class="govuk-list govuk-list--bullet">
-                      <li>{{ messages("aft.summary.search.noResults.b1") }}</li>
-                      <li>{{ messages("aft.summary.search.noResults.b2") }}</li>
-                   </ul>
+
 
               {% endif %}
           {% endif %}

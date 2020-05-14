@@ -61,7 +61,7 @@ class MemberSearchService {
         Seq(
           Row(
             key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-three-quarters")),
-            value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
           ))
 
       val rowChargeType =
@@ -69,14 +69,14 @@ class MemberSearchService {
           Row(
             key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-three-quarters")),
             value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"),
-              classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+              classes = Seq("govuk-!-width-one-half"))
           ))
       val rowAmount =
         Seq(
           Row(
             key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-three-quarters")),
             value =Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
-              classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+              classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
           ))
 
       val actions = List(
