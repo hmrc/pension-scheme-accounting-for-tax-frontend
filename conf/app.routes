@@ -57,8 +57,10 @@ POST        /:srn/new-return/:startDate/de-registration-charge/change/charge-det
 GET         /:srn/new-return/:startDate/de-registration-charge/check-your-answers                                                   controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String, startDate: String)
 GET         /:srn/new-return/:startDate/de-registration-charge/on-click-check-your-answers                                          controllers.chargeF.CheckYourAnswersController.onClick(srn: String, startDate: String)
 
-GET         /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                       controllers.chargeF.DeleteChargeController.onPageLoad(srn: String, startDate: String)
-POST        /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                       controllers.chargeF.DeleteChargeController.onSubmit(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                        controllers.chargeF.DeleteChargeController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                        controllers.chargeF.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/de-registration-charge/remove-last-charge                                                   controllers.chargeF.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/what-you-will-need                                   controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
@@ -72,6 +74,8 @@ GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/o
 
 GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-charge                                        controllers.chargeB.DeleteChargeController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-charge                                        controllers.chargeB.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-last-charge                                   controllers.chargeB.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
@@ -116,6 +120,8 @@ GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/on-
 
 GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-charge                                          controllers.chargeA.DeleteChargeController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-charge                                          controllers.chargeA.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-last-charge                                     controllers.chargeA.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/lifetime-allowance-charge/what-you-will-need                                               controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 

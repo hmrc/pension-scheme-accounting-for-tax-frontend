@@ -99,9 +99,9 @@ class DeleteChargeHelper {
     updateJson(__ \ 'chargeADetails \ 'chargeDetails,
       Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
 
-  private def zeroOutChargeB: Reads[JsObject] = updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
+  private def zeroOutChargeB: Reads[JsObject] = updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
 
-  private def zeroOutChargeF: Reads[JsObject] = updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
+  private def zeroOutChargeF: Reads[JsObject] = updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
 
   private def zeroOutChargeC: Reads[JsObject] = {
     updateArray(__ \ 'chargeCDetails \ 'employers) {
@@ -159,5 +159,37 @@ class DeleteChargeHelper {
         case JsError(errors)     => throw JsResultException(errors)
       }
     }
+  }
+
+  def isLastCharge(ua: UserAnswers): Boolean = {
+
+    val allCharges: Seq[String] =
+      Seq("chargeADetails", "chargeBDetails", "chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeFDetails", "chargeGDetails")
+
+    val allNonEmptyCharges: Seq[(Boolean, String)] = allCharges.map(charge => (isChargeNonZero(charge, ua), charge)).filter(_._1)
+    allNonEmptyCharges.size <= 1
+  }
+
+  private def isChargeNonZero(chargeDetails: String, ua: UserAnswers): Boolean = {
+    val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
+    val json = ua.data
+
+    chargeDetails match {
+      case "chargeCDetails" => isChargeCNonZero(ua)
+      case chargeType if memberLevelCharges.contains(chargeType) => isMemberChargeNonZero(ua, chargeType)
+      case _ => (json \ chargeDetails).isDefined && (json \ chargeDetails \ "chargeDetails"\ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
+    }
+  }
+
+  private def isMemberChargeNonZero(ua: UserAnswers, chargeType: String): Boolean = {
+    val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
+    getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) > 0
+  }
+
+  private def isChargeCNonZero(ua: UserAnswers): Boolean = {
+    val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
+    val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
+
+    getMembersOrEmployersCount(individualPath, isDeleted = false) + getMembersOrEmployersCount(orgPath, isDeleted = false) > 0
   }
 }

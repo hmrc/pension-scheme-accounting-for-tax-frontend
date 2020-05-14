@@ -33,7 +33,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.DeleteAFTChargeService
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -112,9 +112,8 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
                   for {
-                      answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery))
-                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, request.userAnswers, Some(ShortServiceRefundQuery))
+                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, request.userAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
