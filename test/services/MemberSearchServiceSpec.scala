@@ -21,6 +21,7 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData._
 import data.SampleData.memberDetails
+import helpers.FormatHelper
 import models.Index
 import models.chargeB.ChargeBDetails
 import models.MemberDetails
@@ -46,21 +47,29 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
   "Search" must {
     "return one valid result when searching with a valid name when case not matching" in {
       memberSearchService.search(ua, srn, startDate, memberDetailsD1.firstName.toLowerCase) mustBe
-        searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44")
+        searchResultsMemberDetailsChargeD(memberDetailsD1, BigDecimal("83.44"))
     }
 
     "return several valid results when searching across all 3 charge types with a valid name when case not matching" in {
-      val expected = searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44") ++
-        searchResultsMemberDetailsChargeD(memberDetailsD2, "83.44", 1) ++
-        searchResultsMemberDetailsChargeE(memberDetailsE1, "33.44") /*++
-        searchResultsMemberDetailsChargeG(memberDetailsG2, "50.00", 1)*/
+      val expected = searchResultsMemberDetailsChargeD(memberDetailsD1, BigDecimal("83.44")) ++
+        searchResultsMemberDetailsChargeD(memberDetailsD2, BigDecimal("83.44"), 1) ++
+        searchResultsMemberDetailsChargeE(memberDetailsE1, BigDecimal("33.44")) ++
+        searchResultsMemberDetailsChargeG(memberDetailsG2, BigDecimal("50.00"), 1)
 
-      memberSearchService.search(ua, srn, startDate, memberDetailsD1.lastName.toLowerCase) mustBe expected
+      val actual = memberSearchService.search(ua, srn, startDate, memberDetailsD1.lastName.toLowerCase)
+
+      actual.size mustBe expected.size
+
+      actual.head mustBe expected.head
+      actual(1) mustBe expected(1)
+      actual(2) mustBe expected(2)
+
+      actual(3) mustBe expected(3)
     }
 
     "return valid results when searching with a valid nino when case not matching" in {
       memberSearchService.search(ua, srn, startDate, memberDetailsD1.nino.toLowerCase) mustBe
-        searchResultsMemberDetailsChargeD(memberDetailsD1, "83.44")
+        searchResultsMemberDetailsChargeD(memberDetailsD1, BigDecimal("83.44"))
     }
 
     "return no results when nothing matches" in {
@@ -83,9 +92,9 @@ object MemberSearchServiceSpec {
   private val memberDetailsE1: MemberDetails = MemberDetails("Steph", "Bloggs", "AB123453C")
   private val memberDetailsE2: MemberDetails = MemberDetails("Brian", "Blessed", "AB123454C")
   private val memberDetailsG1: models.chargeG.MemberDetails = models.chargeG.MemberDetails("first", "last", LocalDate.now(), "AB123455C")
-  private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bliggs", LocalDate.now(), "AB123456C")
+  private val memberDetailsG2: models.chargeG.MemberDetails = models.chargeG.MemberDetails("Joe", "Bloggs", LocalDate.now(), "AB123456C")
 
-  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -99,7 +108,11 @@ object MemberSearchServiceSpec {
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+
+          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+
+          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
@@ -117,7 +130,7 @@ object MemberSearchServiceSpec {
     )
   )
 
-  private def searchResultsMemberDetailsChargeE(memberDetails: MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeE(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -131,7 +144,11 @@ object MemberSearchServiceSpec {
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+
+          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+
+          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
@@ -149,7 +166,7 @@ object MemberSearchServiceSpec {
     )
   )
 
-  private def searchResultsMemberDetailsChargeG(memberDetails: models.chargeG.MemberDetails, totalAmount:String, index:Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeG(memberDetails: models.chargeG.MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -159,23 +176,25 @@ object MemberSearchServiceSpec {
         ),
         Row(
           Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Message("aft.summary.overseasTransfer.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          //Value(Literal(totalAmount), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
         Action(
           Message("site.view"),
           controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+          Some(Message("aft.summary.overseasTransfer.visuallyHidden.row"))
         ),
         Action(
           Message("site.remove"),
           controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+          Some(Message("aft.summary.overseasTransfer.visuallyHidden.row"))
         )
       )
     )

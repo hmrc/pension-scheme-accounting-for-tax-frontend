@@ -18,13 +18,14 @@ package services
 
 import java.time.LocalDate
 
-import helpers.{ChargeDHelper, ChargeEHelper, ChargeGHelper}
+import helpers.FormatHelper
+import helpers.{ChargeDHelper, ChargeGHelper, ChargeEHelper}
 import javax.inject.Singleton
 import models.{ChargeType, Member, UserAnswers}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Json, Writes, _}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import play.api.libs.json.{Writes, Json, _}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
@@ -74,7 +75,8 @@ class MemberSearchService {
         Seq(
           Row(
             key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-three-quarters")),
-            value = Value(Literal(s"${data.amount}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            value =Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
+              classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
           ))
 
       val actions = List(
