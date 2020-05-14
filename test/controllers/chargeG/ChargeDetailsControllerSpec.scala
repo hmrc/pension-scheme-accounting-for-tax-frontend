@@ -150,7 +150,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
       DateHelper.setDate(Some(startDate))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNameAndMemberGName))

@@ -19,15 +19,18 @@ package navigators
 import java.time.LocalDate
 
 import models._
+import models.requests.DataRequest
 import pages.Page
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 
 trait Navigator {
-  protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call]
+  protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call]
+  protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+                            (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     mode match {
       case NormalMode => routeMap(userAnswers, srn, startDate)
       case CheckMode  => editRouteMap(userAnswers, srn, startDate)

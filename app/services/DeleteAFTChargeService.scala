@@ -17,7 +17,6 @@
 package services
 
 import com.google.inject.Inject
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Singleton
 import models.UserAnswers
@@ -31,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(
-    aftConnector: AFTConnector,
+    aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
     deleteChargeHelper: DeleteChargeHelper,
     userAnswersService: UserAnswersService
@@ -42,9 +41,8 @@ class DeleteAFTChargeService @Inject()(
       hc: HeaderCarrier,
       request: DataRequest[AnyContent]): Future[Unit] = {
     val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
-    val isAmendment = request.sessionData.sessionAccessData.version > 1
 
-    val updateAnswers = if (isAmendment) {
+    val updateAnswers = if (request.isAmendment) {
       page.map(removePage => userAnswersService.remove(removePage)).getOrElse(answers)
     } else {
       if (isDeletingLastCharge) {
@@ -54,7 +52,7 @@ class DeleteAFTChargeService @Inject()(
       }
     }
 
-    aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
+    aftService.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
       if (isDeletingLastCharge && !isAmendment) {
         userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {

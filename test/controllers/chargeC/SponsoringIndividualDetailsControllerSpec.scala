@@ -131,7 +131,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringIndividualDetailsPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

@@ -20,14 +20,13 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.{AFTVersion, UserAnswers}
-import models.{AFTOverview, UserAnswers}
+import models.LocalDateBinder._
+import models.{AFTOverview, AFTVersion, JourneyType, UserAnswers}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.{JsBoolean, JsNumber, Json}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
-import models.LocalDateBinder._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -91,7 +90,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      connector.fileAFTReturn(pstr, UserAnswers(data)) map {
+      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN) map {
         _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
@@ -107,7 +106,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data))
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -124,7 +123,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[NotFoundException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data))
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)
       } map {
         _.responseCode mustEqual Status.NOT_FOUND
       }
@@ -140,7 +139,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data))) map {
+      recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)) map {
         _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }

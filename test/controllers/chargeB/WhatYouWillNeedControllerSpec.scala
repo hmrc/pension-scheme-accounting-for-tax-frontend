@@ -59,7 +59,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 

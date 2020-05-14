@@ -170,7 +170,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase 
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressResultsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressResultsPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersIndividual)

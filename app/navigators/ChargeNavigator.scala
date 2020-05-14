@@ -23,9 +23,10 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import helpers.{ChargeCHelper, ChargeDHelper, ChargeEHelper, ChargeGHelper}
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -33,7 +34,8 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                chargeEHelper: ChargeEHelper,
                                chargeGHelper: ChargeGHelper) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
     case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate)
     case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
@@ -41,12 +43,14 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                     (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage => sessionExpiredPage
   }
 
   //scalastyle:off cyclomatic.complexity
-  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
+  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                  (implicit request: DataRequest[AnyContent]): Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
@@ -68,11 +72,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     }
   //scalastyle:on cyclomatic.complexity
 
-  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
     chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
     chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int =
+  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
     chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {

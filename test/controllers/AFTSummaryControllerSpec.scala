@@ -142,7 +142,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "redirect to next page when user selects yes" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       fakeDataUpdateAction.setDataToReturn(userAnswers)
@@ -159,7 +159,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "redirect to next page when user selects no with submission enabled" in {
       when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       fakeDataUpdateAction.setDataToReturn(userAnswers)
