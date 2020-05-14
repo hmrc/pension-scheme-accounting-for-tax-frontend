@@ -26,6 +26,13 @@
         }) }}
       {% endif %}
 
+      {% if formSearchText.errors.length > 0 %}
+        {{ govukErrorSummary({
+          "titleText": messages("error.summary.title"),
+          "errorList": formSearchText.errors
+        }) }}
+      {% endif %}
+
       <h1 class="govuk-heading-xl">
         <span class="govuk-caption-xl">{{ viewModel.schemeName }}</span>
         {{ messages('aft.summary.heading', quarterStartDate, quarterEndDate) }}
