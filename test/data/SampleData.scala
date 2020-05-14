@@ -194,42 +194,4 @@ object SampleData {
   val aftOverviewQ12021: AFTOverview =
     AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
 
-
-  val startDateAsString = "2020-04-01"
-
-  def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
-    MemberRow(
-      memberDetails.fullName,
-      Seq(
-        Row(
-          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ),
-        Row(
-          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-        ),
-        Row(
-          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
-
-          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-
-        )
-      ),
-      Seq(
-        Action(
-          Message("site.view"),
-          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
-        ),
-        Action(
-          Message("site.remove"),
-          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
-        )
-      )
-    )
-  )
-
 }
