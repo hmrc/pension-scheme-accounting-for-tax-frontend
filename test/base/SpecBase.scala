@@ -17,11 +17,16 @@
 package base
 
 import config.FrontendAppConfig
+import data.SampleData
+import models.UserAnswers
+import models.requests.DataRequest
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
+import play.api.mvc.{AnyContent, AnyContentAsEmpty}
 import play.api.test.FakeRequest
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
@@ -37,4 +42,7 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
   protected def fakeRequest = FakeRequest("", "")
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
+
+  protected implicit def request(ua: UserAnswers = UserAnswers()): DataRequest[AnyContent] =
+    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, SampleData.sessionData())
 }

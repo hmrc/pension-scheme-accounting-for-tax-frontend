@@ -19,10 +19,11 @@ package navigators
 import java.time.LocalDate
 
 import base.SpecBase
+import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.collection.JavaConverters._
@@ -35,9 +36,11 @@ class CompoundNavigatorSpec extends SpecBase {
   case object PageThree extends Page
 
   private def navigator(pp: PartialFunction[Page, Call]): Navigator = new Navigator {
-    override protected def routeMap(userAnswers: UserAnswers,srn: String, startDate: LocalDate): PartialFunction[Page, Call] = pp
+    override protected def routeMap(userAnswers: UserAnswers,srn: String, startDate: LocalDate)
+                                   (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = pp
 
-    override protected def editRouteMap(userAnswers: UserAnswers,srn: String, startDate: LocalDate): PartialFunction[Page, Call] = pp
+    override protected def editRouteMap(userAnswers: UserAnswers,srn: String, startDate: LocalDate)
+                                       (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = pp
   }
 
   "CompoundNavigator" must {
@@ -48,7 +51,7 @@ class CompoundNavigatorSpec extends SpecBase {
         navigator({case PageThree => Call("GET", "/page3")})
       )
       val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
-      val result = compoundNavigator.nextPage(PageTwo, NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)
+      val result = compoundNavigator.nextPage(PageTwo, NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)(request())
       result mustEqual Call("GET", "/page2")
     }
 
@@ -60,7 +63,7 @@ class CompoundNavigatorSpec extends SpecBase {
         navigator({case PageThree => Call("GET", "/page3")})
       )
       val compoundNavigator = new CompoundNavigatorImpl(navigators.asJava)
-      val result = compoundNavigator.nextPage(PageFour, NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)
+      val result = compoundNavigator.nextPage(PageFour, NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)(request())
       result mustEqual controllers.routes.IndexController.onPageLoad()
     }
   }

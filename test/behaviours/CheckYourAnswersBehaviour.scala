@@ -106,7 +106,7 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 

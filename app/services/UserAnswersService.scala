@@ -32,7 +32,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def set[A](page: QuestionPage[A], value: A, mode: Mode, isMemberBased: Boolean = true
             )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
 
-    if(mainVersion > 1) { //this IS an amendment
+    if(request.isAmendment) { //this IS an amendment
       if(isMemberBased) { //charge C, D, E or G
 
         val status: String = if(mode == NormalMode) "New" else getCorrectStatus(page, "Changed", request.userAnswers)
@@ -54,7 +54,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   /* Use this set for deleting a member based charge */
   def set[A](page: QuestionPage[A], userAnswers: UserAnswers
                        )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
-    if(mainVersion > 1) { //this IS an amendment
+    if(request.isAmendment) { //this IS an amendment
 
             val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", userAnswers))
 
@@ -72,7 +72,8 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   /* Use this remove for deleting a scheme based charge */
   def remove[A](page: QuestionPage[A]
                )(implicit request: DataRequest[AnyContent]): UserAnswers = {
-    if(request.sessionData.sessionAccessData.version > 1) { //this IS an amendment
+
+    if(request.isAmendment) { //this IS an amendment
       val amendedVersionPath: JsPath = page.path \ "amendedVersion"
         deleteChargeHelper.zeroOutCharge(page, request.userAnswers).removeWithPath(amendedVersionPath)
     } else { //this is NOT an amendment
@@ -85,7 +86,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     val previousVersion = userAnswers.get(memberVersionPath(page))
     val prevMemberStatus = userAnswers.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
 
-    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == mainVersion
+    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
 
    if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
       "New"
@@ -93,9 +94,6 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
      updatedStatus
    }
   }
-
-  private def mainVersion(implicit request: DataRequest[AnyContent]): Int =
-    request.sessionData.sessionAccessData.version
 
   private def amendedVersionPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(1) ++ List(KeyPathNode("amendedVersion")))

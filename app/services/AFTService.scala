@@ -36,8 +36,7 @@ class AFTService @Inject()(
 
   def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
 
-    val isAmendment = request.sessionData.sessionAccessData.version > 1
-    val journeyType = if (isAmendment) JourneyType.AFT_AMEND else JourneyType.AFT_RETURN
+    val journeyType = if (request.isAmendment) JourneyType.AFT_AMEND else JourneyType.AFT_RETURN
 
     aftConnector.fileAFTReturn(pstr, answers, journeyType).flatMap { _ => Future.successful(())
     }
