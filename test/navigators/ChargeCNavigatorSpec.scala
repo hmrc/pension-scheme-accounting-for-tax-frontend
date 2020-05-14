@@ -21,7 +21,7 @@ import controllers.chargeC.routes._
 import data.SampleData
 import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{Page, chargeA}
+import pages.{Page, chargeA, chargeB}
 import pages.chargeC._
 import play.api.libs.json.Json
 import play.api.mvc.Call
@@ -51,7 +51,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(AddEmployersPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index), addEmployersYes),
         row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addEmployersNo),
         row(DeleteEmployerPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), onlyOneCharge),
-        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
         row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn, startDate), Some(SampleData.chargeCEmployer))
       )
 
@@ -118,4 +118,6 @@ object ChargeCNavigatorSpec {
   ))
 
   private val onlyOneCharge = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption
+  private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
+    .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
 }

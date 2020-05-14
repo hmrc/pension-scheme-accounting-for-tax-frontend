@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json, Reads, Writes}
 
-case class ChargeDetails(deRegistrationDate: LocalDate, amountTaxDue: BigDecimal)
+case class ChargeDetails(deRegistrationDate: LocalDate, totalAmount: BigDecimal)
 
 object ChargeDetails {
   implicit lazy val formats: Format[ChargeDetails] =

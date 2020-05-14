@@ -44,7 +44,7 @@ class CYAChargeFHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
   def chargeFAmount(answer: ChargeDetails): Row =
     Row(
       key = Key(msg"chargeF.chargeDetails.amount.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
           content = msg"site.edit",

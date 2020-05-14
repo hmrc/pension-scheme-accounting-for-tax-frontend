@@ -216,7 +216,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.lockedBy(id = "testId") map {
+      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
         result =>
           result mustBe None
       }
@@ -230,7 +230,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.lockedBy(id = "testId") map {
+      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
         result =>
           result mustBe Some("joe")
       }
@@ -245,7 +245,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
 
       recoverToExceptionIf[HttpException] {
-        connector.lockedBy(id = "testId")
+        connector.lockedBy(srn = "srn", startDate = "2020-04-01")
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }
