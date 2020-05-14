@@ -91,6 +91,11 @@ class MemberSearchService {
           content = msg"site.view",
           href = data.viewLink,
           visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+        ),
+        Action(
+          content = msg"site.remove",
+          href = data.removeLink,
+          visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
         )
       )
 
