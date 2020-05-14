@@ -20,25 +20,38 @@ import java.time.LocalDate
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.{AFTConnector, MinimalPsaConnector}
+import connectors.AFTConnector
+import connectors.MinimalPsaConnector
 import connectors.MinimalPsaConnector.MinimalPSA
 import connectors.cache.UserAnswersCacheConnector
-import data.SampleData._
-import models.{AFTOverview, AFTVersion, AccessMode, SchemeDetails, SessionAccessData, SessionData, UserAnswers}
-import models.requests.OptionalDataRequest
+import models.AccessMode
+import models.SchemeDetails
+import models.SessionAccessData
+import models.SessionData
 import org.mockito.Matchers
+import models.requests.OptionalDataRequest
+import models.AFTVersion
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when, _}
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.MustMatchers
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
+import data.SampleData._
+import models.AFTOverview
+import pages.AFTSummaryPage
+import pages.ChargeTypePage
 import utils.DateHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
@@ -127,7 +140,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"))(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"), None)(request, implicitly, implicitly),
           Duration.Inf
         )
 
@@ -136,6 +149,95 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             any(),
             Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
             Matchers.eq(false))(any(), any())
+      }
+    }
+
+    "when no user answers, no version, AFTSummaryPage and previous URL is within AFT" must {
+      "create empty data request" in {
+
+        val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
+
+        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+        OptionalDataRequest(fakeRequest.withHeaders(referer :_*), internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers mustBe None
+      }
+    }
+
+    "when no user answers, no version, AFTSummaryPage and previous URL is NOT within AFT" must {
+      "create data request with details" in {
+
+        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
+          OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers.isDefined mustBe true
+      }
+    }
+
+    "when no user answers, no version and ChargeTypePage" must {
+      "create non-empty data request" in {
+
+        val multipleVersions = Seq[AFTOverview](
+          AFTOverview(
+            periodStartDate = LocalDate.of(2020, 4, 1),
+            periodEndDate = LocalDate.of(2020, 6, 28),
+            numberOfVersions = 2,
+            submittedVersionAvailable = true,
+            compiledVersionAvailable = true
+          )
+        )
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(multipleVersions))
+
+        when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+
+        val result = Await.result(
+          requestCreationService
+            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(ChargeTypePage))(request, implicitly, implicitly),
+          Duration.Inf
+        )
+
+        result.userAnswers.isDefined mustBe true
       }
     }
   }
