@@ -49,8 +49,8 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     "return several valid results when searching across all 3 charge types with a valid name when case not matching" in {
       val expected = searchResultsMemberDetailsChargeD(memberDetailsD1, BigDecimal("83.44")) ++
         searchResultsMemberDetailsChargeD(memberDetailsD2, BigDecimal("83.44"), 1) ++
-        searchResultsMemberDetailsChargeG(memberDetailsG2, BigDecimal("50.00"), 1) ++
-        searchResultsMemberDetailsChargeE(memberDetailsE1, BigDecimal("33.44"))
+        searchResultsMemberDetailsChargeE(memberDetailsE1, BigDecimal("33.44")) ++
+        searchResultsMemberDetailsChargeG(memberDetailsG2, BigDecimal("50.00"), 1)
 
 
       val actual = memberSearchService.search(ua, srn, startDate, memberDetailsD1.lastName.toLowerCase)
@@ -98,17 +98,17 @@ object MemberSearchServiceSpec {
       Seq(
         Row(
           Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
 
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
@@ -132,17 +132,17 @@ object MemberSearchServiceSpec {
       Seq(
         Row(
           Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Message("aft.summary.annualAllowance.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
 
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
 
         )
       ),
@@ -167,16 +167,16 @@ object MemberSearchServiceSpec {
       Seq(
         Row(
           Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
-          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
         ),
         Row(
           Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
-          Value(Message("aft.summary.overseasTransfer.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+          Value(Message("aft.summary.overseasTransfer.description"), Seq("govuk-!-width-one-half"))
         ),
         Row(
           Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
           Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+            classes = Seq("govuk-!-width-one-half", "govuk-table__cell--numeric"))
         )
       ),
       Seq(
