@@ -73,10 +73,12 @@ import scala.concurrent.Future
 import models.LocalDateBinder._
 import models.MemberDetails
 import navigators.CompoundNavigator
+import play.api.libs.json.JsNull
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.MemberSearchService.MemberRow
 import services.RequestCreationService
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
@@ -137,6 +139,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val startDateAsString = "2020-04-01"
 
   private def controllerInstance:AFTSummaryController = {
+
     val userAnswersCacheConnector: UserAnswersCacheConnector=mockUserAnswersCacheConnector
     val navigator: CompoundNavigator=mockCompoundNavigator
     val identify: IdentifierAction=injector.instanceOf[FakeIdentifierAction]
@@ -147,8 +150,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     val formProvider: AFTSummaryFormProvider=injector.instanceOf[AFTSummaryFormProvider]
     val memberSearchFormProvider: MemberSearchFormProvider=injector.instanceOf[MemberSearchFormProvider]
     val controllerComponents: MessagesControllerComponents=injector.instanceOf[MessagesControllerComponents]
-    val renderer: Renderer=injector.instanceOf[Renderer]
     val config: FrontendAppConfig=mockAppConfig
+    val renderer = new Renderer(config, mockRenderer)
     val aftSummaryHelper: AFTSummaryHelper=injector.instanceOf[AFTSummaryHelper]
     val aftService: AFTService=mockAFTService
     val allowService: AllowAccessService=mockAllowAccessService
@@ -353,6 +356,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any())
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      templateCaptor.getValue mustBe "aftSummary.njk"
+      //val expectedJson =
+      //  Json.toJson(searchResult).as[JsObject]
+      ////  Json.obj(
+      ////
+      ////)
+      //jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 }

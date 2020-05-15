@@ -223,7 +223,6 @@ class AFTSummaryController @Inject()(
                           listOfRows: Seq[MemberRow],
                           canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-    println( "\n>>>>" + formSearchText)
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
