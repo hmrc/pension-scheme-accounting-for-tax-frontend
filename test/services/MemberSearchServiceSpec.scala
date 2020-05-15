@@ -115,12 +115,12 @@ object MemberSearchServiceSpec {
         Action(
           Message("site.view"),
           controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
+          None
         ),
         Action(
           Message("site.remove"),
           controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
+          None
         )
       )
     )
@@ -150,12 +150,12 @@ object MemberSearchServiceSpec {
         Action(
           Message("site.view"),
           controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+          None
         ),
         Action(
           Message("site.remove"),
           controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.annualAllowance.visuallyHidden.row"))
+          None
         )
       )
     )
@@ -183,12 +183,12 @@ object MemberSearchServiceSpec {
         Action(
           Message("site.view"),
           controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.overseasTransfer.visuallyHidden.row"))
+          None
         ),
         Action(
           Message("site.remove"),
           controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.overseasTransfer.visuallyHidden.row"))
+          None
         )
       )
     )

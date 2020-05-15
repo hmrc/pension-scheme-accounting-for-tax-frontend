@@ -172,12 +172,12 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Action(
           Message("site.view"),
           controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
+          None
         ),
         Action(
           Message("site.remove"),
           controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
-          Some(Message("aft.summary.lifeTimeAllowance.visuallyHidden.row"))
+          None
         )
       )
     )
