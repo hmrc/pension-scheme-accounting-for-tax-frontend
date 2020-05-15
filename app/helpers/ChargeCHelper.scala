@@ -38,18 +38,17 @@ object ChargeCHelper {
       .toOption.map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-    def getEmployerDetails(index: Int): Option[(String, Option[String], Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
-        case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple3(i.fullName, Some(i.nino), i.isDeleted))
-        case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple3(o.name, None, o.isDeleted))
+    def getEmployerDetails(index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
+        case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
+        case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
       }
 
     (0 until numberOfEmployersIncludingDeleted).flatMap { index =>
-      getEmployerDetails(index).flatMap { case (name, nino, isDeleted) =>
+      getEmployerDetails(index).flatMap { case (name, isDeleted) =>
         ua.get(ChargeCDetailsPage(index)).map{ chargeDetails =>
           Employer(
             index,
             name,
-            nino,
             chargeDetails.amountTaxDue,
             viewUrl(index, srn, startDate).url,
             removeUrl(index, srn, startDate).url,

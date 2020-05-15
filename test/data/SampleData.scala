@@ -19,24 +19,39 @@ package data
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import helpers.FormatHelper
-import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.SponsoringEmployerType.SponsoringEmployerTypeOrganisation
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.ChargeCDetails
+import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
-import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{AFTOverview, AccessMode, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
-import models.{AFTOverview, DisplayQuarter, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SubmittedHint, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import models.chargeG.ChargeAmounts
+import models.chargeG.{MemberDetails => MemberDetailsG}
+import models.AccessMode
+import models.SessionAccessData
+import models.SessionData
+import models.AFTOverview
+import models.DisplayQuarter
+import models.InProgressHint
+import models.LockedHint
+import models.MemberDetails
+import models.Quarter
+import models.SchemeDetails
+import models.SchemeStatus
+import models.SubmittedHint
+import models.UserAnswers
+import pages.chargeC.ChargeCDetailsPage
+import pages.chargeC.SponsoringIndividualDetailsPage
+import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.WhichTypeOfSponsoringEmployerPage
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage}
+import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPAge}
+import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.MemberDetailsPage
 import play.api.libs.json.Json
 import play.api.mvc.Call
-import services.MemberSearchService.MemberRow
-import services.MemberSearchServiceSpec.{srn, startDateAsString}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import utils.AFTConstants._
 
 object SampleData {

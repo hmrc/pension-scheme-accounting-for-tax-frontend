@@ -47,21 +47,20 @@ class ChargeCHelperSpec extends SpecBase {
 
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index).url
-  def expectedEmployer(memberDetails: MemberDetails, index: Int, nino:Option[String] = Some("CS121212C")): Employer =
-    Employer(index, memberDetails.fullName, nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+  def expectedEmployer(memberDetails: MemberDetails, index: Int): Employer =
+    Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllEmployers: Seq[Employer] = ArrayBuffer(
     expectedEmployer(SampleData.sponsoringIndividualDetails, 0),
     Employer(1,
       SampleData.sponsoringOrganisationDetails.name,
-      None,
       SampleData.chargeAmount1,
       viewLink(1), removeLink(1))
   )
 
 
   def expectedEmployersIncludingDeleted: Seq[Employer] = expectedAllEmployers ++ Seq(
-    expectedEmployer(SampleData.memberDetailsDeleted, 2, nino = Some("AB123456C"))
+    expectedEmployer(SampleData.memberDetailsDeleted, 2)
   )
 
   ".getOverseasTransferEmployers" must {
