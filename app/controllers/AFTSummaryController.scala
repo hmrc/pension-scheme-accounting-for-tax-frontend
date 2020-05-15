@@ -84,6 +84,8 @@ class AFTSummaryController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
+  private def nunjucksTemplate = "aftSummary.njk"
+
   private val form = formProvider()
   private val memberSearchForm = memberSearchFormProvider()
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
@@ -108,7 +110,7 @@ class AFTSummaryController @Inject()(
             aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
             request.sessionData.isEditable
           )
-        renderer.render("aftSummary.njk", json).map(Ok(_))
+        renderer.render(nunjucksTemplate, json).map(Ok(_))
       }
     }
 
@@ -132,7 +134,7 @@ class AFTSummaryController @Inject()(
                   aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
                   request.sessionData.isEditable
                 )
-                renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
+                renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
               },
               value => {
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
@@ -140,7 +142,7 @@ class AFTSummaryController @Inject()(
                 val json =
                   getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
-                renderer.render(template = "aftSummary.njk", json).map(Ok(_))
+                renderer.render(template = nunjucksTemplate, json).map(Ok(_))
               }
             )
         }
@@ -165,7 +167,7 @@ class AFTSummaryController @Inject()(
                 aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
                 request.sessionData.isEditable
               )
-              renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
+              renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
               if (!value && aftService.isSubmissionDisabled(quarter.endDate)) {
