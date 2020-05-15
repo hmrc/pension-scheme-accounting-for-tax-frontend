@@ -17,7 +17,6 @@
 package models
 
 import play.api.libs.json._
-import uk.gov.hmrc.domain.Nino
 
 case class MemberDetails (firstName: String, lastName: String, nino: String, isDeleted: Boolean = false) {
   def fullName: String = s"$firstName $lastName"

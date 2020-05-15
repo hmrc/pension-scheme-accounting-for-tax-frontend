@@ -93,9 +93,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
-            form(memberDetails.fullName)
-              .bindFromRequest()
-              .fold(
+            form(memberDetails.fullName).bindFromRequest().fold(
                 formWithErrors => {
 
                   val viewModel = GenericViewModel(
@@ -103,7 +101,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                     schemeName = schemeName
                   )
-
                   val json = Json.obj(
                     "srn" -> srn,
                     "startDate" -> Some(startDate),
@@ -112,21 +109,16 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     "radios" -> Radios.yesNo(formWithErrors("value")),
                     "memberName" -> memberDetails.fullName
                   )
-
                   renderer.render("chargeE/deleteMember.njk", json).map(BadRequest(_))
 
                 },
                 value =>
                   if (value) {
-                    DataRetrievals.retrievePSTR {
-                      pstr =>
+                    DataRetrievals.retrievePSTR { pstr =>
                         for {
-                          interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                          .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
-
-                          updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), interimAnswers))
-                          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                          updatedAnswers <- Future.fromTry(userAnswersService
+                            .removeMemberBasedCharge(MemberDetailsPage(index), memberDetails.copy(isDeleted = true), totalAmount(srn, startDate)))
+                          _ <- deleteAFTChargeService.deleteMemberAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                     }
                   } else {
@@ -138,6 +130,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): BigDecimal =
-    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+    chargeEHelper.getAnnualAllowanceMembers(_, srn, startDate).map(_.amount).sum
 }

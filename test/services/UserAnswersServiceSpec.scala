@@ -20,10 +20,11 @@ import base.SpecBase
 import data.SampleData.sessionId
 import models.requests.DataRequest
 import models.{AccessMode, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.QuestionPage
-import play.api.libs.json.{JsNull, JsPath, Json}
+import play.api.libs.json.{JsPath, Json}
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
@@ -31,7 +32,6 @@ import uk.gov.hmrc.domain.PsaId
 import utils.DeleteChargeHelper
 
 import scala.concurrent.Future
-import org.mockito.Mockito.when
 
 class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFutures {
 
@@ -93,7 +93,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     }
 
     "FIRST COMPILE - set only the page value for a member level charge being deleted if version is 1" in {
-      val resultFuture = Future.fromTry(service.set(MemberPage, ua)(dataRequest(), implicitly))
+      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(ua), implicitly))
 
       whenReady(resultFuture){ _ mustBe ua}
     }
@@ -145,7 +145,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
     "AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
       " for a scheme level charge if version is 2 for a member being deleted" in {
-      val resultFuture = Future.fromTry(service.set(MemberPage, memberUa())(dataRequest(version = 2), implicitly))
+      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -160,7 +160,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
     "AMENDMENT - set amended version, member version to null, status to New and the page value" +
       " for a scheme level charge if version is 2 if a member that was added after the last submission is being deleted" in {
-      val resultFuture = Future.fromTry(service.set(MemberPage, memberUa(2))(dataRequest(version = 2), implicitly))
+      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(2), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -190,6 +190,8 @@ object UserAnswersServiceSpec {
   }
 
   val pageValue: String = "value"
+  val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
+  val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
 
   def sessionData(version: Int): SessionData =
     SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile))

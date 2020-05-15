@@ -121,13 +121,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     DataRetrievals.retrievePSTR {
                       pstr =>
                         for {
-                          interimAnswers <- Future.fromTry(request.userAnswers.set(MemberDetailsPage(index), memberDetails.copy(isDeleted = true))
-                          .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
+                          updatedAnswers <- Future.fromTry(userAnswersService
+                            .removeMemberBasedCharge(
+                              MemberDetailsPage(index),
+                              memberDetails.copy(isDeleted = true),
+                              totalAmount(srn, startDate)))
 
-                          updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), interimAnswers))
-
-                          _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                          _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                          _ <- deleteAFTChargeService.deleteMemberAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                     }
                   } else {
@@ -139,6 +139,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): BigDecimal =
-    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+    chargeDHelper.getLifetimeAllowanceMembers(_, srn, startDate).map(_.amount).sum
 }

@@ -60,4 +60,20 @@ class DeleteAFTChargeService @Inject()(
       }
     }
   }
+
+  def deleteMemberAndFileAFTReturn[A](pstr: String, answers: UserAnswers)(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: DataRequest[AnyContent]): Future[Unit] = {
+println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> deleteChargeHelper.allChargesDeletedOrZeroed(answers) "+deleteChargeHelper.allChargesDeletedOrZeroed(answers))
+    aftService.fileAFTReturn(pstr, answers).flatMap { _ =>
+      if (deleteChargeHelper.allChargesDeletedOrZeroed(answers) && !request.isAmendment) {
+        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
+      } else {
+        userAnswersCacheConnector.save(request.internalId, answers.data).map(_ => ())
+      }
+    }
+  }
 }
+
+

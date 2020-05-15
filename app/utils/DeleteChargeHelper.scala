@@ -95,40 +95,42 @@ class DeleteChargeHelper {
         getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
   }
 
-  private def zeroOutChargeA: Reads[JsObject] =
+  private def zeroOutChargeA: Reads[JsObject] = {
+    println(">>>xxxxxxxxxxxx here zero out charge A")
     updateJson(__ \ 'chargeADetails \ 'chargeDetails,
       Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
+  }
 
-  private def zeroOutChargeB: Reads[JsObject] = updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+  private def zeroOutChargeB: Reads[JsObject] = {
+    println(">>>xxxxxxxxxxxx here zero out charge B")
+    updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+  }
 
-  private def zeroOutChargeF: Reads[JsObject] = updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+  private def zeroOutChargeF: Reads[JsObject] = {
+    println(">>>xxxxxxxxxxxx here zero out charge F")
+    updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
+  }
 
   private def zeroOutChargeC: Reads[JsObject] = {
+    println(">>>xxxxxxxxxxxx here zero out charge C")
     updateArray(__ \ 'chargeCDetails \ 'employers) {
-      updateJson(__ \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0)) andThen {
-        (__ \ 'whichTypeOfSponsoringEmployer).read[String].flatMap {
-          case "individual" =>
-            updateJson(__ \ 'sponsoringIndividualDetails, Json.obj(fields = "isDeleted" -> false))
-          case "organisation" =>
-            updateJson(__ \ 'sponsoringOrganisationDetails, Json.obj(fields = "isDeleted" -> false))
-        }
-      }
+      updateJson(__ \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
     }
   }
 
-  private def zeroOutChargeD: Reads[JsObject] = updateArray(__ \ 'chargeDDetails \ 'members) {
-    updateJson(__ \ 'chargeDetails, Json.obj(fields = "taxAt25Percent" -> 0, "taxAt55Percent" -> 0)) andThen
-      updateJson(__ \ 'memberDetails, Json.obj(fields = "isDeleted" -> false))
+  private def zeroOutChargeD: Reads[JsObject] = {
+    println(">>>xxxxxxxxxxxx here zero out charge D")
+    updateArray(__ \ 'chargeDDetails \ 'members) {
+      updateJson(__ \ 'chargeDetails, Json.obj(fields = "taxAt25Percent" -> 0, "taxAt55Percent" -> 0))
+    }
   }
 
   private def zeroOutChargeE: Reads[JsObject] = updateArray(__ \ 'chargeEDetails \ 'members) {
-    updateJson(__ \ 'chargeDetails, Json.obj(fields = "chargeAmount" -> 0)) andThen
-      updateJson(__ \ 'memberDetails, Json.obj(fields = "isDeleted" -> false))
+    updateJson(__ \ 'chargeDetails, Json.obj(fields = "chargeAmount" -> 0))
   }
 
   private def zeroOutChargeG: Reads[JsObject] = updateArray(__ \ 'chargeGDetails \ 'members) {
-    updateJson(__ \ 'chargeAmounts, Json.obj("amountTransferred" -> 0, "amountTaxDue" -> 0)) andThen
-      updateJson(__ \ 'memberDetails, Json.obj(fields = "isDeleted" -> false))
+    updateJson(__ \ 'chargeAmounts, Json.obj("amountTransferred" -> 0, "amountTaxDue" -> 0))
   }
 
   private def updateJson(path: JsPath, updateJson: JsObject): Reads[JsObject] = {
@@ -161,7 +163,21 @@ class DeleteChargeHelper {
     }
   }
 
-  def isLastCharge(ua: UserAnswers): Boolean = (nonZeroSchemeBasedCharges(ua) + nonZeroMemberBasedCharges(ua)) <= 1
+  private def getTotal(path: JsLookupResult): BigDecimal = {
+    if(path.isDefined) {
+      path.validate[BigDecimal] match {
+        case JsSuccess(value, _) => value
+        case JsError(errors) => throw JsResultException(errors)
+      }
+    }
+    else {
+      BigDecimal(0.00)
+    }
+  }
+
+  def isLastCharge(ua: UserAnswers): Boolean = (nonZeroSchemeBasedCharges(ua) + validMemberBasedCharges(ua).count) == 1
+  def allChargesDeletedOrZeroed(ua: UserAnswers): Boolean =
+    nonZeroSchemeBasedCharges(ua) == 0 && validMemberBasedCharges(ua).count <= 1 && validMemberBasedCharges(ua).total == BigDecimal(0.00)
 
   private def nonZeroSchemeBasedCharges(ua: UserAnswers): Int = {
     val json = ua.data
@@ -169,24 +185,32 @@ class DeleteChargeHelper {
       Seq("chargeADetails", "chargeBDetails", "chargeFDetails").count(nonZero)
   }
 
-  private def nonZeroMemberBasedCharges(ua: UserAnswers): Int = {
+  def validMemberBasedCharges(ua: UserAnswers): ValidChargeDetails = {
     val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
 
-    memberLevelCharges.map {
-      case "chargeCDetails" => nonZeroEmployers(ua)
-      case chargeType => nonZeroMembers(ua, chargeType)
-    }.sum
+    val members = memberLevelCharges.map {
+      case "chargeCDetails" => validEmployers(ua)
+      case chargeType => validMembers(ua, chargeType)
+    }
+
+    val count: Int = members.map(_.count).sum
+    val totalAmount: BigDecimal = members.map(_.total).sum
+    ValidChargeDetails("allMembers", count, totalAmount)
   }
 
-  private def nonZeroMembers(ua: UserAnswers, chargeType: String): Int = {
+  private def validMembers(ua: UserAnswers, chargeType: String): ValidChargeDetails = {
     val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
-    getMembersOrEmployersCount(memberDetailsPath, isDeleted = false)
+    val totalAmountPath = ua.data \ chargeType \ "totalChargeAmount"
+    ValidChargeDetails(chargeType, getMembersOrEmployersCount(memberDetailsPath, isDeleted = false), getTotal(totalAmountPath))
   }
 
-  private def nonZeroEmployers(ua: UserAnswers): Int = {
+  private def validEmployers(ua: UserAnswers): ValidChargeDetails = {
     val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
     val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
-
-    getMembersOrEmployersCount(individualPath, isDeleted = false) + getMembersOrEmployersCount(orgPath, isDeleted = false)
+    val totalAmountPath = ua.data \ "chargeCDetails" \ "totalChargeAmount"
+    val count = getMembersOrEmployersCount(individualPath, isDeleted = false) + getMembersOrEmployersCount(orgPath, isDeleted = false)
+    ValidChargeDetails("chargeCDetails", count, getTotal(totalAmountPath))
   }
+
+  case class ValidChargeDetails(chargeType: String, count: Int, total: BigDecimal)
 }

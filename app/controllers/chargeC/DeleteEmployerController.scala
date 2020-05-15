@@ -115,12 +115,10 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
+
                   for {
-                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index)
-                      .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
-                    updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), interimAnswers))
-                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
+                    updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate))
+                    _ <- deleteAFTChargeService.deleteMemberAndFileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
                 }
               } else {
@@ -129,17 +127,26 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           )
       }
     }
-  private def saveDeletion(ua: UserAnswers, index: Int): Try[UserAnswers] =
+  private def removeCharge(index: Int, srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
+    val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
+
       case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
-        ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
+        userAnswersService.removeMemberBasedCharge(
+          SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
-        ua.set(SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true))
+        userAnswersService.removeMemberBasedCharge(
+          SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+
       case _ => Try(ua)
     }
+  }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): BigDecimal =
-    chargeCHelper.getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
+  def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+    chargeCHelper.getSponsoringEmployers(_, srn, startDate).map(_.amount).sum
+
+  case object EmployerTypeUnidentified extends Exception("Employer did not match individual or organisation type")
 }
