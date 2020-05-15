@@ -107,9 +107,9 @@ class AFTSummaryController @Inject()(
             startDate,
             schemeDetails.schemeName,
             optionVersion,
-            aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
             request.sessionData.isEditable
           )
+
         renderer.render(nunjucksTemplate, json).map(Ok(_))
       }
     }
@@ -124,7 +124,7 @@ class AFTSummaryController @Inject()(
             .fold(
               formWithErrors => {
                 val json = getJson( form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName,
-                  optionVersion, aftSummaryHelper.summaryListData(ua, srn, startDate), request.sessionData.isEditable
+                  optionVersion, request.sessionData.isEditable
                 )
                 renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
               },
@@ -132,8 +132,12 @@ class AFTSummaryController @Inject()(
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
                 val searchResults = memberSearchService.search(ua, srn, startDate, value)
                 val json =
-                  getJsonWithSearchResults(form, preparedForm, ua, srn, startDate, schemeDetails.schemeName,
-                    optionVersion, searchResults, request.sessionData.isEditable)
+                getJsonCommon(form, preparedForm, ua, srn, startDate, schemeDetails.schemeName, optionVersion,
+                  request.sessionData.isEditable
+                ) ++
+                  Json.obj( "list" -> searchResults) ++
+                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url)
+
                 renderer.render(template = nunjucksTemplate, json).map(Ok(_))
               }
             )
@@ -148,15 +152,7 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(
-                formWithErrors,
-                memberSearchForm,
-                ua,
-                srn,
-                startDate,
-                schemeName,
-                optionVersion,
-                aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+              val json = getJson( formWithErrors, memberSearchForm, ua, srn, startDate, schemeName, optionVersion,
                 request.sessionData.isEditable
               )
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
@@ -180,23 +176,21 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getJson[A](
-                      form: Form[Boolean],
-                      formSearchText: Form[String],
-                      ua: UserAnswers,
-                      srn: String,
-                      startDate: LocalDate,
-                      schemeName: String,
-                      optionVersion: Option[String],
-                      listOfRows: Seq[Row],
-                      canChange: Boolean)(implicit messages: Messages): JsObject = {
+  private def getJsonCommon(
+                          form: Form[Boolean],
+                          formSearchText: Form[String],
+                          ua: UserAnswers,
+                          srn: String,
+                          startDate: LocalDate,
+                          schemeName: String,
+                          optionVersion: Option[String],
+                          canChange: Boolean)(implicit messages: Messages): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
       "formSearchText" -> formSearchText,
-      "list" -> listOfRows,
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> getFormattedStartDate(startDate),
@@ -206,32 +200,16 @@ class AFTSummaryController @Inject()(
     )
   }
 
-  private def getJsonWithSearchResults[A](
-                          form: Form[Boolean],
-                          formSearchText: Form[String],
-                          ua: UserAnswers,
-                          srn: String,
-                          startDate: LocalDate,
-                          schemeName: String,
-                          optionVersion: Option[String],
-                          listOfRows: Seq[MemberRow],
-                          canChange: Boolean)(implicit messages: Messages): JsObject = {
-    val endDate = Quarters.getQuarter(startDate).endDate
-    Json.obj(
-      "srn" -> srn,
-      "startDate" -> Some(startDate),
-      "form" -> form,
-      "formSearchText" -> formSearchText,
-      "list" -> listOfRows,
-      "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
-      "radios" -> Radios.yesNo(form("value")),
-      "quarterStartDate" -> getFormattedStartDate(startDate),
-      "quarterEndDate" -> getFormattedEndDate(endDate),
-      "canChange" -> canChange,
-      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url,
-      "aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
-    )
-  }
+  private def getJson(form: Form[Boolean],
+                      formSearchText: Form[String],
+                      ua: UserAnswers,
+                      srn: String,
+                      startDate: LocalDate,
+                      schemeName: String,
+                      optionVersion: Option[String],
+                      canChange: Boolean)(implicit messages: Messages): JsObject =
+    getJsonCommon( form, formSearchText, ua,  srn, startDate, schemeName, optionVersion, canChange
+    ) ++ Json.obj( "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate))
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(
