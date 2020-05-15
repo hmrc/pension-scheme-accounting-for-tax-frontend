@@ -18,14 +18,9 @@ package controllers
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.AllowAccessActionProvider
-import controllers.actions.DataRequiredAction
 import controllers.actions.DataRequiredActionImpl
-import controllers.actions.DataRetrievalAction
 import controllers.actions.DataUpdateAction
 import controllers.actions.FakeIdentifierAction
-import controllers.actions.IdentifierAction
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.actions.MutableFakeDataUpdateAction
 import controllers.base.ControllerSpecBase
@@ -72,14 +67,10 @@ import utils.AFTSummaryHelper
 import scala.concurrent.Future
 import models.LocalDateBinder._
 import models.MemberDetails
-import navigators.CompoundNavigator
-import play.api.libs.json.JsNull
-import play.api.libs.json.Writes
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.MemberSearchService.MemberRow
 import services.RequestCreationService
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.SummaryList.Action
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
@@ -118,16 +109,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
 
-  private def httpPathPostSearch: String = controllers.routes.AFTSummaryController.onSearchMember(SampleData.srn, startDate, None).url
-
   private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq("true"))
 
   private val valuesInvalid: Map[String, Seq[String]] = Map("value" -> Seq("xyz"))
 
   private val summaryHelper = new AFTSummaryHelper
-
-  private val retrievedUA = userAnswersWithSchemeNamePstrQuarter
-    .setOrException(IsPsaSuspendedQuery, value = false)
 
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
 
@@ -140,44 +126,26 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val startDateAsString = "2020-04-01"
 
   private def controllerInstance:AFTSummaryController = {
-
-    val userAnswersCacheConnector: UserAnswersCacheConnector=mockUserAnswersCacheConnector
-    val navigator: CompoundNavigator=mockCompoundNavigator
-    val identify: IdentifierAction=injector.instanceOf[FakeIdentifierAction]
-    val getData: DataRetrievalAction=mutableFakeDataRetrievalAction
-    val updateData: DataUpdateAction=fakeDataUpdateAction
-    val allowAccess: AllowAccessActionProvider=mockAllowAccessActionProvider
-    val requireData: DataRequiredAction=injector.instanceOf[DataRequiredActionImpl]
-    val formProvider: AFTSummaryFormProvider=injector.instanceOf[AFTSummaryFormProvider]
-    val memberSearchFormProvider: MemberSearchFormProvider=injector.instanceOf[MemberSearchFormProvider]
-    val controllerComponents: MessagesControllerComponents=injector.instanceOf[MessagesControllerComponents]
     val config: FrontendAppConfig=mockAppConfig
-    val renderer = new Renderer(config, mockRenderer)
-    val aftSummaryHelper: AFTSummaryHelper=injector.instanceOf[AFTSummaryHelper]
-    val aftService: AFTService=mockAFTService
-    val allowService: AllowAccessService=mockAllowAccessService
-    val requestCreationService: RequestCreationService=injector.instanceOf[RequestCreationService]
-    val schemeService: SchemeService=mockSchemeService
-    val memberSearchService: MemberSearchService = mockMemberSearchService
-
     new AFTSummaryController(messagesApi,
-      userAnswersCacheConnector,
-      navigator,
-      identify,
-      getData,
-      updateData,
-      allowAccess,
-      requireData,
-      formProvider,
-      memberSearchFormProvider, controllerComponents,
-      renderer,
+      mockUserAnswersCacheConnector,
+      mockCompoundNavigator,
+      injector.instanceOf[FakeIdentifierAction],
+      mutableFakeDataRetrievalAction,
+      fakeDataUpdateAction,
+      mockAllowAccessActionProvider,
+      injector.instanceOf[DataRequiredActionImpl],
+      injector.instanceOf[AFTSummaryFormProvider],
+      injector.instanceOf[MemberSearchFormProvider],
+      injector.instanceOf[MessagesControllerComponents],
+      new Renderer(config, mockRenderer),
       config,
-      aftSummaryHelper,
-      aftService,
-      allowService,
-      requestCreationService,
-      schemeService,
-      memberSearchService)
+      injector.instanceOf[AFTSummaryHelper],
+      mockAFTService,
+      mockAllowAccessService,
+      injector.instanceOf[RequestCreationService],
+      mockSchemeService,
+      mockMemberSearchService)
   }
 
   private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
@@ -357,7 +325,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any())
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      templateCaptor.getValue mustBe "aftSummary.njk"
+      templateCaptor.getValue mustBe templateToBeRendered
 
       val expectedJson = Json.obj( "list" ->
         Json.toJson(searchResult)
