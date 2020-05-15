@@ -83,22 +83,14 @@ class AmendmentHelper {
   def getAllAmendments(currentUa: UserAnswers, previousUa: UserAnswers)(implicit request: DataRequest[AnyContent],
                                                                         messages: Messages): Seq[ViewAmendmentDetails] = {
 
-    val allAmendmentsChargeA = amendmentsForSchemeLevelCharges(currentUa,
-                                                               previousUa,
-                                                               ChargeTypeShortService,
-                                                               chargeAmountPath = "totalAmount",
-                                                               Some("numberOfMembers"),
-                                                               ChargeADetailsPage)
+    val allAmendmentsChargeA =
+      amendmentsForSchemeLevelCharges(currentUa, previousUa, ChargeTypeShortService, Some("numberOfMembers"), ChargeADetailsPage)
 
-    val allAmendmentsChargeB = amendmentsForSchemeLevelCharges(currentUa,
-                                                               previousUa,
-                                                               ChargeTypeLumpSumDeath,
-                                                               chargeAmountPath = "amountTaxDue",
-                                                               Some("numberOfDeceased"),
-                                                               ChargeBDetailsPage)
+    val allAmendmentsChargeB =
+      amendmentsForSchemeLevelCharges(currentUa, previousUa, ChargeTypeLumpSumDeath, Some("numberOfDeceased"), ChargeBDetailsPage)
 
     val allAmendmentsChargeF =
-      amendmentsForSchemeLevelCharges(currentUa, previousUa, ChargeTypeDeRegistration, chargeAmountPath = "amountTaxDue", None, ChargeFDetailsPage)
+      amendmentsForSchemeLevelCharges(currentUa, previousUa, ChargeTypeDeRegistration, None, ChargeFDetailsPage)
 
     val allAmendmentsForSchemeLevelCharges = Seq(allAmendmentsChargeA, allAmendmentsChargeB, allAmendmentsChargeF).flatten
 
@@ -115,12 +107,11 @@ class AmendmentHelper {
       currentUa: UserAnswers,
       previousUa: UserAnswers,
       chargeType: ChargeType,
-      chargeAmountPath: String,
       noOfMembersPath: Option[String],
       chargeDetailsPage: QuestionPage[A])(implicit reads: Reads[A], messages: Messages): Option[ViewAmendmentDetails] = {
 
-    val currentTotalAmount = currentUa.get(chargeDetailsPage.path \ chargeAmountPath).map(validate[BigDecimal](_)).getOrElse(BigDecimal(0))
-    val previousTotalAmount = previousUa.get(chargeDetailsPage.path \ chargeAmountPath).map(validate[BigDecimal](_)).getOrElse(BigDecimal(0))
+    val currentTotalAmount = currentUa.get(chargeDetailsPage.path \ "totalAmount").map(validate[BigDecimal](_)).getOrElse(BigDecimal(0))
+    val previousTotalAmount = previousUa.get(chargeDetailsPage.path \ "totalAmount").map(validate[BigDecimal](_)).getOrElse(BigDecimal(0))
 
     //Set the correct Status for scheme level charges
     val amendedStatus = (previousUa.get(chargeDetailsPage), currentUa.get(chargeDetailsPage)) match {
