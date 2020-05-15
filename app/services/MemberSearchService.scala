@@ -56,7 +56,7 @@ class MemberSearchService {
   }
 
   private def listOfRows(listOfMembers: Seq[MemberSummary]): Seq[MemberRow] = {
-    listOfMembers.map { data =>
+    val allRows = listOfMembers.map { data =>
       val rowNino =
         Seq(
           Row(
@@ -94,6 +94,7 @@ class MemberSearchService {
 
       MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
     }
+    allRows
   }
 }
 
