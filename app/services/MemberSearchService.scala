@@ -108,8 +108,6 @@ object MemberSearchService {
       case _ => "aft.summary.lifeTimeAllowance.description"
     }
 
-  case class MemberRow(name: String, rows: Seq[Row], actions: Seq[Action])
-
   private case class MemberSummary(index: Int,
                                    name: String,
                                    nino: String,
@@ -124,6 +122,8 @@ object MemberSearchService {
 
     def id = s"member-$index"
   }
+
+  case class MemberRow(name: String, rows: Seq[Row], actions: Seq[Action])
 
   object MemberRow {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =

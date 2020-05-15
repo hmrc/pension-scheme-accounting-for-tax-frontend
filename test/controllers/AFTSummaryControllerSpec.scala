@@ -74,6 +74,7 @@ import models.LocalDateBinder._
 import models.MemberDetails
 import navigators.CompoundNavigator
 import play.api.libs.json.JsNull
+import play.api.libs.json.Writes
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.MemberSearchService.MemberRow
@@ -357,12 +358,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any())
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       templateCaptor.getValue mustBe "aftSummary.njk"
-      //val expectedJson =
-      //  Json.toJson(searchResult).as[JsObject]
-      ////  Json.obj(
-      ////
-      ////)
-      //jsonCaptor.getValue must containJson(expectedJson)
+
+      val expectedJson = Json.obj( "list" ->
+        Json.toJson(searchResult)
+      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 }
