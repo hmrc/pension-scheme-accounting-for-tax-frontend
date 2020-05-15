@@ -51,7 +51,7 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, index).url,
+            submitUrl = routes.ChargeAmountsController.onSubmit(CheckMode, srn, startDate, index).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
             schemeName = schemeName
           )

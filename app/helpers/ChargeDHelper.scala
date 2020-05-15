@@ -57,14 +57,15 @@ class ChargeDHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] =
     getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeD.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
     } else {
       controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
     }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  private def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange:Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeD", members, canChange)

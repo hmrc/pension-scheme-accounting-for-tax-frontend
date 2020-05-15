@@ -43,7 +43,7 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private def httpPathGET: String = controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index).url
 
-  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, index).url
+  val redirectUrl: String = routes.ChargeAmountsController.onSubmit(CheckMode, srn, startDate, index).url
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = redirectUrl,

@@ -67,14 +67,15 @@ class ChargeCHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Employer] =
     getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
-    if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+    if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
     } else {
       controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
     }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  private def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(

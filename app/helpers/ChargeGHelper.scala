@@ -56,14 +56,15 @@ class ChargeGHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Member] =
     getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
       controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
     } else {
       controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
     }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  private def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeG", members, canChange)

@@ -85,8 +85,8 @@ object SampleData {
   def sessionAccessData(version: Int = version.toInt, accessMode: AccessMode = AccessMode.PageAccessModeCompile) =
     SessionAccessData(version, accessMode)
 
-  val sessionAccessDataCompile = sessionAccessData(version.toInt, AccessMode.PageAccessModeCompile)
-  val sessionAccessDataPreCompile = sessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile)
+  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile)
+  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile)
 
   def sessionData(
                    sessionId: String = sessionId,
