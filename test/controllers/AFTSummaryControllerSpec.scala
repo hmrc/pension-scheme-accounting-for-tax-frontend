@@ -349,7 +349,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       fakeDataUpdateAction.setDataToReturn(userAnswers)
 
-      val fakeRequest = httpPOSTRequest("/", Map("searchText" -> Seq("Search"))) //FakeRequest("POST", "")
+      val fakeRequest = httpPOSTRequest("/", Map("searchText" -> Seq("Search")))
 
       val result = controllerInstance.onSearchMember(SampleData.srn, startDate, None).apply(fakeRequest)
 
