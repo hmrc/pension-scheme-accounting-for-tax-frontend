@@ -115,7 +115,6 @@ class AFTSummaryController @Inject()(
   def onSearchMember(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
-    println( "\n>>>>REQ=" + request)
         schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
           memberSearchForm
             .bindFromRequest()

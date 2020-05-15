@@ -130,9 +130,13 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
 
-  val startDateAsString = "2020-04-01"
+  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
-  def controllerInstance:AFTSummaryController = {
+  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+  private val startDateAsString = "2020-04-01"
+
+  private def controllerInstance:AFTSummaryController = {
     val userAnswersCacheConnector: UserAnswersCacheConnector=mockUserAnswersCacheConnector
     val navigator: CompoundNavigator=mockCompoundNavigator
     val identify: IdentifierAction=injector.instanceOf[FakeIdentifierAction]
@@ -172,7 +176,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       memberSearchService)
   }
 
-  def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -333,7 +337,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "display search results when Search is triggered" in {
-      val searchResult:Seq[MemberRow] = Nil //searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
+      val searchResult:Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
       when(mockMemberSearchService.search(any(),any(),any(),any())(any()))
         .thenReturn(searchResult)
@@ -348,6 +352,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual OK
 
       verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any())
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
     }
   }
 }
