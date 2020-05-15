@@ -33,7 +33,7 @@ import models.Mode
 import models.NormalMode
 import models.UserAnswers
 import navigators.CompoundNavigator
-import pages.{AFTSummaryPage, LastSearchTextQuery}
+import pages.AFTSummaryPage
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
@@ -121,37 +121,26 @@ class AFTSummaryController @Inject()(
             .fold(
               formWithErrors => {
                 val ua = request.userAnswers
-                val json = ua.get(LastSearchTextQuery) match {
-                  case None => getJson(
-                    form,
-                    formWithErrors,
-                    ua,
-                    srn,
-                    startDate,
-                    schemeDetails.schemeName,
-                    optionVersion,
-                    aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
-                    request.sessionData.isEditable
-                  )
-                  case Some(search) =>
-                    val lastSearchResults = memberSearchService.search(request.userAnswers, srn, startDate, search)
-                    getJsonWithSearchResults(form, formWithErrors, request.userAnswers, srn, startDate, schemeDetails.schemeName,
-                    optionVersion, lastSearchResults, request.sessionData.isEditable)
-                }
+                val json = getJson(
+                  form,
+                  formWithErrors,
+                  ua,
+                  srn,
+                  startDate,
+                  schemeDetails.schemeName,
+                  optionVersion,
+                  aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
+                  request.sessionData.isEditable
+                )
                 renderer.render(template = "aftSummary.njk", json).map(BadRequest(_))
               },
               value => {
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
-                val ua = request.userAnswers
-                ua.set(LastSearchTextQuery, value)
-                userAnswersCacheConnector.save(request.internalId, ua.data).flatMap {
-                  _=>
-                  val searchResults = memberSearchService.search(ua, srn, startDate, value)
-                  val json =
-                    getJsonWithSearchResults(form, preparedForm, ua, srn, startDate, schemeDetails.schemeName,
-                      optionVersion, searchResults, request.sessionData.isEditable)
-                  renderer.render(template = "aftSummary.njk", json).map(Ok(_))
-                }
+                val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
+                val json =
+                  getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                    optionVersion, searchResults, request.sessionData.isEditable)
+                renderer.render(template = "aftSummary.njk", json).map(Ok(_))
               }
             )
         }
