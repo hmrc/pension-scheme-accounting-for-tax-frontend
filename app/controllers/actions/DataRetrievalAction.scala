@@ -22,6 +22,7 @@ import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import models.requests.IdentifierRequest
 import models.requests.OptionalDataRequest
+import pages.Page
 import play.api.mvc.ActionTransformer
 import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -67,13 +68,14 @@ class DataUpdateImpl(
                          srn: String,
                          startDate: LocalDate,
                          optionVersion:Option[String],
+                         optionCurrentPage: Option[Page],
                          requestCreationService:RequestCreationService
                        )(implicit val executionContext: ExecutionContext)
   extends DataUpdate {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    requestCreationService.retrieveAndCreateRequest(request.psaId, srn, startDate, optionVersion)(request,implicitly, implicitly)
+    requestCreationService.retrieveAndCreateRequest(request.psaId, srn, startDate, optionVersion, optionCurrentPage)(request,implicitly, implicitly)
   }
 }
 
@@ -81,8 +83,8 @@ class DataUpdateActionImpl @Inject()(
                                          requestCreationService:RequestCreationService
                                        )(implicit val executionContext: ExecutionContext)
   extends DataUpdateAction {
-  override def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate =
-    new DataUpdateImpl(srn, startDate, optionVersion, requestCreationService)
+  override def apply(srn: String, startDate: LocalDate, optionVersion:Option[String], optionCurrentPage: Option[Page]): DataUpdate =
+    new DataUpdateImpl(srn, startDate, optionVersion, optionCurrentPage, requestCreationService)
 }
 
 @ImplementedBy(classOf[DataUpdateImpl])
@@ -90,5 +92,5 @@ trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataReques
 
 @ImplementedBy(classOf[DataUpdateActionImpl])
 trait DataUpdateAction {
-  def apply(srn: String, startDate: LocalDate, optionVersion:Option[String]): DataUpdate
+  def apply(srn: String, startDate: LocalDate, optionVersion:Option[String], optionCurrentPage: Option[Page]): DataUpdate
 }

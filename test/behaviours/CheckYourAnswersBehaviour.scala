@@ -106,15 +106,15 @@ trait CheckYourAnswersBehaviour extends ControllerSpecBase with NunjucksSupport 
 
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(page), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
-      when(mockAftConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockAftConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPath)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockAftConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
+      verify(mockAftConnector, times(1)).fileAFTReturn(any(), any(), any())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
     }

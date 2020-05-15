@@ -37,6 +37,7 @@ import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DeleteChargeHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,6 +51,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
+                                        deleteChargeHelper: DeleteChargeHelper,
                                         config: FrontendAppConfig,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -71,10 +73,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+        def shouldPrepop(chargeDetails: ChargeBDetails): Boolean =
+          chargeDetails.totalAmount > BigDecimal(0.00) || deleteChargeHelper.isLastCharge(request.userAnswers)
 
         val preparedForm: Form[ChargeBDetails] = request.userAnswers.get(ChargeBDetailsPage) match {
-          case Some(value) => form(mininimumChargeValue).fill(value)
-          case None        => form(mininimumChargeValue)
+          case Some(value) if shouldPrepop(value) => form(mininimumChargeValue).fill(value)
+          case _        => form(mininimumChargeValue)
         }
 
         val json = Json.obj(

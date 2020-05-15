@@ -137,7 +137,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
@@ -174,7 +174,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "return a redirect when zero amount is submitted and new return flag is NOT set" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))

@@ -19,15 +19,16 @@ package navigators
 import java.time.LocalDate
 
 import com.google.inject.Inject
+import models.requests.DataRequest
 import models.{Mode, UserAnswers}
 import pages.Page
 import play.api.Logger
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 
 import scala.collection.JavaConverters._
 
 trait CompoundNavigator {
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Call
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call
 }
 
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
@@ -36,16 +37,17 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) exte
     controllers.routes.IndexController.onPageLoad()
   }
 
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Call = {
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {
     nextPageOptional(id, mode, userAnswers, srn, startDate)
       .getOrElse(defaultPage(id, mode))
   }
 
-  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate): Option[Call] = {
+  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+                              (implicit request: DataRequest[AnyContent]): Option[Call] = {
     navigators.asScala
       .find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id))
       .map(
-        _.nextPageOptional(mode, userAnswers, srn, startDate)(id)
+        _.nextPageOptional(mode, userAnswers, srn, startDate)(implicitly)(id)
       )
   }
 }

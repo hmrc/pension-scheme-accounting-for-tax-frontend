@@ -147,7 +147,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 

@@ -20,9 +20,10 @@ import java.time.LocalDate
 
 import base.SpecBase
 import models._
+import models.requests.DataRequest
 import pages.Page
 import play.api.libs.json.Json
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import utils.AFTConstants.QUARTER_START_DATE
 
 class NavigatorSpec extends SpecBase {
@@ -38,21 +39,23 @@ class NavigatorSpec extends SpecBase {
   }
 
   private val dummyNavigator: Navigator = new Navigator {
-    override protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = call1
+    override protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+                                   (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = call1
 
-    override protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = call2
+    override protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+                                       (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = call2
   }
 
   "Navigator" when {
     "in Normal mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call1
+        dummyNavigator.nextPageOptional(NormalMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)(request()) mustBe call1
       }
     }
 
     "in Check mode" must {
       "go to correct route" in {
-        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE) mustBe call2
+        dummyNavigator.nextPageOptional(CheckMode, UserAnswers(Json.obj()),srn, QUARTER_START_DATE)(request()) mustBe call2
       }
     }
   }

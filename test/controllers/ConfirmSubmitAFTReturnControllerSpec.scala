@@ -114,7 +114,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTReturnRoute)
           .withFormUrlEncodedBody(("value", "true"))

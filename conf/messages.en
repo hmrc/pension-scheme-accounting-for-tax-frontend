@@ -952,6 +952,10 @@ deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
 
+removeLastCharge.title = You cannot remove this charge
+removeLastCharge.p1 = As this is the only charge for this return, you must change the charge amount to £0 and then resubmit the return.
+
+
 allAmendments.title = Changes made in this draft
 allAmendments.h1.caption = Draft
 allAmendments.memberDetails.h1 = Member details

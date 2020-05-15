@@ -150,7 +150,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 

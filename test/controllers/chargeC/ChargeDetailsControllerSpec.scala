@@ -155,7 +155,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 
@@ -192,7 +192,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "Return a redirect when zero amount is submitted and new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeCDetailsPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))

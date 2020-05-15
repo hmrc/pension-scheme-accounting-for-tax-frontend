@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package models.chargeF
+package models
 
-import java.time.LocalDate
-
-import play.api.libs.json.{Format, Json, Reads, Writes}
-
-case class ChargeDetails(deRegistrationDate: LocalDate, totalAmount: BigDecimal)
-
-object ChargeDetails {
-  implicit lazy val formats: Format[ChargeDetails] =
-    Json.format[ChargeDetails]
+object JourneyType extends Enumeration {
+  type Name = Value
+  val AFT_RETURN: JourneyType.Value = Value("AFTReturn")
+  val AFT_AMEND: JourneyType.Value = Value("AFTAmendment")
 }

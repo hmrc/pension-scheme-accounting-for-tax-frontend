@@ -106,7 +106,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -128,7 +128,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData = SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
