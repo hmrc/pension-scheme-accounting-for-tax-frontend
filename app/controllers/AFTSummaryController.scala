@@ -118,29 +118,21 @@ class AFTSummaryController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
         schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+          val ua = request.userAnswers
           memberSearchForm
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                val ua = request.userAnswers
-                val json = getJson(
-                  form,
-                  formWithErrors,
-                  ua,
-                  srn,
-                  startDate,
-                  schemeDetails.schemeName,
-                  optionVersion,
-                  aftSummaryHelper.summaryListData(request.userAnswers, srn, startDate),
-                  request.sessionData.isEditable
+                val json = getJson( form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName,
+                  optionVersion, aftSummaryHelper.summaryListData(ua, srn, startDate), request.sessionData.isEditable
                 )
                 renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
               },
               value => {
                 val preparedForm: Form[String] = memberSearchForm.fill(value)
-                val searchResults = memberSearchService.search(request.userAnswers, srn, startDate, value)
+                val searchResults = memberSearchService.search(ua, srn, startDate, value)
                 val json =
-                  getJsonWithSearchResults(form, preparedForm, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+                  getJsonWithSearchResults(form, preparedForm, ua, srn, startDate, schemeDetails.schemeName,
                     optionVersion, searchResults, request.sessionData.isEditable)
                 renderer.render(template = nunjucksTemplate, json).map(Ok(_))
               }
