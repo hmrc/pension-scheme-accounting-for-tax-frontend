@@ -49,8 +49,8 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     "return several valid results when searching across all 3 charge types with a valid name when case not matching" in {
       val expected = searchResultsMemberDetailsChargeD(memberDetailsD1, BigDecimal("83.44")) ++
         searchResultsMemberDetailsChargeD(memberDetailsD2, BigDecimal("83.44"), 1) ++
-        searchResultsMemberDetailsChargeE(memberDetailsE1, BigDecimal("33.44")) ++
-        searchResultsMemberDetailsChargeG(memberDetailsG2, BigDecimal("50.00"), 1)
+        searchResultsMemberDetailsChargeG(memberDetailsG2, BigDecimal("50.00"), 1) ++
+      searchResultsMemberDetailsChargeE(memberDetailsE1, BigDecimal("33.44"))
 
 
       val actual = memberSearchService.search(ua, srn, startDate, memberDetailsD1.lastName.toLowerCase)

@@ -94,7 +94,7 @@ class MemberSearchService {
 
       MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
     }
-    allRows
+    allRows.sortBy(_.name)
   }
 }
 
