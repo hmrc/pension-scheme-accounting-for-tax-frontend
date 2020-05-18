@@ -60,7 +60,7 @@ object ChargeGHelper {
       .flatMap { memberDetails =>
         val (member, index) = memberDetails
         ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
-          val currentVersion = request.sessionData.sessionAccessData.version
+          val currentVersion = request.aftVersion
           val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
           if (memberVersion == currentVersion) {

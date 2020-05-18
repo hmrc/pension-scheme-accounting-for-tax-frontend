@@ -140,7 +140,7 @@ class AFTSummaryController @Inject()(
                       canChange: Boolean)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
     val isAmendmentInProgress = (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile
-      && request.sessionData.sessionAccessData.version > 1)
+      && request.isAmendment)
     val viewAllAmendmentsLink = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate).url
 
     Json.obj(

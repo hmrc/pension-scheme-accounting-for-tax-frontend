@@ -74,7 +74,7 @@ object ChargeCHelper {
       getEmployerDetails(ua, index).flatMap {
         case (name, _) =>
           ua.get(ChargeCDetailsPage(index)).map { chargeAmounts =>
-            val currentVersion = request.sessionData.sessionAccessData.version
+            val currentVersion = request.aftVersion
             val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
             if (memberVersion == currentVersion) {
