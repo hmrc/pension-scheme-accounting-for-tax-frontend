@@ -19,7 +19,9 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeG.routes._
 import data.SampleData
+import data.SampleData.chargeAmounts
 import models.LocalDateBinder._
+import models.chargeG.ChargeAmounts
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeG._
@@ -44,7 +46,7 @@ class ChargeGNavigatorSpec extends NavigatorBehaviour {
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode,srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
-        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), onlyOneCharge),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeGMember))
       )
@@ -72,7 +74,7 @@ object ChargeGNavigatorSpec {
   private val index = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
-  private val onlyOneCharge = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption
+  private val zeroedCharge = SampleData.chargeGMember .set(pages.chargeG.TotalChargeAmountPage, BigDecimal(0.00)).toOption
   private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
     .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
 }

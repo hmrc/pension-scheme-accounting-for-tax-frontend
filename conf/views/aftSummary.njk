@@ -33,6 +33,12 @@
 
           {{ csrf() | safe }}
 
+          {% if isAmendmentInProgress %}
+              <p class="govuk-body">
+                <a href="{{ viewAllAmendmentsLink }}" class="govuk-link"> {{ messages("allAmendments.view.changes.link") }}</a>
+              </p>
+          {% endif %}
+
           {{ govukSummaryList({
             rows: list
           }) }}

@@ -20,13 +20,19 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import models.AmendedChargeStatus.{Added, Deleted}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{Member, MemberDetails, UserAnswers}
+import models.requests.DataRequest
+import models.viewModels.ViewAmendmentDetails
+import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 import utils.DeleteChargeHelper
 
@@ -35,8 +41,13 @@ class ChargeEHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
-  val allMembers: UserAnswers = UserAnswers().set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
+  val allMembers: UserAnswers = UserAnswers()
+    .set(MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
+    .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+    .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
+    .set(MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
+    .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
     .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
 
@@ -74,6 +85,26 @@ class ChargeEHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
       chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
+    }
+  }
+
+  "getAllAnnualAllowanceAmendments" must {
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+
+    "return all the amendments for annual allowance charge" in {
+      val expectedRows = Seq(
+        ViewAmendmentDetails(
+          SampleData.memberDetails.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberDetails2.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Deleted
+        )
+      )
+      chargeEHelper.getAllAnnualAllowanceAmendments(allMembers) mustBe expectedRows
     }
   }
 

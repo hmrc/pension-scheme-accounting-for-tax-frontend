@@ -83,14 +83,17 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case AddEmployersPage =>
       addEmployers(ua, srn, startDate)
 
-    case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
+    case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment => {
+
+      println("\n\n >>>>>>>>>>>>> 1 " + deleteChargeHelper.allChargesDeletedOrZeroed(ua))
+      println("\n\n >>>>>>>>>>>>> 1 " + ua)
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    }
 
     case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
       AddEmployersController.onPageLoad(srn, startDate)
 
-    case DeleteEmployerPage =>
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   //scalastyle:on cyclomatic.complexity

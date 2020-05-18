@@ -18,16 +18,19 @@ package helpers
 
 import java.time.LocalDate
 
-import models.{Member, MemberDetails, UserAnswers}
-import pages.chargeE.ChargeDetailsPage
-import play.api.i18n.Messages
-import play.api.mvc.{AnyContent, Call}
-import AddMembersHelper.mapChargeXMembersToTable
 import com.google.inject.Inject
-import viewmodels.Table
+import helpers.AddMembersHelper.mapChargeXMembersToTable
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
+import models.viewModels.ViewAmendmentDetails
+import models.{Member, MemberDetails, UserAnswers}
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
+import play.api.i18n.Messages
+import play.api.mvc.{AnyContent, Call}
 import utils.DeleteChargeHelper
+import viewmodels.Table
 
 class ChargeEHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
@@ -35,26 +38,56 @@ class ChargeEHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
                                                (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
     val members = for {
-        (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
-      } yield {
-        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            chargeDetails.chargeAmount,
-            viewUrl(index, srn, startDate).url,
-            removeUrl(index, srn, startDate, ua).url,
-            member.isDeleted
-          )
-        }
+      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
+    } yield {
+      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+        Member(
+          index,
+          member.fullName,
+          member.nino,
+          chargeDetails.chargeAmount,
+          viewUrl(index, srn, startDate).url,
+          removeUrl(index, srn, startDate, ua).url,
+          member.isDeleted
+        )
       }
+    }
 
     members.flatten
   }
 
-  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Member] =
+  def getAllAnnualAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
+    ua.getAllMembersInCharge[MemberDetails]("chargeEDetails")
+      .zipWithIndex
+      .flatMap { memberDetails =>
+        val (member, index) = memberDetails
+        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+          val currentVersion = request.aftVersion
+          val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
+
+          if (memberVersion == currentVersion) {
+            Some(
+              ViewAmendmentDetails(
+                member.fullName,
+                ChargeTypeAnnualAllowance.toString,
+                FormatHelper.formatCurrencyAmountAsString(chargeDetails.chargeAmount),
+                ua.get(MemberStatusPage(index)).map(amendedChargeStatus).getOrElse(Unknown)
+              )
+            )
+          } else {
+            None
+          }
+        }
+      }
+      .flatten
+  }
+
+  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                               (implicit request: DataRequest[AnyContent]): Seq[Member] =
     getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
+
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
@@ -62,9 +95,6 @@ class ChargeEHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     } else {
       controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
     }
-
-  private def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
-    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeE", members, canChange)

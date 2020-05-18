@@ -20,15 +20,18 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import models.AmendedChargeStatus.{Added, Updated}
+import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
-import models.{Employer, MemberDetails, SessionAccessData, UserAnswers}
+import models.viewModels.ViewAmendmentDetails
+import models.{Employer, MemberDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage, _}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -46,7 +49,14 @@ class ChargeCHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
     .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
     .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
 
-  val allEmployers: UserAnswers = oneEmployerLastCharge
+  val allEmployers: UserAnswers = UserAnswers()
+    .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+    .set(MemberStatusPage(0), "New").toOption.get
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
+    .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
+    .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
+    .set(MemberStatusPage(1), "Changed").toOption.get
     .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get
@@ -103,6 +113,26 @@ class ChargeCHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
   ".getOverseasTransferEmployersIncludingDeleted" must {
     "return all the members added in charge C" in {
       chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate)(request()) mustBe expectedEmployersIncludingDeleted
+    }
+  }
+
+  "getAllAuthSurplusAmendments" must {
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+
+    "return all the amendments for auth surplus charge" in {
+      val expectedAmendments = Seq(
+        ViewAmendmentDetails(
+          SampleData.sponsoringIndividualDetails.fullName, ChargeTypeAuthSurplus.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeCDetails.amountTaxDue),
+          Added
+        ),
+        ViewAmendmentDetails(
+          SampleData.sponsoringOrganisationDetails.name, ChargeTypeAuthSurplus.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeCDetails.amountTaxDue),
+          Updated
+        )
+      )
+      chargeCHelper.getAllAuthSurplusAmendments(allEmployers) mustBe expectedAmendments
     }
   }
 
