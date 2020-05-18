@@ -25,12 +25,14 @@ import controllers.actions.AllowAccessActionProvider
 import controllers.actions._
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
+import models.AccessMode.PageAccessModeCompile
 import models.LocalDateBinder._
-import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
+import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import models.GenericViewModel
 import models.Mode
 import models.NormalMode
 import models.UserAnswers
+import models.requests.DataRequest
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import pages.ChargeTypePage
@@ -92,7 +94,8 @@ class AFTSummaryController @Inject()(
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
+            optionVersion, request.sessionData.isEditable)
         renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
@@ -134,12 +137,18 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String],
-                      canChange: Boolean)(implicit messages: Messages): JsObject = {
+                      canChange: Boolean)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
+    val isAmendmentInProgress = (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile
+      && request.isAmendment)
+    val viewAllAmendmentsLink = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate).url
+
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
+      "isAmendmentInProgress" -> isAmendmentInProgress,
+      "viewAllAmendmentsLink" -> viewAllAmendmentsLink,
       "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),

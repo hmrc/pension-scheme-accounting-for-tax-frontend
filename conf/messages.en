@@ -956,5 +956,27 @@ removeLastCharge.title = You cannot remove this charge
 removeLastCharge.p1 = As this is the only charge for this return, you must change the charge amount to £0 and then resubmit the return.
 
 
+allAmendments.title = Changes made in this draft
+allAmendments.h1.caption = Draft
+allAmendments.memberDetails.h1 = Member details
+allAmendments.chargeType.h1 = Charge type
+allAmendments.chargeAmount.h1 = Charge amount
+allAmendments.table.caption.added = Added
+allAmendments.table.caption.deleted = Deleted
+allAmendments.table.caption.updated = Updated
+
+allAmendments.charge.type.lumpSumDeath = Special lump sum death benefits
+allAmendments.charge.type.lifeTimeAllowance = Lifetime Allowance
+allAmendments.charge.type.annualAllowance = Annual Allowance
+allAmendments.charge.type.authSurplus = Authorised surplus payments
+allAmendments.charge.type.deRegistration = De-registration
+allAmendments.charge.type.overseasTransfer = Overseas transfer
+allAmendments.charge.type.shortService = Short service refund lump sum
+allAmendments.numberOfMembers = {0} members
+allAmendments.noMembers = N/A
+return.to.submission = Return to total return for this draft
+
+allAmendments.view.changes.link = View changes made in this draft
+
 
 

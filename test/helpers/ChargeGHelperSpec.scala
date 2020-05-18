@@ -20,10 +20,16 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import models.AmendedChargeStatus.{Deleted, Updated}
+import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
+import models.requests.DataRequest
+import models.viewModels.ViewAmendmentDetails
 import models.{Member, UserAnswers}
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeGHelperSpec extends SpecBase {
@@ -31,8 +37,13 @@ class ChargeGHelperSpec extends SpecBase {
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
-  val allMembers: UserAnswers = UserAnswers().set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
+  val allMembers: UserAnswers = UserAnswers()
+    .set(MemberStatusPage(0), "Deleted").toOption.get
+    .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
+    .set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
     .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
+    .set(MemberStatusPage(1), "Changed").toOption.get
+    .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberGDetails2).toOption.get
     .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
 
@@ -62,6 +73,26 @@ class ChargeGHelperSpec extends SpecBase {
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
       ChargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+    }
+  }
+
+  "getAllOverseasTransferAmendments" must {
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+
+    "return all the amendments for overseas transfer charge" in {
+      val expectedRows = Seq(
+        ViewAmendmentDetails(
+          SampleData.memberGDetails.fullName, ChargeTypeOverseasTransfer.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeAmounts.amountTaxDue),
+          Deleted
+        ),
+        ViewAmendmentDetails(
+          SampleData.memberGDetails2.fullName, ChargeTypeOverseasTransfer.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeAmounts.amountTaxDue),
+          Updated
+        )
+      )
+      ChargeGHelper.getAllOverseasTransferAmendments(allMembers) mustBe expectedRows
     }
   }
 
