@@ -59,141 +59,137 @@ class DeleteChargeHelperSpec extends FreeSpec with MustMatchers with OptionValue
       "charge C" in {
         val result = deleteChargeHelper.zeroOutLastCharge(UserAnswers(onlyChargeCUa))
         result.get(ChargeCDetailsPage(0)).value.amountTaxDue mustBe 0
-        result.get(SponsoringIndividualDetailsPage(0)).value.isDeleted mustBe false
       }
 
       "charge D" in {
         val result = deleteChargeHelper.zeroOutLastCharge(UserAnswers(onlyChargeDUa))
         result.get(chargeDDetailsPage(0)).value.taxAt25Percent.value mustBe 0
         result.get(chargeDDetailsPage(0)).value.taxAt55Percent.value mustBe 0
-        result.get(chargeDMemberDetailsPage(0)).value.isDeleted mustBe false
       }
 
       "charge E" in {
         val result = deleteChargeHelper.zeroOutLastCharge(UserAnswers(onlyChargeEUa()))
         result.get(chargeEDetailsPage(0)).value.chargeAmount mustBe 0
-        result.get(chargeEMemberDetailsPage(0)).value.isDeleted mustBe false
       }
 
       "charge G" in {
         val result = deleteChargeHelper.zeroOutLastCharge(UserAnswers(onlyChargeGUa))
         result.get(ChargeAmountsPage(0)).value.amountTaxDue mustBe 0
         result.get(ChargeAmountsPage(0)).value.amountTransferred mustBe 0
-        result.get(chargeGMemberDetailsPage(0)).value.isDeleted mustBe false
       }
     }
   }
 
-//  "zeroOutCharge" - {
-//    " must zero out the amounts for scheme level charges for a specific charge " - {
-//      "charge A" in {
-//        val result = deleteChargeHelper.zeroOutCharge(ShortServiceRefundQuery, UserAnswers(allSchemeLevelCharges))
-//        result.get(chargeADetailsPage).value mustBe ChargeDetails(2, Some(0), Some(0), 0)
-//      }
-//
-//      "charge B" in {
-//        val result = deleteChargeHelper.zeroOutCharge(SpecialDeathBenefitsQuery, UserAnswers(allSchemeLevelCharges))
-//        result.get(ChargeBDetailsPage).value mustBe ChargeBDetails(4, 0)
-//      }
-//
-//      "charge F" in {
-//        val result = deleteChargeHelper.zeroOutCharge(DeregistrationQuery, UserAnswers(allSchemeLevelCharges))
-//        result.get(chargeFDetailsPage).value.totalAmount mustBe 0
-//      }
-//    }
-//  }
-//
-//  "hasLastChargeOnly" - {
-//
-//    "return true if there is only one scheme level charge" in {
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeAUa)) mustBe true
-//    }
-//
-//    "return true if last charge is charge C and only one or more deleted member" in {
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeCUa)) mustBe true
-//    }
-//
-//    "return true if the last charge is charge D and only one or more deleted member" in {
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeDUa)) mustBe true
-//    }
-//
-//    "return false if the there are more than one scheme level charge" in {
-//      val ua = Json.parse(
-//        """{
-//          |  "chargeADetails": {
-//          |    "chargeDetails": {
-//          |      "numberOfMembers": 2,
-//          |      "totalAmtOfTaxDueAtLowerRate": 200.02,
-//          |      "totalAmtOfTaxDueAtHigherRate": 200.02,
-//          |      "totalAmount": 200.02
-//          |    },
-//          |    "amendedVersion": 2
-//          |  },
-//          |  "chargeFDetails": {
-//          |    "chargeDetails": {
-//          |      "amountTaxDue": 200.02,
-//          |      "deRegistrationDate": "1980-02-29"
-//          |    }
-//          |  }
-//          |}""".stripMargin).as[JsObject]
-//
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(ua)) mustBe false
-//    }
-//
-//    "return false if the there is one scheme level charge and one member level charge with only deleted member" in {
-//      val ua = Json.parse(
-//        """{
-//          |  "chargeADetails": {
-//          |    "chargeDetails": {
-//          |      "numberOfMembers": 2,
-//          |      "totalAmtOfTaxDueAtLowerRate": 200.02,
-//          |      "totalAmtOfTaxDueAtHigherRate": 200.02,
-//          |      "totalAmount": 200.02
-//          |    },
-//          |    "amendedVersion": 2
-//          |  },
-//          |  "chargeEDetails": {
-//          |    "members": [
-//          |      {
-//          |        "memberDetails": {
-//          |          "firstName": "eFirstName",
-//          |          "lastName": "eLastName",
-//          |          "nino": "AE100100A",
-//          |          "isDeleted": true
-//          |        },
-//          |        "annualAllowanceYear": "2020",
-//          |        "chargeDetails": {
-//          |          "dateNoticeReceived": "2020-01-11",
-//          |          "chargeAmount": 200.02,
-//          |          "isPaymentMandatory": true
-//          |        }
-//          |      },
-//          |      {
-//          |        "memberDetails": {
-//          |          "firstName": "eFirstName",
-//          |          "lastName": "eLastName",
-//          |          "nino": "AE100100A",
-//          |          "isDeleted": false
-//          |        },
-//          |        "annualAllowanceYear": "2020",
-//          |        "chargeDetails": {
-//          |          "dateNoticeReceived": "2020-01-11",
-//          |          "chargeAmount": 200.02,
-//          |          "isPaymentMandatory": true
-//          |        }
-//          |      }
-//          |    ],
-//          |    "totalChargeAmount": 200.02
-//          |  }
-//          |}""".stripMargin).as[JsObject]
-//
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(ua)) mustBe false
-//    }
-//
-//    "return false if the there are one member level charge with one or more non deleted members" in {
-//      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeEUa(isDeleted = false))) mustBe false
-//    }
-//  }
+  "zeroOutCharge" - {
+    " must zero out the amounts for scheme level charges for a specific charge " - {
+      "charge A" in {
+        val result = deleteChargeHelper.zeroOutCharge(ShortServiceRefundQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(chargeADetailsPage).value mustBe ChargeDetails(2, Some(0), Some(0), 0)
+      }
+
+      "charge B" in {
+        val result = deleteChargeHelper.zeroOutCharge(SpecialDeathBenefitsQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(ChargeBDetailsPage).value mustBe ChargeBDetails(4, 0)
+      }
+
+      "charge F" in {
+        val result = deleteChargeHelper.zeroOutCharge(DeregistrationQuery, UserAnswers(allSchemeLevelCharges))
+        result.get(chargeFDetailsPage).value.totalAmount mustBe 0
+      }
+    }
+  }
+
+  "hasLastChargeOnly" - {
+
+    "return true if there is only one scheme level charge" in {
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeAUa)) mustBe true
+    }
+
+    "return true if last charge is charge C and only one or more deleted member" in {
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeCUa)) mustBe true
+    }
+
+    "return true if the last charge is charge D and only one or more deleted member" in {
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeDUa)) mustBe true
+    }
+
+    "return false if the there are more than one scheme level charge" in {
+      val ua = Json.parse(
+        """{
+          |  "chargeADetails": {
+          |    "chargeDetails": {
+          |      "numberOfMembers": 2,
+          |      "totalAmtOfTaxDueAtLowerRate": 200.02,
+          |      "totalAmtOfTaxDueAtHigherRate": 200.02,
+          |      "totalAmount": 200.02
+          |    },
+          |    "amendedVersion": 2
+          |  },
+          |  "chargeFDetails": {
+          |    "chargeDetails": {
+          |      "amountTaxDue": 200.02,
+          |      "deRegistrationDate": "1980-02-29"
+          |    }
+          |  }
+          |}""".stripMargin).as[JsObject]
+
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(ua)) mustBe false
+    }
+
+    "return false if the there is one scheme level charge and one member level charge with only deleted member" in {
+      val ua = Json.parse(
+        """{
+          |  "chargeADetails": {
+          |    "chargeDetails": {
+          |      "numberOfMembers": 2,
+          |      "totalAmtOfTaxDueAtLowerRate": 200.02,
+          |      "totalAmtOfTaxDueAtHigherRate": 200.02,
+          |      "totalAmount": 200.02
+          |    },
+          |    "amendedVersion": 2
+          |  },
+          |  "chargeEDetails": {
+          |    "members": [
+          |      {
+          |        "memberDetails": {
+          |          "firstName": "eFirstName",
+          |          "lastName": "eLastName",
+          |          "nino": "AE100100A",
+          |          "isDeleted": true
+          |        },
+          |        "annualAllowanceYear": "2020",
+          |        "chargeDetails": {
+          |          "dateNoticeReceived": "2020-01-11",
+          |          "chargeAmount": 200.02,
+          |          "isPaymentMandatory": true
+          |        }
+          |      },
+          |      {
+          |        "memberDetails": {
+          |          "firstName": "eFirstName",
+          |          "lastName": "eLastName",
+          |          "nino": "AE100100A",
+          |          "isDeleted": false
+          |        },
+          |        "annualAllowanceYear": "2020",
+          |        "chargeDetails": {
+          |          "dateNoticeReceived": "2020-01-11",
+          |          "chargeAmount": 200.02,
+          |          "isPaymentMandatory": true
+          |        }
+          |      }
+          |    ],
+          |    "totalChargeAmount": 200.02
+          |  }
+          |}""".stripMargin).as[JsObject]
+
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(ua)) mustBe false
+    }
+
+    "return false if the there are one member level charge with one or more non deleted members" in {
+      deleteChargeHelper.hasLastChargeOnly(UserAnswers(onlyChargeEUa(isDeleted = false))) mustBe false
+    }
+  }
 }
 
 object DeleteChargeHelperSpec {

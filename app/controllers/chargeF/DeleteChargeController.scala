@@ -113,7 +113,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
 
                   for {
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, request.userAnswers, Some(DeregistrationQuery))
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswersService.removeSchemeBasedCharge(DeregistrationQuery))
                   } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, request.userAnswers, srn, startDate))
                 }
               } else {

@@ -32,7 +32,7 @@ class DeleteChargeHelper {
       zeroOutChargeB orElse zeroOutChargeC orElse zeroOutChargeD orElse
       zeroOutChargeE orElse zeroOutChargeF orElse zeroOutChargeG
 
-    if (hasLastChargeOnly(ua)) {
+    if (isLastCharge(ua)) {
       ua.data.transform(zeroOutTransformer) match {
         case JsSuccess(value, _) => UserAnswers(value)
         case _                   => ua
@@ -95,39 +95,30 @@ class DeleteChargeHelper {
         getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
   }
 
-  private def zeroOutChargeA: Reads[JsObject] = {
-    println(">>>xxxxxxxxxxxx here zero out charge A")
+  private def zeroOutChargeA: Reads[JsObject] =
     updateJson(__ \ 'chargeADetails \ 'chargeDetails,
       Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
-  }
 
-  private def zeroOutChargeB: Reads[JsObject] = {
-    println(">>>xxxxxxxxxxxx here zero out charge B")
+  private def zeroOutChargeB: Reads[JsObject] =
     updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
-  }
 
-  private def zeroOutChargeF: Reads[JsObject] = {
-    println(">>>xxxxxxxxxxxx here zero out charge F")
+  private def zeroOutChargeF: Reads[JsObject] =
     updateJson(__ \ 'chargeFDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
-  }
 
-  private def zeroOutChargeC: Reads[JsObject] = {
-    println(">>>xxxxxxxxxxxx here zero out charge C")
+  private def zeroOutChargeC: Reads[JsObject] =
     updateArray(__ \ 'chargeCDetails \ 'employers) {
       updateJson(__ \ 'chargeDetails, Json.obj(fields = "amountTaxDue" -> 0))
     }
-  }
 
-  private def zeroOutChargeD: Reads[JsObject] = {
-    println(">>>xxxxxxxxxxxx here zero out charge D")
+  private def zeroOutChargeD: Reads[JsObject] =
     updateArray(__ \ 'chargeDDetails \ 'members) {
       updateJson(__ \ 'chargeDetails, Json.obj(fields = "taxAt25Percent" -> 0, "taxAt55Percent" -> 0))
     }
-  }
 
-  private def zeroOutChargeE: Reads[JsObject] = updateArray(__ \ 'chargeEDetails \ 'members) {
-    updateJson(__ \ 'chargeDetails, Json.obj(fields = "chargeAmount" -> 0))
-  }
+  private def zeroOutChargeE: Reads[JsObject] =
+    updateArray(__ \ 'chargeEDetails \ 'members) {
+      updateJson(__ \ 'chargeDetails, Json.obj(fields = "chargeAmount" -> 0))
+    }
 
   private def zeroOutChargeG: Reads[JsObject] = updateArray(__ \ 'chargeGDetails \ 'members) {
     updateJson(__ \ 'chargeAmounts, Json.obj("amountTransferred" -> 0, "amountTaxDue" -> 0))

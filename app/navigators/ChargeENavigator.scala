@@ -48,11 +48,11 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
                         (implicit request: DataRequest[AnyContent]): Call =
-    if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
-    } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
+    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else {
+    } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
+        AddMembersController.onPageLoad(srn, startDate)
+     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }
 
