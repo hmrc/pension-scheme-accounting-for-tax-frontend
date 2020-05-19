@@ -134,7 +134,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def totalAmount(srn: String, startDate: LocalDate)
+  private def totalAmount(srn: String, startDate: LocalDate)
                  (implicit request: DataRequest[AnyContent]): UserAnswers =>BigDecimal =
     chargeGHelper.getOverseasTransferMembers(_, srn, startDate).map(_.amount).sum
 }
