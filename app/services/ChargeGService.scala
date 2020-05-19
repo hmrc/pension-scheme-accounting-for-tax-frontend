@@ -19,7 +19,7 @@ package services
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import AddMembersHelper.mapChargeXMembersToTable
+import AddMembersService.mapChargeXMembersToTable
 import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeOverseasTransfer

@@ -19,12 +19,12 @@ package services
 import helpers.FormatHelper
 import models.Member
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-object AddMembersHelper {
+object AddMembersService {
 
   private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 
