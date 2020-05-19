@@ -93,7 +93,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     }
 
   private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
-    if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
+    if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.isAmendment) {
       routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
     } else {
     routes.DeleteChargeController.onPageLoad(srn, startDate).url

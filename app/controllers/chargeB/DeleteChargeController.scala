@@ -32,7 +32,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.DeleteAFTChargeService
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -45,6 +45,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        allowAccess: AllowAccessActionProvider,
                                        requireData: DataRequiredAction,
                                        deleteAFTChargeService: DeleteAFTChargeService,
+                                       userAnswersService: UserAnswersService,
                                        formProvider: DeleteFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
                                        config: FrontendAppConfig,
@@ -111,7 +112,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
 
                   for {
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, request.userAnswers, Some(SpecialDeathBenefitsQuery))
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswersService.removeSchemeBasedCharge(SpecialDeathBenefitsQuery))
                     } yield {
                     Redirect(navigator.nextPage(DeleteChargePage, NormalMode, request.userAnswers, srn, startDate))
                   }

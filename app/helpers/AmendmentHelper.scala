@@ -15,6 +15,7 @@
  */
 
 package helpers
+import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import models.AmendedChargeStatus.{Added, Deleted, Unknown, Updated}
 import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeLumpSumDeath, ChargeTypeShortService}
@@ -28,11 +29,17 @@ import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsResultException, JsValue, Reads}
 import play.api.mvc.AnyContent
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class AmendmentHelper {
+class AmendmentHelper @Inject()(
+                                 chargeCService: ChargeCService,
+                                 chargeDService: ChargeDService,
+                                 chargeEService: ChargeEService,
+                                 chargeGService: ChargeGService
+                               ) {
 
   def getTotalAmount(ua: UserAnswers): (BigDecimal, BigDecimal) = {
     val amountUK = Seq(
@@ -95,10 +102,10 @@ class AmendmentHelper {
     val allAmendmentsForSchemeLevelCharges = Seq(allAmendmentsChargeA, allAmendmentsChargeB, allAmendmentsChargeF).flatten
 
     val allAmendmentsForMemberLevelCharges =
-      ChargeCHelper.getAllAuthSurplusAmendments(currentUa) ++
-        ChargeDHelper.getAllLifetimeAllowanceAmendments(currentUa) ++
-        ChargeEHelper.getAllAnnualAllowanceAmendments(currentUa) ++
-        ChargeGHelper.getAllOverseasTransferAmendments(currentUa)
+      chargeCService.getAllAuthSurplusAmendments(currentUa) ++
+        chargeDService.getAllLifetimeAllowanceAmendments(currentUa) ++
+        chargeEService.getAllAnnualAllowanceAmendments(currentUa) ++
+        chargeGService.getAllOverseasTransferAmendments(currentUa)
 
     allAmendmentsForSchemeLevelCharges ++ allAmendmentsForMemberLevelCharges
   }

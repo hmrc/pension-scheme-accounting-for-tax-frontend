@@ -22,22 +22,23 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
-import helpers.ChargeEHelper._
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import play.api.mvc.{AnyContent, Call}
+import services.ChargeEService
 import utils.DeleteChargeHelper
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
+                                 chargeEHelper: ChargeEService,
                                  config: FrontendAppConfig)
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
@@ -47,11 +48,11 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
                         (implicit request: DataRequest[AnyContent]): Call =
-    if(getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
-    } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
+    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else {
+    } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
+        AddMembersController.onPageLoad(srn, startDate)
+     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }
 

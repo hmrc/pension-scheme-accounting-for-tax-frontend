@@ -22,23 +22,25 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeC.routes._
-import helpers.ChargeCHelper._
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
+import models.{CheckMode, NormalMode, UserAnswers}
 import models.requests.DataRequest
 import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
 import play.api.mvc.{AnyContent, Call}
+import services.ChargeCService
 import utils.DeleteChargeHelper
 
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
+                                 chargeCHelper: ChargeCService,
                                  config: FrontendAppConfig)
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
+    chargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
@@ -81,14 +83,13 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case AddEmployersPage =>
       addEmployers(ua, srn, startDate)
 
-    case DeleteEmployerPage if getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
-      AddEmployersController.onPageLoad(srn, startDate)
-
-    case DeleteEmployerPage if deleteChargeHelper.hasLastChargeOnly(ua) =>
+    case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
 
-    case DeleteEmployerPage =>
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
+      AddEmployersController.onPageLoad(srn, startDate)
+
+    case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
   //scalastyle:on cyclomatic.complexity

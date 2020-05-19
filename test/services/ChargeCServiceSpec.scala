@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Added, Updated}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
@@ -27,17 +28,28 @@ import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, Sponsori
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{Employer, MemberDetails, UserAnswers}
-import pages.chargeC._
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage, _}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
 import scala.collection.mutable.ArrayBuffer
 
-class ChargeCHelperSpec extends SpecBase {
+class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
+
+  val oneEmployerLastCharge: UserAnswers = UserAnswers()
+    .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
+    .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
+    .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
+
   val allEmployers: UserAnswers = UserAnswers()
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
     .set(MemberStatusPage(0), "New").toOption.get
@@ -57,8 +69,12 @@ class ChargeCHelperSpec extends SpecBase {
 
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index).url
+  def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index).url
   def expectedEmployer(memberDetails: MemberDetails, index: Int): Employer =
     Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+
+  def expectedLastChargeEmployer: Seq[Employer] =
+    ArrayBuffer(Employer(0, "First Last", SampleData.chargeAmount1, viewLink(0), lastChargeLink(0)))
 
   def expectedAllEmployers: Seq[Employer] = ArrayBuffer(
     expectedEmployer(SampleData.sponsoringIndividualDetails, 0),
@@ -68,20 +84,36 @@ class ChargeCHelperSpec extends SpecBase {
       viewLink(1), removeLink(1))
   )
 
-
   def expectedEmployersIncludingDeleted: Seq[Employer] = expectedAllEmployers ++ Seq(
     expectedEmployer(SampleData.memberDetailsDeleted, 2)
   )
 
-  ".getOverseasTransferEmployers" must {
-    "return all the members added in charge G" in {
-      ChargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate) mustBe expectedAllEmployers
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeCHelper: ChargeCService = new ChargeCService(mockDeleteChargeHelper)
+
+  private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContent] =
+    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua,
+      SampleData.sessionData(name = None, sessionAccessData = SampleData.sessionAccessData(2)))
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
+  ".getSponsoringEmployers" must {
+    "return all the members added in charge C when it is not the last charge" in {
+      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate)(request()) mustBe expectedAllEmployers
+    }
+
+    "return all the members added in charge C when it is the last charge" in {
+      when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
+      chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate)(dataRequest()) mustBe expectedLastChargeEmployer
     }
   }
 
   ".getOverseasTransferEmployersIncludingDeleted" must {
-    "return all the members added in charge G" in {
-      ChargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate) mustBe expectedEmployersIncludingDeleted
+    "return all the members added in charge C" in {
+      chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate)(request()) mustBe expectedEmployersIncludingDeleted
     }
   }
 
@@ -101,7 +133,7 @@ class ChargeCHelperSpec extends SpecBase {
           Updated
         )
       )
-      ChargeCHelper.getAllAuthSurplusAmendments(allEmployers) mustBe expectedAmendments
+      chargeCHelper.getAllAuthSurplusAmendments(allEmployers) mustBe expectedAmendments
     }
   }
 

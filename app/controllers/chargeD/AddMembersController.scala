@@ -25,16 +25,16 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AFTVersion, GenericViewModel, NormalMode, Quarter}
+import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeD.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import helpers.ChargeDHelper._
+import services.ChargeDService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
@@ -50,6 +50,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      requireData: DataRequiredAction,
                                      formProvider: AddMembersFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
+                                     chargeDHelper: ChargeDService,
                                      config: FrontendAppConfig,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -97,7 +98,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = getLifetimeAllowanceMembers(request.userAnswers, srn, startDate)
+    val members = chargeDHelper.getLifetimeAllowanceMembers(request.userAnswers, srn, startDate)
 
     Json.obj(
       "srn" -> srn,
@@ -107,7 +108,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.sessionData.isViewOnly)),
+      "table" -> Json.toJson(chargeDHelper.mapToTable(members, !request.sessionData.isViewOnly)),
       "canChange" -> !request.sessionData.isViewOnly
     )
 

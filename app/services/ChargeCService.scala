@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
@@ -32,10 +34,11 @@ import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DeleteChargeHelper
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-object ChargeCHelper {
+class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption
@@ -47,7 +50,8 @@ object ChargeCHelper {
     case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
   }
 
-  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] = {
+  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       getEmployerDetails(ua, index).flatMap {
@@ -58,7 +62,7 @@ object ChargeCHelper {
               name,
               chargeDetails.amountTaxDue,
               viewUrl(index, srn, startDate).url,
-              removeUrl(index, srn, startDate).url,
+              removeUrl(index, srn, startDate, ua).url,
               isDeleted
             )
           }
@@ -66,7 +70,7 @@ object ChargeCHelper {
     }
   }
 
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Employer] =
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Employer] =
     getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
   def getAllAuthSurplusAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
@@ -97,8 +101,12 @@ object ChargeCHelper {
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
 
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call =
-    controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+    if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
+      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+    } else {
+      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
+    }
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
     val head = Seq(

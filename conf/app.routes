@@ -105,6 +105,8 @@ POST        /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges 
 GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-last-charge                                                   controllers.chargeE.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET         /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
 POST        /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String] = None)
 GET         /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
@@ -146,6 +148,8 @@ POST        /:srn/new-return/:startDate/lifetime-allowance-charge/list-of-charge
 GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-last-charge                                         controllers.chargeD.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/what-you-will-need                                       controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/sponsoring-employer-individual-or-company                        controllers.chargeC.WhichTypeOfSponsoringEmployerController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
@@ -182,6 +186,8 @@ POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/list-
 GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onPageLoad(srn: String, startDate: String, index: Index)
 POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-last-charge                   controllers.chargeC.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/what-you-will-need                                                 controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/members-details                                             controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
@@ -208,6 +214,8 @@ GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/on-click-
 
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
+
+GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-last-charge                   controllers.chargeG.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
 
 GET        /:srn/new-return/:startDate/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String)
 
