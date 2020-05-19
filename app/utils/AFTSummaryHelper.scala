@@ -47,7 +47,7 @@ class AFTSummaryHelper {
     ),
     SummaryDetails(
       chargeType = ChargeTypeDeRegistration,
-      totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+      totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
       href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     ),
     SummaryDetails(
@@ -62,7 +62,7 @@ class AFTSummaryHelper {
     ),
     SummaryDetails(
       chargeType = ChargeTypeLumpSumDeath,
-      totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.amountTaxDue).getOrElse(BigDecimal(0)),
+      totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
       href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     )
   )

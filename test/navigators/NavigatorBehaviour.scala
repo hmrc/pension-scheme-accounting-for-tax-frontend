@@ -38,7 +38,7 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
-          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)
+          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)(request())
           result mustBe call
         }
     }

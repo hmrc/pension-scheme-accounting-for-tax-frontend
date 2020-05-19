@@ -24,10 +24,11 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
 import helpers.ChargeEHelper._
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import utils.DeleteChargeHelper
 
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
@@ -35,14 +36,17 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
+    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddMembersPage) match {
+  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
+  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
+                        (implicit request: DataRequest[AnyContent]): Call =
     if(getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
       AddMembersController.onPageLoad(srn, startDate)
     } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
@@ -51,7 +55,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
@@ -61,7 +66,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                     (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, index)
     case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
     case ChargeDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, index)

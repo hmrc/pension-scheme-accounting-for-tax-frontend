@@ -114,6 +114,12 @@
 
           {{ csrf() | safe }}
 
+          {% if isAmendmentInProgress %}
+              <p class="govuk-body">
+                <a href="{{ viewAllAmendmentsLink }}" class="govuk-link"> {{ messages("allAmendments.view.changes.link") }}</a>
+              </p>
+           % endif %}
+
           {% if formSearchText.searchText.value |length == 0 %}
             {% if list.length > 0 %}
               {{ govukSummaryList({

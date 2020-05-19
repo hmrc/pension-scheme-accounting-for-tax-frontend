@@ -20,11 +20,11 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{AFTOverview, AFTVersion, Quarters, UserAnswers}
+import models.{AFTOverview, AFTVersion, JourneyType, Quarters, UserAnswers}
 import play.api.Logger
 import play.api.http.Status
 import play.api.http.Status.OK
-import play.api.libs.json.{JsError, JsObject, JsResultException, JsSuccess, JsValue, Json}
+import play.api.libs.json._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.{DateHelper, HttpResponseHelper}
@@ -34,9 +34,9 @@ import scala.util.Failure
 
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+  def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = config.aftFileReturn
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
+    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "journeyType" -> journeyType.toString)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
   }
 

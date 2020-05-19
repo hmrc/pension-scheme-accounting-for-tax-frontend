@@ -18,42 +18,74 @@ package helpers
 
 import java.time.LocalDate
 
-import models.{Member, MemberDetails, UserAnswers}
-import pages.chargeE.ChargeDetailsPage
-import play.api.i18n.Messages
-import play.api.mvc.Call
-import AddMembersHelper.mapChargeXMembersToTable
-import viewmodels.Table
+import helpers.AddMembersHelper.mapChargeXMembersToTable
+import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
+import models.requests.DataRequest
+import models.viewModels.ViewAmendmentDetails
+import models.{Member, MemberDetails, UserAnswers}
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
+import play.api.i18n.Messages
+import play.api.mvc.{AnyContent, Call}
+import viewmodels.Table
 
 object ChargeEHelper {
 
   def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] = {
 
     val members = for {
-        (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
-      } yield {
-        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-          Member(
-            index,
-            member.fullName,
-            member.nino,
-            chargeDetails.chargeAmount,
-            viewUrl(index, srn, startDate).url,
-            removeUrl(index, srn, startDate).url,
-            member.isDeleted
-          )
-        }
+      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
+    } yield {
+      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+        Member(
+          index,
+          member.fullName,
+          member.nino,
+          chargeDetails.chargeAmount,
+          viewUrl(index, srn, startDate).url,
+          removeUrl(index, srn, startDate).url,
+          member.isDeleted
+        )
       }
+    }
 
     members.flatten
+  }
+
+  def getAllAnnualAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
+    ua.getAllMembersInCharge[MemberDetails]("chargeEDetails")
+      .zipWithIndex
+      .flatMap { memberDetails =>
+        val (member, index) = memberDetails
+        ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+          val currentVersion = request.aftVersion
+          val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
+
+          if (memberVersion == currentVersion) {
+            Some(
+              ViewAmendmentDetails(
+                member.fullName,
+                ChargeTypeAnnualAllowance.toString,
+                FormatHelper.formatCurrencyAmountAsString(chargeDetails.chargeAmount),
+                ua.get(MemberStatusPage(index)).map(amendedChargeStatus).getOrElse(Unknown)
+              )
+            )
+          } else {
+            None
+          }
+        }
+      }
+      .flatten
   }
 
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[Member] =
     getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
-  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def removeUrl(index: Int, srn: String, startDate: LocalDate): Call =
+    controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeE", members, canChange)
