@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import helpers.AddMembersHelper.mapChargeXMembersToTable
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
@@ -32,7 +33,7 @@ import play.api.mvc.{AnyContent, Call}
 import utils.DeleteChargeHelper
 import viewmodels.Table
 
-class ChargeDHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
                                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {

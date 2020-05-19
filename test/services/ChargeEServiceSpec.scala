@@ -14,51 +14,52 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import models.AmendedChargeStatus.{Deleted, Updated}
-import models.ChargeType.ChargeTypeLifetimeAllowance
+import helpers.FormatHelper
+import models.AmendedChargeStatus.{Added, Deleted}
+import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, MemberDetails, UserAnswers}
+import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 import utils.DeleteChargeHelper
 
-class ChargeDHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers()
-    .set(MemberStatusPage(0), "Deleted").toOption.get
+    .set(MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
-    .set(ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
-    .set(MemberStatusPage(1), "Changed").toOption.get
+    .set(ChargeDetailsPage(0), SampleData.chargeEDetails).toOption.get
+    .set(MemberStatusPage(1), AmendedChargeStatus.Deleted.toString).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
-    .set(ChargeDetailsPage(1), SampleData.chargeDDetails).toOption.get
+    .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
 
   val allMembersIncludingDeleted: UserAnswers = allMembers
     .set(MemberDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
-    .set(ChargeDetailsPage(2), SampleData.chargeDDetails).toOption.get
+    .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  def removeLink(index: Int): String = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
+  def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
+  def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
-    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1 + SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[Member] = Seq(
     expectedMember(SampleData.memberDetails, 0),
@@ -69,7 +70,7 @@ class ChargeDHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
   )
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeDHelper: ChargeDHelper = new ChargeDHelper(mockDeleteChargeHelper)
+  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
 
   override def beforeEach: Unit = {
     reset(mockDeleteChargeHelper)
@@ -78,33 +79,33 @@ class ChargeDHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      chargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
+      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
     }
   }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
+      chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
     }
   }
 
-  "getAllLifetimeAllowanceAmendments" must {
+  "getAllAnnualAllowanceAmendments" must {
     implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
 
-    "return all the amendments for lifetime allowance charge" in {
+    "return all the amendments for annual allowance charge" in {
       val expectedRows = Seq(
         ViewAmendmentDetails(
-          SampleData.memberDetails.fullName, ChargeTypeLifetimeAllowance.toString,
-          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeDDetails.total),
-          Deleted
+          SampleData.memberDetails.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Added
         ),
         ViewAmendmentDetails(
-          SampleData.memberDetails2.fullName, ChargeTypeLifetimeAllowance.toString,
-          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeDDetails.total),
-          Updated
+          SampleData.memberDetails2.fullName, ChargeTypeAnnualAllowance.toString,
+          FormatHelper.formatCurrencyAmountAsString(SampleData.chargeEDetails.chargeAmount),
+          Deleted
         )
       )
-      chargeDHelper.getAllLifetimeAllowanceAmendments(allMembers) mustBe expectedRows
+      chargeEHelper.getAllAnnualAllowanceAmendments(allMembers) mustBe expectedRows
     }
   }
 

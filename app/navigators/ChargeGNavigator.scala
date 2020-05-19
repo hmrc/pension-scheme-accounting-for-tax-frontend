@@ -22,18 +22,18 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
-import helpers.ChargeGHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.{AnyContent, Call}
+import services.ChargeGService
 import utils.DeleteChargeHelper
 
 class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
-                                 chargeGHelper: ChargeGHelper,
+                                 chargeGHelper: ChargeGService,
                                  config: FrontendAppConfig)
   extends Navigator {
 

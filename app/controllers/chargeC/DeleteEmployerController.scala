@@ -23,7 +23,6 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import helpers.ChargeCHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -36,7 +35,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.{ChargeCService, DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -54,7 +53,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
-                                         chargeCHelper: ChargeCHelper,
+                                         chargeCHelper: ChargeCService,
                                          config: FrontendAppConfig,
                                          renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController

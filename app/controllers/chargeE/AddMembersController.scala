@@ -22,7 +22,6 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.AddMembersFormProvider
-import helpers.ChargeEHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -35,6 +34,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.ChargeEService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
@@ -50,7 +50,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      requireData: DataRequiredAction,
                                      formProvider: AddMembersFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
-                                     chargeEHelper: ChargeEHelper,
+                                     chargeEHelper: ChargeEService,
                                      config: FrontendAppConfig,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController

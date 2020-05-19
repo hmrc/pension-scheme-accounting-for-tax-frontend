@@ -44,6 +44,7 @@ import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage => MemberGAFTVersi
 import play.api.libs.json.Json
 import play.api.mvc.AnyContent
 import play.twirl.api.Html
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -53,10 +54,10 @@ import scala.concurrent.Future
 
 class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
-  val chargeCHelper: ChargeCHelper = mock[ChargeCHelper]
-  val chargeDHelper: ChargeDHelper = mock[ChargeDHelper]
-  val chargeEHelper: ChargeEHelper = mock[ChargeEHelper]
-  val chargeGHelper: ChargeGHelper = mock[ChargeGHelper]
+  val chargeCHelper: ChargeCService = mock[ChargeCService]
+  val chargeDHelper: ChargeDService = mock[ChargeDService]
+  val chargeEHelper: ChargeEService = mock[ChargeEService]
+  val chargeGHelper: ChargeGService = mock[ChargeGService]
   private val amendmentHelper = new AmendmentHelper(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
 
   override def beforeEach: Unit = {

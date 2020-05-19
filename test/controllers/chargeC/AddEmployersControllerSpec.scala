@@ -22,7 +22,7 @@ import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.AddMembersFormProvider
-import helpers.{ChargeCHelper, FormatHelper}
+import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
@@ -37,7 +38,7 @@ import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 import utils.DeleteChargeHelper
 
-class ChargeGHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -70,7 +71,7 @@ class ChargeGHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEa
   )
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  val chargeGHelper: ChargeGHelper = new ChargeGHelper(mockDeleteChargeHelper)
+  val chargeGHelper: ChargeGService = new ChargeGService(mockDeleteChargeHelper)
 
   override def beforeEach: Unit = {
     reset(mockDeleteChargeHelper)

@@ -21,18 +21,18 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import helpers.{ChargeCHelper, ChargeDHelper, ChargeEHelper, ChargeGHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.{AnyContent, Call}
+import services.{ChargeDService, ChargeEService, ChargeGService}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
-                               chargeDHelper: ChargeDHelper,
-                               chargeEHelper: ChargeEHelper,
-                               chargeGHelper: ChargeGHelper) extends Navigator {
+                                chargeDHelper: ChargeDService,
+                                chargeEHelper: ChargeEService,
+                                chargeGHelper: ChargeGService) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {

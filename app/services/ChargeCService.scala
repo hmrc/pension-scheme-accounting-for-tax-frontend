@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.requests.DataRequest
 import models.{Employer, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
@@ -38,7 +38,7 @@ import utils.DeleteChargeHelper
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-class ChargeCHelper @Inject()(deleteChargeHelper: DeleteChargeHelper) {
+class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def numberOfEmployersIncludingDeleted(ua: UserAnswers): Int =
     (ua.data \ "chargeCDetails" \ "employers").toOption

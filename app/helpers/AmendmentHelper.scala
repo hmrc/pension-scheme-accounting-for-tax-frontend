@@ -29,15 +29,16 @@ import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsResultException, JsValue, Reads}
 import play.api.mvc.AnyContent
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
 class AmendmentHelper @Inject()(
-                                 chargeCHelper: ChargeCHelper,
-                                 chargeDHelper: ChargeDHelper,
-                                 chargeEHelper: ChargeEHelper,
-                                 chargeGHelper: ChargeGHelper
+                                 chargeCService: ChargeCService,
+                                 chargeDService: ChargeDService,
+                                 chargeEService: ChargeEService,
+                                 chargeGService: ChargeGService
                                ) {
 
   def getTotalAmount(ua: UserAnswers): (BigDecimal, BigDecimal) = {
@@ -101,10 +102,10 @@ class AmendmentHelper @Inject()(
     val allAmendmentsForSchemeLevelCharges = Seq(allAmendmentsChargeA, allAmendmentsChargeB, allAmendmentsChargeF).flatten
 
     val allAmendmentsForMemberLevelCharges =
-      chargeCHelper.getAllAuthSurplusAmendments(currentUa) ++
-        chargeDHelper.getAllLifetimeAllowanceAmendments(currentUa) ++
-        chargeEHelper.getAllAnnualAllowanceAmendments(currentUa) ++
-        chargeGHelper.getAllOverseasTransferAmendments(currentUa)
+      chargeCService.getAllAuthSurplusAmendments(currentUa) ++
+        chargeDService.getAllLifetimeAllowanceAmendments(currentUa) ++
+        chargeEService.getAllAnnualAllowanceAmendments(currentUa) ++
+        chargeGService.getAllOverseasTransferAmendments(currentUa)
 
     allAmendmentsForSchemeLevelCharges ++ allAmendmentsForMemberLevelCharges
   }

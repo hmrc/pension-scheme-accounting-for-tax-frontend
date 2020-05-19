@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.{CYAChargeGHelper, ChargeGHelper}
+import helpers.CYAChargeGHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
@@ -32,7 +32,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
+import services.{AFTService, ChargeGService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
@@ -48,7 +48,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
-                                           chargeGHelper: ChargeGHelper,
+                                           chargeGHelper: ChargeGService,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
