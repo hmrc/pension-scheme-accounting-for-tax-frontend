@@ -24,6 +24,8 @@ import pages.chargeF.DeregistrationQuery
 import play.api.libs.json.Reads._
 import play.api.libs.json.{JsObject, Json, Reads, __, _}
 
+import scala.annotation.tailrec
+
 class DeleteChargeHelper {
 
   def zeroOutLastCharge(ua: UserAnswers): UserAnswers = {
@@ -55,44 +57,6 @@ class DeleteChargeHelper {
       case JsSuccess(value, _) => UserAnswers(value)
       case _                   => ua
     }
-  }
-
-  def hasLastChargeOnly(ua: UserAnswers): Boolean = {
-    val json = ua.data
-
-    val memberLevelCharges = Seq("chargeCDetails", "chargeDDetails", "chargeEDetails", "chargeGDetails")
-    val schemeLevelCharges = Seq("chargeADetails", "chargeBDetails", "chargeFDetails")
-
-    val allNonEmptyCharges: Seq[(Boolean, String)] =
-      (memberLevelCharges.map(chargeDetails => ((json \ chargeDetails).isDefined, chargeDetails)) ++
-        schemeLevelCharges.map(chargeDetails => ((json \ chargeDetails).isDefined, chargeDetails)))
-        .filter(_._1)
-
-    if (allNonEmptyCharges.size == 1) {
-      allNonEmptyCharges.headOption match {
-        case Some((_, "chargeCDetails"))                                      => isLastMemberC(ua)
-        case Some((_, chargeType)) if memberLevelCharges.contains(chargeType) => isLastMember(ua, chargeType)
-        case _                                                                => true
-      }
-    } else {
-      false
-    }
-  }
-
-  private def isLastMember(ua: UserAnswers, chargeType: String): Boolean = {
-    val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
-    getMembersOrEmployersCount(memberDetailsPath, isDeleted = false) == 0 &&
-      getMembersOrEmployersCount(memberDetailsPath, isDeleted = true) > 0
-  }
-
-  private def isLastMemberC(ua: UserAnswers): Boolean = {
-    val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
-    val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
-
-    getMembersOrEmployersCount(individualPath, isDeleted = false) == 0 &&
-      getMembersOrEmployersCount(orgPath, isDeleted = false) == 0 &&
-      (getMembersOrEmployersCount(individualPath, isDeleted = true) > 0 ||
-        getMembersOrEmployersCount(orgPath, isDeleted = true) > 0)
   }
 
   private def zeroOutChargeA: Reads[JsObject] =
@@ -133,22 +97,24 @@ class DeleteChargeHelper {
   private def updateArray(path: JsPath)(memberTransformer: Reads[JsObject]): Reads[JsObject] = {
     path.json.update(
       __.read[JsArray].map {
-        case JsArray(arr) =>
-          JsArray(
-            Seq(arr.headOption match {
-              case Some(firstElem) =>
-                firstElem.transform(memberTransformer).asOpt.getOrElse(firstElem)
-              case _ => Json.obj()
-            }) ++ arr.tail
-          )
+        case JsArray(arr) => JsArray(transformArrayMember(arr, memberTransformer))
       }
     )
   }
 
-  private def getMembersOrEmployersCount(seqMember: Seq[JsValue], isDeleted: Boolean): Int = {
+  @tailrec
+  private def transformArrayMember(arr: Seq[JsValue], memberTransformer: Reads[JsObject]): Seq[JsValue] =
+    arr.headOption match {
+      case Some(firstElem) if arr.size == 1 =>
+        Seq(firstElem.transform(memberTransformer).asOpt.getOrElse(firstElem))
+      case _ if arr.size < 1 => Seq(Json.obj())
+      case _ => transformArrayMember(arr.tail, memberTransformer)
+    }
+
+  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int = {
     seqMember.count { member =>
       (member \ "isDeleted").validate[Boolean] match {
-        case JsSuccess(value, _) => value == isDeleted
+        case JsSuccess(value, _) => !value
         case JsError(errors)     => throw JsResultException(errors)
       }
     }
@@ -192,14 +158,14 @@ class DeleteChargeHelper {
   private def validMembers(ua: UserAnswers, chargeType: String): ValidChargeDetails = {
     val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
     val totalAmountPath = ua.data \ chargeType \ "totalChargeAmount"
-    ValidChargeDetails(chargeType, getMembersOrEmployersCount(memberDetailsPath, isDeleted = false), getTotal(totalAmountPath))
+    ValidChargeDetails(chargeType, getMembersOrEmployersCount(memberDetailsPath), getTotal(totalAmountPath))
   }
 
   private def validEmployers(ua: UserAnswers): ValidChargeDetails = {
     val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
     val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
     val totalAmountPath = ua.data \ "chargeCDetails" \ "totalChargeAmount"
-    val count = getMembersOrEmployersCount(individualPath, isDeleted = false) + getMembersOrEmployersCount(orgPath, isDeleted = false)
+    val count = getMembersOrEmployersCount(individualPath) + getMembersOrEmployersCount(orgPath)
     ValidChargeDetails("chargeCDetails", count, getTotal(totalAmountPath))
   }
 
