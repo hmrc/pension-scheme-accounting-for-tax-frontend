@@ -110,6 +110,7 @@ POST        /:srn/new-return/:startDate/summary                                 
 GET         /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
 POST        /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String])
 
+POST        /:srn/new-return/:startDate/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String] = None)
 POST        /:srn/new-return/:startDate/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String])
 
 GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/what-you-will-need                                     controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
