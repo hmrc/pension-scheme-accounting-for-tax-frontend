@@ -61,14 +61,16 @@
                 {% if formSearchText.searchText.value %}
                     {{ govukButton({
                       text: messages('aft.summary.searchAgain.button'),
-                      classes: "govuk-button--secondary"
+                      classes: "govuk-button--secondary",
+                      attributes: {id: "search"}
                     }) }}
                     <p class="govuk-body"><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
 
                 {% else %}
                     {{ govukButton({
                       text: messages('aft.summary.search.button'),
-                      classes: "govuk-button--secondary"
+                      classes: "govuk-button--secondary",
+                      attributes: {id: "search"}
                     }) }}
 
                 {% endif  %}
