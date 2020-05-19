@@ -18,54 +18,13 @@ package controllers
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.AllowAccessActionProvider
 import controllers.actions._
 import forms.AFTSummaryFormProvider
-import javax.inject.Inject
-import models.AccessMode.PageAccessModeCompile
-import models.LocalDateBinder._
-import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
-import models.GenericViewModel
-import models.Mode
-import models.NormalMode
-import models.UserAnswers
-import models.requests.DataRequest
-import navigators.CompoundNavigator
-import pages.AFTSummaryPage
-import pages.ChargeTypePage
-import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
-import renderer.Renderer
-import services.RequestCreationService
-import services.AFTService
-import services.AllowAccessService
-import services.SchemeService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Radios
-import utils.AFTSummaryHelper
-import utils.DateHelper.dateFormatterDMY
-
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import services.MemberSearchService.MemberRow
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.AllowAccessActionProvider
-import controllers.actions._
-import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
+import forms.MemberSearchFormProvider
 import javax.inject.Inject
 import models.AccessMode.PageAccessModeCompile
 import models.LocalDateBinder._
@@ -97,7 +56,6 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
-import uk.gov.hmrc.viewmodels.SummaryList.Row
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
