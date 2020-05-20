@@ -21,15 +21,7 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import models.AmendedChargeStatus.{Added, Deleted, Updated}
-import models.ChargeType.{
-  ChargeTypeAnnualAllowance,
-  ChargeTypeAuthSurplus,
-  ChargeTypeDeRegistration,
-  ChargeTypeLifetimeAllowance,
-  ChargeTypeLumpSumDeath,
-  ChargeTypeOverseasTransfer,
-  ChargeTypeShortService
-}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeAuthSurplus, ChargeTypeDeRegistration, ChargeTypeLifetimeAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeShortService}
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
@@ -37,43 +29,46 @@ import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{UserAnswers, chargeA}
+import org.mockito.Matchers.any
+import org.mockito.Mockito
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
-import pages.chargeC.{
-  ChargeCDetailsPage,
-  SponsoringIndividualDetailsPage,
-  WhichTypeOfSponsoringEmployerPage,
-  MemberAFTVersionPage => MemberCAFTVersionPage,
-  MemberStatusPage => MemberCStatusPage
-}
-import pages.chargeD.{
-  ChargeDetailsPage => ChargeDDetailsPage,
-  MemberAFTVersionPage => MemberDAFTVersionPage,
-  MemberDetailsPage => MemberDDetailsPage,
-  MemberStatusPage => MemberDStatusPage
-}
-import pages.chargeE.{
-  ChargeDetailsPage => ChargeEDetailsPage,
-  MemberAFTVersionPage => MemberEAFTVersionPage,
-  MemberDetailsPage => MemberEDetailsPage,
-  MemberStatusPage => MemberEStatusPage
-}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, WhichTypeOfSponsoringEmployerPage, MemberAFTVersionPage => MemberCAFTVersionPage, MemberStatusPage => MemberCStatusPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberAFTVersionPage => MemberDAFTVersionPage, MemberDetailsPage => MemberDDetailsPage, MemberStatusPage => MemberDStatusPage}
+import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage, MemberDetailsPage => MemberEDetailsPage, MemberStatusPage => MemberEStatusPage}
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
-import pages.chargeG.{
-  ChargeAmountsPage,
-  MemberAFTVersionPage => MemberGAFTVersionPage,
-  MemberDetailsPage => MemberGDetailsPage,
-  MemberStatusPage => MemberGStatusPage
-}
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage => MemberGAFTVersionPage, MemberDetailsPage => MemberGDetailsPage, MemberStatusPage => MemberGStatusPage}
+import play.api.libs.json.Json
 import play.api.mvc.AnyContent
+import play.twirl.api.Html
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class AmendmentHelperSpec extends SpecBase {
+import scala.concurrent.Future
 
-  private val amendmentHelper = new AmendmentHelper
+class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+
+  val chargeCHelper: ChargeCService = mock[ChargeCService]
+  val chargeDHelper: ChargeDService = mock[ChargeDService]
+  val chargeEHelper: ChargeEService = mock[ChargeEService]
+  val chargeGHelper: ChargeGService = mock[ChargeGService]
+  private val amendmentHelper = new AmendmentHelper(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    Mockito.reset(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
+    when(chargeCHelper.getAllAuthSurplusAmendments(any())(any())).thenReturn(Nil)
+    when(chargeDHelper.getAllLifetimeAllowanceAmendments(any())(any())).thenReturn(Nil)
+    when(chargeEHelper.getAllAnnualAllowanceAmendments(any())(any())).thenReturn(Nil)
+    when(chargeGHelper.getAllOverseasTransferAmendments(any())(any())).thenReturn(Nil)
+
+  }
 
   "getTotalAmount" must {
 
@@ -321,6 +316,11 @@ class AmendmentHelperSpec extends SpecBase {
             Deleted
           )
         )
+
+        when(chargeCHelper.getAllAuthSurplusAmendments(any())(any())).thenReturn(Seq(expectedRows(3)))
+        when(chargeDHelper.getAllLifetimeAllowanceAmendments(any())(any())).thenReturn(Seq(expectedRows(4)))
+        when(chargeEHelper.getAllAnnualAllowanceAmendments(any())(any())).thenReturn(Seq(expectedRows(5)))
+        when(chargeGHelper.getAllOverseasTransferAmendments(any())(any())).thenReturn(Seq(expectedRows(6)))
 
         amendmentHelper.getAllAmendments(currentUa, UserAnswers()) mustBe expectedRows
       }

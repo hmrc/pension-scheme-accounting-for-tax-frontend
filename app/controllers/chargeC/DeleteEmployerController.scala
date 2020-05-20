@@ -23,10 +23,10 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.DeleteFormProvider
-import helpers.ChargeCHelper.getSponsoringEmployers
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.requests.DataRequest
 import models.{GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
@@ -35,7 +35,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.{ChargeCService, DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -53,6 +53,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                                          deleteAFTChargeService: DeleteAFTChargeService,
                                          formProvider: DeleteFormProvider,
                                          val controllerComponents: MessagesControllerComponents,
+                                         chargeCHelper: ChargeCService,
                                          config: FrontendAppConfig,
                                          renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -113,11 +114,9 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
+
                   for {
-                    interimAnswers <- Future.fromTry(saveDeletion(request.userAnswers, index)
-                      .flatMap(answers => answers.set(TotalChargeAmountPage, totalAmount(answers, srn, startDate))))
-                    updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringIndividualDetailsPage(index), interimAnswers))
-                    _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+                    updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate))
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                   } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
                 }
@@ -127,16 +126,26 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
           )
       }
     }
-  private def saveDeletion(ua: UserAnswers, index: Int): Try[UserAnswers] =
+  private def removeCharge(index: Int, srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
+    val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
+
       case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
-        ua.set(SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true))
+        userAnswersService.removeMemberBasedCharge(
+          SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
-        ua.set(SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true))
+        userAnswersService.removeMemberBasedCharge(
+          SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+
       case _ => Try(ua)
     }
+  }
 
-  def totalAmount(ua: UserAnswers, srn: String, startDate: LocalDate): BigDecimal = getSponsoringEmployers(ua, srn, startDate).map(_.amount).sum
+  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+    chargeCHelper.getSponsoringEmployers(_, srn, startDate).map(_.amount).sum
+
+  case object EmployerTypeUnidentified extends Exception("Employer did not match individual or organisation type")
 }

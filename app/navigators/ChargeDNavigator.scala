@@ -22,22 +22,23 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeD.routes.{MemberDetailsController, _}
-import helpers.ChargeDHelper._
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeD.{AddMembersPage, _}
 import play.api.mvc.{AnyContent, Call}
+import services.ChargeDService
 import utils.DeleteChargeHelper
 
 class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
+                                 chargeDHelper: ChargeDService,
                                  config: FrontendAppConfig)
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
@@ -47,10 +48,10 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
                         (implicit request: DataRequest[AnyContent]): Call =
-    if(getLifetimeAllowanceMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
-    } else if(deleteChargeHelper.hasLastChargeOnly(ua)) {
+    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    } else if(chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).nonEmpty) {
+      AddMembersController.onPageLoad(srn, startDate)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }

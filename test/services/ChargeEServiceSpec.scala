@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Added, Deleted}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
-class ChargeEHelperSpec extends SpecBase {
+class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -63,15 +69,23 @@ class ChargeEHelperSpec extends SpecBase {
     expectedMember(SampleData.memberDetailsDeleted, 2)
   )
 
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      ChargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
     }
   }
 
   ".getAnnualAllowanceMembersIncludingDeleted" must {
     "return all the members added in charge E" in {
-      ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
     }
   }
 
@@ -91,7 +105,7 @@ class ChargeEHelperSpec extends SpecBase {
           Deleted
         )
       )
-      ChargeEHelper.getAllAnnualAllowanceAmendments(allMembers) mustBe expectedRows
+      chargeEHelper.getAllAnnualAllowanceAmendments(allMembers) mustBe expectedRows
     }
   }
 

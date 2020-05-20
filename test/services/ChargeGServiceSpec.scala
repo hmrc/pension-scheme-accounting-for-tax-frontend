@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package helpers
+package services
 
 import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import helpers.FormatHelper
 import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
@@ -27,12 +28,17 @@ import models.chargeG.MemberDetails
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{Member, UserAnswers}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
+import utils.DeleteChargeHelper
 
-class ChargeGHelperSpec extends SpecBase {
+class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"
   val startDate: LocalDate = QUARTER_START_DATE
@@ -53,7 +59,7 @@ class ChargeGHelperSpec extends SpecBase {
 
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
-  def expectedMember(memberDetails: MemberDetails, index: Int) =
+  def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
 
   def expectedAllMembers: Seq[Member] = Seq(
@@ -64,15 +70,23 @@ class ChargeGHelperSpec extends SpecBase {
     expectedMember(SampleData.memberGDetailsDeleted, 2)
   )
 
+  val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
+  val chargeGHelper: ChargeGService = new ChargeGService(mockDeleteChargeHelper)
+
+  override def beforeEach: Unit = {
+    reset(mockDeleteChargeHelper)
+    when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(false)
+  }
+
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      ChargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate) mustBe expectedAllMembers
+      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
     }
   }
 
   ".getOverseasTransferMembersIncludingDeleted" must {
     "return all the members added in charge G" in {
-      ChargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate) mustBe expectedMembersIncludingDeleted
+      chargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
     }
   }
 
@@ -92,7 +106,7 @@ class ChargeGHelperSpec extends SpecBase {
           Updated
         )
       )
-      ChargeGHelper.getAllOverseasTransferAmendments(allMembers) mustBe expectedRows
+      chargeGHelper.getAllOverseasTransferAmendments(allMembers) mustBe expectedRows
     }
   }
 

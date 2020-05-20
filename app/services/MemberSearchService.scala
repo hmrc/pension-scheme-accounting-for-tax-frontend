@@ -18,38 +18,57 @@ package services
 
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import helpers.FormatHelper
-import helpers.{ChargeDHelper, ChargeGHelper, ChargeEHelper}
 import javax.inject.Singleton
-import models.{ChargeType, Member, UserAnswers}
+import models.ChargeType
+import models.Member
+import models.UserAnswers
+import models.requests.DataRequest
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Writes, Json, _}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
-import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import play.api.libs.json.Json
+import play.api.libs.json.Writes
+import play.api.libs.json._
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.viewmodels.SummaryList.Action
+import uk.gov.hmrc.viewmodels.SummaryList.Key
+import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.Value
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.Message
 import uk.gov.hmrc.viewmodels._
 
 import scala.language.implicitConversions
 
 @Singleton
-class MemberSearchService {
+class MemberSearchService @Inject()(
+                                     chargeDService: ChargeDService,
+                                     chargeEService: ChargeEService,
+                                     chargeGService: ChargeGService
+                                   ) {
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages): Seq[MemberRow] = {
+  def search(ua: UserAnswers,
+             srn: String,
+             startDate: LocalDate,
+             searchText: String)(implicit messages: Messages, request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean =
       if (searchTextUpper.matches(ninoRegex)) _.nino.toUpperCase == searchTextUpper else _.name.toUpperCase.contains(searchTextUpper)
     listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc))
   }
 
-  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
-    val chargeDMembers = ChargeDHelper
+  private def listOfMembers(ua: UserAnswers,
+                            srn: String,
+                            startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+    val chargeDMembers = chargeDService
       .getLifetimeAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
-    val chargeEMembers = ChargeEHelper
+    val chargeEMembers = chargeEService
       .getAnnualAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
-    val chargeGMembers = ChargeGHelper
+    val chargeGMembers = chargeGService
       .getOverseasTransferMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
     chargeDMembers ++ chargeEMembers ++ chargeGMembers

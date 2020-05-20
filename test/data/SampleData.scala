@@ -45,6 +45,7 @@ import models.UserAnswers
 import pages.chargeC.ChargeCDetailsPage
 import pages.chargeC.SponsoringIndividualDetailsPage
 import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.TotalChargeAmountPage
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage}
 import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPAge}
@@ -70,9 +71,9 @@ object SampleData {
   val chargeAmounts = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeAmounts2 = ChargeAmounts(chargeAmount1, chargeAmount2)
   val chargeFChargeDetails = models.chargeF.ChargeDetails(LocalDate.of(2020, 4, 3), BigDecimal(33.44))
-  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(BigDecimal(33.44)), Some(BigDecimal(34.34)), BigDecimal(67.78))
+  val chargeAChargeDetails = models.chargeA.ChargeDetails(44, Some(chargeAmount1), Some(BigDecimal(34.34)), BigDecimal(67.78))
   val chargeEDetails = ChargeEDetails(chargeAmount1, LocalDate.of(2019, 4, 3), isPaymentMandatory = true)
-  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE,amountTaxDue = BigDecimal(33.44))
+  val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE,amountTaxDue = chargeAmount1)
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
@@ -105,8 +106,8 @@ object SampleData {
   def sessionAccessData(version: Int = version.toInt, accessMode: AccessMode = AccessMode.PageAccessModeCompile) =
     SessionAccessData(version, accessMode)
 
-  val sessionAccessDataCompile = sessionAccessData(version.toInt, AccessMode.PageAccessModeCompile)
-  val sessionAccessDataPreCompile = sessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile)
+  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile)
+  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile)
 
   def sessionData(
                    sessionId: String = sessionId,
@@ -146,20 +147,24 @@ object SampleData {
   val memberGDetailsDeleted: MemberDetailsG = MemberDetailsG("Jill", "Bloggs", LocalDate.now(), "AB123456C", isDeleted = true)
 
   val chargeCEmployer: UserAnswers = userAnswersWithSchemeNameAndIndividual
-    .set(ChargeCDetailsPage(0), chargeCDetails).toOption.get
+    .setOrException(ChargeCDetailsPage(0), chargeCDetails)
+    .setOrException(TotalChargeAmountPage, chargeAmount1)
 
   val chargeEMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
+    .set(pages.chargeE.TotalChargeAmountPage, chargeAmount1).toOption.get
 
   val chargeGMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(pages.chargeG.MemberDetailsPage(0), memberGDetails).toOption.get
     .set(pages.chargeG.ChargeDetailsPage(0), chargeGDetails).toOption.get
     .set(pages.chargeG.ChargeAmountsPage(0), chargeAmounts).toOption.get
+    .set(pages.chargeG.TotalChargeAmountPage, BigDecimal(83.44)).toOption.get
 
   val chargeDMember: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeDMemberDetailsPAge(0), memberDetails).toOption.get
     .set(ChargeDDetailsPage(0), chargeDDetails).toOption.get
+    .set(pages.chargeD.TotalChargeAmountPage, BigDecimal(83.44)).toOption.get
 
   val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 

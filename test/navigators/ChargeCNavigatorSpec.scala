@@ -50,7 +50,7 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
         row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn, startDate)),
         row(AddEmployersPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index), addEmployersYes),
         row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addEmployersNo),
-        row(DeleteEmployerPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), onlyOneCharge),
+        row(DeleteEmployerPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
         row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
         row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn, startDate), Some(SampleData.chargeCEmployer))
       )
@@ -117,7 +117,8 @@ object ChargeCNavigatorSpec {
     )
   ))
 
-  private val onlyOneCharge = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption
+  private val zeroedCharge = UserAnswers().set(chargeA.ChargeDetailsPage,
+    SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
   private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
     .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
 }

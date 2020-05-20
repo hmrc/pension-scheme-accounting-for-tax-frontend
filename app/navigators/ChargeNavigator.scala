@@ -21,16 +21,18 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
-import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
-import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.{AnyContent, Call}
+import services.{ChargeDService, ChargeEService, ChargeGService}
 
-class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeNavigator @Inject()(config: FrontendAppConfig,
+                                val dataCacheConnector: UserAnswersCacheConnector,
+                                chargeDHelper: ChargeDService,
+                                chargeEHelper: ChargeEService,
+                                chargeGHelper: ChargeGService) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
@@ -71,11 +73,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
   //scalastyle:on cyclomatic.complexity
 
   def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
   def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(AFTSummaryPage) match {

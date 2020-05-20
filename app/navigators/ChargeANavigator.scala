@@ -36,7 +36,7 @@ class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case WhatYouWillNeedPage  => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
     case ChargeDetailsPage    => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
-    case DeleteChargePage if deleteChargeHelper.hasLastChargeOnly(ua) =>
+    case DeleteChargePage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     case DeleteChargePage =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)

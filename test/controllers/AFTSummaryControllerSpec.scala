@@ -280,7 +280,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "display search results when Search is triggered" in {
       val searchResult:Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
-      when(mockMemberSearchService.search(any(),any(),any(),any())(any()))
+      when(mockMemberSearchService.search(any(),any(),any(),any())(any(), any()))
         .thenReturn(searchResult)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -294,7 +294,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       status(result) mustEqual OK
 
-      verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any())
+      verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any(), any())
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       templateCaptor.getValue mustBe templateToBeRendered
 

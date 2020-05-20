@@ -52,32 +52,50 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   }
 
   /* Use this set for deleting a member based charge */
-  def set[A](page: QuestionPage[A], userAnswers: UserAnswers
+  def removeMemberBasedCharge[A](page: QuestionPage[A], value: A, totalAmount: UserAnswers => BigDecimal
                        )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
-    if(request.isAmendment) { //this IS an amendment
 
-            val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", userAnswers))
+    def setValueBasedOnLastCharge(ua: UserAnswers): Try[UserAnswers] =
+      if(deleteChargeHelper.isLastCharge(ua)) {
+        Try(deleteChargeHelper.zeroOutLastCharge(ua))
+      } else {
+        ua.set(page, value)
+      }
 
-      userAnswers
-        .removeWithPath(amendedVersionPath(page))
-        .removeWithPath(memberVersionPath(page))
-        .set(memberStatusPath(page), updatedStatus)
+    def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
 
+    def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
+      if(request.isAmendment) {
 
-        } else { //this is NOT an amendment
-          Try(userAnswers)
+            val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", ua))
+            ua
+              .removeWithPath(amendedVersionPath(page))
+              .removeWithPath(memberVersionPath(page))
+              .set(memberStatusPath(page), updatedStatus)
+
+        } else {
+          Try(ua)
         }
+    }
+
+    for {
+      ua1 <- setValueBasedOnLastCharge(request.userAnswers)
+      ua2 <- updateTotalAmount(ua1)
+      finalUserAnswers <- setAmendmentFlags(ua2)
+    } yield finalUserAnswers
   }
 
   /* Use this remove for deleting a scheme based charge */
-  def remove[A](page: QuestionPage[A]
+  def removeSchemeBasedCharge[A](page: QuestionPage[A]
                )(implicit request: DataRequest[AnyContent]): UserAnswers = {
-
-    if(request.isAmendment) { //this IS an amendment
+    val ua: UserAnswers = request.userAnswers
+    if(request.isAmendment) {
       val amendedVersionPath: JsPath = page.path \ "amendedVersion"
-        deleteChargeHelper.zeroOutCharge(page, request.userAnswers).removeWithPath(amendedVersionPath)
-    } else { //this is NOT an amendment
-      request.userAnswers
+      deleteChargeHelper.zeroOutCharge(page, ua).removeWithPath(amendedVersionPath)
+    } else if (deleteChargeHelper.isLastCharge(ua)) {
+        deleteChargeHelper.zeroOutCharge(page, ua)
+    } else {
+      ua.removeWithPath(page.path)
     }
   }
 
@@ -97,6 +115,9 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def amendedVersionPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(1) ++ List(KeyPathNode("amendedVersion")))
+
+  private def totalAmountPath[A](page: QuestionPage[A]): JsPath =
+    JsPath(page.path.path.take(1) ++ List(KeyPathNode("totalChargeAmount")))
 
   private def memberVersionPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.init ++ List(KeyPathNode("memberAFTVersion")))

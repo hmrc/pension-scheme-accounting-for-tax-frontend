@@ -102,7 +102,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -117,12 +117,12 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
       redirectLocation(result).value mustEqual onwardRoute.url
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        any(), Matchers.eq(Some(ShortServiceRefundQuery)))(any(), any(), any())
+        any())(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
       val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))

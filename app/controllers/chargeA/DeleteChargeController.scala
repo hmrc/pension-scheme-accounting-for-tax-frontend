@@ -41,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                       userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
@@ -111,9 +112,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
+                  val userAnswers: UserAnswers = userAnswersService.removeSchemeBasedCharge(ShortServiceRefundQuery)
                   for {
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, request.userAnswers, Some(ShortServiceRefundQuery))
-                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, request.userAnswers, srn, startDate))
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))

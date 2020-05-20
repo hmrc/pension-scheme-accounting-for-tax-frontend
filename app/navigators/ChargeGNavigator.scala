@@ -22,20 +22,23 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
-import helpers.ChargeGHelper._
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.{AnyContent, Call}
+import services.ChargeGService
 import utils.DeleteChargeHelper
 
-class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector, deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig)
+class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 deleteChargeHelper: DeleteChargeHelper,
+                                 chargeGHelper: ChargeGService,
+                                 config: FrontendAppConfig)
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
@@ -45,10 +48,10 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
                         (implicit request: DataRequest[AnyContent]): Call =
-    if (getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
-    } else if (deleteChargeHelper.hasLastChargeOnly(ua)) {
+    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    } else if (chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
+      AddMembersController.onPageLoad(srn, startDate)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }

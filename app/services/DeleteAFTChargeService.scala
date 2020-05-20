@@ -32,32 +32,21 @@ import scala.concurrent.{ExecutionContext, Future}
 class DeleteAFTChargeService @Inject()(
     aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    deleteChargeHelper: DeleteChargeHelper,
-    userAnswersService: UserAnswersService
+    deleteChargeHelper: DeleteChargeHelper
 ) {
 
-  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers, page: Option[QuestionPage[A]] = None)(
-      implicit ec: ExecutionContext,
-      hc: HeaderCarrier,
-      request: DataRequest[AnyContent]): Future[Unit] = {
-    val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
-
-    val updateAnswers = if (request.isAmendment) {
-      page.map(removePage => userAnswersService.remove(removePage)).getOrElse(answers)
-    } else {
-      if (isDeletingLastCharge) {
-        deleteChargeHelper.zeroOutLastCharge(answers)
+  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers)(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: DataRequest[AnyContent]): Future[Unit] = {
+    aftService.fileAFTReturn(pstr, answers).flatMap { _ =>
+      if (deleteChargeHelper.allChargesDeletedOrZeroed(answers) && !request.isAmendment) {
+       userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
-        page.map(noChargePath => answers.removeWithPath(noChargePath.path)).getOrElse(answers)
-      }
-    }
-
-    aftService.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
-      if (isDeletingLastCharge && !request.isAmendment) {
-        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
-      } else {
-        userAnswersCacheConnector.save(request.internalId, updateAnswers.data).map(_ => ())
+        userAnswersCacheConnector.save(request.internalId, answers.data).map(_ => ())
       }
     }
   }
 }
+
+

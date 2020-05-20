@@ -19,7 +19,7 @@ package controllers.chargeD
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CYAChargeDHelper
+import helpers.CYAChargeDService
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
@@ -38,7 +38,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
 
-  private val helper = new CYAChargeDHelper(srn, startDate)
+  private val helper = new CYAChargeDService(srn, startDate)
   private val rows = Seq(
     helper.chargeDMemberDetails(0, memberDetails),
     helper.chargeDDetails(0, chargeDDetails),
