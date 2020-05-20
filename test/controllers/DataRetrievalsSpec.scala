@@ -76,23 +76,6 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
     }
   }
 
-  "retrieveSchemeWithPSTRAndVersion must" - {
-    val result: (String, String, Int) => Future[Result] = { (_, _, _) => Future.successful(Ok("success result"))}
-
-    "return successful result when scheme name, email and quarter is successfully retrieved from user answers" in {
-      val ua = UserAnswers().set(SchemeNameQuery, value = "schemeName").flatMap(_.set(PSTRQuery, value = "test-pstr")).getOrElse(UserAnswers())
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
-      val res = DataRetrievals.retrieveSchemeWithPSTRAndVersion(result)(request)
-      status(res) must be(OK)
-    }
-
-    "return session expired when there is no scheme name or email or quarter in user answers" in {
-      val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
-      val res = DataRetrievals.retrieveSchemeWithPSTRAndVersion(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-    }
-  }
-
   "retrievePSAAndSchemeDetailsWithAmendment must" - {
     val result: (String, String, String, Quarter, Boolean, Int) => Future[Result] = { (_, _, _, _, _, _) => Future.successful(Ok("success result"))}
 

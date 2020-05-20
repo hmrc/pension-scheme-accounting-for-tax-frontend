@@ -26,7 +26,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class CYAChargeGHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
 
   def chargeGMemberDetails(index: Int, answer: MemberDetails): Seq[Row] = {
     Seq(

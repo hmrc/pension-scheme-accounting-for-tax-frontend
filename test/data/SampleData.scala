@@ -19,17 +19,38 @@ package data
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
+import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
+import models.SponsoringEmployerType.SponsoringEmployerTypeOrganisation
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.ChargeCDetails
+import models.chargeC.SponsoringEmployerAddress
+import models.chargeC.SponsoringOrganisationDetails
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
-import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
-import models.{AFTOverview, AccessMode, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, UserAnswers}
-import models.{AFTOverview, DisplayQuarter, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SubmittedHint, UserAnswers}
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, TotalChargeAmountPage, WhichTypeOfSponsoringEmployerPage}
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
-import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
+import models.chargeG.ChargeAmounts
+import models.chargeG.{MemberDetails => MemberDetailsG}
+import models.AccessMode
+import models.SessionAccessData
+import models.SessionData
+import models.AFTOverview
+import models.DisplayQuarter
+import models.InProgressHint
+import models.LockedHint
+import models.MemberDetails
+import models.Quarter
+import models.SchemeDetails
+import models.SchemeStatus
+import models.SubmittedHint
+import models.UserAnswers
+import pages.chargeC.ChargeCDetailsPage
+import pages.chargeC.SponsoringIndividualDetailsPage
+import pages.chargeC.SponsoringOrganisationDetailsPage
+import pages.chargeC.TotalChargeAmountPage
+import pages.chargeC.WhichTypeOfSponsoringEmployerPage
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage}
+import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPAge}
+import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.MemberDetailsPage
 import play.api.libs.json.Json
 import play.api.mvc.Call
 import utils.AFTConstants._
@@ -192,4 +213,5 @@ object SampleData {
     AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
   val aftOverviewQ12021: AFTOverview =
     AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+
 }

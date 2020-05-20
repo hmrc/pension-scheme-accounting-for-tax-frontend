@@ -21,11 +21,14 @@ import java.time.LocalDate
 import controllers._
 import controllers.chargeB.{routes => _}
 import helpers.{CYAHelper, FormatHelper}
+import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
+import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
@@ -79,7 +82,8 @@ class AFTSummaryHelper {
     summaryDataUK(ua, srn, startDate).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
@@ -99,7 +103,8 @@ class AFTSummaryHelper {
     summaryDataNonUK(ua, srn, startDate).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+        classes = Seq("govuk-!-width-one-quarter","govuk-table__cell--numeric")),
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
@@ -126,5 +131,17 @@ class AFTSummaryHelper {
     ))
 
     summaryRowsUK(ua, srn, startDate) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate)
+  }
+
+  def viewAmendmentsLink(version: String, srn: String, startDate: LocalDate)(implicit messages: Messages, request: DataRequest[_]): Html = {
+
+    val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
+      messages("allAmendments.view.changes.draft.link")
+    } else {
+      messages("allAmendments.view.changes.submission.link")
+    }
+    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+
+    Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }
 }
