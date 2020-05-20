@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeBHelper
+import helpers.{CYAChargeBHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode}
@@ -35,7 +35,6 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DeleteChargeHelper
 
 import scala.concurrent.ExecutionContext
 

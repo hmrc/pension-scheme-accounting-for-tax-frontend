@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utils
+package helpers
 
 import java.time.LocalDate
 
@@ -22,8 +22,7 @@ import base.SpecBase
 import controllers._
 import controllers.chargeB.{routes => _}
 import data.SampleData
-import data.SampleData.sessionAccessDataCompile
-import helpers.FormatHelper
+import data.SampleData.{sessionAccessDataCompile, version}
 import models.ChargeType.{ChargeTypeAnnualAllowance, _}
 import models.LocalDateBinder._
 import models.chargeA.{ChargeDetails => ChargeADetails}
@@ -41,8 +40,6 @@ import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
-import data.SampleData.{srn, startDate, version}
-
 class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
 
   private val userAnswers = UserAnswers(Json.obj())

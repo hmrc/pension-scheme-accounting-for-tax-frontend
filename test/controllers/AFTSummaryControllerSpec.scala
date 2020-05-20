@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import forms.AFTSummaryFormProvider
-import helpers.FormatHelper
+import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, MemberDetails, Quarter, UserAnswers}
@@ -44,7 +44,6 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants.QUARTER_END_DATE
-import utils.AFTSummaryHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future

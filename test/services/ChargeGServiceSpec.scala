@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import helpers.FormatHelper
+import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
@@ -36,8 +36,6 @@ import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
-import utils.DeleteChargeHelper
-
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   val srn = "S1234567"

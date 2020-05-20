@@ -23,6 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
+import helpers.AFTSummaryHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
@@ -37,7 +38,6 @@ import renderer.Renderer
 import services._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTSummaryHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.{ExecutionContext, Future}

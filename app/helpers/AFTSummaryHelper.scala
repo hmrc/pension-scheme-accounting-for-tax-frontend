@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package utils
+package helpers
 
 import java.time.LocalDate
 
 import controllers._
 import controllers.chargeB.{routes => _}
-import helpers.{CYAHelper, FormatHelper}
 import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._

@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import AddMembersService.mapChargeXMembersToTable
-import helpers.FormatHelper
+import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
@@ -31,7 +31,6 @@ import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
 import play.api.mvc.{AnyContent, Call}
-import utils.DeleteChargeHelper
 import viewmodels.Table
 
 class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
