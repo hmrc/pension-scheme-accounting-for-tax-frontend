@@ -78,9 +78,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val summaryHelper = new AFTSummaryHelper
 
-  private val retrievedUA = userAnswersWithSchemeNamePstrQuarter
-    .setOrException(IsPsaSuspendedQuery, value = false)
-
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
 
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get

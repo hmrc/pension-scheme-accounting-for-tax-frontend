@@ -21,43 +21,28 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.AllowAccessActionProvider
-import controllers.actions._
+import controllers.actions.{AllowAccessActionProvider, _}
 import forms.AFTSummaryFormProvider
 import javax.inject.Inject
 import models.AccessMode.PageAccessModeCompile
 import models.LocalDateBinder._
 import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
-import models.GenericViewModel
-import models.Mode
-import models.NormalMode
-import models.UserAnswers
 import models.requests.DataRequest
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
-import pages.ChargeTypePage
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.RequestCreationService
-import services.AFTService
-import services.AllowAccessService
-import services.SchemeService
+import services.{AFTService, AllowAccessService, RequestCreationService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Radios
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTSummaryHelper
 import utils.DateHelper.dateFormatterDMY
+import play.twirl.api.Html
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTSummaryController @Inject()(
     override val messagesApi: MessagesApi,
@@ -94,15 +79,14 @@ class AFTSummaryController @Inject()(
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
-          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName,
-            optionVersion, request.sessionData.isEditable)
+          getJson(form, request.userAnswers, srn, startDate, schemeDetails.schemeName, optionVersion, request.sessionData.isEditable)
         renderer.render("aftSummary.njk", json).map(Ok(_))
       }
     }
 
   def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndQuarterWithAmendment { (schemeName, quarter, isAmendment) =>
+      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
         form
           .bindFromRequest()
           .fold(
@@ -113,13 +97,11 @@ class AFTSummaryController @Inject()(
             },
             value => {
               if (!value && aftService.isSubmissionDisabled(quarter.endDate)) {
-                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-                  Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+                userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
                 }
-              } else if(!value && isAmendment) {
+              } else if (!value && request.isAmendment) {
                 Future.successful(Redirect(controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)))
-              }
-              else {
+              } else {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
                     Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
@@ -137,18 +119,17 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String],
-                      canChange: Boolean)(implicit request: DataRequest[_]): JsObject = {
+                      canChange: Boolean)(implicit request: DataRequest[AnyContent]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-    val isAmendmentInProgress = (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile
-      && request.isAmendment)
-    val viewAllAmendmentsLink = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate).url
+    val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
+    val viewAllAmendmentsLink = viewAmendmentsLink(versionNumber, srn, startDate)
 
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
-      "isAmendmentInProgress" -> isAmendmentInProgress,
-      "viewAllAmendmentsLink" -> viewAllAmendmentsLink,
+      "isAmendment" -> request.isAmendment,
+      "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString(),
       "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
@@ -156,6 +137,19 @@ class AFTSummaryController @Inject()(
       "quarterEndDate" -> getFormattedEndDate(endDate),
       "canChange" -> canChange
     )
+  }
+
+  private def viewAmendmentsLink(version: String, srn: String, startDate: LocalDate)(implicit messages: Messages,
+                                                                                     request: DataRequest[AnyContent]): Html = {
+
+    val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
+      messages("allAmendments.view.changes.draft.link")
+    } else {
+      messages("allAmendments.view.changes.submission.link")
+    }
+    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+
+    Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {

@@ -38,6 +38,7 @@ import viewmodels.Table
 import viewmodels.Table.Cell
 
 import scala.concurrent.ExecutionContext
+import models.AccessMode.PageAccessModeCompile
 
 class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
@@ -53,19 +54,19 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, version: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate)).async { implicit request =>
-      DataRetrievals.retrieveSchemeWithPSTRAndVersion { (schemeName, pstr, amendedVersion) =>
-        val previousVersion = amendedVersion - 1
+      DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
+        val previousVersion = version.toInt - 1
 
         aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousUaJsValue =>
-          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$amendedVersion").flatMap { currentUaJsValue =>
+          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$version").flatMap { currentUaJsValue =>
             val currentAnswers = UserAnswers(currentUaJsValue.as[JsObject])
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
             val viewModel = GenericViewModel(
-              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$amendedVersion")).url,
+              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$version")).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )
@@ -74,6 +75,8 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
               fields = "srn" -> srn,
               "startDate" -> Some(startDate),
               "viewModel" -> viewModel,
+              "versionNumber" -> version,
+              "isDraft" -> (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile),
               "addedTable" -> mapToTable(
                 caption = "added",
                 amendmentHelper.getAllAmendments(currentAnswers, previousAnswers).filter(_.status == AmendedChargeStatus.Added)),

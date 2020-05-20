@@ -33,9 +33,9 @@
 
           {{ csrf() | safe }}
 
-          {% if isAmendmentInProgress %}
+          {% if isAmendment %}
               <p class="govuk-body">
-                <a href="{{ viewAllAmendmentsLink }}" class="govuk-link"> {{ messages("allAmendments.view.changes.link") }}</a>
+                {{viewAllAmendmentsLink | safe}}
               </p>
           {% endif %}
 
