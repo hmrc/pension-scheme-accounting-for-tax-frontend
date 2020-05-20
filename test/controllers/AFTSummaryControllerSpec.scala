@@ -16,32 +16,59 @@
 
 package controllers
 
-import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
+import controllers.actions.DataUpdateAction
+import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.MutableFakeDataUpdateAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import forms.AFTSummaryFormProvider
+import helpers.FormatHelper
 import matchers.JsonMatchers
-import models.{Enumerable, GenericViewModel, Quarter, UserAnswers}
+import models.Enumerable
+import models.GenericViewModel
+import models.Quarter
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{never, reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.never
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Call, Results}
-import play.api.test.Helpers.{route, status, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.Call
+import play.api.mvc.Results
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{AFTService, AllowAccessService, SchemeService}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import services.AFTService
+import services.AllowAccessService
+import services.MemberSearchService
+import services.SchemeService
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Radios
 import utils.AFTSummaryHelper
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.MemberDetails
+import services.MemberSearchService.MemberRow
+import uk.gov.hmrc.viewmodels.SummaryList.Action
+import uk.gov.hmrc.viewmodels.SummaryList.Key
+import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.Value
+import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.Text.Message
 
 class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach
   with Enumerable.Implicits with Results with ScalaFutures {
@@ -49,6 +76,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
   private val mockSchemeService = mock[SchemeService]
+  private val mockMemberSearchService = mock[MemberSearchService]
   private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
 
   private val extraModules: Seq[GuiceableModule] =
@@ -56,7 +84,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       bind[AllowAccessService].toInstance(mockAllowAccessService),
       bind[AFTService].toInstance(mockAFTService),
       bind[DataUpdateAction].toInstance(fakeDataUpdateAction),
-      bind[SchemeService].toInstance(mockSchemeService)
+      bind[SchemeService].toInstance(mockSchemeService),
+      bind[MemberSearchService].toInstance(mockMemberSearchService)
     )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -78,16 +107,54 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val summaryHelper = new AFTSummaryHelper
 
-  private val retrievedUA = userAnswersWithSchemeNamePstrQuarter
-    .setOrException(IsPsaSuspendedQuery, value = false)
-
   private val testManagePensionsUrl = Call("GET", "/scheme-summary")
 
   private val uaGetAFTDetails = UserAnswers().set(QuarterPage, Quarter("2000-04-01", "2000-05-31")).toOption.get
 
+  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+  private val startDateAsString = "2020-04-01"
+
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount:BigDecimal, index:Int = 0) = Seq(
+    MemberRow(
+      memberDetails.fullName,
+      Seq(
+        Row(
+          Key(Message("memberDetails.nino"), Seq("govuk-!-width-three-quarters")),
+          Value(Literal(memberDetails.nino), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.chargeType"), Seq("govuk-!-width-three-quarters")),
+          Value(Message("aft.summary.lifeTimeAllowance.description"), Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        ),
+        Row(
+          Key(Message("aft.summary.search.amount"), Seq("govuk-!-width-three-quarters")),
+
+          Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+
+        )
+      ),
+      Seq(
+        Action(
+          Message("site.view"),
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDateAsString, index).url,
+          None
+        ),
+        Action(
+          Message("site.remove"),
+          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDateAsString, index).url,
+          None
+        )
+      )
+    )
+  )
+
   override def beforeEach: Unit = {
     super.beforeEach()
-    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
+    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
@@ -105,7 +172,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = SampleData.schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )
-
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
 
   "AFTSummary Controller" must {
@@ -209,6 +275,33 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
       application.stop()
+    }
+
+    "display search results when Search is triggered" in {
+      val searchResult:Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
+
+      when(mockMemberSearchService.search(any(),any(),any(),any())(any(), any()))
+        .thenReturn(searchResult)
+
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      fakeDataUpdateAction.setDataToReturn(userAnswers)
+
+      val fakeRequest = httpPOSTRequest("/", Map("searchText" -> Seq("Search")))
+
+      val controllerInstance = application.injector.instanceOf[AFTSummaryController]
+
+      val result = controllerInstance.onSearchMember(SampleData.srn, startDate, None).apply(fakeRequest)
+
+      status(result) mustEqual OK
+
+      verify(mockMemberSearchService, times(1)).search(any(),any(),any(), Matchers.eq("Search"))(any(), any())
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      templateCaptor.getValue mustBe templateToBeRendered
+
+      val expectedJson = Json.obj( "list" ->
+        Json.toJson(searchResult)
+      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 }

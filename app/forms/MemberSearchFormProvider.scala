@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package models
+package forms
 
-import play.api.libs.json.{Format, Json}
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-import scala.language.implicitConversions
+class MemberSearchFormProvider @Inject() extends Mappings {
 
-case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
-
-    def removeLinkId = s"$id-remove"
-
-    def viewLinkId = s"$id-view"
-
+  def apply(): Form[String] =
+    Form(
+      "searchText" -> text("aft.summary.search.error.required")
+    )
 }
-
-
-object Member {
-    implicit lazy val formats: Format[Member] =
-        Json.format[Member]
-}
-
-
