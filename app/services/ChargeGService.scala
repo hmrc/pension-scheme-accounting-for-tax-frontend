@@ -49,8 +49,7 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
           member.nino,
           chargeAmounts.amountTaxDue,
           viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url,
-          member.isDeleted
+          removeUrl(index, srn, startDate, ua).url
         )
       }
     }
@@ -86,7 +85,7 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                                 (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
+    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

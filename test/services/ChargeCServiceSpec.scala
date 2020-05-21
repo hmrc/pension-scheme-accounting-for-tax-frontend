@@ -64,14 +64,14 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   val allEmployersIncludingDeleted: UserAnswers = allEmployers
     .set(WhichTypeOfSponsoringEmployerPage(2), SponsoringEmployerTypeIndividual).toOption.get
-    .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
+    .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetails).toOption.get
     .set(ChargeCDetailsPage(2), SampleData.chargeCDetails).toOption.get
 
   def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index).url
   def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index).url
   def expectedEmployer(memberDetails: MemberDetails, index: Int): Employer =
-    Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
   def expectedLastChargeEmployer: Seq[Employer] =
     ArrayBuffer(Employer(0, "First Last", SampleData.chargeAmount1, viewLink(0), lastChargeLink(0)))
@@ -85,7 +85,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   )
 
   def expectedEmployersIncludingDeleted: Seq[Employer] = expectedAllEmployers ++ Seq(
-    expectedEmployer(SampleData.memberDetailsDeleted, 2)
+    expectedEmployer(SampleData.memberDetails, 2)
   )
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]

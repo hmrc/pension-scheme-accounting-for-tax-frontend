@@ -48,8 +48,7 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
           member.nino,
           chargeDetails.chargeAmount,
           viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url,
-          member.isDeleted
+          removeUrl(index, srn, startDate, ua).url
         )
       }
     }
@@ -85,7 +84,7 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                                (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
+    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

@@ -111,14 +111,8 @@ class DeleteChargeHelper {
       case _ => transformArrayMember(arr.tail, memberTransformer)
     }
 
-  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int = {
-    seqMember.count { member =>
-      (member \ "isDeleted").validate[Boolean] match {
-        case JsSuccess(value, _) => !value
-        case JsError(errors)     => throw JsResultException(errors)
-      }
-    }
-  }
+  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int =
+    seqMember.size
 
   private def getTotal(path: JsLookupResult): BigDecimal = {
     if(path.isDefined) {

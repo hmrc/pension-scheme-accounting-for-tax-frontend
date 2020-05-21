@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json._
 
-case class MemberDetails (firstName: String, lastName: String, nino: String, isDeleted: Boolean = false) {
+case class MemberDetails (firstName: String, lastName: String, nino: String) {
   def fullName: String = s"$firstName $lastName"
 }
 

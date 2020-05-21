@@ -54,20 +54,20 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get
 
   val allMembersIncludingDeleted: UserAnswers = allMembers
-    .set(MemberDetailsPage(2), SampleData.memberGDetailsDeleted).toOption.get
+    .set(MemberDetailsPage(2), SampleData.memberGDetails).toOption.get
     .set(ChargeAmountsPage(2), SampleData.chargeAmounts).toOption.get
 
   def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
-    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index))
 
   def expectedAllMembers: Seq[Member] = Seq(
     expectedMember(SampleData.memberGDetails, 0),
     expectedMember(SampleData.memberGDetails2, 1))
 
   def expectedMembersIncludingDeleted: Seq[Member] = expectedAllMembers ++ Seq(
-    expectedMember(SampleData.memberGDetailsDeleted, 2)
+    expectedMember(SampleData.memberGDetails, 2)
   )
 
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
