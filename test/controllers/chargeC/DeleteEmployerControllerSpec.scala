@@ -175,8 +175,10 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = userAnswersWithSchemeNameAndTwoIndividuals
-        .set(ChargeCDetailsPage(1), chargeCDetails).success.value
+      val expectedUA = userAnswersWithSchemeNamePstrQuarter
+        .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+        .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+        .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
         .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
@@ -202,8 +204,13 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answersOrg
-        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
+      val expectedUA =
+        userAnswersWithSchemeNamePstrQuarter
+          .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
+          .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation).toOption.get
+          .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+          .set(PSTRQuery, pstr).success.value
+          .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
         Matchers.eq(expectedUA))(any(), any(), any())

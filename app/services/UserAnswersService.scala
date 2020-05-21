@@ -60,7 +60,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
         Try(deleteChargeHelper.zeroOutLastCharge(ua))
       } else {
           if (isPhysicallyRemovable(ua)) {
-            ua.remove(page)
+            Try(ua.removeWithPath(memberParentPath(page)))
         } else {
             Try(ua)
         }
@@ -138,6 +138,10 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def memberStatusPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.init ++ List(KeyPathNode("memberStatus")))
+
+  private def memberParentPath[A](page: QuestionPage[A]): JsPath = {
+    JsPath(page.path.path.take(3))
+  }
 
   case object MissingMemberStatus extends Exception("Previous member status was not found for an amendment")
   case object MissingVersion extends Exception("Previous version number was not found for an amendment")
