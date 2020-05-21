@@ -119,7 +119,9 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answers
+      val expectedUA = userAnswersWithSchemeNamePstrQuarter
+        .set(PSTRQuery, pstr).success.value
+        .set(MemberDetailsPage(0), memberGDetails).success.value
         .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
