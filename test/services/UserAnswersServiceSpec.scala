@@ -125,12 +125,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              "memberStatus" -> "New",
-              "memberAFTVersion" -> 2
-            )
-          ),
+          "members" -> Json.arr(),
           "amendedVersion" -> 2)
       )).setOrException(TotalAmountPage, total(UserAnswers()))
 
