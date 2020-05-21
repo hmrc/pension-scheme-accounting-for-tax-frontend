@@ -59,7 +59,11 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       if(deleteChargeHelper.isLastCharge(ua)) {
         Try(deleteChargeHelper.zeroOutLastCharge(ua))
       } else {
-        ua.set(page, value)
+        if (request.isAmendment) {
+          Try(ua)
+        } else {
+          ua.remove(page)
+        }
       }
 
     def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
