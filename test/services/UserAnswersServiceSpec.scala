@@ -101,29 +101,31 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     //  }
     //}
 
-    "AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
-      " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
-      val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(status="Deleted"), version = 2), implicitly))
-
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-        "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              MemberPage.toString -> "value",
-              "memberStatus" -> "Deleted"
-            )
-          ))
-      )).setOrException(TotalAmountPage, total(UserAnswers()))
-      }
-    }
+//    "AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
+//      " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
+//      val resultFuture = Future.fromTry(service
+//        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(status="Deleted"), version = 2), implicitly))
+//
+//      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
+//        "chargeType" -> Json.obj(
+//          "members" -> Json.arr(
+//            Json.obj(
+//              MemberPage.toString -> "value",
+//              "memberStatus" -> "Deleted"
+//            )
+//          ))
+//      )).setOrException(TotalAmountPage, total(UserAnswers()))
+//      }
+//    }
 
 
     "AMENDMENT - physically remove member" +
       " for a member level charge if version is 2 and member added in this version" in {
       val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(2), version = 2), implicitly))
 
-      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
+      whenReady(resultFuture){ x =>
+        println(s"\n\n\n $x")
+        x mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
           "members" -> Json.arr(
             //Json.obj(
@@ -132,6 +134,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
             //)
           ))
       )).setOrException(TotalAmountPage, total(UserAnswers()))
+
       }
     }
   }

@@ -59,39 +59,42 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       if(deleteChargeHelper.isLastCharge(ua)) {
         Try(deleteChargeHelper.zeroOutLastCharge(ua))
       } else {
-        if (request.isAmendment) {
-          Try(ua)
+//        if (request.isAmendment) {
+          if (isPhysicallyRemovable(ua)) {
+            val x = ua.remove(page)
+            println(s"\n\n\n\n $x")
+            println(s"\n\n\n\n $ua")
+            println(s"\n\n\n\n $page")
+            x
         } else {
-          ua.remove(page)
+            Try(ua)
         }
       }
 
     def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
 
-    /*
-        val previousVersion = userAnswers.get(memberVersionPath(page))
-    val prevMemberStatus = userAnswers.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
+    def isPhysicallyRemovable(ua: UserAnswers): Boolean = {
+      val previousVersion = ua.get(memberVersionPath(page))
+      val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
+      val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
 
-    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
-
-   if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
-      "New"
-    } else {
-     updatedStatus
-   }
-     */
+        if (request.aftVersion == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))) {
+        true
+      } else {
+        false
+      }
+    }
 
     def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
-      if(request.isAmendment) {
-
-            val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", ua))
-            ua
-              .removeWithPath(amendedVersionPath(page))
-              .removeWithPath(memberVersionPath(page))
-              .set(memberStatusPath(page), updatedStatus)
-
-        } else {
+//      if(request.isAmendment) {
+        if(isPhysicallyRemovable(ua)) {
           Try(ua)
+        } else {
+          val updatedStatus: JsString = JsString("Deleted")
+          ua
+            .removeWithPath(amendedVersionPath(page))
+            .removeWithPath(memberVersionPath(page))
+            .set(memberStatusPath(page), updatedStatus)
         }
     }
 
