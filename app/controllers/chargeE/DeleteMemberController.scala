@@ -116,7 +116,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     DataRetrievals.retrievePSTR { pstr =>
                         for {
                           updatedAnswers <- Future.fromTry(userAnswersService
-                            .removeMemberBasedCharge(MemberDetailsPage(index), memberDetails.copy(isDeleted = true), totalAmount(srn, startDate)))
+                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate)))
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
                     }

@@ -52,20 +52,15 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   }
 
   /* Use this set for deleting a member based charge */
-  def removeMemberBasedCharge[A](page: QuestionPage[A], value: A, totalAmount: UserAnswers => BigDecimal
+  def removeMemberBasedCharge[A](page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal
                        )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
 
     def setValueBasedOnLastCharge(ua: UserAnswers): Try[UserAnswers] =
       if(deleteChargeHelper.isLastCharge(ua)) {
         Try(deleteChargeHelper.zeroOutLastCharge(ua))
       } else {
-//        if (request.isAmendment) {
           if (isPhysicallyRemovable(ua)) {
-            val x = ua.remove(page)
-            println(s"\n\n\n\n $x")
-            println(s"\n\n\n\n $ua")
-            println(s"\n\n\n\n $page")
-            x
+            ua.remove(page)
         } else {
             Try(ua)
         }
@@ -74,9 +69,9 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
 
     def isPhysicallyRemovable(ua: UserAnswers): Boolean = {
-      val previousVersion = ua.get(memberVersionPath(page))
-      val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
-      val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
+      def previousVersion = ua.get(memberVersionPath(page))
+      def prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
+      def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
 
         if (request.aftVersion == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))) {
         true
@@ -86,7 +81,6 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
 
     def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
-//      if(request.isAmendment) {
         if(isPhysicallyRemovable(ua)) {
           Try(ua)
         } else {

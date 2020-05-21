@@ -134,11 +134,11 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
 
       case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
         userAnswersService.removeMemberBasedCharge(
-          SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+          SponsoringIndividualDetailsPage(index), totalAmount(srn, startDate))
 
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
         userAnswersService.removeMemberBasedCharge(
-          SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+          SponsoringOrganisationDetailsPage(index), totalAmount(srn, startDate))
 
       case _ => Try(ua)
     }

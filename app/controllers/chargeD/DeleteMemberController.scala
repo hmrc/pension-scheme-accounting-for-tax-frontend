@@ -123,7 +123,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                           updatedAnswers <- Future.fromTry(userAnswersService
                             .removeMemberBasedCharge(
                               MemberDetailsPage(index),
-                              memberDetails.copy(isDeleted = true),
                               totalAmount(srn, startDate)))
 
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
