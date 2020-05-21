@@ -75,36 +75,36 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   //}
 
   ".removeMemberBasedCharge" must {
-    "FIRST COMPILE - remove the member & set total for a member level charge being deleted if version is 1 and is not last charge" in {
-      val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
-      val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(userAnswers), implicitly))
-
-      whenReady(resultFuture) { result =>
-        result.get(MemberPage) mustBe None
-        result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
-      }
-    }
-
-    "FIRST COMPILE - zero the member & set total for a member level charge being deleted if version is 1 and is last charge" in {
-      val pageValueAfterZeroedOut = "zeroed"
-      val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
-      val userAnswersAfterZeroedOut = UserAnswers().setOrException(MemberPage, pageValueAfterZeroedOut)
-      when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
-      when(mockDeleteChargeHelper.zeroOutLastCharge(any())).thenReturn(userAnswersAfterZeroedOut)
-      val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(userAnswers), implicitly))
-
-      whenReady(resultFuture) { result =>
-        result.get(MemberPage) mustBe Some(pageValueAfterZeroedOut)
-        result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
-      }
-    }
+    //"FIRST COMPILE - remove the member & set total for a member level charge being deleted if version is 1 and is not last charge" in {
+    //  val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+    //  val resultFuture = Future.fromTry(service
+    //    .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(userAnswers), implicitly))
+    //
+    //  whenReady(resultFuture) { result =>
+    //    result.get(MemberPage) mustBe None
+    //    result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
+    //  }
+    //}
+    //
+    //"FIRST COMPILE - zero the member & set total for a member level charge being deleted if version is 1 and is last charge" in {
+    //  val pageValueAfterZeroedOut = "zeroed"
+    //  val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+    //  val userAnswersAfterZeroedOut = UserAnswers().setOrException(MemberPage, pageValueAfterZeroedOut)
+    //  when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
+    //  when(mockDeleteChargeHelper.zeroOutLastCharge(any())).thenReturn(userAnswersAfterZeroedOut)
+    //  val resultFuture = Future.fromTry(service
+    //    .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(userAnswers), implicitly))
+    //
+    //  whenReady(resultFuture) { result =>
+    //    result.get(MemberPage) mustBe Some(pageValueAfterZeroedOut)
+    //    result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
+    //  }
+    //}
 
     "AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
-      " for a member level charge if version is 2 for a member being deleted and status is not new" in {
+      " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(status="Amended"), version = 2), implicitly))
+        .removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(status="Deleted"), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -117,22 +117,23 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       )).setOrException(TotalAmountPage, total(UserAnswers()))
       }
     }
-    //
-    //"AMENDMENT - set amended version, member version to null, status to New and the page value" +
-    //  " for a member level charge if version is 2 if a member that was added after the last submission is being deleted" in {
-    //  val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(2), version = 2), implicitly))
-    //
-    //  whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
-    //    "chargeType" -> Json.obj(
-    //      "members" -> Json.arr(
-    //        Json.obj(
-    //          MemberPage.toString -> "value",
-    //          "memberStatus" -> "New"
-    //        )
-    //      ))
-    //  )).setOrException(TotalAmountPage, total(UserAnswers()))
-    //  }
-    //}
+
+
+    "AMENDMENT - physically remove member" +
+      " for a member level charge if version is 2 and member added in this version" in {
+      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(2), version = 2), implicitly))
+
+      whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
+        "chargeType" -> Json.obj(
+          "members" -> Json.arr(
+            //Json.obj(
+            //  MemberPage.toString -> "value",
+            //  "memberStatus" -> "New"
+            //)
+          ))
+      )).setOrException(TotalAmountPage, total(UserAnswers()))
+      }
+    }
   }
 
   //".set" must {

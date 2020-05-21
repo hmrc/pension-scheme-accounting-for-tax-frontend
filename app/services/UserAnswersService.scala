@@ -68,6 +68,19 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
 
+    /*
+        val previousVersion = userAnswers.get(memberVersionPath(page))
+    val prevMemberStatus = userAnswers.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
+
+    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
+
+   if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
+      "New"
+    } else {
+     updatedStatus
+   }
+     */
+
     def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
       if(request.isAmendment) {
 
