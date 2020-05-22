@@ -86,9 +86,8 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
         }
     }
 
-    updateTotalAmount(removeOrZeroOutCharge(request.userAnswers)).flatMap {
-        setAmendmentFlags
-    }
+    setAmendmentFlags(removeOrZeroOutCharge(request.userAnswers))
+      .flatMap(updateTotalAmount)
   }
 
   /* Use this remove for deleting a scheme based charge */
