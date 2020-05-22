@@ -50,8 +50,8 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
   }
 
-  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       getEmployerDetails(ua, index).flatMap {
@@ -68,9 +68,6 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }.toSeq
     }
   }
-
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Employer] =
-    getSponsoringEmployersIncludingDeleted(ua, srn, startDate)
 
   def getAllAuthSurplusAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>

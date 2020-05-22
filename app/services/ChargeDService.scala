@@ -35,8 +35,8 @@ import viewmodels.Table
 
 class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
     val members = for {
       (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
@@ -81,10 +81,6 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }
       .flatten
   }
-
-  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                 (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

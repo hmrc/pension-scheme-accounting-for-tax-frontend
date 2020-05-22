@@ -73,11 +73,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   //scalastyle:on cyclomatic.complexity
 
   def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).size
   def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
+    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).size
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+    chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).size
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
     ua.get(AFTSummaryPage) match {

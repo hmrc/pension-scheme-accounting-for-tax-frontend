@@ -66,10 +66,6 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     expectedMember(SampleData.memberGDetails, 0),
     expectedMember(SampleData.memberGDetails2, 1))
 
-  def expectedMembersIncludingDeleted: Seq[Member] = expectedAllMembers ++ Seq(
-    expectedMember(SampleData.memberGDetails, 2)
-  )
-
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val chargeGHelper: ChargeGService = new ChargeGService(mockDeleteChargeHelper)
 
@@ -81,12 +77,6 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
       chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
-    }
-  }
-
-  ".getOverseasTransferMembersIncludingDeleted" must {
-    "return all the members added in charge G" in {
-      chargeGHelper.getOverseasTransferMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
     }
   }
 

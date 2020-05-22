@@ -36,8 +36,8 @@ import viewmodels.Table
 
 class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                                (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
     val members = for {
       (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeGDetails").zipWithIndex
@@ -82,10 +82,6 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }
       .flatten
   }
-
-  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

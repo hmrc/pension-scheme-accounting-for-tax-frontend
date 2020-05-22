@@ -84,10 +84,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
       viewLink(1), removeLink(1))
   )
 
-  def expectedEmployersIncludingDeleted: Seq[Employer] = expectedAllEmployers ++ Seq(
-    expectedEmployer(SampleData.memberDetails, 2)
-  )
-
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val chargeCHelper: ChargeCService = new ChargeCService(mockDeleteChargeHelper)
 
@@ -108,12 +104,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     "return all the members added in charge C when it is the last charge" in {
       when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
       chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate)(dataRequest()) mustBe expectedLastChargeEmployer
-    }
-  }
-
-  ".getOverseasTransferEmployersIncludingDeleted" must {
-    "return all the members added in charge C" in {
-      chargeCHelper.getSponsoringEmployersIncludingDeleted(allEmployersIncludingDeleted, srn, startDate)(request()) mustBe expectedEmployersIncludingDeleted
     }
   }
 

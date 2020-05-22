@@ -40,7 +40,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).size
+    chargeCHelper.getSponsoringEmployers(ua, srn, startDate).size
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
