@@ -21,47 +21,43 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import helpers.FormatHelper
 import javax.inject.Singleton
-import models.ChargeType
-import models.Member
-import models.UserAnswers
+import models.{ChargeType, Member, UserAnswers}
 import models.requests.DataRequest
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.Json
-import play.api.libs.json.Writes
-import play.api.libs.json._
+import play.api.libs.json.{Json, Writes, _}
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.Action
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.Text.Message
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
+import utils.FuzzyMatching
 
 import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService @Inject()(
-                                     chargeDService: ChargeDService,
-                                     chargeEService: ChargeEService,
-                                     chargeGService: ChargeGService
-                                   ) {
+    chargeDService: ChargeDService,
+    chargeEService: ChargeEService,
+    chargeGService: ChargeGService,
+    fuzzyMatching: FuzzyMatching
+) {
   import MemberSearchService._
 
-  def search(ua: UserAnswers,
-             srn: String,
-             startDate: LocalDate,
-             searchText: String)(implicit messages: Messages, request: DataRequest[AnyContent]): Seq[MemberRow] = {
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages,
+                                                                                     request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
-    val searchFunc: MemberSummary => Boolean =
-      if (searchTextUpper.matches(ninoRegex)) _.nino.toUpperCase == searchTextUpper else _.name.toUpperCase.contains(searchTextUpper)
+    val searchFunc: MemberSummary => Boolean = { member =>
+      if (searchTextUpper.matches(ninoRegex)) {
+        member.nino.toUpperCase == searchTextUpper
+      } else {
+        fuzzyMatching.doFuzzyMatching(searchTextUpper, member.name)
+      }
+    }
+
     listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc))
   }
 
-  private def listOfMembers(ua: UserAnswers,
-                            srn: String,
-                            startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
     val chargeDMembers = chargeDService
       .getLifetimeAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
@@ -87,15 +83,13 @@ class MemberSearchService @Inject()(
         Seq(
           Row(
             key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-one-half")),
-            value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"),
-              classes = Seq("govuk-!-width-one-half"))
+            value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"), classes = Seq("govuk-!-width-one-half"))
           ))
       val rowAmount =
         Seq(
           Row(
             key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-one-half")),
-            value =Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
-              classes = Seq("govuk-!-width-one-half"))
+            value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-half"))
           ))
 
       val actions = List(
@@ -122,9 +116,9 @@ object MemberSearchService {
 
   private def getDescriptionMessageKeyFromChargeType(chargeType: ChargeType): String =
     chargeType match {
-      case ChargeType.ChargeTypeAnnualAllowance => "aft.summary.annualAllowance.description"
+      case ChargeType.ChargeTypeAnnualAllowance  => "aft.summary.annualAllowance.description"
       case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
-      case _ => "aft.summary.lifeTimeAllowance.description"
+      case _                                     => "aft.summary.lifeTimeAllowance.description"
     }
 
   private case class MemberSummary(index: Int,
@@ -148,7 +142,7 @@ object MemberSearchService {
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and
-        (JsPath \ "actions").write[Seq[Action]]) (mr => Tuple3(mr.name, mr.rows, mr.actions))
+        (JsPath \ "actions").write[Seq[Action]])(mr => Tuple3(mr.name, mr.rows, mr.actions))
   }
 
   private object MemberSummary {
