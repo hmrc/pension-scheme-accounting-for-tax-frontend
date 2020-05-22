@@ -18,6 +18,7 @@ package services
 
 import base.SpecBase
 import data.SampleData.sessionId
+import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{AccessMode, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers
@@ -32,7 +33,6 @@ import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import uk.gov.hmrc.domain.PsaId
-import utils.DeleteChargeHelper
 
 import scala.concurrent.Future
 

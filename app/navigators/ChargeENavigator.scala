@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeE.routes._
+import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
@@ -29,8 +30,6 @@ import pages.Page
 import pages.chargeE._
 import play.api.mvc.{AnyContent, Call}
 import services.ChargeEService
-import utils.DeleteChargeHelper
-
 class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeEHelper: ChargeEService,

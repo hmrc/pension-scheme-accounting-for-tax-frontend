@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
+import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SessionData
@@ -45,7 +46,6 @@ import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.DateInput
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DeleteChargeHelper
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future

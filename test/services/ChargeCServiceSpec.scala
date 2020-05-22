@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import helpers.FormatHelper
+import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Added, Updated}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
@@ -36,7 +36,6 @@ import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, Spons
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
-import utils.DeleteChargeHelper
 
 import scala.collection.mutable.ArrayBuffer
 

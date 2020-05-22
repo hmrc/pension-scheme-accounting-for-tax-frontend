@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeC.routes._
+import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
 import models.{CheckMode, NormalMode, UserAnswers}
@@ -31,8 +32,6 @@ import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
 import play.api.mvc.{AnyContent, Call}
 import services.ChargeCService
-import utils.DeleteChargeHelper
-
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
                                  chargeCHelper: ChargeCService,

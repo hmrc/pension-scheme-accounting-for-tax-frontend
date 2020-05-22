@@ -25,10 +25,9 @@ import play.api.mvc.{AnyContent, Call}
 import java.time.LocalDate
 
 import config.FrontendAppConfig
+import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import utils.DeleteChargeHelper
-
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
