@@ -54,51 +54,40 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   /* Use this set for deleting a member based charge */
   def removeMemberBasedCharge[A](page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal
                        )(implicit request: DataRequest[AnyContent], writes: Writes[A]): Try[UserAnswers] = {
-
-    val isPhysicallyRemovable = {
+    val isRemovable = {
       val ua = request.userAnswers
       def previousVersion = ua.get(memberVersionPath(page))
       def prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
       def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
 
-      if (request.aftVersion == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))) {
-        true
-      } else {
-        false
-      }
+      request.aftVersion == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))
     }
 
-    def setValueBasedOnLastCharge(ua: UserAnswers): Try[UserAnswers] =
-      if(deleteChargeHelper.isLastCharge(ua)) {
-        Try(deleteChargeHelper.zeroOutLastCharge(ua))
-      } else {
-          if (isPhysicallyRemovable) {
-            Try(ua.removeWithPath(memberParentPath(page)))
-        } else {
-            Try(ua)
-        }
+    val isLastCharge = deleteChargeHelper.isLastCharge(request.userAnswers)
+
+    def removeOrZeroOutCharge(ua: UserAnswers): UserAnswers =
+      (isLastCharge, isRemovable) match {
+        case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua)
+        case (_, true) => ua.removeWithPath(memberParentPath(page))
+        case _ => ua
       }
 
-    def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] = ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
+    def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] =
+      ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
 
     def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
-        if(isPhysicallyRemovable) {
+        if(isLastCharge || isRemovable) {
           Try(ua)
         } else {
-          val updatedStatus: JsString = JsString("Deleted")
           ua
             .removeWithPath(amendedVersionPath(page))
             .removeWithPath(memberVersionPath(page))
-            .set(memberStatusPath(page), updatedStatus)
+            .set(memberStatusPath(page), JsString("Deleted"))
         }
     }
 
-    setValueBasedOnLastCharge(request.userAnswers).flatMap {
-      ua1 =>
-        updateTotalAmount(ua1).flatMap {
-          ua2 =>
-            setAmendmentFlags(ua2)
-        }
+    updateTotalAmount(removeOrZeroOutCharge(request.userAnswers)).flatMap {
+        setAmendmentFlags
     }
   }
 
