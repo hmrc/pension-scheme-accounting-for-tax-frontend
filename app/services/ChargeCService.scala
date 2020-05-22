@@ -54,19 +54,19 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       ua.get(MemberStatusPage(index)) match {
-        case Some(status) if status != "Deleted" =>
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
           getEmployerDetails(ua, index).flatMap { name =>
-            ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
-              Employer(
-                index,
-                name,
-                chargeDetails.amountTaxDue,
-                viewUrl(index, srn, startDate).url,
-                removeUrl(index, srn, startDate, ua).url
-              )
-            }
-          }.toSeq
-        case _ => Nil
+          ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
+            Employer(
+              index,
+              name,
+              chargeDetails.amountTaxDue,
+              viewUrl(index, srn, startDate).url,
+              removeUrl(index, srn, startDate, ua).url
+            )
+          }
+        }.toSeq
       }
     }
   }

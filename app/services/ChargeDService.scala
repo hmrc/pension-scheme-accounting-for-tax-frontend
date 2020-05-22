@@ -29,6 +29,7 @@ import models.viewModels.ViewAmendmentDetails
 import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
+import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 import viewmodels.Table
 
@@ -37,22 +38,42 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
-    val members = for {
-      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
-    } yield {
-      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-        Member(
-          index,
-          member.fullName,
-          member.nino,
-          chargeDetails.total,
-          viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url
-        )
+    (0 until numberOfMembersIncludingDeleted(ua)).flatMap { index =>
+      ua.get(MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").flatMap {
+            member =>
+              ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+                Member(
+                  index,
+                  member.fullName,
+                  member.nino,
+                  chargeDetails.total,
+                  viewUrl(index, srn, startDate).url,
+                  removeUrl(index, srn, startDate, ua).url
+                )
+              }.toSeq
+          }
       }
     }
 
-    members.flatten
+//    val members = for {
+//      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
+//    } yield {
+//      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+//        Member(
+//          index,
+//          member.fullName,
+//          member.nino,
+//          chargeDetails.total,
+//          viewUrl(index, srn, startDate).url,
+//          removeUrl(index, srn, startDate, ua).url
+//        )
+//      }
+//    }
+//
+//    members.flatten
   }
 
   def getAllLifetimeAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
@@ -90,6 +111,11 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     } else {
       controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
     }
+
+  private def numberOfMembersIncludingDeleted(ua: UserAnswers): Int =
+    (ua.data \ "chargeDDetails" \ "members").toOption
+      .map(_.as[JsArray].value.length)
+      .getOrElse(0)
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeD", members, canChange)
