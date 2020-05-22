@@ -142,8 +142,10 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
     }
   }
 
-  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal = {
     chargeCHelper.getSponsoringEmployers(_, srn, startDate).map(_.amount).sum
+  }
+
 
   case object EmployerTypeUnidentified extends Exception("Employer did not match individual or organisation type")
 }
