@@ -54,8 +54,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
                             (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
-      getEmployerDetails(ua, index).flatMap {
-        case name =>
+      getEmployerDetails(ua, index).flatMap { name =>
           ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
             Employer(
               index,
