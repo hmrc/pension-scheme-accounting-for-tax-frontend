@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
-import helpers.FormatHelper
+import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
@@ -34,7 +34,6 @@ import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import utils.DeleteChargeHelper
 import viewmodels.Table
 import viewmodels.Table.Cell
 

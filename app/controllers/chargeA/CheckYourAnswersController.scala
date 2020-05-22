@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeAHelper
+import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
@@ -38,7 +38,6 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DeleteChargeHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 

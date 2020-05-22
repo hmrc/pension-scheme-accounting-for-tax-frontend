@@ -975,8 +975,10 @@ removeLastCharge.title = You cannot remove this charge
 removeLastCharge.p1 = As this is the only charge for this return, you must change the charge amount to £0 and then resubmit the return.
 
 
-allAmendments.title = Changes made in this draft
-allAmendments.h1.caption = Draft
+allAmendments.draft.title = Changes made in this draft
+allAmendments.submission.title = Changes made in this submission
+allAmendments.h1.draft.caption = Draft
+allAmendments.h1.submission.caption = Submission {0}
 allAmendments.memberDetails.h1 = Member details
 allAmendments.chargeType.h1 = Charge type
 allAmendments.chargeAmount.h1 = Charge amount
@@ -993,9 +995,11 @@ allAmendments.charge.type.overseasTransfer = Overseas transfer
 allAmendments.charge.type.shortService = Short service refund lump sum
 allAmendments.numberOfMembers = {0} members
 allAmendments.noMembers = N/A
-return.to.submission = Return to total return for this draft
+return.to.draft = Return to total return for this draft
+return.to.submission = Return to total return for submission {0}
 
-allAmendments.view.changes.link = View changes made in this draft
+allAmendments.view.changes.draft.link = View changes made in this draft
+allAmendments.view.changes.submission.link = View changes made in this submission
 
 
 

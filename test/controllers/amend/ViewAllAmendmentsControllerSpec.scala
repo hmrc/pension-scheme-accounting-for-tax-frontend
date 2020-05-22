@@ -27,17 +27,15 @@ import models.AmendedChargeStatus.Updated
 import models.ChargeType.ChargeTypeDeRegistration
 import models.LocalDateBinder.localDateToString
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessMode, Enumerable, GenericViewModel}
+import models.{AccessMode, GenericViewModel}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -52,12 +50,9 @@ class ViewAllAmendmentsControllerSpec
     extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
-    with BeforeAndAfterEach
-    with Enumerable.Implicits
-    with Results
-    with ScalaFutures {
+    with BeforeAndAfterEach {
 
-  private def httpPathGET: String = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, QUARTER_START_DATE).url
+  private def httpPathGET: String = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, QUARTER_START_DATE, versionNumber.toString).url
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAmendmentHelper: AmendmentHelper = mock[AmendmentHelper]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
@@ -119,6 +114,8 @@ class ViewAllAmendmentsControllerSpec
       returnUrl = dummyCall.url,
       schemeName = schemeName
     ),
+    "versionNumber" -> versionNumber.toString,
+    "isDraft" -> true,
     "addedTable" -> table("added", Nil),
     "deletedTable" -> table("deleted", Nil),
     "updatedTable" -> table("updated", allAmendments)
