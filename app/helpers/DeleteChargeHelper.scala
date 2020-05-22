@@ -111,8 +111,24 @@ class DeleteChargeHelper {
       case _ => transformArrayMember(arr.tail, memberTransformer)
     }
 
-  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int =
+  //private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int = {
+  //  val xx = seqMember.size
+  //  println( "\n>>>>>>>>>>TOTAL=" + xx)
+  //  xx
+  //}
+
+  //private def memberStatusPath[A](page: QuestionPage[A]): JsPath =
+  //  JsPath(page.path.path.init ++ List(KeyPathNode("memberStatus")))
+
+  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int = {
     seqMember.size
+    //seqMember.count { member =>
+    //  (member \ "memberStatus").validate[String] match {
+    //    case JsSuccess(value, _) => value != "Deleted"
+    //    case JsError(errors)     => throw JsResultException(errors)
+    //  }
+    //}
+  }
 
   private def getTotal(path: JsLookupResult): BigDecimal = {
     if(path.isDefined) {
@@ -152,6 +168,15 @@ class DeleteChargeHelper {
   private def validMembers(ua: UserAnswers, chargeType: String): ValidChargeDetails = {
     val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
     val totalAmountPath = ua.data \ chargeType \ "totalChargeAmount"
+    val memberStatusPath = ua.data \ chargeType \ "members" \\ "memberStatus"
+    /*
+    22/5/2020 GRROB:-
+    TODO
+    Need to filter out where memberStatus is "Deleted" to get correct count of members.
+    Either combine memberStatusPath array with memberDetailsPath array OR
+    Rewrite the method validMemberBasedCharges to use ChargeTypes instead of seq of node names so that can then
+    use Page objects to retrieve the above info.
+     */
     ValidChargeDetails(chargeType, getMembersOrEmployersCount(memberDetailsPath), getTotal(totalAmountPath))
   }
 
