@@ -37,43 +37,22 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-
-    (0 until numberOfMembersIncludingDeleted(ua)).flatMap { index =>
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").zipWithIndex.flatMap { case (member, index) =>
       ua.get(MemberStatusPage(index)) match {
         case Some(status) if status == "Deleted" => Nil
         case _ =>
-          ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").flatMap {
-            member =>
-              ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-                Member(
-                  index,
-                  member.fullName,
-                  member.nino,
-                  chargeDetails.total,
-                  viewUrl(index, srn, startDate).url,
-                  removeUrl(index, srn, startDate, ua).url
-                )
-              }.toSeq
-          }
+            ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+              Member(
+                index,
+                member.fullName,
+                member.nino,
+                chargeDetails.total,
+                viewUrl(index, srn, startDate).url,
+                removeUrl(index, srn, startDate, ua).url
+              )
+            }.toSeq
       }
     }
-
-//    val members = for {
-//      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
-//    } yield {
-//      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-//        Member(
-//          index,
-//          member.fullName,
-//          member.nino,
-//          chargeDetails.total,
-//          viewUrl(index, srn, startDate).url,
-//          removeUrl(index, srn, startDate, ua).url
-//        )
-//      }
-//    }
-//
-//    members.flatten
   }
 
   def getAllLifetimeAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
