@@ -91,11 +91,6 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
     }
 
-  private def numberOfMembersIncludingDeleted(ua: UserAnswers): Int =
-    (ua.data \ "chargeDDetails" \ "members").toOption
-      .map(_.as[JsArray].value.length)
-      .getOrElse(0)
-
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =
     mapChargeXMembersToTable("chargeD", members, canChange)
 
