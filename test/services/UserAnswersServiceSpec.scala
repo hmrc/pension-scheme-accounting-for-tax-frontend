@@ -77,11 +77,12 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   ".removeMemberBasedCharge" must {
     "FOR FIRST COMPILE - remove the member & set total for a member level charge being deleted if version is 1 and is not last charge" in {
       val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+        .setOrException(MemberPage2, pageValue)
       val resultFuture = Future.fromTry(service
         .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
 
       whenReady(resultFuture) { result =>
-        result.get(MemberPage) mustBe None
+        result.get(MemberPage) mustBe Some("value")
         result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
       }
     }
@@ -121,11 +122,15 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
     "FOR AMENDMENT - physically remove member" +
       " for a member level charge if version is 2 and member added in this version" in {
-      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(2), version = 2), implicitly))
+      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUaTwoMembers(2), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
-          "members" -> Json.arr(),
+          "members" -> Json.arr(Json.obj(
+            MemberPage2.toString -> pageValue,
+            "memberAFTVersion"-> 2,
+            "memberStatus" -> "New"
+          )),
           "amendedVersion" -> 2)
       )).setOrException(TotalAmountPage, total(UserAnswers()))
 
@@ -231,6 +236,12 @@ object UserAnswersServiceSpec {
     override def toString: String = "memberPage"
   }
 
+  case object MemberPage2 extends QuestionPage[String] {
+    override def path: JsPath = JsPath \ "chargeType" \ "members" \ 1 \ toString
+
+    override def toString: String = "memberPage"
+  }
+
   case object TotalAmountPage extends QuestionPage[BigDecimal] {
     override def path: JsPath = JsPath \ "chargeType" \ toString
 
@@ -258,6 +269,23 @@ object UserAnswersServiceSpec {
       "members" -> Json.arr(
         Json.obj(
           MemberPage.toString -> pageValue,
+          "memberAFTVersion"-> version,
+          "memberStatus" -> status
+        )
+      ),
+      "amendedVersion" -> version)
+  ))
+
+  def memberUaTwoMembers(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
+    "chargeType" -> Json.obj(
+      "members" -> Json.arr(
+        Json.obj(
+          MemberPage.toString -> pageValue,
+          "memberAFTVersion"-> version,
+          "memberStatus" -> status
+        ),
+        Json.obj(
+          MemberPage2.toString -> pageValue,
           "memberAFTVersion"-> version,
           "memberStatus" -> status
         )
