@@ -69,22 +69,45 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     def isLastCharge = deleteChargeHelper.isLastCharge(request.userAnswers)
 
-    def updateTotalAmount(ua: UserAnswers): Try[UserAnswers] =
-      ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
-
-    val ua = request.userAnswers
-
-    updateTotalAmount(
+    def removeZeroOrUpdateAmendmentStatuses(ua:UserAnswers):UserAnswers = {
       (isLastCharge, isRemovable) match {
         case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua)
-        case (_, true) => ua.removeWithPath(memberParentPath(page))
-        case _ =>
-          // Must be removing in amendments where member added in same version
+        case (_, true) => removeMemberOrCharge(ua, page)
+        case _         =>
           ua.removeWithPath(amendedVersionPath(page))
             .removeWithPath(memberVersionPath(page))
             .setOrException(memberStatusPath(page), JsString("Deleted"))
       }
+    }
+
+    def updateChargeTotalIfChargeExists(ua:UserAnswers):Try[UserAnswers] = {
+      JsPath(page.path.path.take(1)).asSingleJsResult(ua.data).asOpt match {
+        case None => Try(ua)
+        case _ =>
+          ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
+      }
+    }
+
+    updateChargeTotalIfChargeExists(
+      removeZeroOrUpdateAmendmentStatuses(request.userAnswers)
     )
+  }
+
+  private def removeMemberOrCharge[A](ua: UserAnswers, page: QuestionPage[A]) = {
+    membersPath(page)
+      .asSingleJsResult(ua.data)
+      .asOpt
+      .map(_.as[JsArray].value.size)
+      .map { totalMembersInCharge =>
+        ua.removeWithPath(
+          if (totalMembersInCharge == 1) { // Deleting last member in this charge
+            chargePath(page)
+          } else {
+            memberParentPath(page)
+          }
+        )
+      }
+      .getOrElse(ua)
   }
 
   /* Use this remove for deleting a scheme based charge */
@@ -129,6 +152,14 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def memberParentPath[A](page: QuestionPage[A]): JsPath = {
     JsPath(page.path.path.take(3))
+  }
+
+  private def chargePath[A](page: QuestionPage[A]): JsPath = {
+    JsPath(page.path.path.take(1))
+  }
+
+  private def membersPath[A](page: QuestionPage[A]): JsPath = {
+    JsPath(page.path.path.take(2))
   }
 
   case object MissingMemberStatus extends Exception("Previous member status was not found for an amendment")

@@ -127,8 +127,9 @@ class DeleteChargeHelper {
   }
 
   def isLastCharge(ua: UserAnswers): Boolean = (nonZeroSchemeBasedCharges(ua) + validMemberBasedCharges(ua).count) == 1
-  def allChargesDeletedOrZeroed(ua: UserAnswers): Boolean =
+  def allChargesDeletedOrZeroed(ua: UserAnswers): Boolean = {
     nonZeroSchemeBasedCharges(ua) == 0 && validMemberBasedCharges(ua).count <= 1 && validMemberBasedCharges(ua).total == BigDecimal(0.00)
+  }
 
   private def nonZeroSchemeBasedCharges(ua: UserAnswers): Int = {
     val json = ua.data
