@@ -251,47 +251,45 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
 object UserAnswersServiceSpec {
 
-  case object Page extends QuestionPage[String] {
+  private case object Page extends QuestionPage[String] {
     override def path: JsPath = JsPath \ toString
 
     override def toString: String = "page"
   }
 
-  case object MemberPage extends QuestionPage[String] {
+  private case object MemberPage extends QuestionPage[String] {
     override def path: JsPath = JsPath \ "chargeType" \ "members" \ 0 \ toString
 
     override def toString: String = "memberPage"
   }
 
-  case object MemberPage2 extends QuestionPage[String] {
+  private case object MemberPage2 extends QuestionPage[String] {
     override def path: JsPath = JsPath \ "chargeType" \ "members" \ 1 \ toString
 
     override def toString: String = "memberPage"
   }
 
-  case object TotalAmountPage extends QuestionPage[BigDecimal] {
+  private case object TotalAmountPage extends QuestionPage[BigDecimal] {
     override def path: JsPath = JsPath \ "chargeType" \ toString
 
     override def toString: String = "totalChargeAmount"
   }
 
-  val pageValue: String = "value"
-  val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
-  val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
+  private val pageValue: String = "value"
+  private val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
+  private val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
 
-  def sessionData(version: Int): SessionData =
+  private def sessionData(version: Int): SessionData =
     SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile))
 
-  def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
+  private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))
 
-  val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
+  private val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
 
+  private val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
 
-
-  val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
-
-  def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
+  private def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(
@@ -303,7 +301,7 @@ object UserAnswersServiceSpec {
       "amendedVersion" -> version)
   ))
 
-  def memberUaTwoMembers(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
+  private def memberUaTwoMembers(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(
