@@ -54,46 +54,46 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  /* Use this set for deleting a member based charge */
+  /* Use this for deleting a member-based charge */
   def removeMemberBasedCharge[A](page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal)(implicit request: DataRequest[AnyContent],
-                                                                                                writes: Writes[A]): Try[UserAnswers] = {
-    // Can only physically remove if first compile or if member being removed was added in same version
-    def isRemovable = {
-      val ua = request.userAnswers
-      def previousVersion = ua.get(memberVersionPath(page))
-      def prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
-      def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
-
-      request.aftVersion == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))
-    }
-
-    def isLastCharge = deleteChargeHelper.isLastCharge(request.userAnswers)
-
-    def removeZeroOrUpdateAmendmentStatuses(ua:UserAnswers):UserAnswers = {
-      (isLastCharge, isRemovable) match {
-        case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
-        case (_, true) => removeMemberOrCharge(ua, page)
-        case _         => // Amendments and added in same version
-          ua.removeWithPath(amendedVersionPath(page))
-            .removeWithPath(memberVersionPath(page))
-            .setOrException(memberStatusPath(page), JsString("Deleted"))
-      }
-    }
-
-    def updateChargeTotalIfChargeExists(ua:UserAnswers):Try[UserAnswers] = {
-      JsPath(page.path.path.take(1)).asSingleJsResult(ua.data).asOpt match {
-        case None => Try(ua)
-        case _ =>
-          ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
-      }
-    }
-
+                                                                                                writes: Writes[A]): Try[UserAnswers] =
     updateChargeTotalIfChargeExists(
-      removeZeroOrUpdateAmendmentStatuses(request.userAnswers)
+      removeZeroOrUpdateAmendmentStatuses(request.userAnswers, page, request.aftVersion),
+      page,
+      totalAmount
     )
+
+  private def updateChargeTotalIfChargeExists[A](ua: UserAnswers, page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal): Try[UserAnswers] = {
+    chargePath(page).asSingleJsResult(ua.data).asOpt match {
+      case None => Try(ua)
+      case _ =>
+        ua.set(totalAmountPath(page), JsNumber(totalAmount(ua)))
+    }
+  }
+
+  private def isRemovable[A](ua: UserAnswers, page: QuestionPage[A], version: Int) = {
+    // Can only physically remove if first compile or if member being removed was added in same version
+    def previousVersion = ua.get(memberVersionPath(page))
+    def prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
+    def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
+
+    version == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))
+  }
+
+  private def removeZeroOrUpdateAmendmentStatuses[A](ua: UserAnswers, page: QuestionPage[A], version: Int): UserAnswers = {
+    // Either physically remove, zero or update the amendment status flags for the member-based charge
+    (deleteChargeHelper.isLastCharge(ua), isRemovable(ua, page, version)) match {
+      case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
+      case (_, true) => removeMemberOrCharge(ua, page)
+      case _ => // Amendments and added in same version
+        ua.removeWithPath(amendedVersionPath(page))
+          .removeWithPath(memberVersionPath(page))
+          .setOrException(memberStatusPath(page), JsString("Deleted"))
+    }
   }
 
   private def removeMemberOrCharge[A](ua: UserAnswers, page: QuestionPage[A]) = {
+    // Either remove the member from charge, or if it is the only member in the charge then remove the whole charge
     membersPath(page)
       .asSingleJsResult(ua.data)
       .asOpt
@@ -110,7 +110,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       .getOrElse(ua)
   }
 
-  /* Use this remove for deleting a scheme based charge */
+  /* Use this remove for deleting a scheme-based charge */
   def removeSchemeBasedCharge[A](page: QuestionPage[A])(implicit request: DataRequest[AnyContent]): UserAnswers = {
     val ua: UserAnswers = request.userAnswers
     if (request.isAmendment) {
@@ -154,15 +154,12 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     JsPath(page.path.path.take(3))
   }
 
-  private def chargePath[A](page: QuestionPage[A]): JsPath = {
+  private def chargePath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(1))
-  }
 
-  private def membersPath[A](page: QuestionPage[A]): JsPath = {
+  private def membersPath[A](page: QuestionPage[A]): JsPath =
     JsPath(page.path.path.take(2))
-  }
 
   case object MissingMemberStatus extends Exception("Previous member status was not found for an amendment")
   case object MissingVersion extends Exception("Previous version number was not found for an amendment")
-
 }
