@@ -71,9 +71,9 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     def removeZeroOrUpdateAmendmentStatuses(ua:UserAnswers):UserAnswers = {
       (isLastCharge, isRemovable) match {
-        case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua)
+        case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
         case (_, true) => removeMemberOrCharge(ua, page)
-        case _         =>
+        case _         => // Amendments and added in same version
           ua.removeWithPath(amendedVersionPath(page))
             .removeWithPath(memberVersionPath(page))
             .setOrException(memberStatusPath(page), JsString("Deleted"))
