@@ -85,7 +85,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     (deleteChargeHelper.isLastCharge(ua), isRemovable(ua, page, version)) match {
       case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
       case (_, true) => removeMemberOrCharge(ua, page)
-      case _ => // Amendments and added in same version
+      case _ => // Not removable so must be amendments and added in same version
         ua.removeWithPath(amendedVersionPath(page))
           .removeWithPath(memberVersionPath(page))
           .setOrException(memberStatusPath(page), JsString("Deleted"))
