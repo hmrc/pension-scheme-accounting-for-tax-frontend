@@ -71,18 +71,10 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  private def isRemovable[A](ua: UserAnswers, page: QuestionPage[A], version: Int) = {
-    // Can only physically remove if first compile or if member being removed was added in same version
-    def previousVersion = ua.get(memberVersionPath(page))
-    def prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
-    def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
-
-    version == 1 || ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New"))
-  }
-
   private def removeZeroOrUpdateAmendmentStatuses[A](ua: UserAnswers, page: QuestionPage[A], version: Int): UserAnswers = {
     // Either physically remove, zero or update the amendment status flags for the member-based charge
-    (deleteChargeHelper.isLastCharge(ua), isRemovable(ua, page, version)) match {
+    val isRemovable = version == 1 || isAddedInAmendmentOfSameVersion(ua, page, version)
+    (deleteChargeHelper.isLastCharge(ua), isRemovable) match {
       case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
       case (_, true) => removeMemberOrCharge(ua, page)
       case _ => // Not removable so must be amendments and added in same version
@@ -124,18 +116,19 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   }
 
   private def getCorrectStatus[A](page: QuestionPage[A], updatedStatus: String, userAnswers: UserAnswers)(
-      implicit request: DataRequest[AnyContent]): String = {
-
-    val previousVersion = userAnswers.get(memberVersionPath(page))
-    val prevMemberStatus = userAnswers.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus)
-
-    val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
-
-    if ((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
+      implicit request: DataRequest[AnyContent]): String =
+    if (isAddedInAmendmentOfSameVersion(userAnswers, page, request.aftVersion)) {
       "New"
     } else {
       updatedStatus
     }
+
+  private def isAddedInAmendmentOfSameVersion[A](ua: UserAnswers, page: QuestionPage[A], version:Int) = {
+    val previousVersion = ua.get(memberVersionPath(page))
+    def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
+    val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus).as[String]
+
+    (previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus == "New"
   }
 
   private def amendedVersionPath[A](page: QuestionPage[A]): JsPath =
