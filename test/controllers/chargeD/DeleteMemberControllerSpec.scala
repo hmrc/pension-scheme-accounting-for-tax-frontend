@@ -74,31 +74,31 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
   "DeleteMember Controller" must {
 
-//    "return OK and the correct view for a GET" in {
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//
-//      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-//      val request = FakeRequest(GET, httpPathGET)
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual OK
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val expectedJson = Json.obj(
-//        "form" -> form,
-//        "viewModel" -> viewModel,
-//        "radios" -> Radios.yesNo(form("value")),
-//        "memberName" -> memberName
-//      )
-//
-//      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
-//    }
+    "return OK and the correct view for a GET" in {
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(GET, httpPathGET)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(form("value")),
+        "memberName" -> memberName
+      )
+
+      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
@@ -126,60 +126,60 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
         Matchers.eq(expectedUA))(any(), any(), any())
     }
 
-//    "return a Bad Request and errors when invalid data is submitted" in {
-//
-//      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-//      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-//      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-//
-//      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
-//      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
-//      val boundForm = form.bind(Map("value" -> ""))
-//      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-//      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual BAD_REQUEST
-//
-//      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-//
-//      val expectedJson = Json.obj(
-//        "form" -> boundForm,
-//        "viewModel" -> viewModel,
-//        "radios" -> Radios.yesNo(boundForm("value"))
-//      )
-//
-//      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
-//      jsonCaptor.getValue must containJson(expectedJson)
-//    }
-//
-//    "redirect to Session Expired for a GET if no existing data is found" in {
-//
-//      mutableFakeDataRetrievalAction.setDataToReturn(None)
-//
-//      val request = FakeRequest(GET, httpPathGET)
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-//    }
-//
-//    "redirect to Session Expired for a POST if no existing data is found" in {
-//
-//      mutableFakeDataRetrievalAction.setDataToReturn(None)
-//
-//      val request =
-//        FakeRequest(POST, httpPathGET)
-//          .withFormUrlEncodedBody(("value", "true"))
-//
-//      val result = route(application, request).value
-//
-//      status(result) mustEqual SEE_OTHER
-//
-//      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
-//    }
+    "return a Bad Request and errors when invalid data is submitted" in {
+
+      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
+      val request = FakeRequest(POST, httpPathGET).withFormUrlEncodedBody(("value", ""))
+      val boundForm = form.bind(Map("value" -> ""))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj(
+        "form" -> boundForm,
+        "viewModel" -> viewModel,
+        "radios" -> Radios.yesNo(boundForm("value"))
+      )
+
+      templateCaptor.getValue mustEqual "chargeD/deleteMember.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "redirect to Session Expired for a GET if no existing data is found" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+
+      val request = FakeRequest(GET, httpPathGET)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+
+    "redirect to Session Expired for a POST if no existing data is found" in {
+
+      mutableFakeDataRetrievalAction.setDataToReturn(None)
+
+      val request =
+        FakeRequest(POST, httpPathGET)
+          .withFormUrlEncodedBody(("value", "true"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual controllers.routes.SessionExpiredController.onPageLoad().url
+    }
   }
 }
