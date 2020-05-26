@@ -16,24 +16,23 @@
 
 package services
 
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import connectors.SchemeDetailsConnector
 import controllers.routes._
 import handlers.ErrorHandler
+import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
+import models.requests.DataRequest
 import models.{SchemeStatus, UserAnswers}
-import models.requests.OptionalDataRequest
 import pages._
 import play.api.http.Status.NOT_FOUND
-import play.api.mvc.{Results, Result}
+import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{Future, ExecutionContext}
-import java.time.LocalDate
-
-import models.LocalDateBinder._
-import models.requests.DataRequest
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector, aftService: AFTService, errorHandler: ErrorHandler)(
     implicit val executionContext: ExecutionContext)
@@ -74,6 +73,8 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
               case (true, _, Some(ChargeTypePage), _, _) =>
                 Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
               case (false, true, Some(ChargeTypePage), _, _) =>
+                Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+              case (false, true, None, _, _) =>
                 Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
               case _ =>
                 Future.successful(None)
