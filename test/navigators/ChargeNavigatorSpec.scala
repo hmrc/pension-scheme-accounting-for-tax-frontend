@@ -44,12 +44,17 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
   private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
-//  private def aftSummaryNo: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, false).toOption
-  private def aftSummaryNo(quarter:Quarter) =
+  private def aftSummaryNo(quarter:Quarter):Option[UserAnswers] =
     Option(
       UserAnswers()
         .setOrException(AFTSummaryPage, false)
         .setOrException(QuarterPage, quarter)
+    )
+
+  private def confirmSubmitAFTReturn(confirmSubmit:Boolean):Option[UserAnswers] =
+    Option(
+      UserAnswers()
+        .setOrException(ConfirmSubmitAFTReturnPage, confirmSubmit)
     )
 
   "NormalMode" must {
@@ -67,7 +72,9 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeGMemberExists),
         row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
+
         row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
       )

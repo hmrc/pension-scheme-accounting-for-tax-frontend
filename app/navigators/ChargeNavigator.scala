@@ -39,7 +39,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
     case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate)
-    case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
+    case ConfirmSubmitAFTReturnPage => confirmSubmitNavigation(ua, srn, startDate)
     case ConfirmSubmitAFTAmendmentPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
     case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
   }
@@ -83,6 +83,16 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   private def isSubmissionDisabled(quarterEndDate: String): Boolean = {
     val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
     !(DateHelper.today.compareTo(nextDay) >= 0)
+  }
+
+  private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]) = {
+    ua.get(ConfirmSubmitAFTReturnPage) match {
+      case Some(true) =>
+        controllers.routes.DeclarationController.onPageLoad(srn, startDate)
+      case Some(false) =>
+        Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      case _ => sessionExpiredPage
+    }
   }
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {

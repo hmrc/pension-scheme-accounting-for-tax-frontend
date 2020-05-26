@@ -107,16 +107,10 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
               renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
             },
             value =>
-              if (!value) {
-                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-                  Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
-                }
-              } else {
-                for {
-                  updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
-                  _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate))
-            }
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
+                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate))
           )
       }
     }
