@@ -27,6 +27,7 @@ import helpers.CYAChargeCHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
+import pages.ViewOnlyAccessiblePage
 import pages.chargeC._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -55,7 +56,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeC(index, srn, startDate) { (whichTypeOfSponsoringEmployer, sponsorDetails, address, chargeDetails, schemeName) =>
         val helper = new CYAChargeCHelper(srn, startDate)

@@ -29,7 +29,7 @@ import models.chargeA.ChargeDetails
 import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.PSTRQuery
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsNull, JsPath, Json, KeyPathNode}
@@ -58,7 +58,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeAHelper(srn, startDate)
