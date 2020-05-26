@@ -130,7 +130,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           )
         )
 
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -190,7 +190,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -223,7 +223,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
