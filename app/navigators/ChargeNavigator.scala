@@ -23,10 +23,11 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{ChargeType, NormalMode, UserAnswers}
+import models.{NormalMode, ChargeType, UserAnswers}
 import pages._
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import services.{ChargeDService, ChargeEService, ChargeGService}
+import utils.DateHelper
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -79,12 +80,25 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
     chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
-  private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
-    ua.get(AFTSummaryPage) match {
-      case Some(true) =>
+  private def isSubmissionDisabled(quarterEndDate: String): Boolean = {
+    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
+    !(DateHelper.today.compareTo(nextDay) >= 0)
+  }
+
+  private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {
+    (ua.get(AFTSummaryPage), ua.get(QuarterPage)) match {
+      case (Some(true), _) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
-      case Some(false) =>
-        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+      case (Some(false), Some(quarter)) =>
+          if (isSubmissionDisabled(quarter.endDate)) {
+            Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+          } else {
+            if (request.isAmendment) {
+              controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)
+            } else {
+              controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+            }
+          }
       case _ => sessionExpiredPage
     }
   }
