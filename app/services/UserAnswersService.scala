@@ -18,6 +18,7 @@ package services
 
 import com.google.inject.Inject
 import helpers.DeleteChargeHelper
+import models.AmendedChargeStatus
 import models.requests.DataRequest
 import models.{Mode, NormalMode, UserAnswers}
 import pages.QuestionPage
@@ -35,7 +36,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     if(request.isAmendment) { //this IS an amendment
       if(isMemberBased) { //charge C, D, E or G
 
-        val status: String = if(mode == NormalMode) "New" else getCorrectStatus(page, "Changed", request.userAnswers)
+        val status: String = if(mode == NormalMode) AmendedChargeStatus.Added.toString else getCorrectStatus(page, AmendedChargeStatus.Updated.toString, request.userAnswers)
 
         request.userAnswers
           .removeWithPath(amendedVersionPath(page))
@@ -67,7 +68,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     def setAmendmentFlags(ua: UserAnswers): Try[UserAnswers] = {
       if(request.isAmendment) {
 
-            val updatedStatus: JsString = JsString(getCorrectStatus(page, "Deleted", ua))
+            val updatedStatus: JsString = JsString(getCorrectStatus(page, AmendedChargeStatus.Deleted.toString, ua))
             ua
               .removeWithPath(amendedVersionPath(page))
               .removeWithPath(memberVersionPath(page))
@@ -106,8 +107,8 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     val isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == request.aftVersion
 
-   if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals("New")) {
-      "New"
+   if((previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus.as[String].equals(AmendedChargeStatus.Added.toString)) {
+     AmendedChargeStatus.Added.toString
     } else {
      updatedStatus
    }
