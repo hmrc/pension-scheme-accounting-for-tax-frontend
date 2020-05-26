@@ -26,6 +26,7 @@ import models.requests.DataRequest
 import models.{NormalMode, ChargeType, UserAnswers}
 import pages._
 import play.api.mvc.{Call, AnyContent}
+import services.AFTService
 import services.{ChargeDService, ChargeEService, ChargeGService}
 import utils.DateHelper
 
@@ -33,7 +34,9 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
                                 chargeDHelper: ChargeDService,
                                 chargeEHelper: ChargeEService,
-                                chargeGHelper: ChargeGService) extends Navigator {
+                                chargeGHelper: ChargeGService,
+                                aftService: AFTService
+                               ) extends Navigator {
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
@@ -80,11 +83,6 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
     chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
 
-  private def isSubmissionDisabled(quarterEndDate: String): Boolean = {
-    val nextDay = LocalDate.parse(quarterEndDate).plusDays(1)
-    !(DateHelper.today.compareTo(nextDay) >= 0)
-  }
-
   private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]) = {
     ua.get(ConfirmSubmitAFTReturnPage) match {
       case Some(true) =>
@@ -100,7 +98,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
       case (Some(true), _) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
       case (Some(false), Some(quarter)) =>
-          if (isSubmissionDisabled(quarter.endDate)) {
+          if (aftService.isSubmissionDisabled(quarter.endDate)) {
             Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
           } else {
             if (request.isAmendment) {
