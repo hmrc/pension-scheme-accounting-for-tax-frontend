@@ -91,20 +91,20 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
 
         rowWithDateAndVersion(AFTSummaryPage)(
           controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate),
-          aftSummaryNo(SampleData.q32020),
+          aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate.plusDays(1),
           version = 1),
 
         rowWithDateAndVersion(AFTSummaryPage)(
           controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate),
-          aftSummaryNo(SampleData.q32020),
+          aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate.plusDays(1),
           version = 2),
 
         rowWithDateAndVersion(AFTSummaryPage)(
           Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)),
-          aftSummaryNo(SampleData.q32020),
-          currentDate = LocalDate.now,
+          aftSummaryNo(quarter = SampleData.q32020),
+          currentDate = SampleData.q32020.endDate,
           version = 1)
       )
 

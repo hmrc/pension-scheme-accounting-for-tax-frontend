@@ -23,12 +23,16 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, ChargeType, UserAnswers}
+import models.ChargeType
+import models.NormalMode
+import models.UserAnswers
 import pages._
-import play.api.mvc.{Call, AnyContent}
+import play.api.mvc.AnyContent
+import play.api.mvc.Call
 import services.AFTService
-import services.{ChargeDService, ChargeEService, ChargeGService}
-import utils.DateHelper
+import services.ChargeDService
+import services.ChargeEService
+import services.ChargeGService
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
