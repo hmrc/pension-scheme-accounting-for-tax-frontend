@@ -73,14 +73,15 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def removeZeroOrUpdateAmendmentStatuses[A](ua: UserAnswers, page: QuestionPage[A], version: Int): UserAnswers = {
     // Either physically remove, zero or update the amendment status flags for the member-based charge
-    val isRemovable = version == 1 || isAddedInAmendmentOfSameVersion(ua, page, version)
-    (deleteChargeHelper.isLastCharge(ua), isRemovable) match {
-      case (true, _) => deleteChargeHelper.zeroOutLastCharge(ua) // Last charge/ member on last charge
-      case (_, true) => removeMemberOrCharge(ua, page)
-      case _ => // Not removable so must be amendments and not added in same version
-        ua.removeWithPath(amendedVersionPath(page))
-          .removeWithPath(memberVersionPath(page))
-          .setOrException(memberStatusPath(page), JsString("Deleted"))
+
+    if (deleteChargeHelper.isLastCharge(ua)) { // Last charge/ member on last charge
+      deleteChargeHelper.zeroOutLastCharge(ua)
+    } else if (version ==1 || isAddedInAmendmentOfSameVersion(ua, page, version)) {
+      removeMemberOrCharge(ua, page)
+    } else { // Amendments and not added in same version
+      ua.removeWithPath(amendedVersionPath(page))
+        .removeWithPath(memberVersionPath(page))
+        .setOrException(memberStatusPath(page), JsString("Deleted"))
     }
   }
 
