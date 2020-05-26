@@ -53,9 +53,6 @@ class RequestCreationService @Inject()(
     minimalPsaConnector: MinimalPsaConnector,
     config: FrontendAppConfig
 ) {
-
-  private def emptySessionData(id:String) = SessionData(id, None, SessionAccessData(0, AccessMode.PageAccessModeViewOnly))
-
   def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
@@ -66,7 +63,7 @@ class RequestCreationService @Inject()(
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData.getOrElse(emptySessionData(id)))
+      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData)
     }
   }
 
@@ -84,7 +81,7 @@ class RequestCreationService @Inject()(
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
-      OptionalDataRequest[A](request, id, psaId, optionUA, emptySessionData(id))
+      OptionalDataRequest[A](request, id, psaId, optionUA, None)
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
@@ -96,9 +93,8 @@ class RequestCreationService @Inject()(
 
           tuple.flatMap {
             case (_, ua) =>
-              userAnswersCacheConnector.getSessionData(id).map {
-                case Some(sd) => OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
-                case _ => throw new RuntimeException("No session data found")
+              userAnswersCacheConnector.getSessionData(id).map { sd =>
+                OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
               }
           }
       }
