@@ -160,7 +160,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         verify(mockAFTService, never).isSubmissionDisabled(any())
       }
 
-      "redirect to next page when user selects no with submission enabled" in {
+      "redirect to next page when user selects no" in {
         when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
         when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
@@ -174,22 +174,6 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-        verify(mockAFTService, times(1)).isSubmissionDisabled(any())
-      }
-
-      "remove all data and redirect to scheme summary page when user selects no and submission is disabled" in {
-        when(mockAFTService.isSubmissionDisabled(any())).thenReturn(true)
-        when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-
-        mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-        fakeDataUpdateAction.setDataToReturn(userAnswers)
-
-        val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(testManagePensionsUrl.url)
-        verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-        verify(mockAFTService, times(1)).isSubmissionDisabled(any())
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {

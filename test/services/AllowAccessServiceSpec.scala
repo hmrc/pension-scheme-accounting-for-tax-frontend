@@ -65,7 +65,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
   "filterForIllegalPageAccess" must {
     "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and " +
-      "the scheme status is Open/Wound-up/Deregistered" in {
+      "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Open)
@@ -74,8 +74,26 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
 
-      whenReady(allowAccessService.filterForIllegalPageAccess("", QUARTER_START_DATE, ua)(dataRequest(ua))) { result =>
-        result mustBe None
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua, Some(ViewOnlyAccessiblePage))(dataRequest(ua))) {
+        _ mustBe None
+      }
+    }
+
+    "respond with call to error page for redirecting form pages in view-only returns " +
+      "the scheme status is Open/Wound-up/Deregistered for a option page is None" in {
+      val ua = SampleData.userAnswersWithSchemeNamePstrQuarter
+        .setOrException(IsPsaSuspendedQuery, value = false)
+        .setOrException(SchemeStatusQuery, Open)
+
+      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, None))
+
+      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
+        .thenReturn(Future.successful(true))
+
+      val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, errorHandler)
+
+      whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua)(dataRequest(ua))) { result =>
+        result mustBe Some(expectedResult)
       }
     }
 
