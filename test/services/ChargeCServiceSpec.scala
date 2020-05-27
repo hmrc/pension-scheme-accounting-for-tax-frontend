@@ -21,18 +21,19 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Added, Updated}
+import models.AmendedChargeStatus
+import models.AmendedChargeStatus.{Updated, Added}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, MemberDetails, UserAnswers}
+import models.{Employer, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage, _}
+import pages.chargeC.{SponsoringOrganisationDetailsPage, ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, _}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -51,12 +52,12 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   val allEmployers: UserAnswers = UserAnswers()
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
-    .set(MemberStatusPage(0), "New").toOption.get
+    .set(MemberStatusPage(0), AmendedChargeStatus.Added.toString).toOption.get
     .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
     .set(SponsoringIndividualDetailsPage(0), SampleData.sponsoringIndividualDetails).toOption.get
     .set(ChargeCDetailsPage(0), SampleData.chargeCDetails).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
-    .set(MemberStatusPage(1), "Changed").toOption.get
+    .set(MemberStatusPage(1), AmendedChargeStatus.Updated.toString).toOption.get
     .set(WhichTypeOfSponsoringEmployerPage(1), SponsoringEmployerTypeOrganisation).toOption.get
     .set(SponsoringOrganisationDetailsPage(1), SampleData.sponsoringOrganisationDetails).toOption.get
     .set(ChargeCDetailsPage(1), SampleData.chargeCDetails).toOption.get

@@ -21,7 +21,8 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Deleted, Updated}
+import models.AmendedChargeStatus
+import models.AmendedChargeStatus.{Updated, Deleted}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
@@ -32,7 +33,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
+import pages.chargeG.{MemberAFTVersionPage, MemberDetailsPage, ChargeAmountsPage, MemberStatusPage}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -42,11 +43,11 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers()
-    .set(MemberStatusPage(0), "Deleted").toOption.get
+    .set(MemberStatusPage(0), AmendedChargeStatus.Deleted.toString).toOption.get
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(0), SampleData.memberGDetails).toOption.get
     .set(ChargeAmountsPage(0), SampleData.chargeAmounts).toOption.get
-    .set(MemberStatusPage(1), "Changed").toOption.get
+    .set(MemberStatusPage(1), AmendedChargeStatus.Updated.toString).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberGDetails2).toOption.get
     .set(ChargeAmountsPage(1), SampleData.chargeAmounts2).toOption.get

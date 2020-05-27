@@ -21,12 +21,13 @@ import java.time.LocalDate
 import base.SpecBase
 import data.SampleData
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Deleted, Updated}
+import models.AmendedChargeStatus
+import models.AmendedChargeStatus.{Updated, Deleted}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, MemberDetails, UserAnswers}
+import models.{Member, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -41,11 +42,11 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   val startDate: LocalDate = QUARTER_START_DATE
 
   val allMembers: UserAnswers = UserAnswers()
-    .set(MemberStatusPage(0), "Deleted").toOption.get
+    .set(MemberStatusPage(0), AmendedChargeStatus.Deleted.toString).toOption.get
     .set(MemberAFTVersionPage(0), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(0), SampleData.memberDetails).toOption.get
     .set(ChargeDetailsPage(0), SampleData.chargeDDetails).toOption.get
-    .set(MemberStatusPage(1), "Changed").toOption.get
+    .set(MemberStatusPage(1), AmendedChargeStatus.Updated.toString).toOption.get
     .set(MemberAFTVersionPage(1), SampleData.version.toInt).toOption.get
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
     .set(ChargeDetailsPage(1), SampleData.chargeDDetails).toOption.get

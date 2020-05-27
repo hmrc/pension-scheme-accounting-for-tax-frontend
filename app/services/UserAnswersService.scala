@@ -18,6 +18,7 @@ package services
 
 import com.google.inject.Inject
 import helpers.DeleteChargeHelper
+import models.AmendedChargeStatus
 import models.requests.DataRequest
 import models.Mode
 import models.NormalMode
@@ -37,7 +38,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     if (request.isAmendment) { //this IS an amendment
       if (isMemberBased) { //charge C, D, E or G
 
-        val status: String = if (mode == NormalMode) "New" else getCorrectStatus(page, "Changed", request.userAnswers)
+        val status: String = if (mode == NormalMode) AmendedChargeStatus.Added.toString else getCorrectStatus(page, AmendedChargeStatus.Updated.toString, request.userAnswers)
 
         request.userAnswers
           .removeWithPath(amendedVersionPath(page))
@@ -81,7 +82,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     } else { // Amendments and not added in same version
       ua.removeWithPath(amendedVersionPath(page))
         .removeWithPath(memberVersionPath(page))
-        .setOrException(memberStatusPath(page), JsString("Deleted"))
+        .setOrException(memberStatusPath(page), JsString(AmendedChargeStatus.Deleted.toString))
     }
   }
 
@@ -119,7 +120,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   private def getCorrectStatus[A](page: QuestionPage[A], updatedStatus: String, userAnswers: UserAnswers)(
       implicit request: DataRequest[AnyContent]): String =
     if (isAddedInAmendmentOfSameVersion(userAnswers, page, request.aftVersion)) {
-      "New"
+      AmendedChargeStatus.Added.toString
     } else {
       updatedStatus
     }
@@ -129,7 +130,7 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     def isChangeInSameCompile = previousVersion.nonEmpty && previousVersion.getOrElse(throw MissingVersion).as[Int] == version
     val prevMemberStatus = ua.get(memberStatusPath(page)).getOrElse(throw MissingMemberStatus).as[String]
 
-    (previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus == "New"
+    (previousVersion.isEmpty || isChangeInSameCompile) && prevMemberStatus == AmendedChargeStatus.Added.toString
   }
 
   private def amendedVersionPath[A](page: QuestionPage[A]): JsPath =

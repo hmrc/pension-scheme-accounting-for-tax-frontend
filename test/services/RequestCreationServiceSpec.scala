@@ -75,7 +75,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val aftStatus = "Compiled"
 
   private val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-    OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+    OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
 
   private val schemeStatus = "Open"
 
@@ -110,7 +110,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         Duration.Inf
       )
 
-      val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, Some(userAnswersWithSchemeName), sd)
+      val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, Some(userAnswersWithSchemeName), Some(sd))
       result mustBe expectedResult
     }
   }
@@ -130,7 +130,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           )
         )
 
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -158,7 +158,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
 
         val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-        OptionalDataRequest(fakeRequest.withHeaders(referer :_*), internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+        OptionalDataRequest(fakeRequest.withHeaders(referer :_*), internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
@@ -179,7 +179,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       "create data request with details" in {
 
         val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-          OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), sd)
+          OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
 
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(
@@ -190,7 +190,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -223,7 +223,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
