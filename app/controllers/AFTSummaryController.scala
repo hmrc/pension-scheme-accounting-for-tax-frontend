@@ -128,18 +128,11 @@ class AFTSummaryController @Inject()(
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
-              if (!value && aftService.isSubmissionDisabled(quarter.endDate)) {
-                userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
-                }
-              } else if (!value && request.isAmendment) {
-                Future.successful(Redirect(controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)))
-              } else {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
                     Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
                   }
                 }
-              }
             }
           )
       }
