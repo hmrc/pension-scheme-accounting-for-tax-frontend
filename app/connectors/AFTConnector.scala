@@ -65,16 +65,13 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  def getAftOverview(pstr: String,
-                     optionStartDate:Option[LocalDate] = None,
-                     optionEndDate:Option[LocalDate] = None)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-
-    val startDate = optionStartDate.fold(thisQuarterStartDate)(identity)
-    val endDate = optionEndDate.fold(thisQuarterEndDate)(identity)
-
+  def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
     val url = config.aftOverviewUrl
 
-    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate.toString, "endDate" -> endDate.toString)
+    val schemeHc = hc.withExtraHeaders(
+      "pstr" -> pstr,
+      "startDate" -> aftOverviewStartDate.toString,
+      "endDate" -> aftOverviewEndDate.toString)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
@@ -91,11 +88,11 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  private def thisQuarterEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
+  private def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
 
-  private def thisQuarterStartDate: LocalDate =  {
+  private def aftOverviewStartDate: LocalDate =  {
     val earliestStartDate = LocalDate.parse(config.earliestStartDate)
-    val calculatedStartYear = thisQuarterEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
+    val calculatedStartYear = aftOverviewEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
     val calculatedStartDate = LocalDate.of(calculatedStartYear, 1, 1)
 
     if(calculatedStartDate.isAfter(earliestStartDate)) {
