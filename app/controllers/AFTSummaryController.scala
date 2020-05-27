@@ -160,7 +160,7 @@ class AFTSummaryController @Inject()(
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
-      "canChange" -> request.sessionData.isEditable,
+      "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
     )
   }

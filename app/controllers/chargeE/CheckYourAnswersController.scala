@@ -72,14 +72,14 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
             Json.obj(
               "srn" -> srn,
               "startDate" -> Some(startDate),
-              "list" -> helper.rows(request.sessionData.isViewOnly, seqRows),
+              "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeE",
-              "canChange" -> !request.sessionData.isViewOnly
+              "canChange" -> !request.isViewOnly
             )
           )
           .map(Ok(_))
