@@ -32,11 +32,13 @@ class DataRequiredActionImpl @Inject()(implicit val executionContext: ExecutionC
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    request.userAnswers match {
-      case None =>
+    (request.userAnswers, request.sessionData) match {
+      case (None, _) =>
         Future.successful(Left(Redirect(routes.SessionExpiredController.onPageLoad())))
-      case Some(data) =>
-        Future.successful(Right(DataRequest(request.request, request.internalId, request.psaId, data, request.sessionData)))
+      case (_, None) =>
+        Future.successful(Left(Redirect(routes.SessionExpiredController.onPageLoad())))
+      case (Some(data), Some(sessionData)) =>
+        Future.successful(Right(DataRequest(request.request, request.internalId, request.psaId, data, sessionData)))
     }
   }
 }

@@ -96,6 +96,9 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
 
       whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua)(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
+        whenReady(allowAccessService.filterForIllegalPageAccess(SampleData.srn, QUARTER_START_DATE, ua)(dataRequest(ua))) { result =>
+          result mustBe Some(expectedResult)
+        }
       }
     }
 

@@ -16,17 +16,25 @@
 
 package navigators
 
+import java.time.LocalDate
+
+import config.FrontendAppConfig
 import data.SampleData
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{ChargeType, NormalMode, UserAnswers}
+import models.Quarter
+import models.{NormalMode, ChargeType, UserAnswers}
 import org.scalatest.prop.TableFor3
+import org.scalatest.prop.TableFor4
+import org.scalatest.prop.TableFor5
 import pages._
 import play.api.mvc.Call
-import utils.AFTConstants.QUARTER_START_DATE
+import utils.AFTConstants._
+import utils.DateHelper
 
 class ChargeNavigatorSpec extends NavigatorBehaviour {
 
+  private def config: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
   private val srn = "test-srn"
   private val startDate = QUARTER_START_DATE
@@ -36,7 +44,18 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
   private def chargeDMemberExists: Option[UserAnswers] = SampleData.chargeDMember.set(ChargeTypePage, ChargeTypeLifetimeAllowance).toOption
   private def chargeGMemberExists: Option[UserAnswers] = SampleData.chargeGMember.set(ChargeTypePage, ChargeTypeOverseasTransfer).toOption
   private def aftSummaryYes: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, true).toOption
-  private def aftSummaryNo: Option[UserAnswers] = UserAnswers().set(AFTSummaryPage, false).toOption
+  private def aftSummaryNo(quarter:Quarter):Option[UserAnswers] =
+    Option(
+      UserAnswers()
+        .setOrException(AFTSummaryPage, false)
+        .setOrException(QuarterPage, quarter)
+    )
+
+  private def confirmSubmitAFTReturn(confirmSubmit:Boolean):Option[UserAnswers] =
+    Option(
+      UserAnswers()
+        .setOrException(ConfirmSubmitAFTReturnPage, confirmSubmit)
+    )
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
@@ -53,14 +72,44 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeOverseasTransfer)),
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeGMemberExists),
         row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
-        row(AFTSummaryPage)(controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate), aftSummaryNo),
-        row(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes),
-        row(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad()),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
+
         row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
       )
 
     behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
+  }
+
+  "NormalMode for AFT Summary Page" must {
+    def normalModeRoutes: TableFor5[Page, UserAnswers, Call, LocalDate, Int] =
+      Table(
+        ("Id", "UserAnswers", "Next Page", "Current Date", "Version"),
+        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes, currentDate = LocalDate.now, version = 1),
+        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad(), currentDate = LocalDate.now, version = 1),
+
+        rowWithDateAndVersion(AFTSummaryPage)(
+          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate),
+          aftSummaryNo(quarter = SampleData.q32020),
+          currentDate = SampleData.q32020.endDate.plusDays(1),
+          version = 1),
+
+        rowWithDateAndVersion(AFTSummaryPage)(
+          controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate),
+          aftSummaryNo(quarter = SampleData.q32020),
+          currentDate = SampleData.q32020.endDate.plusDays(1),
+          version = 2),
+
+        rowWithDateAndVersion(AFTSummaryPage)(
+          Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)),
+          aftSummaryNo(quarter = SampleData.q32020),
+          currentDate = SampleData.q32020.endDate,
+          version = 1)
+      )
+
+    behave like navigatorWithRoutesForModeDateAndVersion(NormalMode)(navigator, normalModeRoutes, srn, startDate)
+
+
   }
 }

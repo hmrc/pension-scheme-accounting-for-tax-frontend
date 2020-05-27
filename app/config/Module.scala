@@ -27,7 +27,6 @@ class Module extends AbstractModule {
   override def configure(): Unit = {
 
     val navigators = Multibinder.newSetBinder(binder(), classOf[Navigator])
-    // TODO: Add new navigators here:-
     navigators.addBinding().to(classOf[ChargeFNavigator])
     navigators.addBinding().to(classOf[ChargeBNavigator])
     navigators.addBinding().to(classOf[ChargeCNavigator])
