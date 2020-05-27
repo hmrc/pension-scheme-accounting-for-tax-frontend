@@ -19,8 +19,9 @@ package services
 import base.SpecBase
 import data.SampleData.sessionId
 import helpers.DeleteChargeHelper
+import models.AmendedChargeStatus
 import models.requests.DataRequest
-import models.{AccessMode, CheckMode, NormalMode, SessionAccessData, SessionData, UserAnswers}
+import models.{SessionAccessData, CheckMode, UserAnswers, NormalMode, SessionData, AccessMode}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
@@ -92,7 +93,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberStatus" -> "Deleted"
+              "memberStatus" -> AmendedChargeStatus.Deleted.toString
             )
           ))
       )).setOrException(TotalAmountPage, total(UserAnswers()))
@@ -108,7 +109,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberStatus" -> "New"
+              "memberStatus" -> AmendedChargeStatus.Added.toString
             )
           ))
       )).setOrException(TotalAmountPage, total(UserAnswers()))
@@ -162,7 +163,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
                     Json.obj(
                         MemberPage.toString -> "value",
-                        "memberStatus" -> "New"
+                        "memberStatus" -> AmendedChargeStatus.Added.toString
                     )
           )
       )))}
@@ -177,7 +178,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberStatus" -> "Changed"
+              "memberStatus" -> AmendedChargeStatus.Updated.toString
             )
           ))
       ))}
@@ -192,7 +193,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
           "members" -> Json.arr(
             Json.obj(
               MemberPage.toString -> "value",
-              "memberStatus" -> "New"
+              "memberStatus" -> AmendedChargeStatus.Added.toString
             )
           ))
       ))}
@@ -237,7 +238,7 @@ object UserAnswersServiceSpec {
 
   val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
 
-  def memberUa(version: Int = 1, status: String = "New"): UserAnswers = UserAnswers(Json.obj(
+  def memberUa(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(

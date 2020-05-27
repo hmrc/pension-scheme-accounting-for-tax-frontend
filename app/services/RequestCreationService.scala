@@ -157,7 +157,7 @@ class RequestCreationService @Inject()(
     for {
       optionLockedBy <- userAnswersCacheConnector.lockedBy(srn, startDate)
       seqAFTOverview <- getAftOverview(pstr, startDate)
-      savedJson <- saveAll(optionLockedBy, seqAFTOverview)
+      savedJson <- saveAll(optionLockedBy, seqAFTOverview.filter(_.periodStartDate == startDate))
     } yield {
       UserAnswers(savedJson.as[JsObject])
     }
@@ -167,7 +167,7 @@ class RequestCreationService @Inject()(
     LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)
 
   private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-    val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
+
     if (isOverviewApiDisabled) {
       aftConnector
         .getListOfVersions(pstr, startDate)
@@ -175,7 +175,7 @@ class RequestCreationService @Inject()(
           aftVersion.map { _ =>
             AFTOverview(
               periodStartDate = startDate,
-              periodEndDate = endDate,
+              periodEndDate = Quarters.getQuarter(startDate).endDate,
               numberOfVersions = 1,
               submittedVersionAvailable = false,
               compiledVersionAvailable = true
@@ -183,11 +183,7 @@ class RequestCreationService @Inject()(
           }
         }
     } else { // After 1st July
-      aftConnector.getAftOverview(
-        pstr,
-        optionStartDate = Some(startDate),
-        optionEndDate = Some(endDate)
-      )
+      aftConnector.getAftOverview(pstr)
     }
   }
 
