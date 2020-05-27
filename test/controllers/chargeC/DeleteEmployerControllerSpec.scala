@@ -160,8 +160,8 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted individual marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
 
@@ -175,19 +175,22 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answersIndividual
-        .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails.copy(isDeleted = true)).toOption.get
+      val expectedUA = userAnswersWithSchemeNamePstrQuarter
+        .set(SponsoringIndividualDetailsPage(0), sponsoringIndividualDetails).toOption.get
+        .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+        .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeIndividual).toOption.get
+        .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA), any())(any(), any(), any())
+        Matchers.eq(expectedUA))(any(), any(), any())
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
 
@@ -201,12 +204,16 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answersOrg
-        .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails.copy(isDeleted = true)).toOption.get
-        .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
+      val expectedUA =
+        userAnswersWithSchemeNamePstrQuarter
+          .set(SponsoringOrganisationDetailsPage(0), sponsoringOrganisationDetails).toOption.get
+          .set(WhichTypeOfSponsoringEmployerPage(0), SponsoringEmployerTypeOrganisation).toOption.get
+          .set(ChargeCDetailsPage(0), chargeCDetails).success.value
+          .set(PSTRQuery, pstr).success.value
+          .set(TotalChargeAmountPage, BigDecimal(33.44)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA), any())(any(), any(), any())
+        Matchers.eq(expectedUA))(any(), any(), any())
     }
   }
 }

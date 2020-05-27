@@ -22,10 +22,12 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeBHelper
+import helpers.{CYAChargeBHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
+import pages.ViewOnlyAccessiblePage
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -46,13 +48,14 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            aftService: AFTService,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           deleteChargeHelper: DeleteChargeHelper,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeBHelper(srn, startDate)
@@ -71,12 +74,19 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeB",
-              "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
+              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate),
               "canChange" -> !request.sessionData.isViewOnly
             )
           )
           .map(Ok(_))
       }
+    }
+
+  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
+    if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
+      routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+    } else {
+      routes.DeleteChargeController.onPageLoad(srn, startDate).url
     }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {

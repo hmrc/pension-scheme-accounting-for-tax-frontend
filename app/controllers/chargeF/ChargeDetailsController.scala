@@ -23,6 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeF.ChargeDetailsFormProvider
+import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SessionData
@@ -59,6 +60,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: ChargeDetailsFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
+                                        deleteChargeHelper: DeleteChargeHelper,
                                         config: FrontendAppConfig,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -79,10 +81,12 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
+        def shouldPrepop(chargeDetails: ChargeDetails): Boolean =
+          chargeDetails.totalAmount > BigDecimal(0.00) || deleteChargeHelper.isLastCharge(request.userAnswers)
 
         val preparedForm: Form[ChargeDetails] = request.userAnswers.get(ChargeDetailsPage) match {
-          case Some(value) => form(mininimumChargeValue, startDate).fill(value)
-          case None        => form(mininimumChargeValue, startDate)
+          case Some(value) if shouldPrepop(value) => form(mininimumChargeValue, startDate).fill(value)
+          case _        => form(mininimumChargeValue, startDate)
         }
 
         val viewModel = GenericViewModel(

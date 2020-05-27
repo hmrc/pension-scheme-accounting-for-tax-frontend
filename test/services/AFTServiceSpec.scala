@@ -49,7 +49,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val sessionData = SessionData("1", Some("name"), sessionAccessData)
 
   implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-    OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers), sessionData)
+    OptionalDataRequest(fakeRequest, internalId, psaId, Some(emptyUserAnswers), Some(sessionData))
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, sessionData)
@@ -58,9 +58,9 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
     "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
-      when(mockAFTConnector.fileAFTReturn(any(), any())(any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(any(), any())(any(), any())
+        verify(mockAFTConnector, times(1)).fileAFTReturn(any(), any(), any())(any(), any())
       }
     }
   }

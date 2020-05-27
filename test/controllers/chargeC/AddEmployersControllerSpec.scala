@@ -30,9 +30,11 @@ import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeC._
 import play.api.Application
 import play.api.data.Form
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
@@ -41,10 +43,15 @@ import utils.AFTConstants._
 import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.Future
+import play.api.inject.bind
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{times, verify, when}
 
-class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
+class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with MockitoSugar {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
+
+  private val application: Application =
+    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeC/addEmployers.njk"
   private val form = new AddMembersFormProvider()("chargeC.addEmployers.error")
   private def httpPathGET: String = controllers.chargeC.routes.AddEmployersController.onPageLoad(srn, startDate).url
@@ -150,7 +157,7 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     "Save data to user answers and redirect to next page when valid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(ua))
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any(), any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AddEmployersPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       val application = applicationBuilder(userAnswers = Some(ua)).build()
 

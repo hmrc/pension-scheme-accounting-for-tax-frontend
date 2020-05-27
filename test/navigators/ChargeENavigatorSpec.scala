@@ -22,7 +22,7 @@ import data.SampleData
 import models.LocalDateBinder._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{Page, chargeA}
+import pages.{Page, chargeA, chargeB}
 import pages.chargeE._
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
@@ -44,8 +44,8 @@ class ChargeENavigatorSpec extends NavigatorBehaviour {
         row(CheckYourAnswersPage)(AddMembersController.onPageLoad(srn, startDate)),
         row(AddMembersPage)(MemberDetailsController.onPageLoad(NormalMode, srn, startDate, index), addMembersYes),
         row(AddMembersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addMembersNo),
-        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), onlyOneCharge),
-        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)),
+        row(DeleteMemberPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+        row(DeleteMemberPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
         row(DeleteMemberPage)(AddMembersController.onPageLoad(srn, startDate), Some(SampleData.chargeEMember))
       )
 
@@ -72,5 +72,8 @@ object ChargeENavigatorSpec {
   private val index = 0
   private val addMembersYes = UserAnswers().set(AddMembersPage, true).toOption
   private val addMembersNo = UserAnswers().set(AddMembersPage, false).toOption
-  private val onlyOneCharge = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails).toOption
+  private val zeroedCharge = UserAnswers().set(chargeA.ChargeDetailsPage,
+    SampleData.chargeAChargeDetails.copy(totalAmount = BigDecimal(0.00))).toOption
+  private val multipleCharges = UserAnswers().set(chargeA.ChargeDetailsPage, SampleData.chargeAChargeDetails)
+    .flatMap(_.set(chargeB.ChargeBDetailsPage, SampleData.chargeBDetails)).toOption
 }

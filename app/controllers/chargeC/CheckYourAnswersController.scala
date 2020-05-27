@@ -27,13 +27,13 @@ import helpers.CYAChargeCHelper
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
+import pages.ViewOnlyAccessiblePage
 import pages.chargeC._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
-import helpers.ChargeCHelper._
+import services.{AFTService, ChargeCService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
@@ -49,13 +49,14 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           chargeCHelper: ChargeCService,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeC(index, srn, startDate) { (whichTypeOfSponsoringEmployer, sponsorDetails, address, chargeDetails, schemeName) =>
         val helper = new CYAChargeCHelper(srn, startDate)
@@ -90,7 +91,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)

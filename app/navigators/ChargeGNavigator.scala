@@ -22,34 +22,41 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.chargeG.routes._
-import helpers.ChargeGHelper._
+import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
+import models.requests.DataRequest
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
-import play.api.mvc.Call
-import utils.DeleteChargeHelper
-
-class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector, deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig)
+import play.api.mvc.{AnyContent, Call}
+import services.ChargeGService
+class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
+                                 deleteChargeHelper: DeleteChargeHelper,
+                                 chargeGHelper: ChargeGService,
+                                 config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
+    chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Call = ua.get(AddMembersPage) match {
+  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
-    if (getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
-    } else if (deleteChargeHelper.hasLastChargeOnly(ua)) {
+  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
+                        (implicit request: DataRequest[AnyContent]): Call =
+    if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+    } else if (chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
+      AddMembersController.onPageLoad(srn, startDate)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
     }
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage      => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
     case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
     case ChargeDetailsPage(index) => ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, index)
@@ -59,7 +66,8 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteMemberPage         => deleteMemberRoutes(ua, srn, startDate)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                     (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
     case ChargeAmountsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)

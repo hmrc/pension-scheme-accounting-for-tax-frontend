@@ -47,7 +47,6 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
                                                     identify: IdentifierAction,
                                                     getData: DataRetrievalAction,
                                                     allowAccess: AllowAccessActionProvider,
-                                                    allowSubmission: AllowSubmissionAction,
                                                     requireData: DataRequiredAction,
                                                     formProvider: ConfirmSubmitAFTReturnFormProvider,
                                                     val controllerComponents: MessagesControllerComponents,
@@ -97,7 +96,8 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
   private def populateView(srn: String, startDate: LocalDate, ua: UserAnswers, form: Form[Boolean], result: Results.Status)(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
 
-    DataRetrievals.retrieveSchemeWithPSTRAndVersion { (schemeName, pstr, amendedVersion) =>
+    DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
+      val amendedVersion = request.aftVersion
       val previousVersion = amendedVersion - 1
       aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousVersionJsValue =>
         val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)

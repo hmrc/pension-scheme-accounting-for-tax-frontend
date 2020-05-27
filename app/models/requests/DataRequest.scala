@@ -26,7 +26,7 @@ case class OptionalDataRequest[A] (
                                     internalId: String,
                                     psaId: PsaId,
                                     userAnswers: Option[UserAnswers],
-                                    sessionData: SessionData
+                                    sessionData: Option[SessionData]
                                   ) extends WrappedRequest[A](request)
 
 case class DataRequest[A] (
@@ -35,4 +35,7 @@ case class DataRequest[A] (
                             psaId: PsaId,
                             userAnswers: UserAnswers,
                             sessionData: SessionData
-                          ) extends WrappedRequest[A](request)
+                          ) extends WrappedRequest[A](request) {
+  def aftVersion: Int = sessionData.sessionAccessData.version
+  def isAmendment: Boolean = aftVersion > 1
+}

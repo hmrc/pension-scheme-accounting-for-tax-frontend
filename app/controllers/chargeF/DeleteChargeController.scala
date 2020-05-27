@@ -40,7 +40,6 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
-                                       userAnswersCacheConnector: UserAnswersCacheConnector,
                                        userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
@@ -112,11 +111,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
-
+                  val userAnswers = userAnswersService.removeSchemeBasedCharge(DeregistrationQuery)
                   for {
-                    answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(DeregistrationQuery))
-                  } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                  } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))

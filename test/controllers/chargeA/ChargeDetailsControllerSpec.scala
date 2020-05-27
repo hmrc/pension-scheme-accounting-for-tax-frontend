@@ -87,7 +87,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())).thenReturn(dummyCall)
+    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
   }
 
 

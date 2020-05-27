@@ -21,67 +21,65 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.AFTConnector
-import controllers.actions.DataUpdateAction
-import controllers.actions.{IdentifierAction, AllowAccessActionProvider, DataRetrievalAction}
+import connectors.cache.UserAnswersCacheConnector
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Quarters, AFTVersion}
+import models.{AFTVersion, Quarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.Json
-import play.api.mvc.{Call, AnyContent, MessagesControllerComponents, Action}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnHistoryController @Inject()(
-    schemeService: SchemeService,
-    aftConnector: AFTConnector,
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    allowAccess: AllowAccessActionProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                        schemeService: SchemeService,
+                                        aftConnector: AFTConnector,
+                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        override val messagesApi: MessagesApi,
+                                        identify: IdentifierAction,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        renderer: Renderer,
+                                        config: FrontendAppConfig
+                                    )(implicit ec: ExecutionContext)
+                                        extends FrontendBaseController
+                                        with I18nSupport
+                                        with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
         def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
 
-        val tableOfVersions =
-          if (versions.nonEmpty) {
-            Json.obj("versions" -> mapVersionsToTable(versions.sortBy(_.reportVersion).reverse, url))
-          } else {
-            Json.obj()
-          }
+        tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
 
-        val json = Json.obj(
-          fields = "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "quarterStart" -> startDate.format(dateFormatterStartDate),
-          "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-          "schemeName" -> schemeDetails.schemeName
-        ) ++ tableOfVersions
+          val json = Json.obj(
+            fields = "srn" -> srn,
+            "startDate" -> Some(startDate),
+            "quarterStart" -> startDate.format(dateFormatterStartDate),
+            "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+            "schemeName" -> schemeDetails.schemeName
+          ) ++ table
 
-        renderer.render("amend/returnHistory.njk", json).map(Ok(_))
+          renderer.render("amend/returnHistory.njk", json).map(Ok(_))
+        }
       }
     }
   }
 
-  private def mapVersionsToTable(versions: Seq[AFTVersion], url: Option[String] => Call)(implicit messages: Messages): Table = {
-
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Option[String] => Call
+                                )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
+    if (versions.nonEmpty) {
     val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
     def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
@@ -96,16 +94,36 @@ class ReturnHistoryController @Inject()(
       Cell(msg"")
     )
 
-    val rows = versions.zipWithIndex.map { data =>
+    val tableRows = versions.zipWithIndex.map { data =>
       val (version, index) = data
-      val linkText = if (index == 0) "site.viewOrChange" else "site.view"
-      Seq(
-        Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
-      )
+
+      getLinkText(index, srn, version.date).map { linkText =>
+
+        Seq(
+          Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+          Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
+        )
+      }
     }
-    Table(head = head, rows = rows)
+
+    Future.sequence(tableRows).map { rows =>
+      Json.obj("versions" -> Table(head = head, rows = rows))
+    }
+  } else {
+      Future.successful(Json.obj())
+    }
+  }
+
+  private def getLinkText(index: Int, srn: String, date: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
+    if (index == 0) {
+      userAnswersCacheConnector.lockedBy(srn, date).map {
+        case Some(_) => "site.view"
+        case _ => "site.viewOrChange"
+      }
+    } else {
+      Future.successful("site.view")
+    }
   }
 
 }

@@ -21,26 +21,29 @@ import connectors.cache.UserAnswersCacheConnector
 import models.{NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import java.time.LocalDate
 
 import config.FrontendAppConfig
+import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
-import utils.DeleteChargeHelper
+import models.requests.DataRequest
 class ChargeANavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeA.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
     case ChargeDetailsPage    => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
     case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
-    case DeleteChargePage if deleteChargeHelper.hasLastChargeOnly(ua) =>
+    case DeleteChargePage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     case DeleteChargePage =>
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                     (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeDetailsPage => controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
   }
 }

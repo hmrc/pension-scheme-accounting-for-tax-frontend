@@ -35,6 +35,8 @@ POST        /:srn/previous-return/:year/view-quarter                            
 
 GET         /:srn/previous-return/:startDate/amend-previous                                                                             controllers.amend.ReturnHistoryController.onPageLoad(srn: String, startDate: String)
 
+GET         /:srn/previous-return/:startDate/:version/changes-made-in-submission                                                      controllers.amend.ViewAllAmendmentsController.onPageLoad(srn: String, startDate: String, version: String)
+
 GET         /:srn/previous-return/:startDate/want-to-submit                                                      controllers.amend.ConfirmSubmitAFTAmendmentController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/previous-return/:startDate/want-to-submit                                                      controllers.amend.ConfirmSubmitAFTAmendmentController.onSubmit(srn: String, startDate: String)
 
@@ -57,8 +59,10 @@ POST        /:srn/new-return/:startDate/de-registration-charge/change/charge-det
 GET         /:srn/new-return/:startDate/de-registration-charge/check-your-answers                                                   controllers.chargeF.CheckYourAnswersController.onPageLoad(srn: String, startDate: String)
 GET         /:srn/new-return/:startDate/de-registration-charge/on-click-check-your-answers                                          controllers.chargeF.CheckYourAnswersController.onClick(srn: String, startDate: String)
 
-GET         /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                       controllers.chargeF.DeleteChargeController.onPageLoad(srn: String, startDate: String)
-POST        /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                       controllers.chargeF.DeleteChargeController.onSubmit(srn: String, startDate: String)
+GET         /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                        controllers.chargeF.DeleteChargeController.onPageLoad(srn: String, startDate: String)
+POST        /:srn/new-return/:startDate/de-registration-charge/remove-charge                                                        controllers.chargeF.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/de-registration-charge/remove-last-charge                                                   controllers.chargeF.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/what-you-will-need                                   controllers.chargeB.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
@@ -72,6 +76,8 @@ GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/o
 
 GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-charge                                        controllers.chargeB.DeleteChargeController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-charge                                        controllers.chargeB.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-last-charge                                   controllers.chargeB.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
@@ -99,10 +105,15 @@ POST        /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges 
 GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-last-charge                                                   controllers.chargeE.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET         /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
 POST        /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String] = None)
 GET         /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
 POST        /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String])
+
+POST        /:srn/new-return/:startDate/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String] = None)
+POST        /:srn/new-return/:startDate/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String])
 
 GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/what-you-will-need                                     controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
@@ -116,6 +127,8 @@ GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/on-
 
 GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-charge                                          controllers.chargeA.DeleteChargeController.onPageLoad(srn: String, startDate: String)
 POST        /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-charge                                          controllers.chargeA.DeleteChargeController.onSubmit(srn: String, startDate: String)
+
+GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/remove-last-charge                                     controllers.chargeA.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/lifetime-allowance-charge/what-you-will-need                                               controllers.chargeD.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
@@ -137,6 +150,8 @@ POST        /:srn/new-return/:startDate/lifetime-allowance-charge/list-of-charge
 
 GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-charge                                              controllers.chargeD.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
+
+GET         /:srn/new-return/:startDate/lifetime-allowance-charge/:index/remove-last-charge                                         controllers.chargeD.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
 
 GET         /:srn/new-return/:startDate/authorised-surplus-payments-charge/what-you-will-need                                       controllers.chargeC.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
@@ -174,6 +189,8 @@ POST        /:srn/new-return/:startDate/authorised-surplus-payments-charge/list-
 GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onPageLoad(srn: String, startDate: String, index: Index)
 POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-charge                        controllers.chargeC.DeleteEmployerController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/remove-last-charge                   controllers.chargeC.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/what-you-will-need                                                 controllers.chargeG.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/members-details                                             controllers.chargeG.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
@@ -201,6 +218,8 @@ GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/on-click-
 GET         /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
 POST        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-charge                                               controllers.chargeG.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
 
+GET        /:srn/new-return/:startDate/overseas-transfer-charge/:index/remove-last-charge                   controllers.chargeG.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
+
 GET        /:srn/new-return/:startDate/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String)
 
 GET        /:srn/new-return/:startDate/want-to-submit                                                      controllers.ConfirmSubmitAFTReturnController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
@@ -221,7 +240,3 @@ POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index
 GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/select-address                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/select-address                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-#GET         /:srn/new-return/:startDate/summary-results                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
-POST        /:srn/new-return/:startDate/summary-results                                                                                     controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String] = None)
-#GET         /:srn/new-return/:startDate/:version/summary-results                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
-POST        /:srn/new-return/:startDate/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String])

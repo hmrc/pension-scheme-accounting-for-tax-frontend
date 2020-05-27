@@ -21,30 +21,44 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import helpers.ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted
-import helpers.ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted
-import helpers.ChargeGHelper.getOverseasTransferMembersIncludingDeleted
 import models.LocalDateBinder._
-import models.{ChargeType, NormalMode, UserAnswers}
+import models.requests.DataRequest
+import models.ChargeType
+import models.NormalMode
+import models.UserAnswers
 import pages._
+import play.api.mvc.AnyContent
 import play.api.mvc.Call
+import services.AFTService
+import services.ChargeDService
+import services.ChargeEService
+import services.ChargeGService
 
-class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnector: UserAnswersCacheConnector) extends Navigator {
+class ChargeNavigator @Inject()(config: FrontendAppConfig,
+                                val dataCacheConnector: UserAnswersCacheConnector,
+                                chargeDHelper: ChargeDService,
+                                chargeEHelper: ChargeEService,
+                                chargeGHelper: ChargeGService,
+                                aftService: AFTService
+                               ) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate)
     case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate)
-    case ConfirmSubmitAFTReturnPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
+    case ConfirmSubmitAFTReturnPage => confirmSubmitNavigation(ua, srn, startDate)
     case ConfirmSubmitAFTAmendmentPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate)
     case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate): PartialFunction[Page, Call] = {
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                     (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case ChargeTypePage => sessionExpiredPage
   }
 
   //scalastyle:off cyclomatic.complexity
-  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call =
+  private def chargeTypeNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                  (implicit request: DataRequest[AnyContent]): Call =
     ua.get(ChargeTypePage) match {
       case Some(ChargeType.ChargeTypeShortService) => controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
@@ -66,16 +80,37 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig, val dataCacheConnecto
     }
   //scalastyle:on cyclomatic.complexity
 
-  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).size
-  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate): Int = getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+  def nextIndexChargeD(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
+    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).size
+  def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
+    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).size
+  def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
+    chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).size
 
-  private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
-    ua.get(AFTSummaryPage) match {
+  private def confirmSubmitNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]) = {
+    ua.get(ConfirmSubmitAFTReturnPage) match {
       case Some(true) =>
-        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
+        controllers.routes.DeclarationController.onPageLoad(srn, startDate)
       case Some(false) =>
-        controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+        Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+      case _ => sessionExpiredPage
+    }
+  }
+
+  private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {
+    (ua.get(AFTSummaryPage), ua.get(QuarterPage)) match {
+      case (Some(true), _) =>
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
+      case (Some(false), Some(quarter)) =>
+          if (aftService.isSubmissionDisabled(quarter.endDate)) {
+            Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+          } else {
+            if (request.isAmendment) {
+              controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate)
+            } else {
+              controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate)
+            }
+          }
       case _ => sessionExpiredPage
     }
   }

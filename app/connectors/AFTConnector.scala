@@ -20,11 +20,11 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{AFTOverview, AFTVersion, Quarters, UserAnswers}
+import models.{AFTOverview, AFTVersion, JourneyType, Quarters, UserAnswers}
 import play.api.Logger
 import play.api.http.Status
 import play.api.http.Status.OK
-import play.api.libs.json.{JsError, JsObject, JsResultException, JsSuccess, JsValue, Json}
+import play.api.libs.json._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.{DateHelper, HttpResponseHelper}
@@ -34,9 +34,9 @@ import scala.util.Failure
 
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+  def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = config.aftFileReturn
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
+    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "journeyType" -> journeyType.toString)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
   }
 
@@ -65,16 +65,13 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  def getAftOverview(pstr: String,
-                     optionStartDate:Option[LocalDate] = None,
-                     optionEndDate:Option[LocalDate] = None)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-
-    val startDate = optionStartDate.fold(thisQuarterStartDate)(identity)
-    val endDate = optionEndDate.fold(thisQuarterEndDate)(identity)
-
+  def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
     val url = config.aftOverviewUrl
 
-    val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate.toString, "endDate" -> endDate.toString)
+    val schemeHc = hc.withExtraHeaders(
+      "pstr" -> pstr,
+      "startDate" -> aftOverviewStartDate.toString,
+      "endDate" -> aftOverviewEndDate.toString)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
@@ -91,11 +88,11 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  private def thisQuarterEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
+  private def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
 
-  private def thisQuarterStartDate: LocalDate =  {
+  private def aftOverviewStartDate: LocalDate =  {
     val earliestStartDate = LocalDate.parse(config.earliestStartDate)
-    val calculatedStartYear = thisQuarterEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
+    val calculatedStartYear = aftOverviewEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
     val calculatedStartDate = LocalDate.of(calculatedStartYear, 1, 1)
 
     if(calculatedStartDate.isAfter(earliestStartDate)) {

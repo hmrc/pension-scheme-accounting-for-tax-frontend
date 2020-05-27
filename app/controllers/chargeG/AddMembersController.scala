@@ -28,13 +28,13 @@ import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeG.AddMembersPage
-import pages.{QuarterPage, SchemeNameQuery}
+import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import helpers.ChargeGHelper.{getOverseasTransferMembers, mapToTable}
+import services.ChargeGService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
@@ -50,6 +50,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      requireData: DataRequiredAction,
                                      formProvider: AddMembersFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
+                                     chargeGHelper: ChargeGService,
                                      config: FrontendAppConfig,
                                      renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -59,7 +60,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider("chargeG.addMembers.error")
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
           renderer.render(template = "chargeG/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
@@ -97,7 +98,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = getOverseasTransferMembers(request.userAnswers, srn, startDate)
+    val members = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate)
 
     Json.obj(
       "srn" -> srn,
@@ -107,7 +108,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.sessionData.isViewOnly)),
+      "table" -> Json.toJson(chargeGHelper.mapToTable(members, !request.sessionData.isViewOnly)),
       "canChange" -> !request.sessionData.isViewOnly
     )
 

@@ -114,7 +114,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTReturnRoute)
           .withFormUrlEncodedBody(("value", "true"))
@@ -126,9 +126,10 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
     }
 
-    "remove the data and redirect to the pension scheme url when user submits with value false" in {
+    "redirect to the next page when submits with value false" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
+      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTReturnRoute)
           .withFormUrlEncodedBody(("value", "false"))
@@ -136,9 +137,8 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       val result = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual dummyCall.url
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any(), any(), any())(any(), any())
+      redirectLocation(result).value mustEqual onwardRoute.url
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {

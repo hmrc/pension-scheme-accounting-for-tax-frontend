@@ -135,7 +135,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTAmendmentRoute)
           .withFormUrlEncodedBody(("value", "true"))

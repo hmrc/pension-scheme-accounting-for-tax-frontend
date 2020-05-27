@@ -33,7 +33,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.DeleteAFTChargeService
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
@@ -41,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                       userAnswersService: UserAnswersService,
                                        navigator: CompoundNavigator,
                                        identify: IdentifierAction,
                                        getData: DataRetrievalAction,
@@ -111,10 +112,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
+                  val userAnswers: UserAnswers = userAnswersService.removeSchemeBasedCharge(ShortServiceRefundQuery)
                   for {
-                      answersJs <- userAnswersCacheConnector.save(request.internalId, request.userAnswers.data)
-                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, UserAnswers(answersJs.as[JsObject]), Some(ShortServiceRefundQuery))
-                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, UserAnswers(answersJs.as[JsObject]), srn, startDate))
+                      _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                    } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))

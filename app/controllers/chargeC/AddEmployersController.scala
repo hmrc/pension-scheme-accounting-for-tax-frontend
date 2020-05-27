@@ -28,13 +28,13 @@ import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
-import pages.{QuarterPage, SchemeNameQuery}
+import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import helpers.ChargeCHelper.{getSponsoringEmployers, mapToTable}
+import services.ChargeCService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
@@ -50,6 +50,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        requireData: DataRequiredAction,
                                        formProvider: AddMembersFormProvider,
                                        val controllerComponents: MessagesControllerComponents,
+                                       chargeCHelper: ChargeCService,
                                        config: FrontendAppConfig,
                                        renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -59,7 +60,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
           renderer.render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
@@ -99,7 +100,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = getSponsoringEmployers(request.userAnswers, srn, startDate)
+    val members = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate)
 
     Json.obj(
       "srn" -> srn,
@@ -109,7 +110,7 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
       "radios" -> Radios.yesNo(form("value")),
       "quarterStart" -> quarter.startDate.format(dateFormatterDMY),
       "quarterEnd" -> quarter.endDate.format(dateFormatterDMY),
-      "table" -> Json.toJson(mapToTable(members, !request.sessionData.isViewOnly)),
+      "table" -> Json.toJson(chargeCHelper.mapToTable(members, !request.sessionData.isViewOnly)),
       "canChange" -> !request.sessionData.isViewOnly
     )
 

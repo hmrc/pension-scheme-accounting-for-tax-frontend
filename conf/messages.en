@@ -428,6 +428,10 @@ aft.summary.lumpSumDeath.row = Special lump sum death benefits charges
 aft.summary.lumpSumDeath.visuallyHidden.row = special lump sum death benefits charges
 aft.summary.error.required = Select yes if you want to add another charge
 aft.summary.total = Total
+aft.summary.annualAllowance.description = Annual allowance
+aft.summary.authSurplus.description = Authorised surplus
+aft.summary.lifeTimeAllowance.description = Lifetime allowance
+aft.summary.overseasTransfer.description = Overseas transfer
 
 aft.summary.search.noResults.h2 = There are no matching results.
 aft.summary.search.noResults.p1 = Improve your search results by:
@@ -437,6 +441,12 @@ aft.summary.search.error.required = Enter name or National Insurance number
 aft.summary.search.hint = Search by name or National Insurance number
 aft.summary.search.label = Search for a member
 aft.summary.search.button = Search
+aft.summary.searchAgain.button = Search again
+aft.summary.search.chargeType = Charge Type
+aft.summary.search.amount = Amount
+aft.summary.search.Name = Name
+aft.summary.search.clearSearch = Clear search
+aft.summary.search.results = results
 
 chargeG.chargeDetails.title = Overseas transfer charge details for {0}
 chargeG.chargeDetails.heading = Overseas transfer charge details for {0}
@@ -960,6 +970,36 @@ continueQuarters.error.required = Select which AFT return you want to continue e
 deleteCharge.title = Are you sure you want to remove the {0}?
 deleteCharge.error.required = Select yes if you want to remove the {0}
 removeCharge.linkText = Remove this charge
+
+removeLastCharge.title = You cannot remove this charge
+removeLastCharge.p1 = As this is the only charge for this return, you must change the charge amount to £0 and then resubmit the return.
+
+
+allAmendments.draft.title = Changes made in this draft
+allAmendments.submission.title = Changes made in this submission
+allAmendments.h1.draft.caption = Draft
+allAmendments.h1.submission.caption = Submission {0}
+allAmendments.memberDetails.h1 = Member details
+allAmendments.chargeType.h1 = Charge type
+allAmendments.chargeAmount.h1 = Charge amount
+allAmendments.table.caption.added = Added
+allAmendments.table.caption.deleted = Deleted
+allAmendments.table.caption.updated = Updated
+
+allAmendments.charge.type.lumpSumDeath = Special lump sum death benefits
+allAmendments.charge.type.lifeTimeAllowance = Lifetime Allowance
+allAmendments.charge.type.annualAllowance = Annual Allowance
+allAmendments.charge.type.authSurplus = Authorised surplus payments
+allAmendments.charge.type.deRegistration = De-registration
+allAmendments.charge.type.overseasTransfer = Overseas transfer
+allAmendments.charge.type.shortService = Short service refund lump sum
+allAmendments.numberOfMembers = {0} members
+allAmendments.noMembers = N/A
+return.to.draft = Return to total return for this draft
+return.to.submission = Return to total return for submission {0}
+
+allAmendments.view.changes.draft.link = View changes made in this draft
+allAmendments.view.changes.submission.link = View changes made in this submission
 
 
 

@@ -23,17 +23,17 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeGHelper
+import helpers.CYAChargeGService
 import models.LocalDateBinder._
 import models.{GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
+import pages.ViewOnlyAccessiblePage
 import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.AFTService
-import helpers.ChargeGHelper.getOverseasTransferMembers
+import services.{AFTService, ChargeGService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 
@@ -49,15 +49,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
                                            userAnswersCacheConnector: UserAnswersCacheConnector,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           chargeGHelper: ChargeGService,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       DataRetrievals.cyaChargeG(index, srn, startDate) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
-        val helper = new CYAChargeGHelper(srn, startDate)
+        val helper = new CYAChargeGService(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeGMemberDetails(index, memberDetails),
@@ -88,7 +89,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = getOverseasTransferMembers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)

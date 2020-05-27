@@ -28,7 +28,7 @@ import SampleData._
 class FakeDataRetrievalAction(json: Option[UserAnswers],
                               sessionData: SessionData = FakeDataRetrievalAction.defaultSessionData
                              ) extends DataRetrievalAction {
-  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, sessionData)
+  override def apply(srn: String, startDate: LocalDate): DataRetrieval = new FakeDataRetrieval(json, Some(sessionData))
 }
 
 object FakeDataRetrievalAction {
@@ -39,7 +39,7 @@ object FakeDataRetrievalAction {
   )
 }
 
-class FakeDataRetrieval(dataToReturn: Option[UserAnswers], sessionData: SessionData) extends DataRetrieval {
+class FakeDataRetrieval(dataToReturn: Option[UserAnswers], sessionData: Option[SessionData]) extends DataRetrieval {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
     Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, sessionData))

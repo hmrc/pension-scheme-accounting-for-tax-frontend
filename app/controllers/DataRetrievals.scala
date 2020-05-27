@@ -42,9 +42,9 @@ object DataRetrievals {
     }
   }
 
-  def retrieveSchemeWithPSTRAndVersion(block: (String, String, Int) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery), request.sessionData.sessionAccessData.version) match {
-      case (Some(schemeName), Some(pstr), versionNumber) => block(schemeName, pstr, versionNumber)
+  def retrieveSchemeWithPSTR(block: (String, String) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSTRQuery)) match {
+      case (Some(schemeName), Some(pstr)) => block(schemeName, pstr)
       case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
@@ -60,24 +60,17 @@ object DataRetrievals {
   def retrievePSAAndSchemeDetailsWithAmendment(block: (String, String, String, Quarter, Boolean, Int) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
-    (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(PSAEmailQuery), ua.get(QuarterPage),
-      request.sessionData.sessionAccessData.version > 1, request.sessionData.sessionAccessData.version) match {
-      case (Some(schemeName), Some(pstr), Some(email), Some(quarter), isAmendment, amendedVersion) =>
-        block(schemeName, pstr, email, quarter, isAmendment, amendedVersion)
-      case _                                                          => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(PSAEmailQuery), ua.get(QuarterPage)) match {
+      case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) =>
+        block(schemeName, pstr, email, quarter, request.isAmendment, request.aftVersion)
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 
   def retrieveSchemeAndQuarter(block: (String, Quarter) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
     (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(quarter)) => block(schemeName, quarter)
-      case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
-  def retrieveSchemeAndQuarterWithAmendment(block: (String, Quarter, Boolean) => Future[Result])(implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage), request.sessionData.sessionAccessData.version > 1) match {
-      case (Some(schemeName), Some(quarter), isAmendment) => block(schemeName, quarter, isAmendment)
       case _                                 => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }

@@ -19,7 +19,7 @@ package pages.chargeE
 import pages.QuestionPage
 import play.api.libs.json.JsPath
 
-case object AmendedVersionPage extends QuestionPage[String] {
+case object AmendedVersionPage extends QuestionPage[Int] {
 
   override def path: JsPath = JsPath \ "chargeEDetails" \ toString
 

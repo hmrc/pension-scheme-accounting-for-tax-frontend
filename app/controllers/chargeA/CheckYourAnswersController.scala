@@ -23,12 +23,13 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeAHelper
+import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
+import models.requests.DataRequest
 import models.{GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.PSTRQuery
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsNull, JsPath, Json, KeyPathNode}
@@ -49,6 +50,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                                            aftService: AFTService,
                                            navigator: CompoundNavigator,
                                            val controllerComponents: MessagesControllerComponents,
+                                           deleteChargeHelper: DeleteChargeHelper,
                                            config: FrontendAppConfig,
                                            renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -56,7 +58,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeAHelper(srn, startDate)
@@ -81,13 +83,20 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeA",
-              "removeChargeUrl" -> routes.DeleteChargeController.onPageLoad(srn, startDate).url,
+              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate),
               "canChange" -> !request.sessionData.isViewOnly
             )
           )
           .map(Ok(_))
       }
     }
+
+  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
+    if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.isAmendment) {
+      routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+    } else {
+    routes.DeleteChargeController.onPageLoad(srn, startDate).url
+  }
 
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>

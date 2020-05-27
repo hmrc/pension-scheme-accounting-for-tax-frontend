@@ -17,50 +17,36 @@
 package services
 
 import com.google.inject.Inject
-import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import helpers.DeleteChargeHelper
 import javax.inject.Singleton
 import models.UserAnswers
 import models.requests.DataRequest
 import pages.QuestionPage
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.DeleteChargeHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(
-    aftConnector: AFTConnector,
+    aftService: AFTService,
     userAnswersCacheConnector: UserAnswersCacheConnector,
-    deleteChargeHelper: DeleteChargeHelper,
-    userAnswersService: UserAnswersService
+    deleteChargeHelper: DeleteChargeHelper
 ) {
 
-  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers, page: Option[QuestionPage[A]] = None)(
-      implicit ec: ExecutionContext,
-      hc: HeaderCarrier,
-      request: DataRequest[AnyContent]): Future[Unit] = {
-
-    val isDeletingLastCharge = deleteChargeHelper.hasLastChargeOnly(answers)
-    val isAmendment = request.sessionData.sessionAccessData.version > 1
-
-    val updateAnswers = if (isAmendment) {
-      page.map(removePage => userAnswersService.remove(removePage)).getOrElse(answers)
-    } else {
-      if (isDeletingLastCharge) {
-        deleteChargeHelper.zeroOutLastCharge(answers)
+  def deleteAndFileAFTReturn[A](pstr: String, answers: UserAnswers)(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier,
+    request: DataRequest[AnyContent]): Future[Unit] = {
+    aftService.fileAFTReturn(pstr, answers).flatMap { _ =>
+      if (deleteChargeHelper.allChargesDeletedOrZeroed(answers) && !request.isAmendment) {
+       userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
-        page.map(noChargePath => answers.removeWithPath(noChargePath.path)).getOrElse(answers)
-      }
-    }
-
-    aftConnector.fileAFTReturn(pstr, updateAnswers).flatMap { _ =>
-      if (isDeletingLastCharge) {
-        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
-      } else {
-        userAnswersCacheConnector.save(request.internalId, updateAnswers.data).map(_ => ())
+        userAnswersCacheConnector.save(request.internalId, answers.data).map(_ => ())
       }
     }
   }
 }
+
+

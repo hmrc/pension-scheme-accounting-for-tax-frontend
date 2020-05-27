@@ -19,93 +19,137 @@ package services
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
-import connectors.AFTConnector
-import helpers.ChargeCHelper
-import helpers.ChargeDHelper
-import helpers.ChargeEHelper
-import helpers.ChargeGHelper
 import helpers.FormatHelper
 import javax.inject.Singleton
-import models.ChargeType
-import models.Member
-import models.UserAnswers
-import pages.chargeC.ChargeCDetailsPage
+import models.{ChargeType, Member, UserAnswers}
+import models.requests.DataRequest
 import play.api.i18n.Messages
-import play.api.libs.json._
-import uk.gov.hmrc.viewmodels.SummaryList.Action
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
-import uk.gov.hmrc.viewmodels.Text.Literal
-import utils.AFTSummaryHelper
-import config.FrontendAppConfig
-import play.api.data.Form
-import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Text, _}
-import utils.DateHelper._
-import viewmodels.Radios.Radio
-import viewmodels.{Hint, LabelClasses, Radios}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Json, Writes, _}
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
+import uk.gov.hmrc.viewmodels._
+import utils.FuzzyMatching
 
 import scala.language.implicitConversions
 
 @Singleton
-class MemberSearchService {
-  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}".r
+class MemberSearchService @Inject()(
+    chargeDService: ChargeDService,
+    chargeEService: ChargeEService,
+    chargeGService: ChargeGService,
+    fuzzyMatching: FuzzyMatching
+) {
+  import MemberSearchService._
 
-  case class MemberSummary(index: Int, name: String, nino: Option[String], chargeType: ChargeType, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
-    def id = s"member-$index"
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages,
+                                                                                     request: DataRequest[AnyContent]): Seq[MemberRow] = {
+    val searchTextUpper = searchText.toUpperCase
+    val searchFunc: MemberSummary => Boolean = { member =>
+      if (searchTextUpper.matches(ninoRegex)) {
+        member.nino.toUpperCase == searchTextUpper
+      } else {
+        fuzzyMatching.doFuzzyMatching(searchTextUpper, member.name)
+      }
+    }
 
+    listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc))
+  }
+
+  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+    val chargeDMembers = chargeDService
+      .getLifetimeAllowanceMembers(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
+    val chargeEMembers = chargeEService
+      .getAnnualAllowanceMembers(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
+    val chargeGMembers = chargeGService
+      .getOverseasTransferMembers(ua, srn, startDate)
+      .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
+    chargeDMembers ++ chargeEMembers ++ chargeGMembers
+  }
+
+  private def listOfRows(listOfMembers: Seq[MemberSummary]): Seq[MemberRow] = {
+    val allRows = listOfMembers.map { data =>
+      val rowNino =
+        Seq(
+          Row(
+            key = Key(msg"memberDetails.nino", classes = Seq("govuk-!-width-one-half")),
+            value = Value(Literal(s"${data.nino}"), classes = Seq("govuk-!-width-one-half"))
+          ))
+
+      val rowChargeType =
+        Seq(
+          Row(
+            key = Key(msg"aft.summary.search.chargeType", classes = Seq("govuk-!-width-one-half")),
+            value = Value(Message(s"${getDescriptionMessageKeyFromChargeType(data.chargeType)}"), classes = Seq("govuk-!-width-one-half"))
+          ))
+      val rowAmount =
+        Seq(
+          Row(
+            key = Key(msg"aft.summary.search.amount", classes = Seq("govuk-!-width-one-half")),
+            value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-half"))
+          ))
+
+      val actions = List(
+        Action(
+          content = msg"site.view",
+          href = data.viewLink,
+          visuallyHiddenText = None
+        ),
+        Action(
+          content = msg"site.remove",
+          href = data.removeLink,
+          visuallyHiddenText = None
+        )
+      )
+
+      MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
+    }
+    allRows.sortBy(_.name)
+  }
+}
+
+object MemberSearchService {
+  private val ninoRegex = "[[A-Z]&&[^DFIQUV]][[A-Z]&&[^DFIQUVO]] ?\\d{2} ?\\d{2} ?\\d{2} ?[A-D]{1}"
+
+  private def getDescriptionMessageKeyFromChargeType(chargeType: ChargeType): String =
+    chargeType match {
+      case ChargeType.ChargeTypeAnnualAllowance  => "aft.summary.annualAllowance.description"
+      case ChargeType.ChargeTypeOverseasTransfer => "aft.summary.overseasTransfer.description"
+      case _                                     => "aft.summary.lifeTimeAllowance.description"
+    }
+
+  private case class MemberSummary(index: Int,
+                                   name: String,
+                                   nino: String,
+                                   chargeType: ChargeType,
+                                   amount: BigDecimal,
+                                   viewLink: String,
+                                   removeLink: String) {
     def linkIdRemove = s"$id-remove"
 
     def linkIdView = s"$id-view"
+
+    def id = s"member-$index"
   }
 
-  object MemberSummary {
+  case class MemberRow(name: String, rows: Seq[Row], actions: Seq[Action])
+
+  object MemberRow {
+    implicit def writes(implicit messages: Messages): Writes[MemberRow] =
+      ((JsPath \ "name").write[String] and
+        (JsPath \ "rows").write[Seq[Row]] and
+        (JsPath \ "actions").write[Seq[Action]])(mr => Tuple3(mr.name, mr.rows, mr.actions))
+  }
+
+  private object MemberSummary {
     implicit lazy val formats: Format[Member] =
       Json.format[Member]
-  }
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText:String)(implicit messages: Messages):Seq[Row] = {
-    listOfRows(listOfMembers(ua, srn, startDate).filter(_.name.contains(searchText)))
-  }
-
-  private def toMemberSummary(member:Member, chargeType:ChargeType):MemberSummary =
-    MemberSummary(member.index, member.name, Some(member.nino), chargeType, member.amount, member.viewLink, member.removeLink)
-
-  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[MemberSummary] = {
-    val chargeDMembers = ChargeDHelper.getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
-    val chargeEMembers = ChargeEHelper.getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
-    val chargeGMembers = ChargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate)
-      .map(toMemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
-    val chargeCMembers = ChargeCHelper.getSponsoringEmployersIncludingDeleted(ua, srn, startDate).map { employer =>
-      MemberSummary(employer.index, employer.name, employer.nino, ChargeType.ChargeTypeAuthSurplus, employer.amount, employer.viewLink, employer.removeLink)
-    }
-    chargeDMembers ++ chargeEMembers ++ chargeGMembers ++ chargeCMembers
-  }
-
-  def listOfRows(listOfMembers:Seq[MemberSummary]): Seq[Row] = {
-    listOfMembers.map { data =>
-      Row(
-        key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
-        actions = if (data.amount > BigDecimal(0)) {
-          List(
-            Action(
-              content = msg"site.view",
-              href = data.viewLink,
-              visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
-            )
-          )
-        } else {
-          Nil
-        }
-      )
-    }
+    def apply(member: Member, chargeType: ChargeType): MemberSummary =
+      MemberSummary(member.index, member.name, member.nino, chargeType, member.amount, member.viewLink, member.removeLink)
   }
 
 }

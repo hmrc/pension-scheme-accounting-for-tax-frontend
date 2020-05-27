@@ -104,8 +104,8 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())).thenReturn(onwardRoute)
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
@@ -119,18 +119,20 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
 
       redirectLocation(result).value mustEqual onwardRoute.url
 
-      val expectedUA = answers.set(MemberDetailsPage(0), memberDetails.copy(isDeleted = true)).toOption.get
+      val expectedUA = userAnswersWithSchemeNamePstrQuarter
+        .set(MemberDetailsPage(0), memberDetails).success.value
+        .set(PSTRQuery, pstr).success.value
         .set(TotalChargeAmountPage, BigDecimal(0.00)).toOption.get
 
       verify(mockDeleteAFTChargeService, times(1)).deleteAndFileAFTReturn(Matchers.eq(pstr),
-        Matchers.eq(expectedUA), any())(any(), any(), any())
+        Matchers.eq(expectedUA))(any(), any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

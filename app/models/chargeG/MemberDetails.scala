@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import play.api.libs.json._
 
-case class MemberDetails (firstName: String, lastName: String, dob: LocalDate, nino: String, isDeleted: Boolean = false) {
+case class MemberDetails (firstName: String, lastName: String, dob: LocalDate, nino: String) {
   def fullName: String = s"$firstName $lastName"
 }
 

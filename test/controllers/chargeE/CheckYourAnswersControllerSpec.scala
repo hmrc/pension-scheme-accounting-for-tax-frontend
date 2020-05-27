@@ -21,7 +21,7 @@ import java.time.LocalDate
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CYAChargeEHelper
+import helpers.CYAChargeEService
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{UserAnswers, YearRange}
@@ -44,7 +44,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(AnnualAllowanceYearPage(0), dynamicYearRange).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  private val helper = new CYAChargeEHelper(srn, startDate)
+  private val helper = new CYAChargeEService(srn, startDate)
   private val rows = Seq(
     helper.chargeEMemberDetails(0, memberDetails),
     helper.chargeETaxYear(0, dynamicYearRange),
