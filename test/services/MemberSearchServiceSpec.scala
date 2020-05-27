@@ -20,27 +20,21 @@ import java.time.LocalDate
 
 import base.SpecBase
 import helpers.FormatHelper
-import models.Member
-import models.UserAnswers
 import models.requests.DataRequest
+import models.{Member, UserAnswers}
+import org.mockito.Matchers.any
 import org.mockito.Mockito
+import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.Application
 import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.guice.GuiceableModule
-import play.api.mvc.Results
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
+import play.api.mvc.{AnyContent, Results}
 import services.MemberSearchService.MemberRow
-import uk.gov.hmrc.viewmodels.SummaryList.Action
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.Text.Message
-import org.mockito.Matchers.any
-import org.mockito.Mockito.when
-import play.api.mvc.AnyContent
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 
 class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -50,15 +44,15 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
   private val mockChargeEService: ChargeEService = mock[ChargeEService]
   private val mockChargeGService: ChargeGService = mock[ChargeGService]
 
-  private def application =
-    (new GuiceApplicationBuilder()
+  private def application: Application =
+    new GuiceApplicationBuilder()
       .overrides(
         Seq[GuiceableModule](
           bind[ChargeDService].toInstance(mockChargeDService),
           bind[ChargeEService].toInstance(mockChargeEService),
           bind[ChargeGService].toInstance(mockChargeGService)
         ): _*
-      )).build()
+      ).build()
 
   private implicit val fakeDataRequest: DataRequest[AnyContent] = request()
 
