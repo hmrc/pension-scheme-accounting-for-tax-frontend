@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package utils
+package helpers
 
 import data.SampleData.{chargeEDetails, memberDetails, userAnswersWithSchemeNamePstrQuarter}
 import models.UserAnswers

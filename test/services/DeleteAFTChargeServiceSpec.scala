@@ -20,6 +20,7 @@ import base.SpecBase
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
 import data.SampleData._
+import helpers.DeleteChargeHelper
 import models.requests.DataRequest
 import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers
@@ -31,7 +32,6 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, Results}
 import uk.gov.hmrc.domain.PsaId
-import utils.DeleteChargeHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
