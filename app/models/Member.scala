@@ -20,7 +20,7 @@ import play.api.libs.json.{Format, Json}
 
 import scala.language.implicitConversions
 
-case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String, isDeleted: Boolean = false) {
+case class Member(index: Int, name: String, nino: String, amount: BigDecimal, viewLink: String, removeLink: String) {
     def id = s"member-$index"
 
     def removeLinkId = s"$id-remove"

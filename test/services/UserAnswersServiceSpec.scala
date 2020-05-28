@@ -76,17 +76,52 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
   }
 
   ".removeMemberBasedCharge" must {
-    "FIRST COMPILE - set the page value & total for a member level charge being deleted if version is 1" in {
-      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(), implicitly))
+    "FOR FIRST COMPILE - remove the member & set total for a member level charge being " +
+      "deleted if version is 1 and is not last charge and member not last member" in {
+      val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+        .setOrException(MemberPage2, pageValue)
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
 
-      whenReady(resultFuture) {
-        _ mustBe memberUaForCompile
+      whenReady(resultFuture) { result =>
+        result.get(MemberPage) mustBe Some("value")
+        result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
       }
     }
 
-    "AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
-      " for a scheme level charge if version is 2 for a member being deleted" in {
-      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(), version = 2), implicitly))
+
+    "FOR FIRST COMPILE - remove the whole charge & NOT set total for a member level charge being " +
+      "deleted if version is 1 and is not last charge and member is last member" in {
+      val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
+
+      whenReady(resultFuture) { result =>
+        result.get(MemberPage) mustBe None
+        result.get(TotalAmountPage) mustBe None
+      }
+    }
+
+    "FOR FIRST COMPILE - zero the member & set total for a member level charge being " +
+      "deleted if version is 1 and is last charge" in {
+      val pageValueAfterZeroedOut = "zeroed"
+      val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
+      val userAnswersAfterZeroedOut = UserAnswers().setOrException(MemberPage, pageValueAfterZeroedOut)
+      when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
+      when(mockDeleteChargeHelper.zeroOutLastCharge(any())).thenReturn(userAnswersAfterZeroedOut)
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
+
+      whenReady(resultFuture) { result =>
+        result.get(MemberPage) mustBe Some(pageValueAfterZeroedOut)
+        result.get(TotalAmountPage) mustBe Some(total(UserAnswers()))
+      }
+    }
+
+    "FOR AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
+      " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(status=AmendedChargeStatus.Deleted.toString), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -100,19 +135,33 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       }
     }
 
-    "AMENDMENT - set amended version, member version to null, status to New and the page value" +
-      " for a scheme level charge if version is 2 if a member that was added after the last submission is being deleted" in {
-      val resultFuture = Future.fromTry(service.removeMemberBasedCharge(MemberPage, pageValue, total)(dataRequest(memberUa(2), version = 2), implicitly))
+
+    "FOR AMENDMENT - remove member" +
+      " for a member level charge if version is 2 and member added in this version and " +
+      "member is not last member in charge" in {
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUaTwoMembers(2), version = 2), implicitly))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
-          "members" -> Json.arr(
-            Json.obj(
-              MemberPage.toString -> "value",
-              "memberStatus" -> AmendedChargeStatus.Added.toString
-            )
-          ))
+          "members" -> Json.arr(Json.obj(
+            MemberPage2.toString -> pageValue,
+            "memberAFTVersion"-> 2,
+            "memberStatus" -> AmendedChargeStatus.Added.toString
+          )),
+          "amendedVersion" -> 2)
       )).setOrException(TotalAmountPage, total(UserAnswers()))
+
+      }
+    }
+
+    "FOR AMENDMENT - remove whole charge" +
+      " for a member level charge if version is 2 and member added in this version and " +
+      " is not last charge and member is last member in charge" in {
+      val resultFuture = Future.fromTry(service
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(2), version = 2), implicitly))
+
+      whenReady(resultFuture){ _ mustBe UserAnswers()
       }
     }
   }
@@ -203,46 +252,66 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
 
 object UserAnswersServiceSpec {
 
-  case object Page extends QuestionPage[String] {
+  private case object Page extends QuestionPage[String] {
     override def path: JsPath = JsPath \ toString
 
     override def toString: String = "page"
   }
 
-  case object MemberPage extends QuestionPage[String] {
+  private case object MemberPage extends QuestionPage[String] {
     override def path: JsPath = JsPath \ "chargeType" \ "members" \ 0 \ toString
 
     override def toString: String = "memberPage"
   }
 
-  case object TotalAmountPage extends QuestionPage[BigDecimal] {
+  private case object MemberPage2 extends QuestionPage[String] {
+    override def path: JsPath = JsPath \ "chargeType" \ "members" \ 1 \ toString
+
+    override def toString: String = "memberPage"
+  }
+
+  private case object TotalAmountPage extends QuestionPage[BigDecimal] {
     override def path: JsPath = JsPath \ "chargeType" \ toString
 
     override def toString: String = "totalChargeAmount"
   }
 
-  val pageValue: String = "value"
-  val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
-  val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
+  private val pageValue: String = "value"
+  private val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
+  private val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
 
-  def sessionData(version: Int): SessionData =
+  private def sessionData(version: Int): SessionData =
     SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile))
 
-  def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
+  private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))
 
-  val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
-  val memberUaForCompile: UserAnswers =
-    UserAnswers().setOrException(MemberPage, pageValue).setOrException(TotalAmountPage, total(UserAnswers()))
+  private val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
 
+  private val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
 
-  val uaVersion2: UserAnswers = UserAnswers(Json.obj(Page.toString -> Json.obj("value" -> pageValue, "amendedVersion" -> 1)))
-
-  def memberUa(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
+  private def memberUa(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(
           MemberPage.toString -> pageValue,
+          "memberAFTVersion"-> version,
+          "memberStatus" -> status
+        )
+      ),
+      "amendedVersion" -> version)
+  ))
+
+  private def memberUaTwoMembers(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
+    "chargeType" -> Json.obj(
+      "members" -> Json.arr(
+        Json.obj(
+          MemberPage.toString -> pageValue,
+          "memberAFTVersion"-> version,
+          "memberStatus" -> status
+        ),
+        Json.obj(
+          MemberPage2.toString -> pageValue,
           "memberAFTVersion"-> version,
           "memberStatus" -> status
         )

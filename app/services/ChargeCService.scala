@@ -44,38 +44,36 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       .map(_.as[JsArray].value.length)
       .getOrElse(0)
 
-  private def getEmployerDetails(ua: UserAnswers, index: Int): Option[(String, Boolean)] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
-    case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(i => Tuple2(i.fullName, i.isDeleted))
-    case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(o => Tuple2(o.name, o.isDeleted))
+  private def getEmployerDetails(ua: UserAnswers, index: Int): Option[String] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
+    case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(_.fullName)
+    case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
   }
 
-  def getSponsoringEmployersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                            (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
-      getEmployerDetails(ua, index).flatMap {
-        case (name, isDeleted) =>
+      ua.get(MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          getEmployerDetails(ua, index).flatMap { name =>
           ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
             Employer(
               index,
               name,
               chargeDetails.amountTaxDue,
               viewUrl(index, srn, startDate).url,
-              removeUrl(index, srn, startDate, ua).url,
-              isDeleted
+              removeUrl(index, srn, startDate, ua).url
             )
           }
-      }.toSeq
+        }.toSeq
+      }
     }
   }
 
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[Employer] =
-    getSponsoringEmployersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
-
   def getAllAuthSurplusAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
-      getEmployerDetails(ua, index).flatMap {
-        case (name, _) =>
+      getEmployerDetails(ua, index).flatMap { name =>
           ua.get(ChargeCDetailsPage(index)).map { chargeAmounts =>
             val currentVersion = request.aftVersion
             val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)

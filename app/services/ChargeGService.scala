@@ -35,26 +35,24 @@ import viewmodels.Table
 
 class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getOverseasTransferMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                                (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-
-    val members = for {
-      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeGDetails").zipWithIndex
-    } yield {
-      ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
-        Member(
-          index,
-          member.fullName,
-          member.nino,
-          chargeAmounts.amountTaxDue,
-          viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url,
-          member.isDeleted
-        )
+  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                               (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").zipWithIndex.flatMap { case (member, index) =>
+      ua.get(MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
+            Member(
+              index,
+              member.fullName,
+              member.nino,
+              chargeAmounts.amountTaxDue,
+              viewUrl(index, srn, startDate).url,
+              removeUrl(index, srn, startDate, ua).url
+            )
+          }.toSeq
       }
     }
-
-    members.flatten
   }
 
   def getAllOverseasTransferAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
@@ -82,10 +80,6 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }
       .flatten
   }
-
-  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

@@ -132,20 +132,20 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
 
-      case (Some(SponsoringEmployerTypeIndividual), Some(individualDetails), _) =>
-        userAnswersService.removeMemberBasedCharge(
-          SponsoringIndividualDetailsPage(index), individualDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+      case (Some(SponsoringEmployerTypeIndividual), Some(_), _) =>
+        userAnswersService.removeMemberBasedCharge(SponsoringIndividualDetailsPage(index), totalAmount(srn, startDate))
 
-      case (Some(SponsoringEmployerTypeOrganisation), _, Some(orgDetails)) =>
-        userAnswersService.removeMemberBasedCharge(
-          SponsoringOrganisationDetailsPage(index), orgDetails.copy(isDeleted = true), totalAmount(srn, startDate))
+      case (Some(SponsoringEmployerTypeOrganisation), _, Some(_)) =>
+        userAnswersService.removeMemberBasedCharge(SponsoringOrganisationDetailsPage(index), totalAmount(srn, startDate))
 
       case _ => Try(ua)
     }
   }
 
-  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal = {
     chargeCHelper.getSponsoringEmployers(_, srn, startDate).map(_.amount).sum
+  }
+
 
   case object EmployerTypeUnidentified extends Exception("Employer did not match individual or organisation type")
 }
