@@ -8,7 +8,10 @@
 {% from "govuk/components/table/macro.njk"         import govukTable %}
 {% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
 {% from "govuk/components/input/macro.njk"         import govukInput %}
-{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
+
+{% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+
 
 {% block pageTitle %}
   {{ title(messages("aft.summary.title", viewModel.schemeName), form.errors) }}
@@ -41,39 +44,45 @@
        <form action="{{searchURL}}" method="post" autocomplete="off">
            {{ csrf() | safe }}
 
-                {{ govukInput({
-                  id: "searchText",
-                  label: {
-                    text: messages('aft.summary.search.label'),
-                    isPageHeading: false,
-                    classes: "govuk-label--m"
-                  },
-                  name: "searchText",
-                  type: "search",
-                  value: formSearchText.searchText.value,
-                  classes: "govuk-!-width-one-half",
-                  errorMessage: formSearchText.searchText.error,
-                  hint: {
-                    text: messages('aft.summary.search.hint')
-                  }
-                }) }}
-
                 {% if formSearchText.searchText.value %}
-                    {{ govukButton({
-                      text: messages('aft.summary.searchAgain.button'),
-                      classes: "govuk-button--secondary",
-                      attributes: {id: "search"}
-                    }) }}
-                    <p class="govuk-body"><a class="govuk-link" href="{{ aftSummaryURL }}">{{ messages('aft.summary.search.clearSearch') }}</a></p>
-
+                    {% set btnText = messages('aft.summary.searchAgain.button') %}
                 {% else %}
-                    {{ govukButton({
-                      text: messages('aft.summary.search.button'),
-                      classes: "govuk-button--secondary",
-                      attributes: {id: "search"}
-                    }) }}
-
+                    {% set btnText = messages('aft.summary.search.button') %}
                 {% endif  %}
+
+               {{hmrcInputSearch({
+                   id: "searchText",
+                      label: {
+                        text: messages('aft.summary.search.label'),
+                        isPageHeading: false,
+                        classes: "govuk-label--m"
+                     },
+                   formGroup: {
+                     classes: "govuk-!-margin-bottom-0"
+                     },
+                     name: "searchText",
+                     type: "search",
+                     value: formSearchText.searchText.value,
+                     classes: "govuk-!-width-one-half",
+                     errorMessage: formSearchText.searchText.error,
+                     hint: {
+                       text: messages('aft.summary.search.hint')
+                     },
+                     searchButton: {
+                     id: "search",
+                     text: btnText,
+                     classes:"govuk-button--secondary govuk-!-margin-bottom-3"
+                     }
+
+                    })
+               }}
+
+             {% if formSearchText.searchText.value %}
+                    <p class="govuk-body  govuk-!-margin-bottom-6"><a class="govuk-link" href="{{ aftSummaryURL }}">
+                        {{ messages('aft.summary.search.clearSearch') }}
+                        </a>
+                    </p>
+             {% endif  %}
 
             {% if formSearchText.searchText.value %}
                 {% if list.length == 0 %}
@@ -88,9 +97,10 @@
                    </ul>
                 </div>
                 {% else %}
-                 <div class="govuk-form-group">
-                    <p class="govuk-body">{{list.length}} {{ messages("aft.summary.search.results") }}</p>
+
+                    <p class="govuk-body govuk-!-margin-bottom-6">{{list.length}} {{ messages("aft.summary.search.results") }}</p>
                    {% for row in list %}
+                   <div class="govuk-form-group">
                      <h2 class="govuk-heading-m">{{ row.name }}</h2>
                      {{ govukSummaryList({
                        rows: row.rows,
@@ -106,8 +116,9 @@
                            </li>
                          {% endfor %}
                      </ul>
+                     </div>
                    {% endfor %}
-                </div>
+
                 {% endif %}
             {% endif %}
         </form>
