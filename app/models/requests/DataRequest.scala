@@ -16,6 +16,7 @@
 
 package models.requests
 
+import models.AccessMode
 import models.SessionData
 import play.api.mvc.{Request, WrappedRequest}
 import models.UserAnswers
@@ -38,4 +39,7 @@ case class DataRequest[A] (
                           ) extends WrappedRequest[A](request) {
   def aftVersion: Int = sessionData.sessionAccessData.version
   def isAmendment: Boolean = aftVersion > 1
+  def isViewOnly = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
+  def isEditable = !isViewOnly
+  def isLocked = sessionData.name.isDefined
 }

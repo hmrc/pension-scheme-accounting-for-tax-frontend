@@ -88,9 +88,9 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  private def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
+  def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
 
-  private def aftOverviewStartDate: LocalDate =  {
+  def aftOverviewStartDate: LocalDate =  {
     val earliestStartDate = LocalDate.parse(config.earliestStartDate)
     val calculatedStartYear = aftOverviewEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
     val calculatedStartDate = LocalDate.of(calculatedStartYear, 1, 1)

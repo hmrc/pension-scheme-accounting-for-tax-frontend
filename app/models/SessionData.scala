@@ -26,9 +26,6 @@ import scala.language.implicitConversions
 case class SessionAccessData(version: Int, accessMode: AccessMode)
 
 case class SessionData(sessionId: String, name: Option[String], sessionAccessData: SessionAccessData) {
-  def isViewOnly = sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
-  def isEditable = !isViewOnly
-  def isLocked = name.isDefined
 
   def deriveMinimumChargeValueAllowed: BigDecimal = {
     (sessionAccessData.accessMode, sessionAccessData.version) match {
