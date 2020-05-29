@@ -16,12 +16,19 @@
 
 package viewmodels
 
-import play.api.libs.json.Json
-import uk.gov.hmrc.viewmodels.{Content, Text}
+import play.api.i18n.Messages
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{OWrites, __}
+import uk.gov.hmrc.viewmodels.Text
 
-case class Link(id: String, url: String, linkText: String)
+case class Link(id: String, url: String, linkText: Text)
 
 
 object Link {
-  implicit val format = Json.format[Link]
+
+  implicit def writes(implicit messages: Messages): OWrites[Link] = (
+        (__ \ "id").write[String] and
+        (__ \ "url").write[String] and
+        (__ \ "linkText").write[Text]
+    ) { link => (link.id, link.url, link.linkText) }
 }

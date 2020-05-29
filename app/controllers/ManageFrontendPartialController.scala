@@ -16,30 +16,25 @@
 
 package controllers
 
-import audit.AuditService
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.LocalDateBinder._
-import models.{Quarters, StartYears}
-import navigators.CompoundNavigator
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTPartialService, AFTService, AllowAccessService, QuartersService, SchemeService}
+import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.{AFTViewModel, Link}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class ManageFrontendPartialController @Inject()(
                                     identify: IdentifierAction,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
                                     aftPartialService: AFTPartialService,
+                                    renderer: Renderer,
                                     config: FrontendAppConfig
                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -47,15 +42,8 @@ class ManageFrontendPartialController @Inject()(
     with NunjucksSupport {
 
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-
-    println(s"\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \nENTERED CONTROLLER ")
-    aftPartialService.retrieveOptionAFTViewModel(srn, "A2100005").map { aftPartial =>
-      val t = Json.toJson(aftPartial)
-      println(s"\n\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n $t")
-      Ok(t)
+    aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftPartial =>
+      renderer.render(template = "partials/overview.njk", Json.obj("aftModels" -> Json.toJson(aftPartial))).map(Ok(_))
     }
   }
-
-
-
 }
