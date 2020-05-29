@@ -97,8 +97,12 @@
                    </ul>
                 </div>
                 {% else %}
-
-                    <p class="govuk-body govuk-!-margin-bottom-6">{{list.length}} {{ messages("aft.summary.search.results") }}</p>
+                    {% if list.length == 1 %}
+                        {% set resultText = messages('aft.summary.search.result') %}
+                    {% else %}
+                        {% set resultText = messages('aft.summary.search.results') %}
+                    {% endif  %}
+                    <p class="govuk-body govuk-!-margin-bottom-6">{{list.length}} {{resultText}} </p>
                    {% for row in list %}
                    <div class="govuk-form-group">
                      <h2 class="govuk-heading-m">{{ row.name }}</h2>
