@@ -87,7 +87,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                        optPage: Option[Page],
                                        optVersion: Option[String])
                                       (implicit request: DataRequest[_]): Future[Option[Result]] =
-    (isSuspended, request.sessionData.isViewOnly, optPage, optVersion, isPreviousPageWithinAFT) match {
+    (isSuspended, request.isViewOnly, optPage, optVersion, isPreviousPageWithinAFT) match {
     case (true, _, Some(AFTSummaryPage), Some(_), false) =>
       Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optVersion))))
     case (true, _, Some(ChargeTypePage), _, _) =>
