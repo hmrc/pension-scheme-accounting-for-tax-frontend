@@ -93,6 +93,15 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val fileAFTReturnTemplateId: String = configuration.get[String]("email.fileAftReturnTemplateId")
   lazy val amendAftReturnTemplateIdId: String = configuration.get[String]("email.amendAftReturnTemplateId")
 
+  lazy val aftLoginUrl: String = loadConfig("urls.partials.aftLoginLink")
+  lazy val aftSummaryPageUrl: String = loadConfig("urls.partials.aftSummaryPageLink")
+  lazy val aftSummaryPageNoVersionUrl: String = loadConfig("urls.partials.aftSummaryPageNoVersionLink")
+  lazy val aftReturnHistoryUrl: String = loadConfig("urls.partials.aftReturnHistoryLink")
+  lazy val aftContinueReturnUrl: String = loadConfig("urls.partials.aftContinueReturn")
+  lazy val aftAmendUrl: String = loadConfig("urls.partials.aftAmendLink")
+
+  lazy val quarterEndDate: String = "2020-06-30"
+
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
       configuration.get[String]("earliestDateOfNotice"),
