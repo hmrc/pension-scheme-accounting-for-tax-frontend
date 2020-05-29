@@ -29,7 +29,8 @@ import services.AllowAccessService
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService, optionPage:Option[Page])(implicit val executionContext: ExecutionContext)
+class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService, optionPage:Option[Page])
+                       (implicit val executionContext: ExecutionContext)
     extends ActionFilter[DataRequest] {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] =
     allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers, optionPage)(request)

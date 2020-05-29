@@ -19,7 +19,7 @@ package services
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import connectors.SchemeDetailsConnector
+import connectors.{AFTConnector, SchemeDetailsConnector}
 import controllers.routes._
 import handlers.ErrorHandler
 import models.LocalDateBinder._
@@ -31,10 +31,14 @@ import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector, aftService: AFTService, errorHandler: ErrorHandler)(
+class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnector,
+                                   aftService: AFTService,
+                                   aftConnector: AFTConnector,
+                                   errorHandler: ErrorHandler)(
     implicit val executionContext: ExecutionContext)
     extends Results {
 
@@ -56,33 +60,45 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
   def filterForIllegalPageAccess(srn: String,
                                  startDate: LocalDate,
                                  ua: UserAnswers,
-                                 optionCurrentPage: Option[Page] = None,
-                                 optionVersion: Option[String] = None)(implicit request: DataRequest[_]): Future[Option[Result]] = {
+                                 optPage: Option[Page] = None,
+                                 optVersion: Option[String] = None)(implicit request: DataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
+    val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
+
     retrieveSuspendedFlagAndSchemeStatus(ua) {
+      case _ if isInvalidDate =>
+        //todo redirect to new error page for invalid dates once it is created
+        Future.successful(Option(Redirect(SessionExpiredController.onPageLoad())))
       case (_, schemeStatus) if !validStatuses.contains(schemeStatus) =>
         errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
       case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true =>
-            (isSuspended, request.sessionData.isViewOnly, optionCurrentPage, optionVersion, isPreviousPageWithinAFT) match {
-              case (true, _, Some(AFTSummaryPage), Some(_), false) =>
-                Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optionVersion))))
-              case (true, _, Some(ChargeTypePage), _, _) =>
-                Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
-              case (false, true, Some(ChargeTypePage), _, _) =>
-                Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
-              case (false, true, None, _, _) =>
-                Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
-              case _ =>
-                Future.successful(None)
-            }
-          case _ =>
-            errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
+          case true => associatedPsaRedirection(srn, startDate, isSuspended, optPage, optVersion)
+          case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
         }
     }
+  }
+
+  private def associatedPsaRedirection(srn: String,
+                                       startDate: String,
+                                       isSuspended: Boolean,
+                                       optPage: Option[Page],
+                                       optVersion: Option[String])
+                                      (implicit request: DataRequest[_]): Future[Option[Result]] =
+    (isSuspended, request.sessionData.isViewOnly, optPage, optVersion, isPreviousPageWithinAFT) match {
+    case (true, _, Some(AFTSummaryPage), Some(_), false) =>
+      Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optVersion))))
+    case (true, _, Some(ChargeTypePage), _, _) =>
+      Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
+    case (false, true, Some(ChargeTypePage), _, _) =>
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+    case (false, true, None, _, _) =>
+      //todo redirect to new error page for form-pages in view-only returns once it is created
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+    case _ =>
+      Future.successful(None)
   }
 
   def allowSubmission(ua: UserAnswers)(implicit request: DataRequest[_]): Future[Option[Result]] =
