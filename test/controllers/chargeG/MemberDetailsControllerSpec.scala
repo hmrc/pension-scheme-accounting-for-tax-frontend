@@ -77,8 +77,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
           "firstName" -> "first",
           "lastName" -> "last",
           "dob" -> "2019-04-03",
-          "nino" -> "AB123456C",
-          "isDeleted" -> false
+          "nino" -> "AB123456C"
         )
       )
     )),

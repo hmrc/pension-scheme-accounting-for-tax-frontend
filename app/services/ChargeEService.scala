@@ -20,40 +20,46 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import AddMembersService.mapChargeXMembersToTable
-import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
+import helpers.DeleteChargeHelper
+import helpers.FormatHelper
+import models.AmendedChargeStatus.Unknown
+import models.AmendedChargeStatus.amendedChargeStatus
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, MemberDetails, UserAnswers}
-import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
+import models.Member
+import models.MemberDetails
+import models.UserAnswers
+import pages.chargeE.ChargeDetailsPage
+import pages.chargeE.MemberAFTVersionPage
+import pages.chargeE.MemberStatusPage
 import play.api.i18n.Messages
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.AnyContent
+import play.api.mvc.Call
 import viewmodels.Table
 
 class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getAnnualAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                               (implicit request: DataRequest[AnyContent]): Seq[Member] = {
 
-    val members = for {
-      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeEDetails").zipWithIndex
-    } yield {
-      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-        Member(
-          index,
-          member.fullName,
-          member.nino,
-          chargeDetails.chargeAmount,
-          viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url,
-          member.isDeleted
-        )
+  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeEDetails").zipWithIndex.flatMap { case (member, index) =>
+      ua.get(MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+          ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+            Member(
+              index,
+              member.fullName,
+              member.nino,
+              chargeDetails.chargeAmount,
+              viewUrl(index, srn, startDate).url,
+              removeUrl(index, srn, startDate, ua).url
+            )
+          }.toSeq
       }
     }
-
-    members.flatten
   }
 
   def getAllAnnualAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
@@ -81,10 +87,6 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }
       .flatten
   }
-
-  def getAnnualAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
-                               (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getAnnualAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)

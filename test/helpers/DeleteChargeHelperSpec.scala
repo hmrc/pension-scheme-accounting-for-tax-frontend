@@ -56,7 +56,7 @@ class DeleteChargeHelperSpec extends FreeSpec with MustMatchers with OptionValue
       }
     }
 
-    " must zero out the amounts and set the isDeleted flag to false for member level charges when user answers have only " - {
+    " must zero out the amounts for member level charges when user answers have only " - {
       "charge C" in {
         val result = deleteChargeHelper.zeroOutLastCharge(UserAnswers(onlyChargeCUa))
         result.get(ChargeCDetailsPage(0)).value.amountTaxDue mustBe 0
@@ -242,8 +242,7 @@ object DeleteChargeHelperSpec {
       |        "sponsoringIndividualDetails": {
       |          "firstName": "testFirst",
       |          "lastName": "testLast",
-      |          "nino": "AB100100A",
-      |          "isDeleted": false
+      |          "nino": "AB100100A"
       |        },
       |        "sponsoringEmployerAddress": {
       |          "line1": "line1",
@@ -269,8 +268,7 @@ object DeleteChargeHelperSpec {
       |        "memberDetails": {
       |          "firstName": "firstName",
       |          "lastName": "lastName",
-      |          "nino": "AC100100A",
-      |          "isDeleted": false
+      |          "nino": "AC100100A"
       |        },
       |        "chargeDetails": {
       |          "dateOfEvent": "2020-01-10",
@@ -291,8 +289,7 @@ object DeleteChargeHelperSpec {
        |        "memberDetails": {
        |          "firstName": "eFirstName",
        |          "lastName": "eLastName",
-       |          "nino": "AE100100A",
-       |          "isDeleted": false
+       |          "nino": "AE100100A"
        |        },
        |        "annualAllowanceYear": "2020",
        |        "chargeDetails": {
@@ -315,8 +312,7 @@ object DeleteChargeHelperSpec {
       |          "firstName": "Craig",
       |          "lastName": "White",
       |          "dob": "1980-02-29",
-      |          "nino": "AA012000A",
-      |          "isDeleted": false
+      |          "nino": "AA012000A"
       |        },
       |        "chargeDetails": {
       |          "qropsReferenceNumber": "300000",

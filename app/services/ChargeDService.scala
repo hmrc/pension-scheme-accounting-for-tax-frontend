@@ -29,31 +29,30 @@ import models.viewModels.ViewAmendmentDetails
 import models.{Member, MemberDetails, UserAnswers}
 import pages.chargeD.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
+import play.api.libs.json.JsArray
 import play.api.mvc.{AnyContent, Call}
 import viewmodels.Table
 
 class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getLifetimeAllowanceMembersIncludingDeleted(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
-
-    val members = for {
-      (member, index) <- ua.getAllMembersInCharge[MemberDetails]("chargeDDetails").zipWithIndex
-    } yield {
-      ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-        Member(
-          index,
-          member.fullName,
-          member.nino,
-          chargeDetails.total,
-          viewUrl(index, srn, startDate).url,
-          removeUrl(index, srn, startDate, ua).url,
-          member.isDeleted
-        )
+  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+                                 (implicit request: DataRequest[AnyContent]): Seq[Member] = {
+    ua.getAllMembersInCharge[MemberDetails](charge = "chargeDDetails").zipWithIndex.flatMap { case (member, index) =>
+      ua.get(MemberStatusPage(index)) match {
+        case Some(status) if status == "Deleted" => Nil
+        case _ =>
+            ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
+              Member(
+                index,
+                member.fullName,
+                member.nino,
+                chargeDetails.total,
+                viewUrl(index, srn, startDate).url,
+                removeUrl(index, srn, startDate, ua).url
+              )
+            }.toSeq
       }
     }
-
-    members.flatten
   }
 
   def getAllLifetimeAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
@@ -81,10 +80,6 @@ class ChargeDService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       }
       .flatten
   }
-
-  def getLifetimeAllowanceMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
-                                 (implicit request: DataRequest[AnyContent]): Seq[Member] =
-    getLifetimeAllowanceMembersIncludingDeleted(ua, srn, startDate).filterNot(_.isDeleted)
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
     controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
