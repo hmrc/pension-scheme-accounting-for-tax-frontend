@@ -23,28 +23,24 @@ import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models._
-import models.requests.IdentifierRequest
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import viewmodels.{AFTViewModel, Link}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
 
   import AFTPartialServiceSpec._
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val authReq: IdentifierRequest[AnyContent] = IdentifierRequest(fakeRequest, PsaId(psaId))
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   private val aftConnector = mock[AFTConnector]
 
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
@@ -129,23 +125,13 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
       }
     }
 
-    "return None when the scheme status is other than Open/Wound-up/Deregistered" in {
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Seq(version1)))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(None))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe Nil
-      }
-    }
   }
 
   "retrieveOptionAFTViewModel before overviewApiEnablement" must {
     "return the correct model when return is locked by another credentials" in {
       DateHelper.setDate(Some(LocalDate.of(2020,4,1)))
       when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Some(Seq(version1))))
+        .thenReturn(Future.successful(Seq(version1)))
       when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(name)))
 
@@ -187,16 +173,6 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
       }
     }
 
-    "return None when the scheme status is other than Open/Wound-up/Deregistered" in {
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Seq(version1)))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(None))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe Nil
-      }
-    }
   }
 
 }
@@ -214,7 +190,7 @@ object AFTPartialServiceSpec {
   private val date = "2020-01-01"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
 
-  val lockedAftModel: Seq[AFTViewModel] = Seq(
+  def lockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate).resolve),
       Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name).resolve),
@@ -225,7 +201,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  val unlockedEmptyAftModel: Seq[AFTViewModel] = Seq(
+  def unlockedEmptyAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       None,
       None,
@@ -235,7 +211,7 @@ object AFTPartialServiceSpec {
         linkText = msg"messages__schemeDetails__aft_startLink".withArgs(formattedStartDate, formattedEndDate).resolve)
     )
   )
-  val lockedAftModelWithNoVersion: Seq[AFTViewModel] = Seq(
+  def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate).resolve),
       Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name).resolve),
@@ -245,7 +221,7 @@ object AFTPartialServiceSpec {
         linkText = msg"messages__schemeDetails__aft_view".resolve)
     )
   )
-  val inProgressUnlockedAftModel: Seq[AFTViewModel] = Seq(
+  def inProgressUnlockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate).resolve),
       Some(msg"messages__schemeDetails__aft_inProgress".resolve),
@@ -295,17 +271,17 @@ object AFTPartialServiceSpec {
   val aftSummaryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-10-01/2/summary"
   val continueUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/select-quarter-in-progress"
 
-  val startModel: AFTViewModel = AFTViewModel(None, None,
+  def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
       linkText = msg"messages__schemeDetails__aft_start".resolve))
 
-  val pastReturnsModel: AFTViewModel = AFTViewModel(None, None,
+  def pastReturnsModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(
       id = "aftAmendLink",
       url = amendUrl,
       linkText = msg"messages__schemeDetails__aft_view_or_change".resolve))
 
-  def multipleInProgressModel(count: Int): AFTViewModel = AFTViewModel(
+  def multipleInProgressModel(count: Int)(implicit messages: Messages): AFTViewModel = AFTViewModel(
     Some(msg"messages__schemeDetails__aft_multiple_inProgress".resolve),
     Some(msg"messages__schemeDetails__aft_inProgressCount".withArgs(count).resolve),
     Link(
@@ -314,7 +290,7 @@ object AFTPartialServiceSpec {
       linkText = msg"messages__schemeDetails__aft_view".resolve)
   )
 
-  def oneInProgressModel(locked: Boolean): AFTViewModel = AFTViewModel(
+  def oneInProgressModel(locked: Boolean)(implicit messages: Messages): AFTViewModel = AFTViewModel(
     Some(msg"messages__schemeDetails__aft_period".withArgs("1 October", "31 December 2020").resolve),
     if (locked) {
       Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name).resolve)
@@ -330,14 +306,22 @@ object AFTPartialServiceSpec {
   val noInProgress = Seq(overviewApril20, overviewJuly20)
   val oneInProgress = Seq(overviewApril20 , overviewOctober20)
 
-  val allTypesMultipleReturnsModel = Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
-  val noInProgressModel = Seq(startModel, pastReturnsModel)
-  val oneInProgressModelLocked = Seq(oneInProgressModel(locked = true), startModel, pastReturnsModel)
-  val oneInProgressModelNotLocked = Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
+  def allTypesMultipleReturnsModel(implicit messages: Messages) =
+    Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
 
-  val oneCompileZeroedOut = Seq(overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
+  def noInProgressModel(implicit messages: Messages) =
+    Seq(startModel, pastReturnsModel)
+
+  def oneInProgressModelLocked(implicit messages: Messages) =
+    Seq(oneInProgressModel(locked = true), startModel, pastReturnsModel)
+
+  def oneInProgressModelNotLocked(implicit messages: Messages) =
+    Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
+
+  def oneCompileZeroedOut(implicit messages: Messages) = Seq(overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
     overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
     overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true))
-  val oneCompileZeroedOutModel = Seq(multipleInProgressModel(2), startModel)
+
+  def oneCompileZeroedOutModel(implicit messages: Messages) = Seq(multipleInProgressModel(2), startModel)
 
 }
