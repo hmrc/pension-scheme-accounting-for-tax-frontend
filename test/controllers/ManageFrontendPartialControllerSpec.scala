@@ -16,42 +16,46 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import models.LocalDateBinder._
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTPartialService
+import play.api.inject.bind
+import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper
 
 import scala.concurrent.Future
-import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
 
 class ManageFrontendPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   private def httpPathGET: String = controllers.routes.ManageFrontendPartialController.aftPartial(srn).url
 
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
-
-  val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
   val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
+
+  private val extraModules: Seq[GuiceableModule] =
+    Seq[GuiceableModule](
+      bind[AFTPartialService].toInstance(mockAftPartialService)
+    )
+
+  val application: Application = applicationBuilder(extraModules = extraModules).build()
+
+
+
   private val templateToBeRendered = "partials/overview.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
 
@@ -60,6 +64,8 @@ class ManageFrontendPartialControllerSpec extends ControllerSpecBase with Nunjuc
     reset(mockAftPartialService, mockRenderer)
     when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
       .thenReturn(Future.successful(allTypesMultipleReturnsModel))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
   }
 
   "Partial Controller" when {
@@ -69,7 +75,8 @@ class ManageFrontendPartialControllerSpec extends ControllerSpecBase with Nunjuc
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-
+        when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
+          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual OK
