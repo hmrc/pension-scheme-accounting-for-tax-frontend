@@ -240,4 +240,4 @@ POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index
 GET        /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/select-address                  controllers.chargeC.SponsoringEmployerAddressResultsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 POST       /:srn/new-return/:startDate/authorised-surplus-payments-charge/:index/change/select-address                  controllers.chargeC.SponsoringEmployerAddressResultsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
 
-GET         /:srn/aft-partial                                                                                            controllers.ManageFrontendPartialController.aftPartial(srn: String)
+GET         /:srn/aft-partial                                                                                            controllers.PartialController.aftPartial(srn: String)

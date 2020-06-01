@@ -39,10 +39,10 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class ManageFrontendPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class PartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = controllers.routes.ManageFrontendPartialController.aftPartial(srn).url
+  private def httpPathGET: String = controllers.routes.PartialController.aftPartial(srn).url
 
 
   val mockAftPartialService: AFTPartialService = mock[AFTPartialService]

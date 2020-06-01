@@ -29,7 +29,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
 
-class ManageFrontendPartialController @Inject()(
+class PartialController @Inject()(
                                     identify: IdentifierAction,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
