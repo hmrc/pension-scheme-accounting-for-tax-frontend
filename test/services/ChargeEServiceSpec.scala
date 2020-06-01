@@ -50,23 +50,14 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberDetailsPage(1), SampleData.memberDetails2).toOption.get
     .set(ChargeDetailsPage(1), SampleData.chargeEDetails).toOption.get
 
-  val allMembersIncludingDeleted: UserAnswers = allMembers
-    .set(MemberDetailsPage(2), SampleData.memberDetailsDeleted).toOption.get
-    .set(ChargeDetailsPage(2), SampleData.chargeEDetails).toOption.get
-
   def viewLink(index: Int): String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
   def removeLink(index: Int): String = controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
-    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index), memberDetails.isDeleted)
+    Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
-  def expectedAllMembers: Seq[Member] = Seq(
-    expectedMember(SampleData.memberDetails, 0),
-    expectedMember(SampleData.memberDetails2, 1))
-
-  def expectedMembersIncludingDeleted: Seq[Member] = expectedAllMembers ++ Seq(
-    expectedMember(SampleData.memberDetailsDeleted, 2)
+  def expectedAllMembersMinusDeleted: Seq[Member] = Seq(
+    expectedMember(SampleData.memberDetails, 0)
   )
-
   val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   val chargeEHelper: ChargeEService = new ChargeEService(mockDeleteChargeHelper)
 
@@ -77,13 +68,7 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembers
-    }
-  }
-
-  ".getAnnualAllowanceMembersIncludingDeleted" must {
-    "return all the members added in charge E" in {
-      chargeEHelper.getAnnualAllowanceMembersIncludingDeleted(allMembersIncludingDeleted, srn, startDate)(request()) mustBe expectedMembersIncludingDeleted
+      chargeEHelper.getAnnualAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembersMinusDeleted
     }
   }
 

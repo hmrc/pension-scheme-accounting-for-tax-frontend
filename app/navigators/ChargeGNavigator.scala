@@ -37,7 +37,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   extends Navigator {
 
   def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeGHelper.getOverseasTransferMembersIncludingDeleted(ua, srn, startDate).size
+    chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {

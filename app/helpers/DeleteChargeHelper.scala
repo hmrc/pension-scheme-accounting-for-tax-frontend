@@ -22,7 +22,11 @@ import pages.chargeA.ShortServiceRefundQuery
 import pages.chargeB.SpecialDeathBenefitsQuery
 import pages.chargeF.DeregistrationQuery
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsObject, Json, Reads, __, _}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.libs.json.Reads
+import play.api.libs.json.__
+import play.api.libs.json._
 
 import scala.annotation.tailrec
 
@@ -47,10 +51,10 @@ class DeleteChargeHelper {
   def zeroOutCharge[A](page: QuestionPage[A], ua: UserAnswers): UserAnswers = {
 
     val zeroOutTransformer: Reads[JsObject] = page match {
-      case ShortServiceRefundQuery => zeroOutChargeA
+      case ShortServiceRefundQuery   => zeroOutChargeA
       case SpecialDeathBenefitsQuery => zeroOutChargeB
-      case DeregistrationQuery => zeroOutChargeF
-      case _ => __.json.put(Json.obj())
+      case DeregistrationQuery       => zeroOutChargeF
+      case _                         => __.json.put(Json.obj())
     }
 
     ua.data.transform(zeroOutTransformer) match {
@@ -61,7 +65,7 @@ class DeleteChargeHelper {
 
   private def zeroOutChargeA: Reads[JsObject] =
     updateJson(__ \ 'chargeADetails \ 'chargeDetails,
-      Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
+               Json.obj(fields = "totalAmtOfTaxDueAtHigherRate" -> 0, "totalAmtOfTaxDueAtLowerRate" -> 0, "totalAmount" -> 0))
 
   private def zeroOutChargeB: Reads[JsObject] =
     updateJson(__ \ 'chargeBDetails \ 'chargeDetails, Json.obj(fields = "totalAmount" -> 0))
@@ -108,38 +112,31 @@ class DeleteChargeHelper {
       case Some(firstElem) if arr.size == 1 =>
         Seq(firstElem.transform(memberTransformer).asOpt.getOrElse(firstElem))
       case _ if arr.size < 1 => Seq(Json.obj())
-      case _ => transformArrayMember(arr.tail, memberTransformer)
+      case _                 => transformArrayMember(arr.tail, memberTransformer)
     }
-
-  private def getMembersOrEmployersCount(seqMember: Seq[JsValue]): Int = {
-    seqMember.count { member =>
-      (member \ "isDeleted").validate[Boolean] match {
-        case JsSuccess(value, _) => !value
-        case JsError(errors)     => throw JsResultException(errors)
-      }
-    }
-  }
 
   private def getTotal(path: JsLookupResult): BigDecimal = {
-    if(path.isDefined) {
+    if (path.isDefined) {
       path.validate[BigDecimal] match {
         case JsSuccess(value, _) => value
-        case JsError(errors) => throw JsResultException(errors)
+        case JsError(errors)     => throw JsResultException(errors)
       }
-    }
-    else {
+    } else {
       BigDecimal(0.00)
     }
   }
 
   def isLastCharge(ua: UserAnswers): Boolean = (nonZeroSchemeBasedCharges(ua) + validMemberBasedCharges(ua).count) == 1
-  def allChargesDeletedOrZeroed(ua: UserAnswers): Boolean =
+
+  def allChargesDeletedOrZeroed(ua: UserAnswers): Boolean = {
     nonZeroSchemeBasedCharges(ua) == 0 && validMemberBasedCharges(ua).count <= 1 && validMemberBasedCharges(ua).total == BigDecimal(0.00)
+  }
 
   private def nonZeroSchemeBasedCharges(ua: UserAnswers): Int = {
     val json = ua.data
-    def nonZero(chargeType: String) = (json \ chargeType).isDefined && (json \ chargeType \ "chargeDetails"\ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
-      Seq("chargeADetails", "chargeBDetails", "chargeFDetails").count(nonZero)
+    def nonZero(chargeType: String) =
+      (json \ chargeType).isDefined && (json \ chargeType \ "chargeDetails" \ "totalAmount").as[BigDecimal] > BigDecimal(0.00)
+    Seq("chargeADetails", "chargeBDetails", "chargeFDetails").count(nonZero)
   }
 
   def validMemberBasedCharges(ua: UserAnswers): ValidChargeDetails = {
@@ -147,7 +144,7 @@ class DeleteChargeHelper {
 
     val members = memberLevelCharges.map {
       case "chargeCDetails" => validEmployers(ua)
-      case chargeType => validMembers(ua, chargeType)
+      case chargeType       => validMembers(ua, chargeType)
     }
 
     val count: Int = members.map(_.count).sum
@@ -156,17 +153,21 @@ class DeleteChargeHelper {
   }
 
   private def validMembers(ua: UserAnswers, chargeType: String): ValidChargeDetails = {
-    val memberDetailsPath = ua.data \ chargeType \ "members" \\ "memberDetails"
     val totalAmountPath = ua.data \ chargeType \ "totalChargeAmount"
-    ValidChargeDetails(chargeType, getMembersOrEmployersCount(memberDetailsPath), getTotal(totalAmountPath))
+    ValidChargeDetails(chargeType, countEmployersOrMembers(ua, chargeType, "members"), getTotal(totalAmountPath))
+  }
+
+  private def countEmployersOrMembers(ua: UserAnswers, chargeType: String, membersNodeName: String) = {
+    (ua.data \ chargeType \ membersNodeName)
+      .validate[JsArray]
+      .asOpt
+      .map(_.value.count(jsValue => !(jsValue \ "memberStatus").validate[String].asOpt.contains("Deleted")))
+      .getOrElse(0)
   }
 
   private def validEmployers(ua: UserAnswers): ValidChargeDetails = {
-    val individualPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringIndividualDetails"
-    val orgPath = ua.data \ "chargeCDetails" \ "employers" \\ "sponsoringOrganisationDetails"
     val totalAmountPath = ua.data \ "chargeCDetails" \ "totalChargeAmount"
-    val count = getMembersOrEmployersCount(individualPath) + getMembersOrEmployersCount(orgPath)
-    ValidChargeDetails("chargeCDetails", count, getTotal(totalAmountPath))
+    ValidChargeDetails("chargeCDetails", countEmployersOrMembers(ua, "chargeCDetails", "employers"), getTotal(totalAmountPath))
   }
 
   case class ValidChargeDetails(chargeType: String, count: Int, total: BigDecimal)

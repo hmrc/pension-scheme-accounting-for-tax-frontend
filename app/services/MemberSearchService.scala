@@ -127,8 +127,7 @@ object MemberSearchService {
                                    chargeType: ChargeType,
                                    amount: BigDecimal,
                                    viewLink: String,
-                                   removeLink: String,
-                                   isDeleted: Boolean = false) {
+                                   removeLink: String) {
     def linkIdRemove = s"$id-remove"
 
     def linkIdView = s"$id-view"

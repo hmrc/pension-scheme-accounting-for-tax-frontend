@@ -122,11 +122,8 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
     Radios(form("value"), x)
   }
 
-
-
   implicit def enumerable(quarters: Seq[Quarter]): Enumerable[Quarter] =
     Enumerable(quarters.map(v => v.toString -> v): _*)
-
 
   def getLabel(displayQuarter: DisplayQuarter)(implicit messages: Messages): Text = {
     val q =  getQuartersFromDate(displayQuarter.quarter.startDate)
@@ -141,8 +138,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
 
   private def getHint(displayQuarter: DisplayQuarter)(implicit messages: Messages): Option[Hint] =
     displayQuarter.hintText match {
-    case Some(hint) =>
-      Some(Hint(msg"${hint.toString}", "hint-id"))
+    case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id"))
     case _ => None
   }
 }

@@ -111,10 +111,10 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             value =>
               if (value) {
                 DataRetrievals.retrievePSTR { pstr =>
-
+                  val userAnswers = userAnswersService.removeSchemeBasedCharge(DeregistrationQuery)
                   for {
-                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswersService.removeSchemeBasedCharge(DeregistrationQuery))
-                  } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, request.userAnswers, srn, startDate))
+                    _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
+                  } yield Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate))
                 }
               } else {
                 Future.successful(Redirect(controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
