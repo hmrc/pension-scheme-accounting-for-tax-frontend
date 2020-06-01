@@ -47,7 +47,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
           versions <- aftConnector.getListOfVersions(schemeDetails.pstr, appConfig.earliestStartDate)
           optLockedBy <- aftCacheConnector.lockedBy(srn, appConfig.earliestStartDate)
         } yield {
-          createAFTViewModel(versions, optLockedBy, srn, appConfig.earliestStartDate, appConfig.quarterEndDate)
+          createAFTViewModel(versions, optLockedBy, srn, appConfig.earliestStartDate, appConfig.earliestEndDate)
         }
       } else {
         createAFTOverviewModel(schemeDetails.pstr, srn)

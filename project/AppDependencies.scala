@@ -16,8 +16,7 @@ object AppDependencies {
     "org.webjars.npm"               %   "govuk-frontend"                 % "3.5.0",
     "org.webjars.npm"               %   "hmrc-frontend"                  % "1.5.0",
     "com.google.inject.extensions"  %   "guice-multibindings"            % "4.2.2",
-    "uk.gov.hmrc"                   %%  "domain"                         % "5.6.0-play-26",
-    "uk.gov.hmrc"                   %%  "play-partials"                  % "6.11.0-play-26"
+    "uk.gov.hmrc"                   %%  "domain"                         % "5.6.0-play-26"
   )
 
   val test = Seq(
