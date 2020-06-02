@@ -102,7 +102,7 @@ class ViewAllAmendmentsControllerSpec
       caption = Some(messages(s"allAmendments.table.caption.$caption")),
       head = tableHeadingRows,
       rows = tableRows,
-      attributes = Map("role" -> "grid")
+      attributes = Map("role" -> "grid" ,"aria-label" -> caption )
     )
   }
 
