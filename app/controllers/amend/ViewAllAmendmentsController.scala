@@ -39,6 +39,7 @@ import viewmodels.Table.Cell
 
 import scala.concurrent.ExecutionContext
 import models.AccessMode.PageAccessModeCompile
+import pages.ViewOnlyAccessiblePage
 
 class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesApi,
                                             identify: IdentifierAction,
@@ -56,7 +57,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
 
   def onPageLoad(srn: String, startDate: LocalDate, version: String): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
-      requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
         val previousVersion = version.toInt - 1
 
