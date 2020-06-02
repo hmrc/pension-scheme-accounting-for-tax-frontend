@@ -192,12 +192,13 @@ object AFTPartialServiceSpec {
 
   def lockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
-      Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
-      Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name)),
+      Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
+      Some(msg"aftPartial.status.lockedBy".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/1/summary",
-        linkText = msg"messages__schemeDetails__aft_view")
+        linkText = msg"aftPartial.view.link",
+        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
   )
 
@@ -208,27 +209,29 @@ object AFTPartialServiceSpec {
       Link(
         id = "aftChargeTypePageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/aft-login",
-        linkText = msg"messages__schemeDetails__aft_startLink".withArgs(formattedStartDate, formattedEndDate))
+        linkText = msg"aftPartial.startLink.forPeriod".withArgs(formattedStartDate, formattedEndDate))
     )
   )
   def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
-      Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
-      Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name)),
+      Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
+      Some(msg"aftPartial.status.lockedBy".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/summary",
-        linkText = msg"messages__schemeDetails__aft_view")
+        linkText = msg"aftPartial.view.link",
+        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
   )
   def inProgressUnlockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
-      Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
-      Some(msg"messages__schemeDetails__aft_inProgress"),
+      Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
+      Some(msg"aftPartial.status.inProgress"),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/1/summary",
-        linkText = msg"messages__schemeDetails__aft_view")
+        linkText = msg"aftPartial.view.link",
+        hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
   )
 
@@ -273,33 +276,35 @@ object AFTPartialServiceSpec {
 
   def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
-      linkText = msg"messages__schemeDetails__aft_start"))
+      linkText = msg"aftPartial.start.link"))
 
   def pastReturnsModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(
       id = "aftAmendLink",
       url = amendUrl,
-      linkText = msg"messages__schemeDetails__aft_view_or_change"))
+      linkText = msg"aftPartial.view.change.past"))
 
   def multipleInProgressModel(count: Int)(implicit messages: Messages): AFTViewModel = AFTViewModel(
-    Some(msg"messages__schemeDetails__aft_multiple_inProgress"),
-    Some(msg"messages__schemeDetails__aft_inProgressCount".withArgs(count)),
+    Some(msg"aftPartial.multipleInProgress.text"),
+    Some(msg"aftPartial.multipleInProgress.count".withArgs(count)),
     Link(
       id = "aftContinueInProgressLink",
       url = continueUrl,
-      linkText = msg"messages__schemeDetails__aft_view")
+      linkText = msg"aftPartial.view.link",
+      hiddenText = Some(msg"aftPartial.view.hidden"))
   )
 
   def oneInProgressModel(locked: Boolean)(implicit messages: Messages): AFTViewModel = AFTViewModel(
-    Some(msg"messages__schemeDetails__aft_period".withArgs("1 October", "31 December 2020")),
+    Some(msg"aftPartial.inProgress.forPeriod".withArgs("1 October", "31 December 2020")),
     if (locked) {
-      Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name))
+      Some(msg"aftPartial.status.lockedBy".withArgs(name))
     }
     else {
-      Some(msg"messages__schemeDetails__aft_inProgress")
+      Some(msg"aftPartial.status.inProgress")
     },
     Link(id = "aftSummaryLink", url = aftSummaryUrl,
-      linkText = msg"messages__schemeDetails__aft_view")
+      linkText = msg"aftPartial.view.link",
+      hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs("1 October", "31 December 2020")))
   )
 
   val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)

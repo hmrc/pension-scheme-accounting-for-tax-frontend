@@ -1004,15 +1004,16 @@ allAmendments.view.changes.submission.link = View changes made in this submissio
 
 
 
-messages__schemeDetails__aft_h1 = Accounting for Tax (AFT) returns
-messages__schemeDetails__aft_startLink= Start the AFT return for {0} to {1}
-messages__schemeDetails__aft_start = Start a new AFT return
-messages__schemeDetails__aft_multiple_inProgress = AFT returns
-messages__schemeDetails__aft_inProgressCount = {0} in progress
-messages__schemeDetails__aft_period = AFT return for {0} to {1}
-messages__schemeDetails__aft_single = View or change past AFT return for {0} to {1}
-messages__schemeDetails__aft_view_or_change = View or change past AFT returns
-messages__schemeDetails__aft_inProgress = In progress
-messages__schemeDetails__aft_lockedBy = Locked by {0}
-messages__schemeDetails__aft_locked = Locked
-messages__schemeDetails__aft_view = View
+aftPartial.h1 = Accounting for Tax (AFT) returns
+aftPartial.startLink.forPeriod= Start the AFT return for {0} to {1}
+aftPartial.start.link = Start a new AFT return
+aftPartial.multipleInProgress.text = AFT returns
+aftPartial.multipleInProgress.count = {0} in progress
+aftPartial.inProgress.forPeriod = AFT return for {0} to {1}
+aftPartial.view.change.past = View or change past AFT returns
+aftPartial.status.inProgress = In progress
+aftPartial.status.lockedBy = Locked by {0}
+aftPartial.status.locked = Locked
+aftPartial.view.link = View
+aftPartial.view.hidden = in progress accounting for tax returns
+aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}

@@ -1,5 +1,5 @@
 
- <h2 class="govuk-heading-m">{{ messages("messages__schemeDetails__aft_h1") }}</h2>
+ <h2 class="govuk-heading-m">{{ messages("aftPartial.h1") }}</h2>
     {% for aftViewModel in aftModels %}
             {% if aftViewModel.period %}
 
@@ -14,6 +14,9 @@
                              <div class="column-one-sixth table-column">
                                  <a id= "{{aftViewModel.link.id}}" href="{{aftViewModel.link.url}}">
                                   {{ aftViewModel.link.linkText }}
+                                  {% if aftViewModel.link.hiddenText %}
+                                    <span class= "visually-hidden">{{aftViewModel.link.hiddenText}}</span>
+                                  {% endif %}
                                  </a>
                              </div>
                          </div>

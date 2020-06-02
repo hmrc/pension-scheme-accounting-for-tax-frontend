@@ -81,7 +81,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
 
     val startLink: Option[AFTViewModel] = Some(AFTViewModel(None, None,
       Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
-        linkText = msg"messages__schemeDetails__aft_start")))
+        linkText = msg"aftPartial.start.link")))
 
     val isReturnNotInitiatedForAnyQuarter: Boolean = {
       val aftValidYears = aftConnector.aftOverviewStartDate.getYear to aftConnector.aftOverviewEndDate.getYear
@@ -125,7 +125,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
         Link(
           id = "aftAmendLink",
           url = appConfig.aftAmendUrl.format(srn),
-          linkText = msg"messages__schemeDetails__aft_view_or_change")
+          linkText = msg"aftPartial.view.change.past")
       ))
     } else {
       None
@@ -162,24 +162,27 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
                                             )(implicit  hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockedBy(srn, startDate.toString).map {
       case Some(lockedBy) => Some(AFTViewModel(
-        Some(msg"messages__schemeDetails__aft_period".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
+        Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
         if (lockedBy.nonEmpty) {
-          Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(lockedBy))
+          Some(msg"aftPartial.status.lockedBy".withArgs(lockedBy))
         }
         else {
-          Some(msg"messages__schemeDetails__aft_locked")
+          Some(msg"aftPartial.status.locked")
         },
         Link(id = "aftSummaryLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, overview.numberOfVersions),
-          linkText = msg"messages__schemeDetails__aft_view")
+          linkText = msg"aftPartial.view.link",
+          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
+        )
       ))
       case _ => Some(AFTViewModel(
-        Some(msg"messages__schemeDetails__aft_period".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
-        Some(msg"messages__schemeDetails__aft_inProgress"),
+        Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
+        Some(msg"aftPartial.status.inProgress"),
         Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, overview.numberOfVersions),
-          linkText = msg"messages__schemeDetails__aft_view")
-      ))
+          linkText = msg"aftPartial.view.link",
+          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
+      )))
     }
   }
 
@@ -192,12 +195,14 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
 
       if(countInProgress > 0) {
         Some(AFTViewModel(
-          Some(msg"messages__schemeDetails__aft_multiple_inProgress"),
-          Some(msg"messages__schemeDetails__aft_inProgressCount".withArgs(countInProgress)),
+          Some(msg"aftPartial.multipleInProgress.text"),
+          Some(msg"aftPartial.multipleInProgress.count".withArgs(countInProgress)),
           Link(
             id = "aftContinueInProgressLink",
             url = appConfig.aftContinueReturnUrl.format(srn),
-            linkText = msg"messages__schemeDetails__aft_view")
+            linkText = msg"aftPartial.view.link",
+            hiddenText = Some(msg"aftPartial.view.hidden")
+          )
         ))
       } else {
         None
@@ -214,44 +219,48 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
       case None if versions.isEmpty =>
         Seq(AFTViewModel(None, None,
           Link(id = "aftChargeTypePageLink", url = appConfig.aftLoginUrl.format(srn),
-            linkText = msg"messages__schemeDetails__aft_startLink".withArgs(formattedStartDate, formattedEndDate)))
+            linkText = msg"aftPartial.startLink.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
         )
       case Some(name) if versions.isEmpty =>
         Seq(AFTViewModel(
-          Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
+          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
           if (name.nonEmpty) {
-            Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name))
+            Some(msg"aftPartial.status.lockedBy".withArgs(name))
           }
           else {
-            Some(msg"messages__schemeDetails__aft_locked")
+            Some(msg"aftPartial.status.locked")
           },
           Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageNoVersionUrl.format(srn, startDate),
-            linkText = msg"messages__schemeDetails__aft_view")
+            linkText = msg"aftPartial.view.link",
+            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate))
+          )
         )
         )
       case Some(name) =>
         Seq(AFTViewModel(
-          Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
+          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
           if (name.nonEmpty) {
-            Some(msg"messages__schemeDetails__aft_lockedBy".withArgs(name))
+            Some(msg"aftPartial.status.lockedBy".withArgs(name))
           }
           else {
-            Some(msg"messages__schemeDetails__aft_locked")
+            Some(msg"aftPartial.status.locked")
           },
           Link(id = "aftSummaryPageLink",
             url = appConfig.aftSummaryPageUrl.format(srn, startDate, versions.head.reportVersion),
-            linkText = msg"messages__schemeDetails__aft_view")
+            linkText = msg"aftPartial.view.link",
+            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
         )
         )
 
       case _ =>
         Seq(AFTViewModel(
-          Some(msg"messages__schemeDetails__aft_period".withArgs(formattedStartDate, formattedEndDate)),
-          Some(msg"messages__schemeDetails__aft_inProgress"),
+          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
+          Some(msg"aftPartial.status.inProgress"),
           Link(
             id = "aftSummaryPageLink",
             url = appConfig.aftSummaryPageUrl.format(srn, startDate, versions.head.reportVersion),
-            linkText = msg"messages__schemeDetails__aft_view")
+            linkText = msg"aftPartial.view.link",
+            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
         )
         )
     }

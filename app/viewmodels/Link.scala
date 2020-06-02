@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{OWrites, __}
 import uk.gov.hmrc.viewmodels.Text
 
-case class Link(id: String, url: String, linkText: Text)
+case class Link(id: String, url: String, linkText: Text, hiddenText: Option[Text] = None)
 
 
 object Link {
@@ -29,6 +29,7 @@ object Link {
   implicit def writes(implicit messages: Messages): OWrites[Link] = (
         (__ \ "id").write[String] and
         (__ \ "url").write[String] and
-        (__ \ "linkText").write[Text]
-    ) { link => (link.id, link.url, link.linkText) }
+        (__ \ "linkText").write[Text] and
+        (__ \ "hiddenText").writeNullable[Text]
+    ) { link => (link.id, link.url, link.linkText, link.hiddenText) }
 }
