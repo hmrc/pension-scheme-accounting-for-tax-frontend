@@ -95,13 +95,13 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val fileAFTReturnTemplateId: String = configuration.get[String]("email.fileAftReturnTemplateId")
   lazy val amendAftReturnTemplateIdId: String = configuration.get[String]("email.amendAftReturnTemplateId")
 
-  lazy val aftFrontendUrl: String = servicesConfig.baseUrl("aft-frontend")
-  lazy val aftLoginUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftLoginLink")}"
-  lazy val aftSummaryPageUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftSummaryPageLink")}"
-  lazy val aftSummaryPageNoVersionUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftSummaryPageNoVersionLink")}"
-  lazy val aftReturnHistoryUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftReturnHistoryLink")}"
-  lazy val aftContinueReturnUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
-  lazy val aftAmendUrl: String = s"$aftFrontendUrl${configuration.get[String](path = "urls.partials.aftAmendLink")}"
+  lazy val aftFrontendUrl: String = baseUrl("aft-frontend")
+  lazy val aftLoginUrl: String = s"${configuration.get[String](path = "urls.partials.aftLoginLink")}"
+  lazy val aftSummaryPageUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageLink")}"
+  lazy val aftSummaryPageNoVersionUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageNoVersionLink")}"
+  lazy val aftReturnHistoryUrl: String = s"${configuration.get[String](path = "urls.partials.aftReturnHistoryLink")}"
+  lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
+  lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
 
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
