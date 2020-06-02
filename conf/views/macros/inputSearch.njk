@@ -48,10 +48,8 @@
   {%- if params.inputmode %} inputmode="{{ params.inputmode }}"{% endif %}
   {%- for attribute, value in params.attributes %} {{ attribute }}="{{ value }}"{% endfor -%}>
 {% if params.searchButton %}
-  {% set buttonId = params.id + '-search' %}
   {% set describedBy = describedBy + ' ' + buttonId if describedBy else errorId %}
   {{ govukButton({
-    id: buttonId,
     classes: params.searchButton.classes,
     attributes: params.searchButton.attributes,
     html: params.searchButton.html,
