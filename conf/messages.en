@@ -147,6 +147,7 @@ dob.error.future = The member’s date of birth must be in the past
 dob.error.past = The member’s date of birth must be after 31 12 1899
 
 return.to.link = Return to {0}
+viewAllSubmissionsForReturn = View all submissions for this AFT return
 
 chargeDetails.amount.label = Amount of tax due at 40%
 

@@ -169,6 +169,10 @@
     </div>
   </div>
 
+  <p>
+    <a href="{{ returnHistoryURL }}" class="govuk-link"> {{ messages("viewAllSubmissionsForReturn") }}</a>
+  </p>
+
   <a href="{{ viewModel.returnUrl }}" class="govuk-link"> {{ messages("return.to.link", viewModel.schemeName) }}</a>
 
 {% endblock %}

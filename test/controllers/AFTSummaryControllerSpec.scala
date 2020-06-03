@@ -105,7 +105,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
         "canChange" -> true,
         "radios" -> Radios.yesNo(form("value")),
-        "returnHistoryLink" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+        "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
 
   "AFTSummary Controller" when {

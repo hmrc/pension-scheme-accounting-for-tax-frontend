@@ -162,7 +162,7 @@ class AFTSummaryController @Inject()(
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url,
-      "returnHistoryLink" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
   }
 
