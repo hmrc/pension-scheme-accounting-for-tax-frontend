@@ -37,7 +37,7 @@ class EmailConnector @Inject()(
     appConfig: FrontendAppConfig,
     http: HttpClient
 ) {
-  def callbackUrl(journeyType: String): String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/$journeyType/email-response"
+  def callbackUrl(journeyType: String): String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response/$journeyType"
 
   def sendEmail(
       journeyType: String,
