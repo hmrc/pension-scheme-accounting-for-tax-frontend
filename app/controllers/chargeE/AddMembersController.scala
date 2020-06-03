@@ -25,7 +25,7 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Quarter}
+import models.{AccessType, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeE.AddMembersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
@@ -59,17 +59,18 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
+          renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter, accessType, version)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -77,7 +78,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
           formWithErrors => {
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
-                renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter)).map(BadRequest(_))
+                renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version)).map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
@@ -91,10 +92,10 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter)(
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): JsObject = {
 
-    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate).url,
+    val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 

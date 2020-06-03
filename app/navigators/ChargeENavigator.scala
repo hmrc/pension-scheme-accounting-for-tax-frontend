@@ -25,7 +25,7 @@ import controllers.chargeE.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, UserAnswers}
+import models.{Draft, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeE._
 import play.api.mvc.{AnyContent, Call}
@@ -41,8 +41,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
-    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, Draft, 1, nextIndex(ua, srn, startDate))
+    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
@@ -50,26 +50,26 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
-        AddMembersController.onPageLoad(srn, startDate)
+        AddMembersController.onPageLoad(srn, startDate, Draft, 1)
      } else {
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
     }
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, index)
-    case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
-    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate)
+    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, Draft, 1, nextIndex(ua, srn, startDate))
+    case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, Draft, 1, index)
+    case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, Draft, 1, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, Draft, 1, index)
+    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, Draft, 1)
     case AddMembersPage => addMembers(ua, srn, startDate)
     case DeleteMemberPage => deleteMemberRoutes(ua, srn, startDate)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case MemberDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case ChargeDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, index)
+    case MemberDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, Draft, 1, index)
+    case AnnualAllowanceYearPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, Draft, 1, index)
+    case ChargeDetailsPage(index)       => CheckYourAnswersController.onPageLoad(srn, startDate, Draft, 1, index)
   }
 }

@@ -28,9 +28,7 @@ import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.Member
-import models.MemberDetails
-import models.UserAnswers
+import models.{Draft, Member, MemberDetails, UserAnswers}
 import pages.chargeE.ChargeDetailsPage
 import pages.chargeE.MemberAFTVersionPage
 import pages.chargeE.MemberStatusPage
@@ -89,13 +87,13 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   }
 
   def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
-    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+    controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, Draft, 1, index)
 
   private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+      controllers.chargeE.routes.RemoveLastChargeController.onPageLoad(srn, startDate, Draft, 1, index)
     } else {
-      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+      controllers.chargeE.routes.DeleteMemberController.onPageLoad(srn, startDate, Draft, 1, index)
     }
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =

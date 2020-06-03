@@ -25,7 +25,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTVersion, Quarters}
+import models.{AFTVersion, Draft, Quarters}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -58,7 +58,7 @@ class ReturnHistoryController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
-        def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
+        def url: Int => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, _)
 
         tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
 
@@ -77,14 +77,14 @@ class ReturnHistoryController @Inject()(
     }
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Option[String] => Call
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Int => Call
                                 )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
     val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
 
     def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
       Html(
-        s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages(linkText)}" +
+        s"<a id= report-version-${data.reportVersion} href=${url(data.reportVersion)}> ${messages(linkText)}" +
           s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
     }
 

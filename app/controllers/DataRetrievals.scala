@@ -22,7 +22,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
+import models.{Draft, Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -123,7 +123,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(schemeName)) =>
         block(chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
     }
   }
 
@@ -150,10 +150,10 @@ object DataRetrievals {
           case (None, Some(organisation)) =>
             block(whichTypeOfSponsoringEmployer, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
-            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
         }
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
     }
   }
 
@@ -168,7 +168,7 @@ object DataRetrievals {
       case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
         block(memberDetails, chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
     }
   }
 
@@ -184,7 +184,7 @@ object DataRetrievals {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
         block(memberDetails, taxYear, chargeEDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
     }
   }
 
@@ -200,7 +200,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>
         block(chargeDetails, memberDetails, chargeAmounts, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)))
     }
   }
 

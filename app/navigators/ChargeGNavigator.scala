@@ -25,7 +25,7 @@ import controllers.chargeG.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, UserAnswers}
+import models.{Draft, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
 import play.api.mvc.{AnyContent, Call}
@@ -42,7 +42,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
     case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
@@ -52,7 +52,7 @@ class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     } else if (chargeGHelper.getOverseasTransferMembers(ua, srn, startDate).nonEmpty) {
       AddMembersController.onPageLoad(srn, startDate)
     } else {
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
     }
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)

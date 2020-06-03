@@ -24,7 +24,7 @@ import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{ChargeType, UserAnswers}
+import models.{AccessType, ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.Html
@@ -36,11 +36,11 @@ class AFTSummaryHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
-  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeAnnualAllowance,
       totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeAuthSurplus,
@@ -77,8 +77,8 @@ class AFTSummaryHelper {
     )
   )
 
-  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
-    summaryDataUK(ua, srn, startDate).map { data =>
+  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
+    summaryDataUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
@@ -98,7 +98,7 @@ class AFTSummaryHelper {
   }
 
 
-  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
+  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
     summaryDataNonUK(ua, srn, startDate).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
@@ -120,16 +120,16 @@ class AFTSummaryHelper {
 
 
 
-  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages): Seq[Row] = {
+  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate).map(_.totalAmount).sum)}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate, accessType, version).map(_.totalAmount).sum)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = Nil
     ))
 
-    summaryRowsUK(ua, srn, startDate) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate)
+    summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)
   }
 
   def viewAmendmentsLink(version: String, srn: String, startDate: LocalDate)(implicit messages: Messages, request: DataRequest[_]): Html = {

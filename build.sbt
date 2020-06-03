@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       "uk.gov.hmrc.play.views.html.layouts._",
       "models.Mode",
       "models.Index",
+      "models.AccessType",
       "controllers.routes._"
     ),
     PlayKeys.playDefaultPort := 8206,

@@ -11,6 +11,53 @@ GET         /language/:lang                                                     
 
 GET         /this-service-has-been-reset                                                                                        controllers.SessionExpiredController.onPageLoad
 
+GET         /:srn/:startDate/:accessType/:version/charge-type                                                                             controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/charge-type                                                                             controllers.ChargeTypeController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/what-you-will-need                                                  controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/check-your-answers                                           controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/on-click-check-your-answers                                  controllers.chargeE.CheckYourAnswersController.onClick(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+POST        /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/annual-allowance-charge/:index/remove-last-charge                                                   controllers.chargeE.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int, index: Index)
+
+GET         /:srn/:startDate/:accessType/:version/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
+GET         /:srn/:startDate/:accessType/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+POST        /:srn/:startDate/:accessType/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+
+
+
+
+
+
+
+
 GET         /:srn/new-return/:startDate/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String)
 GET         /:srn/new-return/:startDate/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
 GET         /:srn/new-return/:startDate/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String])
@@ -46,9 +93,6 @@ POST        /:srn/new-return/select-year                                        
 GET         /:srn/new-return/:year/select-quarter                                                                               controllers.QuartersController.onPageLoad(srn: String, year: String)
 POST        /:srn/new-return/:year/select-quarter                                                                               controllers.QuartersController.onSubmit(srn: String, year: String)
 
-GET         /:srn/new-return/:startDate/charge-type                                                                             controllers.ChargeTypeController.onPageLoad(srn: String, startDate: String)
-POST        /:srn/new-return/:startDate/charge-type                                                                             controllers.ChargeTypeController.onSubmit(srn: String, startDate: String)
-
 GET         /:srn/new-return/:startDate/de-registration-charge/what-you-will-need                                                   controllers.chargeF.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/new-return/:startDate/de-registration-charge/charge-details                                                       controllers.chargeF.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String)
@@ -79,41 +123,6 @@ POST        /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/r
 
 GET         /:srn/new-return/:startDate/special-lump-sum-death-benefits-charge/remove-last-charge                                   controllers.chargeB.RemoveLastChargeController.onPageLoad(srn: String, startDate: String)
 
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/members-details                                              controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/members-details                                       controllers.chargeE.MemberDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/what-you-will-need                                                  controllers.chargeE.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/select-tax-year                                              controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/select-tax-year                                       controllers.chargeE.AnnualAllowanceYearController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/charge-details                                               controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, index: Index)
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/change/charge-details                                        controllers.chargeE.ChargeDetailsController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/check-your-answers                                           controllers.chargeE.CheckYourAnswersController.onPageLoad(srn: String, startDate: String, index: Index)
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/on-click-check-your-answers                                  controllers.chargeE.CheckYourAnswersController.onClick(srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onPageLoad(srn: String, startDate: String)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/list-of-charges                                                     controllers.chargeE.AddMembersController.onSubmit(srn: String, startDate: String)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onPageLoad(srn: String, startDate: String, index: Index)
-POST        /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-charge                                                controllers.chargeE.DeleteMemberController.onSubmit(srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/annual-allowance-charge/:index/remove-last-charge                                                   controllers.chargeE.RemoveLastChargeController.onPageLoad(srn: String, startDate: String, index: Index)
-
-GET         /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
-POST        /:srn/new-return/:startDate/summary                                                                                     controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String] = None)
-GET         /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onPageLoad(srn: String, startDate: String, version: Option[String])
-POST        /:srn/new-return/:startDate/:version/summary                                                                            controllers.AFTSummaryController.onSubmit(srn: String, startDate: String, version: Option[String])
-
-POST        /:srn/new-return/:startDate/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String] = None)
-POST        /:srn/new-return/:startDate/:version/summary-results                                                                            controllers.AFTSummaryController.onSearchMember(srn: String, startDate: String, version: Option[String])
 
 GET         /:srn/new-return/:startDate/short-service-refund-lump-sum-charge/what-you-will-need                                     controllers.chargeA.WhatYouWillNeedController.onPageLoad(srn: String, startDate: String)
 

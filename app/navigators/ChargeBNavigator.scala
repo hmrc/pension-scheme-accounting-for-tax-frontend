@@ -18,7 +18,7 @@ package navigators
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import models.{NormalMode, UserAnswers}
+import models.{Draft, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
 import play.api.mvc.{AnyContent, Call}
@@ -35,11 +35,11 @@ class ChargeBNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage  => controllers.chargeB.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
     case ChargeBDetailsPage   => controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
     case DeleteChargePage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     case DeleteChargePage =>
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)

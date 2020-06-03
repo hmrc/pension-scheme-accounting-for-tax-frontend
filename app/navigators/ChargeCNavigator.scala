@@ -25,9 +25,8 @@ import controllers.chargeC.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{CheckMode, Draft, NormalMode, SponsoringEmployerType, UserAnswers}
 import models.requests.DataRequest
-import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
 import play.api.mvc.{AnyContent, Call}
@@ -43,7 +42,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
     case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   //scalastyle:off cyclomatic.complexity
@@ -88,7 +87,7 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
     case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
       AddEmployersController.onPageLoad(srn, startDate)
 
-    case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+    case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   //scalastyle:on cyclomatic.complexity

@@ -26,7 +26,7 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, GenericViewModel, UserAnswers}
+import models.{AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -67,7 +67,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
             val viewModel = GenericViewModel(
-              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$version")).url,
+              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, version.toInt).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )

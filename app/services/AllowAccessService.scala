@@ -25,7 +25,7 @@ import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
-import models.{SchemeStatus, UserAnswers}
+import models.{Draft, SchemeStatus, UserAnswers}
 import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
@@ -93,10 +93,10 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
     case (true, _, Some(ChargeTypePage), _, _) =>
       Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
     case (false, true, Some(ChargeTypePage), _, _) =>
-      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1))))
     case (false, true, None, _, _) =>
       //todo redirect to new error page for form-pages in view-only returns once it is created
-      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1))))
     case _ =>
       Future.successful(None)
   }

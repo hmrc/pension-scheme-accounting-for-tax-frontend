@@ -23,9 +23,9 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeEService
+import helpers.CYAChargeEHelper
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, NormalMode}
+import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeE.{CheckYourAnswersPage, TotalChargeAmountPage}
@@ -55,15 +55,15 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       DataRetrievals.cyaChargeE(index, srn, startDate) { (memberDetails, taxYear, chargeEDetails, schemeName) =>
-        val helper = new CYAChargeEService(srn, startDate)
+        val helper = new CYAChargeEHelper(srn, startDate)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
-          helper.chargeEMemberDetails(index, memberDetails),
-          helper.chargeETaxYear(index, taxYear),
-          helper.chargeEDetails(index, chargeEDetails)
+          helper.chargeEMemberDetails(index, memberDetails, accessType, version),
+          helper.chargeETaxYear(index, taxYear, accessType, version),
+          helper.chargeEDetails(index, chargeEDetails, accessType, version)
         ).flatten
 
         renderer
@@ -74,7 +74,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
@@ -86,7 +86,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         val totalAmount = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum

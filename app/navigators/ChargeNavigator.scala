@@ -23,9 +23,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.ChargeType
-import models.NormalMode
-import models.UserAnswers
+import models.{ChargeType, Draft, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.AnyContent
 import play.api.mvc.Call
@@ -64,9 +62,9 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
       case Some(ChargeType.ChargeTypeLumpSumDeath) => controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeAuthSurplus)  => controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeAnnualAllowance) if nextIndexChargeE(ua, srn, startDate) == 0 =>
-        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
+        controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, Draft, 1)
       case Some(ChargeType.ChargeTypeAnnualAllowance) =>
-        controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndexChargeE(ua, srn, startDate))
+        controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, Draft, 1, nextIndexChargeE(ua, srn, startDate))
       case Some(ChargeType.ChargeTypeDeRegistration) => controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
       case Some(ChargeType.ChargeTypeLifetimeAllowance) if nextIndexChargeD(ua, srn, startDate) == 0 =>
         controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate)
@@ -100,7 +98,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {
     (ua.get(AFTSummaryPage), ua.get(QuarterPage)) match {
       case (Some(true), _) =>
-        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate)
+        controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, Draft, 1)
       case (Some(false), Some(quarter)) =>
           if (aftService.isSubmissionDisabled(quarter.endDate)) {
             Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))

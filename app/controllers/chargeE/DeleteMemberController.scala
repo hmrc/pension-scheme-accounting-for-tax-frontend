@@ -26,9 +26,9 @@ import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeE.{DeleteMemberPage, MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeE.{DeleteMemberPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -61,13 +61,13 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteMember.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
           case Some(memberDetails) =>
             val viewModel = GenericViewModel(
-              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
+              submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               schemeName = schemeName
             )
@@ -87,7 +87,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -96,7 +96,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                 formWithErrors => {
 
                   val viewModel = GenericViewModel(
-                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, index).url,
+                    submitUrl = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, version, index).url,
                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                     schemeName = schemeName
                   )

@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
+import models.Draft
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -59,7 +60,7 @@ class CannotChangeAFTReturnController @Inject()(
               "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
               "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
               "quarterEnd" -> quarter.endDate.format(dateFormatter),
-              "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
+              "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1).url
             )
           )
           .map(Ok(_))
