@@ -54,9 +54,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private val cssHalfWidth = "govuk-!-width-one-half"
 
-  private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17))
-  private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
-  private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
+  private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "submitted")
+  private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "submitted")
+  private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "submitted")
   private val versions = Seq(version1, version2, version3)
 
   private def versionsTable = Json.obj(

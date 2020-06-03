@@ -262,9 +262,9 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   "getListOfVersions" must {
     "return successfully when the backend has returned OK" in {
-      val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17))
-      val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
-      val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
+      val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "submitted")
+      val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "submitted")
+      val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "submitted")
       val versions = Seq(version1, version2, version3)
 
       server.stubFor(

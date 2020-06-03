@@ -87,7 +87,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val email = "test@test.com"
   private val psaName = "Pension Scheme Administrator"
 
-  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1)))
+  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1), "submitted"))
 
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
