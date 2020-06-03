@@ -58,20 +58,24 @@ class ReturnHistoryController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
-        def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
+        val internalId = s"$srn$startDate"
+        userAnswersCacheConnector.removeAll(internalId).flatMap { _ =>
 
-        tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
+          def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
 
-          val json = Json.obj(
-            fields = "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "quarterStart" -> startDate.format(dateFormatterStartDate),
-            "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "schemeName" -> schemeDetails.schemeName
-          ) ++ table
+          tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
 
-          renderer.render("amend/returnHistory.njk", json).map(Ok(_))
+            val json = Json.obj(
+              fields = "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "quarterStart" -> startDate.format(dateFormatterStartDate),
+              "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+              "schemeName" -> schemeDetails.schemeName
+            ) ++ table
+
+            renderer.render("amend/returnHistory.njk", json).map(Ok(_))
+          }
         }
       }
     }

@@ -21,6 +21,8 @@ import java.time.LocalDate
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
+import play.api.mvc.Result
+import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
@@ -101,6 +103,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
+    when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
@@ -116,6 +119,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(),any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
