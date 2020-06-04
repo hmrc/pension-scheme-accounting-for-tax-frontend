@@ -94,18 +94,34 @@ class ReturnHistoryController @Inject()(
 
     val head = Seq(
       Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"returnHistory.dateSubmitted", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
     )
+
+      def versionCell(reportVersion:Int, reportStatus:String):Cell = {
+        val version = reportStatus match {
+          case "Compiled" => msg"returnHistory.versionDraft"
+          case _ => Literal(reportVersion.toString)
+        }
+        Cell(version, classes = Seq("govuk-!-width-one-quarter"))
+      }
+
+    def statusCell(date:String, reportStatus:String):Cell = {
+      val status = reportStatus match {
+        case "Compiled" => msg"returnHistory.compiledStatus"
+        case _ => msg"returnHistory.submittedOn".withArgs(date)
+      }
+
+      Cell(status, classes = Seq("govuk-!-width-one-quarter"))
+    }
 
     val tableRows = versions.zipWithIndex.map { data =>
       val (version, index) = data
 
       getLinkText(index, srn, version.date).map { linkText =>
-
         Seq(
-          Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+          versionCell(version.reportVersion, version.reportStatus),
+          statusCell(version.date.format(dateFormatter), version.reportStatus),
           Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
         )
       }

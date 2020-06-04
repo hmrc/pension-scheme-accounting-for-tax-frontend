@@ -956,8 +956,10 @@ quarters.hint.submitted = You have already submitted this return. You can still 
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Version
-returnHistory.submission = Submission {0}
-returnHistory.dateSubmitted = Date submitted
+returnHistory.status = Status
+returnHistory.submittedOn = Submitted on {0}
+returnHistory.compiledStatus = In progress
+returnHistory.versionDraft = Draft
 returnHistory.visuallyHidden = submission {0} of the AFT return
 
 amendYears.title = Which year do you want to view?
