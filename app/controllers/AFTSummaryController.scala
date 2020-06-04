@@ -148,6 +148,11 @@ class AFTSummaryController @Inject()(
     val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
 
     val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
+    val returnHistoryURL = if (request.isFirstDraft) {
+      Json.obj()
+    } else {
+      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
+    }
 
     Json.obj(
       "srn" -> srn,
@@ -161,9 +166,9 @@ class AFTSummaryController @Inject()(
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
-      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url,
-      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
-    )
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
+    ) ++ returnHistoryURL
+
   }
 
   private def getJson(form: Form[Boolean],
