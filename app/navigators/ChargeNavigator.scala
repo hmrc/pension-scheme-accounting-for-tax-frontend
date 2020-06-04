@@ -97,7 +97,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
   def nextIndexChargeE(ua: UserAnswers, srn: String, startDate: LocalDate,
                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
-    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).size
+    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).size
 
   def nextIndexChargeG(ua: UserAnswers, srn: String, startDate: LocalDate,
                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =

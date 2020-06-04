@@ -65,13 +65,17 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
     }
   }
 
-  def getAftOverview(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
+  def getAftOverview(pstr: String, startDate: Option[String] = None, endDate: Option[String] = None)
+                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
     val url = config.aftOverviewUrl
+
+    println("\n\n\n startDate : "+startDate)
+    println("\n\n\n endDate : "+endDate)
 
     val schemeHc = hc.withExtraHeaders(
       "pstr" -> pstr,
-      "startDate" -> aftOverviewStartDate.toString,
-      "endDate" -> aftOverviewEndDate.toString)
+      "startDate" -> startDate.getOrElse(aftOverviewStartDate.toString),
+      "endDate" -> endDate.getOrElse(aftOverviewEndDate.toString))
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {

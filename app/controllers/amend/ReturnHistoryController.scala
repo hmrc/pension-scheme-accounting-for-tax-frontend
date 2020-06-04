@@ -25,7 +25,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTVersion, Draft, Quarters}
+import models.{AFTOverview, AFTVersion, AccessType, Draft, Quarters, Submission}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -38,80 +38,87 @@ import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReturnHistoryController @Inject()(
-                                        schemeService: SchemeService,
-                                        aftConnector: AFTConnector,
-                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        override val messagesApi: MessagesApi,
-                                        identify: IdentifierAction,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        renderer: Renderer,
-                                        config: FrontendAppConfig
-                                    )(implicit ec: ExecutionContext)
-                                        extends FrontendBaseController
-                                        with I18nSupport
-                                        with NunjucksSupport {
+    schemeService: SchemeService,
+    aftConnector: AFTConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
-        def url: Int => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, _)
+    val endDate = Quarters.getQuarter(startDate).endDate
 
-        tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
-
-          val json = Json.obj(
-            fields = "srn" -> srn,
-            "startDate" -> Some(startDate),
-            "quarterStart" -> startDate.format(dateFormatterStartDate),
-            "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
-            "schemeName" -> schemeDetails.schemeName
-          ) ++ table
-
-          renderer.render("amend/returnHistory.njk", json).map(Ok(_))
-        }
-      }
+    val json = for {
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
+      versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
+      table <- tableOfVersions(srn, versions, startDate, seqAFTOverview)
+    } yield {
+      Json.obj(
+        fields = "srn" -> srn,
+        "startDate" -> Some(startDate),
+        "quarterStart" -> startDate.format(dateFormatterStartDate),
+        "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+        "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+        "schemeName" -> schemeDetails.schemeName
+      ) ++ table
     }
+    json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Int => Call
-                                )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
+  private def tableOfVersions(srn: String, aftVersions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])(
+      implicit messages: Messages,
+      ec: ExecutionContext,
+      hc: HeaderCarrier): Future[JsObject] = {
+
+    val versions = aftVersions.sortBy(_.reportVersion).reverse
+    val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
+
     if (versions.nonEmpty) {
-    val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+      val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+      def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-    def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
-      Html(
-        s"<a id= report-version-${data.reportVersion} href=${url(data.reportVersion)}> ${messages(linkText)}" +
-          s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
-    }
-
-    val head = Seq(
-      Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"returnHistory.dateSubmitted", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"")
-    )
-
-    val tableRows = versions.zipWithIndex.map { data =>
-      val (version, index) = data
-
-      getLinkText(index, srn, version.date).map { linkText =>
-
-        Seq(
-          Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
-          Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
-        )
+      def link(data: AFTVersion, linkText: String, accessType: AccessType)(implicit messages: Messages): Html = {
+        Html(
+          s"<a id= report-version-${data.reportVersion} href=${url(accessType, data.reportVersion)}> ${messages(linkText)}" +
+            s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
       }
-    }
 
-    Future.sequence(tableRows).map { rows =>
-      Json.obj("versions" -> Table(head = head, rows = rows))
-    }
-  } else {
-      Future.successful(Json.obj())
+      val head = Seq(
+        Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
+        Cell(msg"returnHistory.dateSubmitted", classes = Seq("govuk-!-width-one-quarter")),
+        Cell(msg"")
+      )
+
+      val tableRows = versions.zipWithIndex.map { data =>
+        val (version, index) = data
+        val accessType = if (index == 0 && isCompileAvailable.contains(true)) Draft else Submission
+
+        getLinkText(index, srn, version.date).map { linkText =>
+          Seq(
+            Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
+            Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+            Cell(link(version, linkText, accessType), classes = Seq("govuk-!-width-one-quarter"))
+          )
+        }
+      }
+
+      Future.sequence(tableRows).map { rows =>
+        Json.obj("versions" -> Table(head = head, rows = rows))
+      }
+    } else {
+      Future(Json.obj())
     }
   }
 
@@ -119,7 +126,7 @@ class ReturnHistoryController @Inject()(
     if (index == 0) {
       userAnswersCacheConnector.lockedBy(srn, date).map {
         case Some(_) => "site.view"
-        case _ => "site.viewOrChange"
+        case _       => "site.viewOrChange"
       }
     } else {
       Future.successful("site.view")

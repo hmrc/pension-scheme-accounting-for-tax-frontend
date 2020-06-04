@@ -99,7 +99,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate)
+    val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)
 
     Json.obj(
       "srn" -> srn,

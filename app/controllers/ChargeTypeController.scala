@@ -70,7 +70,7 @@ class ChargeTypeController @Inject()(
   private val form = formProvider()
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, 1, optionCurrentPage = Some(ChargeTypePage)) andThen
+    (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))

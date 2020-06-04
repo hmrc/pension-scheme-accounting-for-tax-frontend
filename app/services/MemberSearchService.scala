@@ -63,7 +63,7 @@ class MemberSearchService @Inject()(
       .getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version)
       .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
     val chargeEMembers = chargeEService
-      .getAnnualAllowanceMembers(ua, srn, startDate)
+      .getAnnualAllowanceMembers(ua, srn, startDate, accessType, version)
       .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
     val chargeGMembers = chargeGService
       .getOverseasTransferMembers(ua, srn, startDate, accessType, version)

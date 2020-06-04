@@ -36,12 +36,13 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
+    chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).size
 
   def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
-    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua, srn, startDate))
+    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
@@ -49,7 +50,7 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate).nonEmpty) {
+    } else if(chargeEHelper.getAnnualAllowanceMembers(ua, srn, startDate, accessType, version).nonEmpty) {
         AddMembersController.onPageLoad(srn, startDate, accessType, version)
      } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
@@ -57,7 +58,8 @@ class ChargeENavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, nextIndex(ua, srn, startDate))
+    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
     case MemberDetailsPage(index) => AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case AnnualAllowanceYearPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
     case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)

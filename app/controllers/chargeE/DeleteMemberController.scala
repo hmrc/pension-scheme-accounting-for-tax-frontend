@@ -116,7 +116,7 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                     DataRetrievals.retrievePSTR { pstr =>
                         for {
                           updatedAnswers <- Future.fromTry(userAnswersService
-                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate)))
+                            .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate, accessType, version)))
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
                         } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                     }
@@ -129,6 +129,6 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
-    chargeEHelper.getAnnualAllowanceMembers(_, srn, startDate).map(_.amount).sum
+  private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal =
+    chargeEHelper.getAnnualAllowanceMembers(_, srn, startDate, accessType, version).map(_.amount).sum
 }

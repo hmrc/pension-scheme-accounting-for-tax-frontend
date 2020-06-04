@@ -102,7 +102,7 @@ class ContinueQuartersController @Inject()(
                 val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
                 if (!aftOverviewElement.submittedVersionAvailable) {
                   Future.successful(
-                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, 1)))
+                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version = 1)))
                 } else {
                   Future.successful(
                     Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))

@@ -25,8 +25,8 @@ import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.{AFTOverview, AccessMode, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
-import models.requests.OptionalDataRequest
+import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
@@ -61,8 +61,9 @@ class RequestCreationService @Inject()(
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Int, optionCurrentPage: Option[Page])(
-      implicit request: Request[A],
+  def retrieveAndCreateRequest[A](srn: String, startDate: LocalDate, version: Int,
+                                  accessType: AccessType, optionCurrentPage: Option[Page])(
+      implicit request: IdentifierRequest[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
 
@@ -72,33 +73,33 @@ class RequestCreationService @Inject()(
       val optionUA = optionJsValue.map { jsValue =>
         UserAnswers(jsValue.as[JsObject])
       }
-      OptionalDataRequest[A](request, id, psaId, optionUA, None)
+      OptionalDataRequest[A](request, id, request.psaId, optionUA, None)
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      (data, optionVersion, optionCurrentPage, isPreviousPageWithinAFT) match {
+      (data, version, optionCurrentPage, isPreviousPageWithinAFT) match {
         case (None, 1, Some(AFTSummaryPage), true) =>
           Future.successful(optionalDataRequest(None))
         case _ =>
-          val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
+          val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
 
           tuple.flatMap {
             case (_, ua) =>
               userAnswersCacheConnector.getSessionData(id).map { sd =>
-                OptionalDataRequest[A](request, id, psaId, Some(ua), sd)
+                OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
               }
           }
       }
     }
   }
 
-  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Int)(
+  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Int, accessType: AccessType)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate)
+      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, accessType)
       savedUA <- save(updatedUA, srn, startDate, optionVersion, schemeDetails.pstr)
     } yield {
       (schemeDetails, savedUA)
@@ -173,14 +174,14 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(optionVersion: Int, schemeDetails: SchemeDetails, startDate: LocalDate)(
+  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, accessType: AccessType)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
 
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
-    val futureUserAnswers = optionVersion == 1 match {
+    val futureUserAnswers = version == 1 && accessType == Draft match {
       case true =>
         Future.successful(
             currentUserAnswers
@@ -190,7 +191,7 @@ class RequestCreationService @Inject()(
               .setOrException(PSTRQuery, schemeDetails.pstr)
         )
       case false =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, optionVersion.toString)
+        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, version.toString)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 

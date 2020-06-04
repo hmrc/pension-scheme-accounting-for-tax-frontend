@@ -89,7 +89,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
