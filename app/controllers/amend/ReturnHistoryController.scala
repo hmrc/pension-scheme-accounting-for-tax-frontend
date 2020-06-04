@@ -126,7 +126,7 @@ class ReturnHistoryController @Inject()(
       val tableRows = versions.zipWithIndex.map { data =>
         val (version, index) = data
 
-        getLinkText(index, srn, version.date).map { linkText =>
+        getLinkText(index, srn, version.date, version.reportStatus).map { linkText =>
           Seq(
             versionCell(version.reportVersion, version.reportStatus),
             statusCell(version.date.format(dateFormatter), version.reportStatus),
@@ -143,11 +143,14 @@ class ReturnHistoryController @Inject()(
     }
   }
 
-  private def getLinkText(index: Int, srn: String, date: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
+  private def getLinkText(index: Int, srn: String, date: String, reportStatus:String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
     if (index == 0) {
-      userAnswersCacheConnector.lockedBy(srn, date).map {
-        case Some(_) => "site.view"
-        case _       => "site.viewOrChange"
+      userAnswersCacheConnector.lockedBy(srn, date).map { lockedBy =>
+        (lockedBy, reportStatus) match {
+          case (Some(_), _) => "site.view"
+          case (_, "Compiled") => "site.change"
+          case _ => "site.viewOrChange"
+        }
       }
     } else {
       Future.successful("site.view")

@@ -125,12 +125,14 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       templateCaptor.getValue mustEqual templateToBeRendered
 
       val actual = jsonCaptor.getValue
+
       val actualColumnTitles = (actual \ "versions" \ "head").validate[JsArray].asOpt
           .map(_.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
 
       val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
         .map(_.value.flatMap( _.validate[JsArray].asOpt.toSeq
           .flatMap( _.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))))
+
 
       actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
 

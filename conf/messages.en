@@ -10,6 +10,7 @@ site.no = No
 site.yes = Yes
 site.continue = Continue
 site.viewOrChange = View or change
+site.change = Change
 site.save_and_continue = Save and continue
 site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
