@@ -25,46 +25,54 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTVersion, Quarters}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import models.AFTVersion
+import models.Quarters
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.Call
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import uk.gov.hmrc.viewmodels.Html
+import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.dateFormatterStartDate
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ReturnHistoryController @Inject()(
-                                        schemeService: SchemeService,
-                                        aftConnector: AFTConnector,
-                                        userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        override val messagesApi: MessagesApi,
-                                        identify: IdentifierAction,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        renderer: Renderer,
-                                        config: FrontendAppConfig
-                                    )(implicit ec: ExecutionContext)
-                                        extends FrontendBaseController
-                                        with I18nSupport
-                                        with NunjucksSupport {
+    schemeService: SchemeService,
+    aftConnector: AFTConnector,
+    userAnswersCacheConnector: UserAnswersCacheConnector,
+    override val messagesApi: MessagesApi,
+    identify: IdentifierAction,
+    val controllerComponents: MessagesControllerComponents,
+    renderer: Renderer,
+    config: FrontendAppConfig
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getListOfVersions(schemeDetails.pstr, startDate).flatMap { versions =>
         val internalId = s"$srn$startDate"
         userAnswersCacheConnector.removeAll(internalId).flatMap { _ =>
-
           def url: Option[String] => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _)
 
           tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, url).flatMap { table =>
-
             val json = Json.obj(
               fields = "srn" -> srn,
               "startDate" -> Some(startDate),
@@ -81,56 +89,56 @@ class ReturnHistoryController @Inject()(
     }
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Option[String] => Call
-                                )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Option[String] => Call)(implicit messages: Messages,
+                                                                                                   ec: ExecutionContext,
+                                                                                                   hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
-    val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+      val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
-    def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
-      Html(
-        s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages(linkText)}" +
-          s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
-    }
+      def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
+        Html(s"<a id= report-version-${data.reportVersion} href=${url(Some(data.reportVersion.toString))}> ${messages(linkText)}" +
+          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
+      }
 
-    val head = Seq(
-      Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"")
-    )
+      val head = Seq(
+        Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
+        Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
+        Cell(msg"")
+      )
 
-      def versionCell(reportVersion:Int, reportStatus:String):Cell = {
+      def versionCell(reportVersion: Int, reportStatus: String): Cell = {
         val version = reportStatus.toLowerCase match {
           case "compiled" => msg"returnHistory.versionDraft"
-          case _ => Literal(reportVersion.toString)
+          case _          => Literal(reportVersion.toString)
         }
         Cell(version, classes = Seq("govuk-!-width-one-quarter"))
       }
 
-    def statusCell(date:String, reportStatus:String):Cell = {
-      val status = reportStatus match {
-        case "Compiled" => msg"returnHistory.compiledStatus"
-        case _ => msg"returnHistory.submittedOn".withArgs(date)
+      def statusCell(date: String, reportStatus: String): Cell = {
+        val status = reportStatus match {
+          case "Compiled" => msg"returnHistory.compiledStatus"
+          case _          => msg"returnHistory.submittedOn".withArgs(date)
+        }
+
+        Cell(status, classes = Seq("govuk-!-width-one-half"))
       }
 
-      Cell(status, classes = Seq("govuk-!-width-one-quarter"))
-    }
+      val tableRows = versions.zipWithIndex.map { data =>
+        val (version, index) = data
 
-    val tableRows = versions.zipWithIndex.map { data =>
-      val (version, index) = data
-
-      getLinkText(index, srn, version.date).map { linkText =>
-        Seq(
-          versionCell(version.reportVersion, version.reportStatus),
-          statusCell(version.date.format(dateFormatter), version.reportStatus),
-          Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
-        )
+        getLinkText(index, srn, version.date).map { linkText =>
+          Seq(
+            versionCell(version.reportVersion, version.reportStatus),
+            statusCell(version.date.format(dateFormatter), version.reportStatus),
+            Cell(link(version, linkText), classes = Seq("govuk-!-width-one-quarter"))
+          )
+        }
       }
-    }
 
-    Future.sequence(tableRows).map { rows =>
-      Json.obj("versions" -> Table(head = head, rows = rows))
-    }
-  } else {
+      Future.sequence(tableRows).map { rows =>
+        Json.obj("versions" -> Table(head = head, rows = rows))
+      }
+    } else {
       Future.successful(Json.obj())
     }
   }
@@ -139,7 +147,7 @@ class ReturnHistoryController @Inject()(
     if (index == 0) {
       userAnswersCacheConnector.lockedBy(srn, date).map {
         case Some(_) => "site.view"
-        case _ => "site.viewOrChange"
+        case _       => "site.viewOrChange"
       }
     } else {
       Future.successful("site.view")
