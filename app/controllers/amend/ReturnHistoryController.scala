@@ -99,8 +99,8 @@ class ReturnHistoryController @Inject()(
     )
 
       def versionCell(reportVersion:Int, reportStatus:String):Cell = {
-        val version = reportStatus match {
-          case "Compiled" => msg"returnHistory.versionDraft"
+        val version = reportStatus.toLowerCase match {
+          case "compiled" => msg"returnHistory.versionDraft"
           case _ => Literal(reportVersion.toString)
         }
         Cell(version, classes = Seq("govuk-!-width-one-quarter"))
