@@ -25,7 +25,7 @@ import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Declaration, GenericViewModel, NormalMode, Quarter}
+import models.{AccessType, Declaration, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.{AFTStatusQuery, DeclarationPage, PSANameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -56,12 +56,12 @@ class DeclarationController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeclarationController.onSubmit(srn, startDate).url,
+          submitUrl = routes.DeclarationController.onSubmit(srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
@@ -69,7 +69,7 @@ class DeclarationController @Inject()(
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
@@ -80,7 +80,7 @@ class DeclarationController @Inject()(
           _ <- aftService.fileAFTReturn(pstr, updatedStatus)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
-          Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate))
+          Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }
     }

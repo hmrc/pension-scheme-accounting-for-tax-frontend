@@ -16,34 +16,34 @@
 
 package navigators
 
-import com.google.inject.Inject
-import connectors.cache.UserAnswersCacheConnector
-import models.{Draft, NormalMode, UserAnswers}
-import pages.Page
-import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
-import play.api.mvc.{AnyContent, Call}
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
+import models.{AccessType, NormalMode, UserAnswers}
+import pages.Page
+import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
+import play.api.mvc.{AnyContent, Call}
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage  => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate)
-    case ChargeDetailsPage    => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
-    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
+    case WhatYouWillNeedPage  => controllers.chargeF.routes.ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version)
+    case ChargeDetailsPage    => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
+    case CheckYourAnswersPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
     case DeleteChargePage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
     case DeleteChargePage =>
-      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
+      controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+    case ChargeDetailsPage => controllers.chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
   }
 }

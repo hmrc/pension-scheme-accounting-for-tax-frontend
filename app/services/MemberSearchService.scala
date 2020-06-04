@@ -21,7 +21,7 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import helpers.FormatHelper
 import javax.inject.Singleton
-import models.{ChargeType, Member, UserAnswers}
+import models.{AccessType, ChargeType, Member, UserAnswers}
 import models.requests.DataRequest
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
@@ -43,7 +43,7 @@ class MemberSearchService @Inject()(
 ) {
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String)(implicit messages: Messages,
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit messages: Messages,
                                                                                      request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean = { member =>
@@ -54,18 +54,19 @@ class MemberSearchService @Inject()(
       }
     }
 
-    listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc))
+    listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc))
   }
 
-  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
+  private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+                           (implicit request: DataRequest[AnyContent]): Seq[MemberSummary] = {
     val chargeDMembers = chargeDService
-      .getLifetimeAllowanceMembers(ua, srn, startDate)
+      .getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version)
       .map(MemberSummary(_, ChargeType.ChargeTypeLifetimeAllowance))
     val chargeEMembers = chargeEService
       .getAnnualAllowanceMembers(ua, srn, startDate)
       .map(MemberSummary(_, ChargeType.ChargeTypeAnnualAllowance))
     val chargeGMembers = chargeGService
-      .getOverseasTransferMembers(ua, srn, startDate)
+      .getOverseasTransferMembers(ua, srn, startDate, accessType, version)
       .map(MemberSummary(_, ChargeType.ChargeTypeOverseasTransfer))
     chargeDMembers ++ chargeEMembers ++ chargeGMembers
   }

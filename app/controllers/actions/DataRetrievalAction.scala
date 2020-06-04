@@ -67,7 +67,7 @@ trait DataRetrievalAction {
 class DataUpdateImpl(
                          srn: String,
                          startDate: LocalDate,
-                         optionVersion:Option[String],
+                         optionVersion: Int,
                          optionCurrentPage: Option[Page],
                          requestCreationService:RequestCreationService
                        )(implicit val executionContext: ExecutionContext)
@@ -83,7 +83,7 @@ class DataUpdateActionImpl @Inject()(
                                          requestCreationService:RequestCreationService
                                        )(implicit val executionContext: ExecutionContext)
   extends DataUpdateAction {
-  override def apply(srn: String, startDate: LocalDate, optionVersion:Option[String], optionCurrentPage: Option[Page]): DataUpdate =
+  override def apply(srn: String, startDate: LocalDate, optionVersion: Int, optionCurrentPage: Option[Page]): DataUpdate =
     new DataUpdateImpl(srn, startDate, optionVersion, optionCurrentPage, requestCreationService)
 }
 
@@ -92,5 +92,5 @@ trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataReques
 
 @ImplementedBy(classOf[DataUpdateActionImpl])
 trait DataUpdateAction {
-  def apply(srn: String, startDate: LocalDate, optionVersion:Option[String], optionCurrentPage: Option[Page]): DataUpdate
+  def apply(srn: String, startDate: LocalDate, optionVersion: Int, optionCurrentPage: Option[Page]): DataUpdate
 }

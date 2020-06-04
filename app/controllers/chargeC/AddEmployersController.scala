@@ -25,7 +25,7 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, Quarter}
+import models.{AccessType, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
 import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
@@ -59,17 +59,19 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
 
   def form: Form[Boolean] = formProvider("chargeC.addEmployers.error")
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
-          renderer.render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, form, schemeName, quarter)).map(Ok(_))
+          renderer.render(template = "chargeC/addEmployers.njk",
+            getJson(srn, startDate, form, schemeName, quarter, accessType, version)).map(Ok(_))
 
         case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -78,7 +80,8 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
             (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
               case (Some(schemeName), Some(quarter)) =>
                 renderer
-                  .render(template = "chargeC/addEmployers.njk", getJson(srn, startDate, formWithErrors, schemeName, quarter))
+                  .render(template = "chargeC/addEmployers.njk",
+                    getJson(srn, startDate, formWithErrors, schemeName, quarter, accessType, version))
                   .map(BadRequest(_))
 
               case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -88,19 +91,19 @@ class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
             for {
               updatedAnswers <- Future.fromTry(request.userAnswers.set(AddEmployersPage, value))
               _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-            } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn, startDate))
+            } yield Redirect(navigator.nextPage(AddEmployersPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           }
         )
   }
 
-  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter)(
+  private def getJson(srn: String, startDate: LocalDate, form: Form[_], schemeName: String, quarter: Quarter, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): JsObject = {
 
-    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate).url,
+    val viewModel = GenericViewModel(submitUrl = routes.AddEmployersController.onSubmit(srn, startDate, accessType, version).url,
                                      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                                      schemeName = schemeName)
 
-    val members = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate)
+    val members = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate, accessType, version)
 
     Json.obj(
       "srn" -> srn,

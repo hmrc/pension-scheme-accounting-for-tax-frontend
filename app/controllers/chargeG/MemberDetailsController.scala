@@ -22,7 +22,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeG.MemberDetailsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Index, Mode}
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeG.MemberDetailsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -56,7 +56,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(MemberDetailsPage(index)) match {
@@ -65,7 +65,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, index).url,
+          submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
@@ -83,7 +83,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -92,7 +92,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, index).url,
+                submitUrl = routes.MemberDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
@@ -112,7 +112,7 @@ class MemberDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(MemberDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(MemberDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

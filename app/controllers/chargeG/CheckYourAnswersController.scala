@@ -23,9 +23,9 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataRetrievalAction, IdentifierAction}
-import helpers.CYAChargeGService
+import helpers.CYAChargeGHelper
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, NormalMode}
+import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeG.{CheckYourAnswersPage, TotalChargeAmountPage}
@@ -55,10 +55,10 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
       DataRetrievals.cyaChargeG(index, srn, startDate) { (chargeDetails, memberDetails, chargeAmounts, schemeName) =>
-        val helper = new CYAChargeGService(srn, startDate)
+        val helper = new CYAChargeGHelper(srn, startDate, accessType, version)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           helper.chargeGMemberDetails(index, memberDetails),
@@ -74,7 +74,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
@@ -86,16 +86,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeGHelper.getOverseasTransferMembers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }
     }

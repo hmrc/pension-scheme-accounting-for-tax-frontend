@@ -23,7 +23,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{CheckMode, GenericViewModel}
+import models.{AccessType, CheckMode, GenericViewModel}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -45,13 +45,13 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate).url,
+            submitUrl = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, version).url,
             returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
             schemeName = schemeName
           )

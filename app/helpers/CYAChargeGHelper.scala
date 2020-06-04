@@ -18,7 +18,7 @@ package helpers
 
 import java.time.LocalDate
 
-import models.CheckMode
+import models.{AccessType, CheckMode}
 import models.LocalDateBinder._
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import play.api.i18n.Messages
@@ -26,7 +26,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeGMemberDetails(index: Int, answer: MemberDetails): Seq[Row] = {
     Seq(
@@ -36,7 +36,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
           )
         )
@@ -47,7 +47,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"dob.cya.label".withArgs(answer.fullName))
           )
         )
@@ -58,7 +58,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
           )
         )
@@ -74,7 +74,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
           )
         )
@@ -85,7 +85,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeGDetails.qropsTransferDate.visuallyHidden.label")
           )
         )
@@ -101,7 +101,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeG.chargeAmount.transferred.visuallyHidden.label")
           )
         )
@@ -113,7 +113,7 @@ class CYAChargeGService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeG.chargeAmount.taxDue.visuallyHidden.label")
           )
         )

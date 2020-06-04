@@ -25,8 +25,8 @@ import controllers.chargeC.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
-import models.{CheckMode, Draft, NormalMode, SponsoringEmployerType, UserAnswers}
 import models.requests.DataRequest
+import models.{AccessType, CheckMode, Draft, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
 import play.api.mvc.{AnyContent, Call}
@@ -37,93 +37,98 @@ class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeCHelper.getSponsoringEmployers(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
+    chargeCHelper.getSponsoringEmployers(ua, srn, startDate, accessType, version).size
 
-  def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
-    case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+  def addEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+                  (implicit request: DataRequest[AnyContent]): Call = ua.get(AddEmployersPage) match {
+    case Some(true) => WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   //scalastyle:off cyclomatic.complexity
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhatYouWillNeedPage =>
-      WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+      WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+        nextIndex(ua, srn, startDate, accessType, version))
 
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
-      SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
-      SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringIndividualDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
-      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case SponsoringIndividualDetailsPage(index) =>
-      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case SponsoringEmployerAddressSearchPage(index) =>
-      SponsoringEmployerAddressResultsController.onPageLoad(NormalMode, srn, startDate, index)
+      SponsoringEmployerAddressResultsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case SponsoringEmployerAddressResultsPage(index) =>
-      ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
+      ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case SponsoringEmployerAddressPage(index) =>
-      ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
+      ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
 
     case ChargeCDetailsPage(index) =>
-      CheckYourAnswersController.onPageLoad(srn, startDate, index)
+      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
     case CheckYourAnswersPage =>
-      AddEmployersController.onPageLoad(srn, startDate)
+      AddEmployersController.onPageLoad(srn, startDate, accessType, version)
 
     case AddEmployersPage =>
-      addEmployers(ua, srn, startDate)
+      addEmployers(ua, srn, startDate, accessType, version)
 
     case DeleteEmployerPage if deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment =>
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
 
-    case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate).nonEmpty =>
-      AddEmployersController.onPageLoad(srn, startDate)
+    case DeleteEmployerPage if chargeCHelper.getSponsoringEmployers(ua, srn, startDate, accessType, version).nonEmpty =>
+      AddEmployersController.onPageLoad(srn, startDate, accessType, version)
 
     case DeleteEmployerPage => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
   //scalastyle:on cyclomatic.complexity
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeOrganisation) =>
-      SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index)
+      SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index)
 
     case WhichTypeOfSponsoringEmployerPage(index) if ua.get(WhichTypeOfSponsoringEmployerPage(index)).contains(SponsoringEmployerTypeIndividual) =>
-      SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index)
+      SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index)
 
     case SponsoringOrganisationDetailsPage(index) =>
-      editRoutesForSponsoringEmployerPages(index, ua, srn, startDate)
+      editRoutesForSponsoringEmployerPages(index, ua, srn, startDate, accessType, version)
 
     case SponsoringIndividualDetailsPage(index) =>
-      editRoutesForSponsoringEmployerPages(index, ua, srn, startDate)
+      editRoutesForSponsoringEmployerPages(index, ua, srn, startDate, accessType, version)
 
     case SponsoringEmployerAddressPage(index) =>
-      editRoutesForSponsoringEmployerAddress(index, ua, srn, startDate)
+      editRoutesForSponsoringEmployerAddress(index, ua, srn, startDate, accessType, version)
 
     case ChargeCDetailsPage(index) =>
-      CheckYourAnswersController.onPageLoad(srn, startDate, index)
+      CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
   }
 
-  private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
+  private def editRoutesForSponsoringEmployerPages(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate,
+                                                   accessType: AccessType, version: Int): Call = {
     ua.get(SponsoringEmployerAddressPage(index)) match {
-      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-      case _       => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index)
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _       => SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index)
     }
   }
 
-  private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate): Call = {
+  private def editRoutesForSponsoringEmployerAddress(index: Int, ua: UserAnswers, srn: String, startDate: LocalDate,
+                                                     accessType: AccessType, version: Int): Call = {
     ua.get(ChargeCDetailsPage(index)) match {
-      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-      case _       => ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index)
+      case Some(_) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+      case _       => ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index)
     }
   }
 

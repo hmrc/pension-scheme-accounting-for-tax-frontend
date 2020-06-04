@@ -18,7 +18,7 @@ package helpers
 
 import java.time.LocalDate
 
-import models.CheckMode
+import models.{AccessType, CheckMode}
 import models.LocalDateBinder._
 import models.chargeF.ChargeDetails
 import play.api.i18n.Messages
@@ -26,7 +26,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class CYAChargeFHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeFHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeFDate(answer: ChargeDetails): Row =
     Row(
@@ -35,7 +35,7 @@ class CYAChargeFHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
+          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
           visuallyHiddenText = Some(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -48,7 +48,7 @@ class CYAChargeFHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
+          href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
           visuallyHiddenText = Some(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
         )
       )

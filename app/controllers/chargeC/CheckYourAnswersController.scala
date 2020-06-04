@@ -25,7 +25,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import helpers.CYAChargeCHelper
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, NormalMode}
+import models.{AccessType, GenericViewModel, Index, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeC._
@@ -55,11 +55,11 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeC(index, srn, startDate) { (whichTypeOfSponsoringEmployer, sponsorDetails, address, chargeDetails, schemeName) =>
-        val helper = new CYAChargeCHelper(srn, startDate)
+        val helper = new CYAChargeCHelper(srn, startDate, accessType, version)
 
         val seqRows: Seq[SummaryList.Row] = Seq(
           Seq(helper.chargeCWhichTypeOfSponsoringEmployer(index, whichTypeOfSponsoringEmployer)),
@@ -76,7 +76,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
               "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, index).url,
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
@@ -88,16 +88,16 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  def onClick(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate).map(_.amount).sum
+        val totalAmount = chargeCHelper.getSponsoringEmployers(request.userAnswers, srn, startDate, accessType, version).map(_.amount).sum
         for {
           updatedAnswers <- Future.fromTry(request.userAnswers.set(TotalChargeAmountPage, totalAmount))
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }
     }

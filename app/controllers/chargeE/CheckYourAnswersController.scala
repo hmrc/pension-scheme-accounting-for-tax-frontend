@@ -95,7 +95,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
           _ <- aftService.fileAFTReturn(pstr, updatedAnswers)
         } yield {
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }
     }

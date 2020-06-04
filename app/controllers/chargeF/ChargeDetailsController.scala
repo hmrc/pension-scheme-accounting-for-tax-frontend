@@ -26,11 +26,8 @@ import forms.chargeF.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.SessionData
+import models.{AccessType, GenericViewModel, Mode, Quarters, SessionData}
 import models.chargeF.ChargeDetails
-import models.GenericViewModel
-import models.Mode
-import models.Quarters
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
@@ -76,7 +73,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -90,7 +87,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
@@ -107,7 +104,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -118,7 +115,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           .fold(
             formWithErrors => {
               val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
+                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
@@ -136,7 +133,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeDetailsPage, value, mode, isMemberBased = false))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )
       }

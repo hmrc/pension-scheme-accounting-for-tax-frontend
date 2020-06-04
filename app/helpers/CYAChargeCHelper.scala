@@ -21,13 +21,13 @@ import java.time.LocalDate
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
-import models.{CheckMode, SponsoringEmployerType}
+import models.{AccessType, CheckMode, SponsoringEmployerType}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Content, Html, _}
 
-class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeCEmployerDetails(index: Int,
                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]
@@ -51,7 +51,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, index).url,
+          href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
           visuallyHiddenText = Some(msg"chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel"))
       )
     )
@@ -64,7 +64,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -75,7 +75,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel".withArgs(answer.fullName))
           )
         )
@@ -91,7 +91,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -102,7 +102,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel".withArgs(answer.name))
           )
         )
@@ -121,7 +121,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, index).url,
+          href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
           visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
         )
       )
@@ -135,7 +135,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
           )
         )
@@ -146,7 +146,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
           )
         )

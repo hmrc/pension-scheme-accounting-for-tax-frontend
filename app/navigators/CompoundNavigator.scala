@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import models.requests.DataRequest
-import models.{Mode, UserAnswers}
+import models.{AccessType, Mode, UserAnswers}
 import pages.Page
 import play.api.Logger
 import play.api.mvc.{AnyContent, Call}
@@ -28,7 +28,8 @@ import play.api.mvc.{AnyContent, Call}
 import scala.collection.JavaConverters._
 
 trait CompoundNavigator {
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+      implicit request: DataRequest[AnyContent]): Call
 }
 
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
@@ -37,17 +38,23 @@ class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) exte
     controllers.routes.IndexController.onPageLoad()
   }
 
-  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Call = {
-    nextPageOptional(id, mode, userAnswers, srn, startDate)
+  def nextPage(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
+      implicit request: DataRequest[AnyContent]): Call = {
+    nextPageOptional(id, mode, userAnswers, srn, startDate, accessType, version)
       .getOrElse(defaultPage(id, mode))
   }
 
-  private def nextPageOptional(id: Page, mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)
-                              (implicit request: DataRequest[AnyContent]): Option[Call] = {
+  private def nextPageOptional(id: Page,
+                               mode: Mode,
+                               userAnswers: UserAnswers,
+                               srn: String,
+                               startDate: LocalDate,
+                               accessType: AccessType,
+                               version: Int)(implicit request: DataRequest[AnyContent]): Option[Call] = {
     navigators.asScala
-      .find(_.nextPageOptional(mode, userAnswers, srn, startDate).isDefinedAt(id))
+      .find(_.nextPageOptional(mode, userAnswers, srn, startDate, accessType, version).isDefinedAt(id))
       .map(
-        _.nextPageOptional(mode, userAnswers, srn, startDate)(implicitly)(id)
+        _.nextPageOptional(mode, userAnswers, srn, startDate, accessType, version)(implicitly)(id)
       )
   }
 }

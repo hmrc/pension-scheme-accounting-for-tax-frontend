@@ -16,34 +16,25 @@
 
 package services
 
-import pages.{IsPsaSuspendedQuery, PSTRQuery, SchemeNameQuery, Page, QuarterPage, PSAEmailQuery, AFTSummaryPage, PSANameQuery, SchemeStatusQuery, AFTStatusQuery}
-import play.api.mvc.Request
-import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.{AFTConnector, MinimalPsaConnector}
 import connectors.cache.UserAnswersCacheConnector
-import connectors.AFTConnector
-import connectors.MinimalPsaConnector
 import javax.inject.Singleton
-import models.AFTOverview
-import models.AccessMode
 import models.LocalDateBinder._
-import models.Quarters
 import models.SchemeStatus.statusByName
-import models.SessionAccessData
+import models.{AFTOverview, AccessMode, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import models.requests.OptionalDataRequest
-import models.SchemeDetails
-import models.SessionData
-import models.UserAnswers
-import models.requests.DataRequest
+import pages._
 import play.api.libs.json._
+import play.api.mvc.Request
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RequestCreationService @Inject()(
@@ -70,7 +61,7 @@ class RequestCreationService @Inject()(
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Option[String], optionCurrentPage: Option[Page])(
+  def retrieveAndCreateRequest[A](psaId: PsaId, srn: String, startDate: LocalDate, optionVersion: Int, optionCurrentPage: Option[Page])(
       implicit request: Request[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
@@ -86,7 +77,7 @@ class RequestCreationService @Inject()(
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
       (data, optionVersion, optionCurrentPage, isPreviousPageWithinAFT) match {
-        case (None, None, Some(AFTSummaryPage), true) =>
+        case (None, 1, Some(AFTSummaryPage), true) =>
           Future.successful(optionalDataRequest(None))
         case _ =>
           val tuple = retrieveAFTRequiredDetails(srn, startDate, optionVersion)(implicitly, implicitly, optionalDataRequest(data))
@@ -101,7 +92,7 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Option[String])(
+  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Int)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
@@ -114,18 +105,17 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def createSessionAccessData(optionVersion: Option[String], seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+  private def createSessionAccessData(optionVersion: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
-    val optionVersionAsInt = optionVersion.map(_.toInt)
 
-    val viewOnly = isLocked || psaSuspended || optionVersionAsInt.exists(_ < maxVersion)
+    val viewOnly = isLocked || psaSuspended || optionVersion < maxVersion
     val anyVersions = seqAFTOverview.nonEmpty
     val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
 
     val (version, accessMode) =
       (viewOnly, anyVersions, isInCompile) match {
         case (true, false, _)    => (1, AccessMode.PageAccessModeViewOnly)
-        case (true, true, _)     => (optionVersionAsInt.getOrElse(maxVersion), AccessMode.PageAccessModeViewOnly)
+        case (true, true, _)     => (optionVersion, AccessMode.PageAccessModeViewOnly)
         case (false, true, true) => (maxVersion, AccessMode.PageAccessModeCompile)
         case _                   => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
@@ -133,7 +123,7 @@ class RequestCreationService @Inject()(
     SessionAccessData(version, accessMode)
   }
 
-  private def save(ua: UserAnswers, srn: String, startDate: LocalDate, optionVersion: Option[String], pstr: String)(
+  private def save(ua: UserAnswers, srn: String, startDate: LocalDate, optionVersion: Int, pstr: String)(
       implicit request: OptionalDataRequest[_],
       hc: HeaderCarrier,
       ec: ExecutionContext): Future[UserAnswers] = {
@@ -183,15 +173,15 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(optionVersion: Option[String], schemeDetails: SchemeDetails, startDate: LocalDate)(
+  private def updateUserAnswersWithAFTDetails(optionVersion: Int, schemeDetails: SchemeDetails, startDate: LocalDate)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[UserAnswers] = {
 
     def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
 
-    val futureUserAnswers = optionVersion match {
-      case None =>
+    val futureUserAnswers = optionVersion == 1 match {
+      case true =>
         Future.successful(
             currentUserAnswers
               .setOrException(QuarterPage, Quarters.getQuarter(startDate))
@@ -199,8 +189,8 @@ class RequestCreationService @Inject()(
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
         )
-      case Some(version) =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, version)
+      case false =>
+        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, optionVersion.toString)
           .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
     }
 

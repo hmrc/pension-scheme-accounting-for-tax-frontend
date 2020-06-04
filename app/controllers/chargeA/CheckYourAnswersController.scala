@@ -27,12 +27,12 @@ import helpers.{CYAChargeAHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
-import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage}
+import pages.{PSTRQuery, ViewOnlyAccessiblePage}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsNull, JsPath, Json, KeyPathNode}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
@@ -57,11 +57,11 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
     implicit request =>
       DataRetrievals.cyaChargeGeneric(ChargeDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
-        val helper = new CYAChargeAHelper(srn, startDate)
+        val helper = new CYAChargeAHelper(srn, startDate, accessType, version)
 
         val seqRows = Seq(
           helper.chargeAMembers(chargeDetails),
@@ -78,12 +78,12 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
               "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               ),
               "chargeName" -> "chargeA",
-              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate),
+              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate, accessType, version),
               "canChange" -> !request.isViewOnly
             )
           )
@@ -91,14 +91,15 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
       }
     }
 
-  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
+  private def getDeleteChargeUrl(srn: String, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
     if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.isAmendment) {
-      routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+      routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version).url
     } else {
-    routes.DeleteChargeController.onPageLoad(srn, startDate).url
+    routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, version).url
   }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       (request.userAnswers.get(PSTRQuery), request.userAnswers.get(ChargeDetailsPage)) match {
         case (Some(pstr), Some(chargeDetails)) =>
@@ -111,7 +112,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
             updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
             _ <- aftService.fileAFTReturn(pstr, updatedUserAnswers)
-          } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate))
+          } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate, accessType, version))
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }

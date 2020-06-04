@@ -27,7 +27,7 @@ import models.LocalDateBinder._
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, MemberDetails, UserAnswers}
+import models.{AccessType, Member, MemberDetails, UserAnswers}
 import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
 import play.api.mvc.{AnyContent, Call}
@@ -35,7 +35,7 @@ import viewmodels.Table
 
 class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
-  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+  def getOverseasTransferMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                (implicit request: DataRequest[AnyContent]): Seq[Member] = {
     ua.getAllMembersInCharge[MemberDetails](charge = "chargeGDetails").zipWithIndex.flatMap { case (member, index) =>
       ua.get(MemberStatusPage(index)) match {
@@ -47,8 +47,8 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
               member.fullName,
               member.nino,
               chargeAmounts.amountTaxDue,
-              viewUrl(index, srn, startDate).url,
-              removeUrl(index, srn, startDate, ua).url
+              viewUrl(index, srn, startDate, accessType, version).url,
+              removeUrl(index, srn, startDate, ua, accessType, version).url
             )
           }.toSeq
       }
@@ -81,14 +81,15 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       .flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
-    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+    controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers,
+                        accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call =
     if(request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+      controllers.chargeG.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
     } else {
-      controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index)
+      controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, version, index)
     }
 
   def mapToTable(members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table =

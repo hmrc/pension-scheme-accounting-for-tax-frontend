@@ -57,7 +57,7 @@ class WhatYouWillNeedController @Inject()(
       val ua = request.userAnswers
 
       val viewModel = GenericViewModel(
-        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate).url,
+        submitUrl = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
         schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
       )

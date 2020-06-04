@@ -118,10 +118,10 @@ class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                           updatedAnswers <- Future.fromTry(userAnswersService
                             .removeMemberBasedCharge(MemberDetailsPage(index), totalAmount(srn, startDate)))
                           _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate))
+                        } yield Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                     }
                   } else {
-                    Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate)))
+                    Future.successful(Redirect(navigator.nextPage(DeleteMemberPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))
                   }
               )
           case _ => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

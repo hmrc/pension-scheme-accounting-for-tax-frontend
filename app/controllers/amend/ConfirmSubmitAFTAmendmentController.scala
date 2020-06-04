@@ -28,7 +28,7 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.data.Form
@@ -60,7 +60,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       val preparedForm = request.userAnswers.get(ConfirmSubmitAFTAmendmentPage) match {
@@ -68,17 +68,17 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         case Some(value) => form.fill(value)
       }
 
-      populateView(srn, startDate, request.userAnswers, preparedForm, Results.Status(OK))
+      populateView(srn, startDate, request.userAnswers, preparedForm, Results.Status(OK), accessType, version)
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
-            populateView(srn, startDate, request.userAnswers, formWithErrors, Results.Status(BAD_REQUEST))
+            populateView(srn, startDate, request.userAnswers, formWithErrors, Results.Status(BAD_REQUEST), accessType, version)
           },
           value =>
             if (!value) {
@@ -88,12 +88,13 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTAmendmentPage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTAmendmentPage, NormalMode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTAmendmentPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           }
         )
     }
 
-  private def populateView(srn: String, startDate: LocalDate, ua: UserAnswers, form: Form[Boolean], result: Results.Status)(
+  private def populateView(srn: String, startDate: LocalDate, ua: UserAnswers, form: Form[Boolean],
+                           result: Results.Status, accessType: AccessType, version: Int)(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
@@ -104,7 +105,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate).url,
+          submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
           returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
           schemeName = schemeName
         )

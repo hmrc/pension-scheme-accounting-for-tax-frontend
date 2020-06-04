@@ -22,7 +22,7 @@ import controllers.DataRetrievals
 import controllers.actions._
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import javax.inject.Inject
-import models.{GenericViewModel, Index, Mode}
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringOrganisationDetailsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -56,7 +56,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(SponsoringOrganisationDetailsPage(index)) match {
@@ -65,7 +65,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, index).url,
+          submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = schemeName
         )
@@ -81,7 +81,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -90,7 +90,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, index).url,
+                submitUrl = routes.SponsoringOrganisationDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
                 schemeName = schemeName
               )
@@ -108,7 +108,7 @@ class SponsoringOrganisationDetailsController @Inject()(override val messagesApi
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringOrganisationDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(SponsoringOrganisationDetailsPage(index), mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(SponsoringOrganisationDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

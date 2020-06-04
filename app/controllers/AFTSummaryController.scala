@@ -71,7 +71,7 @@ class AFTSummaryController @Inject()(
   private val memberSearchForm = memberSearchFormProvider()
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, Some(version.toString), optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
+    (identify andThen updateData(srn, startDate, version, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
@@ -104,7 +104,7 @@ class AFTSummaryController @Inject()(
             },
             value => {
               val preparedForm: Form[String] = memberSearchForm.fill(value)
-              val searchResults = memberSearchService.search(ua, srn, startDate, value)
+              val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> searchResults) ++
@@ -130,7 +130,7 @@ class AFTSummaryController @Inject()(
             value => {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
-                    Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
+                    Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate, accessType, version))
                   }
                 }
             }

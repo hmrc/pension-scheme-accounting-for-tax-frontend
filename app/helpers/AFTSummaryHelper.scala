@@ -45,35 +45,35 @@ class AFTSummaryHelper {
     SummaryDetails(
       chargeType = ChargeTypeAuthSurplus,
       totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate)
+      href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeDeRegistration,
       totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeLifetimeAllowance,
       totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0.00)),
-      href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeShortService,
       totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeLumpSumDeath,
       totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     )
   )
 
-  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeOverseasTransfer,
       totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     )
   )
 
@@ -99,7 +99,7 @@ class AFTSummaryHelper {
 
 
   private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
-    summaryDataNonUK(ua, srn, startDate).map { data =>
+    summaryDataNonUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),

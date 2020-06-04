@@ -25,7 +25,7 @@ import controllers.chargeD.routes.{MemberDetailsController, _}
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Draft, NormalMode, UserAnswers}
+import models.{AccessType, Draft, NormalMode, UserAnswers}
 import pages.Page
 import pages.chargeD.{AddMembersPage, _}
 import play.api.mvc.{AnyContent, Call}
@@ -36,38 +36,40 @@ class ChargeDNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnect
                                  config: FrontendAppConfig)
   extends Navigator {
 
-  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): Int =
-    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).size
+  def nextIndex(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Int =
+    chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version).size
 
-  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate)
+  def addMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                 (implicit request: DataRequest[AnyContent]): Call = ua.get(AddMembersPage) match {
-    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
+    case Some(true) => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
     case _          => controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
   }
 
-  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate)
+  def deleteMemberRoutes(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                         (implicit request: DataRequest[AnyContent]): Call =
     if(deleteChargeHelper.allChargesDeletedOrZeroed(ua) && !request.isAmendment) {
       Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-    } else if(chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate).nonEmpty) {
-      AddMembersController.onPageLoad(srn, startDate)
+    } else if(chargeDHelper.getLifetimeAllowanceMembers(ua, srn, startDate, accessType, version).nonEmpty) {
+      AddMembersController.onPageLoad(srn, startDate, accessType, version)
     } else {
       controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, 1)
     }
 
-  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, nextIndex(ua, srn, startDate))
-    case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, index)
-    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate)
-    case AddMembersPage => addMembers(ua, srn, startDate)
-    case DeleteMemberPage  => deleteMemberRoutes(ua, srn, startDate)
+    case WhatYouWillNeedPage => MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version,
+      nextIndex(ua, srn, startDate, accessType, version))
+    case MemberDetailsPage(index) => ChargeDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, version, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    case CheckYourAnswersPage => AddMembersController.onPageLoad(srn, startDate, accessType, version)
+    case AddMembersPage => addMembers(ua, srn, startDate, accessType, version)
+    case DeleteMemberPage  => deleteMemberRoutes(ua, srn, startDate, accessType, version)
   }
 
-  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate)
+  override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                      (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
-    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, index)
+    case MemberDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
+    case ChargeDetailsPage(index) => CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
   }
 }
