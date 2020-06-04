@@ -955,7 +955,7 @@ quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
 
 returnHistory.title = AFT return history for {0} to {1}
-returnHistory.version = Version
+returnHistory.version = Submission
 returnHistory.status = Status
 returnHistory.submittedOn = Submitted on {0}
 returnHistory.compiledStatus = In progress

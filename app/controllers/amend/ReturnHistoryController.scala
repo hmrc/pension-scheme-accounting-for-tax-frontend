@@ -84,7 +84,7 @@ class ReturnHistoryController @Inject()(
   private def tableOfVersions(srn: String, versions: Seq[AFTVersion], url: Option[String] => Call
                                 )(implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
-    val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+    val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 
     def link(data: AFTVersion, linkText: String)(implicit messages: Messages): Html = {
       Html(

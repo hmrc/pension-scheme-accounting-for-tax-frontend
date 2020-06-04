@@ -139,9 +139,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
           "2",
-          messages("returnHistory.submittedOn", "17/5/2020"),
+          messages("returnHistory.submittedOn", "17 May 2020"),
           "1",
-          messages("returnHistory.submittedOn", "17/4/2020") )
+          messages("returnHistory.submittedOn", "17 April 2020") )
       )
     }
   }
