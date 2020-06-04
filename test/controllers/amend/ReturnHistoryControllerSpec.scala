@@ -36,6 +36,7 @@ import org.mockito.Mockito.when
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
+import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 import play.api.test.Helpers.route
@@ -123,6 +124,25 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
+      val actual = jsonCaptor.getValue
+      val actualColumnTitles = (actual \ "versions" \ "head").validate[JsArray].asOpt
+          .map(_.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
+
+      val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
+        .map(_.value.flatMap( _.validate[JsArray].asOpt.toSeq
+          .flatMap( _.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))))
+
+      actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
+
+      actualColumnValues mustBe Some(
+        Seq(
+          "3",
+          messages("returnHistory.submittedOn", "17/6/2020"),
+          "2",
+          messages("returnHistory.submittedOn", "17/5/2020"),
+          "1",
+          messages("returnHistory.submittedOn", "17/4/2020") )
+      )
     }
   }
 }
