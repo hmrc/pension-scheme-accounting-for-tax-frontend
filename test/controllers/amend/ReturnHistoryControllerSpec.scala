@@ -141,21 +141,26 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
 
       def anchor(startDate:String, version:String, linkContent:String) =
-        s"""<a id= report-version-$version href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(version)).url}> $linkContent<span class=govuk-visually-hidden>$linkContent submission $version of the AFT return</span> </a>"""
+        s"<a id= report-version-$version " +
+          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(version)).url}> " +
+          s"""$linkContent<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span> </a>"""
+
+      val expectedStartDate = "2020-04-01"
 
       actualColumnValues mustBe Some(
         Seq(
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
-          anchor("2020-04-01", "3", "Change"),
+          anchor(expectedStartDate, "3", messages("site.change")),
           "2",
           messages("returnHistory.submittedOn", "17 May 2020"),
-          anchor("2020-04-01", "2", "View"),
+          anchor(expectedStartDate, "2", messages("site.view")),
           "1",
           messages("returnHistory.submittedOn", "17 April 2020"),
-          anchor("2020-04-01", "1", "View")
+          anchor(expectedStartDate, "1", messages("site.view"))
         )
       )
+
     }
   }
 }
