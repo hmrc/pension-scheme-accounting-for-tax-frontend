@@ -40,7 +40,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val mockAFTService: AFTService = mock[AFTService]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
-  private def sessionAccessData(version: Int) = SessionAccessData(version, AccessMode.PageAccessModeCompile)
+  private def sessionAccessData(version: Int) = SessionAccessData(version, AccessMode.PageAccessModeCompile, hasFirstSubmissionBeenMade = false)
   private def sessionData(version: Int) = SessionData(s"id", Some("name"), sessionAccessData(version))
   private val emptyUserAnswers = UserAnswers()
 

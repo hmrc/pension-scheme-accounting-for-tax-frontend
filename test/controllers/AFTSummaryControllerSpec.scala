@@ -174,7 +174,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setSessionData(
           SampleData.sessionData(
-            sessionAccessData = SampleData.sessionAccessData(version = 2, accessMode = AccessMode.PageAccessModeCompile)
+            sessionAccessData = SampleData.sessionAccessData(version = 2, accessMode = AccessMode.PageAccessModeCompile, hasFirstSubmissionBeenMade = true)
           ))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

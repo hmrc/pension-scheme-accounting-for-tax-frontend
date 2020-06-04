@@ -31,7 +31,8 @@ class MutableFakeDataUpdateAction extends DataUpdateAction {
     name = None,
     sessionAccessData = SessionAccessData(
       version = 1,
-      accessMode = AccessMode.PageAccessModeCompile
+      accessMode = AccessMode.PageAccessModeCompile,
+      hasFirstSubmissionBeenMade = false
     )
   )
 
@@ -41,7 +42,8 @@ class MutableFakeDataUpdateAction extends DataUpdateAction {
     storedSessionData = storedSessionData copy (
       sessionAccessData = SessionAccessData(
         storedSessionData.sessionAccessData.version,
-        if (viewOnly) AccessMode.PageAccessModeCompile else AccessMode.PageAccessModeViewOnly
+        if (viewOnly) AccessMode.PageAccessModeCompile else AccessMode.PageAccessModeViewOnly,
+        hasFirstSubmissionBeenMade = false
       )
     )
   }
@@ -65,7 +67,8 @@ object MutableFakeDataUpdate {
     name = None,
     sessionAccessData = SessionAccessData(
       version = 1,
-      accessMode = AccessMode.PageAccessModeViewOnly
+      accessMode = AccessMode.PageAccessModeViewOnly,
+      hasFirstSubmissionBeenMade = false
     )
   )
 }

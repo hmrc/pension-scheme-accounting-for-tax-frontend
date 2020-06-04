@@ -38,7 +38,7 @@ case class DataRequest[A] (
                             sessionData: SessionData
                           ) extends WrappedRequest[A](request) {
   def aftVersion: Int = sessionData.sessionAccessData.version
-  def isFirstDraft: Boolean = aftVersion == 1 && sessionData.sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly
+  def hasFirstSubmissionBeenMade: Boolean = sessionData.sessionAccessData.hasFirstSubmissionBeenMade
   def isAmendment: Boolean = aftVersion > 1
   def isViewOnly = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isEditable = !isViewOnly
