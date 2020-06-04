@@ -131,19 +131,30 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
         .map(_.value.flatMap( _.validate[JsArray].asOpt.toSeq
-          .flatMap( _.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))))
-
+          .flatMap( _.value.flatMap{jsValue =>
+            ((jsValue \ "text").validate[String].asOpt match {
+              case None => (jsValue \ "html").validate[String].asOpt
+              case t => t
+            }).toSeq
+          })))
 
       actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
+
+      def anchor(startDate:String, version:String, linkContent:String) =
+        s"""<a id= report-version-$version href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(version)).url}> $linkContent<span class=govuk-visually-hidden>$linkContent submission $version of the AFT return</span> </a>"""
 
       actualColumnValues mustBe Some(
         Seq(
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
+          anchor("2020-04-01", "3", "Change"),
           "2",
           messages("returnHistory.submittedOn", "17 May 2020"),
+          anchor("2020-04-01", "2", "View"),
           "1",
-          messages("returnHistory.submittedOn", "17 April 2020") )
+          messages("returnHistory.submittedOn", "17 April 2020"),
+          anchor("2020-04-01", "1", "View")
+        )
       )
     }
   }
