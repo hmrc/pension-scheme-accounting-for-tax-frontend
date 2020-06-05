@@ -67,7 +67,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val internalId = s"$srn$startDate"
 
   private val nameLockedBy = None
-  private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, hasFirstSubmissionBeenMade = false)
+  private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
   private val emptyUserAnswers = UserAnswers()
@@ -147,7 +147,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         verify(mockUserAnswersCacheConnector, times(1))
           .save(any(),
             any(),
-            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, hasFirstSubmissionBeenMade = true))),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true))),
             Matchers.eq(false))(any(), any())
       }
     }

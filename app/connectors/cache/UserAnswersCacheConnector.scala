@@ -83,7 +83,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       case Some(data) => Seq(
         Tuple2("version", data.version.toString),
         Tuple2("accessMode", data.accessMode.toString),
-        Tuple2("hasFirstSubmissionBeenMade", data.hasFirstSubmissionBeenMade.toString))
+        Tuple2("areSubmittedVersionsAvailable", data.areSubmittedVersionsAvailable.toString))
       case None       => Nil
     }
     val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders

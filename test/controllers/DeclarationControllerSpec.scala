@@ -125,7 +125,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
-      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData = SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, hasFirstSubmissionBeenMade = false)))
+      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData = SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)

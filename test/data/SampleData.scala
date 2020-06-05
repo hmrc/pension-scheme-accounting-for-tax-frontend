@@ -100,11 +100,11 @@ object SampleData {
 
   def sessionAccessData(version: Int = version.toInt,
                         accessMode: AccessMode = AccessMode.PageAccessModeCompile,
-                        hasFirstSubmissionBeenMade: Boolean = false) =
-    SessionAccessData(version, accessMode, hasFirstSubmissionBeenMade = hasFirstSubmissionBeenMade)
+                        areSubmittedVersionsAvailable: Boolean = false) =
+    SessionAccessData(version, accessMode, areSubmittedVersionsAvailable = areSubmittedVersionsAvailable)
 
-  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile, hasFirstSubmissionBeenMade = false)
-  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile, hasFirstSubmissionBeenMade = false)
+  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
+  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile, areSubmittedVersionsAvailable = false)
 
   def sessionData(
                    sessionId: String = sessionId,

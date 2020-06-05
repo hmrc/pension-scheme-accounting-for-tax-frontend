@@ -23,7 +23,7 @@ import play.api.libs.json._
 
 import scala.language.implicitConversions
 
-case class SessionAccessData(version: Int, accessMode: AccessMode, hasFirstSubmissionBeenMade:Boolean)
+case class SessionAccessData(version: Int, accessMode: AccessMode, areSubmittedVersionsAvailable:Boolean)
 
 case class SessionData(sessionId: String, name: Option[String], sessionAccessData: SessionAccessData) {
 
@@ -42,18 +42,18 @@ object SessionData {
       (JsPath \ "name").writeNullable[String] and
       (JsPath \ "version").write[Int] and
       (JsPath \ "accessMode").write[AccessMode] and
-      (JsPath \ "hasFirstSubmissionBeenMade").write[Boolean]
+      (JsPath \ "areSubmittedVersionsAvailable").write[Boolean]
       )(sd => (sd.sessionId, sd.name, sd.sessionAccessData.version,
-      sd.sessionAccessData.accessMode, sd.sessionAccessData.hasFirstSubmissionBeenMade))
+      sd.sessionAccessData.accessMode, sd.sessionAccessData.areSubmittedVersionsAvailable))
 
   implicit val reads: Reads[SessionData] =
     ((JsPath \ "sessionId").read[String] and
       (JsPath \ "name").readNullable[String] and
       (JsPath \ "version").read[Int] and
       (JsPath \ "accessMode").read[AccessMode] and
-      (JsPath \ "hasFirstSubmissionBeenMade").read[Boolean]
+      (JsPath \ "areSubmittedVersionsAvailable").read[Boolean]
       )(
-      (sessionId, optionName, version, accessMode, hasFirstSubmissionBeenMade) =>
-        SessionData(sessionId, optionName, SessionAccessData(version, accessMode, hasFirstSubmissionBeenMade))
+      (sessionId, optionName, version, accessMode, areSubmittedVersionsAvailable) =>
+        SessionData(sessionId, optionName, SessionAccessData(version, accessMode, areSubmittedVersionsAvailable))
     )
 }

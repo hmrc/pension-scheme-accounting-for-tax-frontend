@@ -141,7 +141,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
     "have correct link text when its previous submission" in {
 
       val link = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate)(implicitly,
-        dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly, hasFirstSubmissionBeenMade = false)))
+        dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)))
 
       link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
         "allAmendments.view.changes.submission.link")}</a>""".stripMargin).toString()}")

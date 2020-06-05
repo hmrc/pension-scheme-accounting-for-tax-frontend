@@ -148,7 +148,7 @@ class AFTSummaryController @Inject()(
     val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
 
     val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
-    val returnHistoryURL = if (request.hasFirstSubmissionBeenMade) {
+    val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
       Json.obj()

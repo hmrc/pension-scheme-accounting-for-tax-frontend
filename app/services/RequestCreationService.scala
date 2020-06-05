@@ -122,10 +122,7 @@ class RequestCreationService @Inject()(
     val anyVersions = seqAFTOverview.nonEmpty
     val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
 
-    val hasFirstSubmissionBeenMade = seqAFTOverview.headOption.exists(_.submittedVersionAvailable)
-
-    println( "\n>>>" + seqAFTOverview)
-    println( "\n>>>" + hasFirstSubmissionBeenMade)
+    val areSubmittedVersionsAvailable = seqAFTOverview.headOption.exists(_.submittedVersionAvailable)
 
     val (version, accessMode) =
       (viewOnly, anyVersions, isInCompile) match {
@@ -135,7 +132,7 @@ class RequestCreationService @Inject()(
         case _                   => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
 
-    SessionAccessData(version, accessMode, hasFirstSubmissionBeenMade)
+    SessionAccessData(version, accessMode, areSubmittedVersionsAvailable)
   }
 
   private def save(ua: UserAnswers, srn: String, startDate: LocalDate, optionVersion: Option[String], pstr: String)(
