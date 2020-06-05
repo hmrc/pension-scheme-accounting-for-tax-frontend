@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package utils
+package services
 
-class FuzzyMatching {
+class FuzzyMatchingService {
 
   def doFuzzyMatching(searchString: String, inputString: String): Boolean = {
 
