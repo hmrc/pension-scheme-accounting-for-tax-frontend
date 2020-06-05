@@ -35,8 +35,8 @@ import scala.util.Failure
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
   def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
-    val url = config.aftFileReturn
-    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr, "journeyType" -> journeyType.toString)
+    val url = config.aftFileReturn.format(journeyType.toString)
+    val aftHc = hc.withExtraHeaders(headers = "pstr" -> pstr)
     http.POST[JsObject, HttpResponse](url, answers.data)(implicitly, implicitly, aftHc, implicitly).map(_ => ())
   }
 

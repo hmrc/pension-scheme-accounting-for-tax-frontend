@@ -38,7 +38,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
-  private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return"
+  private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return/AFTReturn"
   private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
   private val getIsAftNonZeroUrl = "/pension-scheme-accounting-for-tax/get-is-aft-non-zero"
