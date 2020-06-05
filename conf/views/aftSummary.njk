@@ -111,15 +111,13 @@
                        classes: "govuk-!-margin-bottom-5"
                      }) }}
 
-                     <ul class="govuk-list">
+                     <p class="govuk-body">
                          {% for action in row.actions %}
-                           <li class="govuk-!-display-inline-block govuk-!-margin-right-3">
-                               <a class="govuk-link" href="{{ action.href }}">{{ action.text }}
-                                   <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }}</span>
-                               </a>
-                           </li>
+                            <a class="govuk-link govuk-!-margin-right-3" href="{{ action.href }}">{{ action.text }}
+                              <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }} </span>
+                            </a>
                          {% endfor %}
-                     </ul>
+                     </p>
                      </div>
                    {% endfor %}
 
