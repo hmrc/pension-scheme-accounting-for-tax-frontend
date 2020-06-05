@@ -19,6 +19,7 @@ package controllers
 import java.time.LocalDate
 
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
@@ -232,13 +233,13 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", accessType, versionInt).url
     }
 
     "return aft summary when there is no sponsoring employer details in user answers" in {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
       val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", accessType, versionInt).url
     }
   }
 }

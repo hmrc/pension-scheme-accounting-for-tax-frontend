@@ -20,20 +20,20 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus
-import models.AmendedChargeStatus.{Updated, Deleted}
+import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, UserAnswers}
+import models.{AmendedChargeStatus, Member, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeG.{MemberAFTVersionPage, MemberDetailsPage, ChargeAmountsPage, MemberStatusPage}
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -56,8 +56,8 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberDetailsPage(2), SampleData.memberGDetails).toOption.get
     .set(ChargeAmountsPage(2), SampleData.chargeAmounts).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
+  def viewLink(index: Int): String = controllers.chargeG.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+  def removeLink(index: Int): String = controllers.chargeG.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount2, viewLink(index), removeLink(index))
 
@@ -74,7 +74,7 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   ".getOverseasTransferMembers" must {
     "return all the members added in charge G" in {
-      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembersMinusDeleted
+      chargeGHelper.getOverseasTransferMembers(allMembers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
     }
   }
 

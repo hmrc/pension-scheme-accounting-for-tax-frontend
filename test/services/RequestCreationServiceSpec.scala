@@ -20,38 +20,26 @@ import java.time.LocalDate
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.AFTConnector
-import connectors.MinimalPsaConnector
+import connectors.{AFTConnector, MinimalPsaConnector}
 import connectors.MinimalPsaConnector.MinimalPSA
 import connectors.cache.UserAnswersCacheConnector
-import models.AccessMode
-import models.SchemeDetails
-import models.SessionAccessData
-import models.SessionData
+import data.SampleData._
+import models.{AFTOverview, AFTVersion, AccessMode, SchemeDetails, SessionAccessData, SessionData, UserAnswers}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 import org.mockito.Matchers
-import models.requests.OptionalDataRequest
-import models.AFTVersion
-import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.when
-import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.MustMatchers
+import org.mockito.Mockito.{reset, when, _}
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import pages.{AFTSummaryPage, ChargeTypePage}
 import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
-import data.SampleData._
-import models.AFTOverview
-import pages.AFTSummaryPage
-import pages.ChargeTypePage
 import utils.DateHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
@@ -74,8 +62,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
   private val aftStatus = "Compiled"
 
-  private val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-    OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
+  private val request: IdentifierRequest[AnyContentAsEmpty.type] =
+    IdentifierRequest(fakeRequest, psaIdInstance)
 
   private val schemeStatus = "Open"
 
@@ -130,7 +118,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
           )
         )
 
-        when(mockAftConnector.getAftOverview(any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -140,7 +128,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, Some("1"), None)(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, None)(request, implicitly, implicitly),
           Duration.Inf
         )
 
@@ -157,8 +145,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
 
-        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-        OptionalDataRequest(fakeRequest.withHeaders(referer :_*), internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
+        val request: IdentifierRequest[AnyContentAsEmpty.type] =
+          IdentifierRequest(fakeRequest.withHeaders(referer :_*), psaIdInstance)
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
@@ -167,7 +155,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         val result = Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, Some(AFTSummaryPage))(request, implicitly, implicitly),
           Duration.Inf
         )
 
@@ -178,8 +166,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     "when no user answers, no version, AFTSummaryPage and previous URL is NOT within AFT" must {
       "create data request with details" in {
 
-        val request: OptionalDataRequest[AnyContentAsEmpty.type] =
-          OptionalDataRequest(fakeRequest, internalId, psaIdInstance, Some(emptyUserAnswers), Some(sd))
+        val request: IdentifierRequest[AnyContentAsEmpty.type] =
+          IdentifierRequest(fakeRequest, psaIdInstance)
 
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(
@@ -190,7 +178,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
@@ -203,7 +191,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         val result = Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(AFTSummaryPage))(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, Some(AFTSummaryPage))(request, implicitly, implicitly),
           Duration.Inf
         )
 
@@ -223,7 +211,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
-        when(mockAftConnector.getAftOverview(any())(any(), any()))
+        when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
@@ -233,7 +221,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         val result = Await.result(
           requestCreationService
-            .retrieveAndCreateRequest(psaIdInstance, srn, QUARTER_START_DATE, None, Some(ChargeTypePage))(request, implicitly, implicitly),
+            .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, Some(ChargeTypePage))(request, implicitly, implicitly),
           Duration.Inf
         )
 

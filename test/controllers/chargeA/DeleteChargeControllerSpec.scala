@@ -29,10 +29,7 @@ import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.PSTRQuery
-import pages.chargeA.ShortServiceRefundQuery
-import pages.chargeD.MemberDetailsPage
-import pages.chargeA.{DeleteChargePage, ShortServiceRefundQuery}
+import pages.chargeA.DeleteChargePage
 import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
@@ -55,14 +52,14 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction,
       Seq(bind[DeleteAFTChargeService].toInstance(mockDeleteAFTChargeService))).build()
 
-  private def onwardRoute = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+  private def onwardRoute = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt)
 
   private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required",  messages("chargeA").toLowerCase()))
 
-  private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate).url
+  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, versionInt).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -103,7 +100,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =

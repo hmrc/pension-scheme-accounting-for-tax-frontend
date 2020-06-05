@@ -18,23 +18,21 @@ package controllers.chargeA
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{CheckMode, GenericViewModel, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
-import pages.chargeA.WhatYouWillNeedPage
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import utils.AFTConstants.QUARTER_START_DATE
 
 class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
@@ -42,9 +40,9 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "removeLastCharge.njk"
 
-  private def httpPathGET: String = controllers.chargeA.routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = controllers.chargeA.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate).url
+  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt).url
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = redirectUrl,

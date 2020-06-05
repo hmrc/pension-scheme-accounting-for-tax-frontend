@@ -52,14 +52,14 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val application: Application =
     applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(bind[DeleteAFTChargeService].toInstance(mockDeleteAFTChargeService))).build()
 
-  private def onwardRoute: Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)
+  private def onwardRoute: Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt)
 
   private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteCharge.error.required",  messages("chargeF").toLowerCase()))
 
-  private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate).url
+  private def httpPathPOST: String = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, versionInt).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
@@ -101,7 +101,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with MockitoSugar wi
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 
       val request =

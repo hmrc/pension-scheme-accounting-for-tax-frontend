@@ -31,13 +31,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
+  private def httpGETRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn, startDate).url
+  private def httpOnClickRoute: String = controllers.chargeA.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter.set(ChargeDetailsPage, chargeAChargeDetails).toOption.get
 
-  private val helper: CYAChargeAHelper = new CYAChargeAHelper(srn, startDate)
+  private val helper: CYAChargeAHelper = new CYAChargeAHelper(srn, startDate, accessType, versionInt)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> Seq(
@@ -47,7 +47,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
       helper.total(ua.get(ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)))
     ),
     "viewModel" -> GenericViewModel(
-      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
+      submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName
     ),

@@ -21,6 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeC.SponsoringOrganisationDetails
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
@@ -37,9 +38,9 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
-class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
+class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase with MockitoSugar
+  with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeNamePstrQuarter)
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
@@ -47,9 +48,11 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   private val form = new SponsoringOrganisationDetailsFormProvider()()
   private val index = 0
 
-  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(NormalMode, srn, startDate, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.
+    onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
 
-  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url
+  private def httpPathPOST: String = controllers.chargeC.routes.SponsoringOrganisationDetailsController.
+    onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "name" -> Seq("Big Company"),
@@ -64,7 +67,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
   private val jsonToPassToTemplate: Form[SponsoringOrganisationDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onSubmit(NormalMode, srn, startDate, index).url,
+      submitUrl = controllers.chargeC.routes.SponsoringOrganisationDetailsController.
+        onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
       schemeName = schemeName)
   )
@@ -131,7 +135,8 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(
+        Matchers.eq(SponsoringOrganisationDetailsPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

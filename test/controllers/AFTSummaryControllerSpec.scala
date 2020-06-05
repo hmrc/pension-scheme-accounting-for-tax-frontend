@@ -83,7 +83,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
-    when(mockAFTSummaryHelper.summaryListData(any(), any(), any())(any())).thenReturn(Nil)
+    when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
     when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
@@ -97,7 +97,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "isAmendment" -> false,
         "viewAllAmendmentsLink" -> emptyHtml.toString(),
         "viewModel" -> GenericViewModel(
-          submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
+          submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
           schemeName = SampleData.schemeName
         ),
@@ -145,7 +145,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "calling onSubmit" when {
       "redirect to next page when user selects yes" in {
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataUpdateAction.setDataToReturn(userAnswers)
@@ -162,7 +162,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "redirect to next page when user selects no" in {
         when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataUpdateAction.setDataToReturn(userAnswers)
@@ -203,7 +203,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "display search results when Search is triggered" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
-        when(mockMemberSearchService.search(any(), any(), any(), any())(any(), any()))
+        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(searchResult)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -213,11 +213,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val controllerInstance = application.injector.instanceOf[AFTSummaryController]
 
-        val result = controllerInstance.onSearchMember(SampleData.srn, startDate, None).apply(fakeRequest)
+        val result = controllerInstance.onSearchMember(SampleData.srn, startDate, accessType, versionInt).apply(fakeRequest)
 
         status(result) mustEqual OK
 
-        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"))(any(), any())
+        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"), any(), any())(any(), any())
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustBe templateToBeRendered
 
@@ -241,9 +241,9 @@ object AFTSummaryControllerSpec {
   private val emptyHtml = Html("")
 
   private def httpPathGET(version: Option[String]): String =
-    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, version).url
+    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url
 
   private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0) = Seq(
     MemberRow(
@@ -266,12 +266,12 @@ object AFTSummaryControllerSpec {
       Seq(
         Action(
           Message("site.view"),
-          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url,
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         ),
         Action(
           Message("site.remove"),
-          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url,
+          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         )
       )

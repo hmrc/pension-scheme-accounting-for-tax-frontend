@@ -24,7 +24,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.AFTVersion
+import models.{AFTOverview, AFTVersion}
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -58,6 +58,15 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
   private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
   private val versions = Seq(version1, version2, version3)
+  private val multipleVersions = Seq[AFTOverview](
+    AFTOverview(
+      periodStartDate = LocalDate.of(2020, 4, 1),
+      periodEndDate = LocalDate.of(2020, 6, 28),
+      numberOfVersions = 3,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )
+  )
 
   private def versionsTable = Json.obj(
     "firstCellIsHeader" -> false,
@@ -71,17 +80,17 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       Json.arr(
         Json.obj("text" -> "Submission 3","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/6/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-3 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/3/summary> View<span class= govuk-visually-hidden>submission 3 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-3 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/3/summary> View<span class= govuk-visually-hidden>submission 3 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Submission 2","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/5/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-2 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/2/summary> View<span class= govuk-visually-hidden>submission 2 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-2 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/2/summary> View<span class= govuk-visually-hidden>submission 2 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Submission 1","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/4/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-1 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/1/summary> View<span class= govuk-visually-hidden>submission 1 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-1 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/1/summary> View<span class= govuk-visually-hidden>submission 1 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       )
     )
   )
@@ -100,6 +109,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

@@ -29,19 +29,7 @@ import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.ChargeAmounts
 import models.chargeG.{MemberDetails => MemberDetailsG}
-import models.AccessMode
-import models.SessionAccessData
-import models.SessionData
-import models.AFTOverview
-import models.DisplayQuarter
-import models.InProgressHint
-import models.LockedHint
-import models.MemberDetails
-import models.Quarter
-import models.SchemeDetails
-import models.SchemeStatus
-import models.SubmittedHint
-import models.UserAnswers
+import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC.ChargeCDetailsPage
 import pages.chargeC.SponsoringIndividualDetailsPage
 import pages.chargeC.SponsoringOrganisationDetailsPage
@@ -61,6 +49,7 @@ object SampleData {
   val psaId = "A0000000"
   val srn = "aa"
   val startDate = QUARTER_START_DATE
+  val accessType = Draft
   val pstr = "pstr"
   val schemeName = "Big Scheme"
   val companyName = "Big Company"
@@ -78,6 +67,7 @@ object SampleData {
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
   val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
   val version = "1"
+  val versionInt = 1
 
   val sponsoringOrganisationDetails: SponsoringOrganisationDetails =
     SponsoringOrganisationDetails(name = companyName, crn = crn)

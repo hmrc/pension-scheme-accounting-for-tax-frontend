@@ -31,13 +31,13 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url
-  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(srn, startDate).url
+  private def httpGETRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url
+  private def httpOnClickRoute: String = controllers.chargeB.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeBDetailsPage, chargeBDetails).toOption.get
 
-  private val helper = new CYAChargeBHelper(srn, startDate)
+  private val helper = new CYAChargeBHelper(srn, startDate, accessType, versionInt)
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "list" -> helper.chargeBDetails(chargeBDetails)

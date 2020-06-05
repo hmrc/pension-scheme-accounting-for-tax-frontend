@@ -19,6 +19,7 @@ package services
 import java.time.LocalDate
 
 import base.SpecBase
+import data.SampleData.{accessType, versionInt}
 import helpers.FormatHelper
 import models.requests.DataRequest
 import models.{Member, UserAnswers}
@@ -73,13 +74,13 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
   override def beforeEach: Unit = {
     Mockito.reset(mockChargeDService, mockChargeEService, mockChargeGService)
-    when(mockChargeDService.getLifetimeAllowanceMembers(any(),any(),any())(any()))
+    when(mockChargeDService.getLifetimeAllowanceMembers(any(),any(),any(), any(), any())(any()))
       .thenReturn(chargeDMembers)
 
-    when(mockChargeEService.getAnnualAllowanceMembers(any(),any(),any())(any()))
+    when(mockChargeEService.getAnnualAllowanceMembers(any(),any(),any(), any(), any())(any()))
       .thenReturn(chargeEMembers)
 
-    when(mockChargeGService.getOverseasTransferMembers(any(),any(),any())(any()))
+    when(mockChargeGService.getOverseasTransferMembers(any(),any(),any(), any(), any())(any()))
       .thenReturn(chargeGMembers)
   }
 
@@ -87,7 +88,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
 
   "Search" must {
     "return one valid result when searching with a valid name when case not matching" in {
-      memberSearchService.search(emptyUserAnswers, srn, startDate, "bloggs") mustBe
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "bloggs", accessType, versionInt) mustBe
         searchResultsMemberDetailsChargeD("Bill Bloggs", "CS121212C", BigDecimal("55.55"))
     }
 
@@ -98,7 +99,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
         searchResultsMemberDetailsChargeG("Mary Whizz", "nino6", BigDecimal("84.06"))
 
 
-      val actual = memberSearchService.search(emptyUserAnswers, srn, startDate, "whizz")
+      val actual = memberSearchService.search(emptyUserAnswers, srn, startDate, "whizz", accessType, versionInt)
 
       actual.size mustBe expected.size
 
@@ -108,12 +109,12 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     }
 
     "return valid results when searching with a valid nino when case not matching" in {
-      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C") mustBe
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C", accessType, versionInt) mustBe
         searchResultsMemberDetailsChargeD("Bill Bloggs", "CS121212C", BigDecimal("55.55"))
     }
 
     "return no results when nothing matches" in {
-      memberSearchService.search(emptyUserAnswers, srn, startDate, "ZZ098765A") mustBe Nil
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
     }
   }
 

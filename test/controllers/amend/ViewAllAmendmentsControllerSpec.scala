@@ -110,7 +110,7 @@ class ViewAllAmendmentsControllerSpec
     fields = "srn" -> srn,
     "startDate" -> Some(startDate),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$versionNumber")).url,
+      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version = 3).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName
     ),

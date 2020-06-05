@@ -38,6 +38,7 @@ import utils.AFTConstants
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import AFTConstants._
+import data.SampleData.{accessType, versionInt}
 import models.AccessMode
 import models.LocalDateBinder._
 import models.SessionAccessData
@@ -87,7 +88,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
         .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Open)
 
-      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, None))
+      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt))
 
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
@@ -143,7 +144,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, None))
+      val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt))
 
       val allowAccessService = new AllowAccessService(pensionsSchemeConnector, aftService, aftConnector, errorHandler)
 

@@ -56,7 +56,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
   "retrieveOptionAFTViewModel after overviewApiEnablement" must {
     "return overview api returns multiple returns in progress, multiple past returns and start link needs to be displayed" in {
       DateHelper.setDate(Some(LocalDate.of(2021,4,1)))
-      when(aftConnector.getAftOverview(any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
@@ -69,7 +69,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
     }
 
     "return the correct model when return no returns are in progress" in {
-      when(aftConnector.getAftOverview(any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(noInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
@@ -80,7 +80,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
     }
 
     "return the correct model when return one return is in progress but not locked" in {
-      when(aftConnector.getAftOverview(any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
@@ -93,7 +93,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
     }
 
     "return the correct model when one return is in progress and locked by another user" in {
-      when(aftConnector.getAftOverview(any())(any(), any()))
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
@@ -108,7 +108,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
     "return a model with start link and only 2 returns in progress" when {
       "a scheme has 3 compiles in progress but one has been zeroed out and all quarters have been initiated (ie no start link)" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
-        when(aftConnector.getAftOverview(any())(any(), any()))
+        when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(oneCompileZeroedOut))
         when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
         when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))

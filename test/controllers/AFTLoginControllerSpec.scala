@@ -87,7 +87,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url)
+        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
       }
     }
 

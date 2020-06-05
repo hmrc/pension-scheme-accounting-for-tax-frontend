@@ -18,7 +18,7 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.{AccessMode, AccessType, SessionAccessData, SessionData, UserAnswers}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import pages.Page
 
@@ -46,7 +46,8 @@ class MutableFakeDataUpdateAction extends DataUpdateAction {
     )
   }
 
-  override def apply(srn: String, startDate: LocalDate, version: Option[String], optionPage: Option[Page]): DataUpdate = new MutableFakeDataUpdate(storedSessionData, dataToReturn)
+  override def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionPage: Option[Page]): DataUpdate =
+    new MutableFakeDataUpdate(storedSessionData, dataToReturn)
 }
 
 class MutableFakeDataUpdate(sessionData: SessionData = MutableFakeDataUpdate.sessionDataViewOnly, dataToReturn: Option[UserAnswers])

@@ -24,11 +24,12 @@ import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
-import models.{AccessMode, GenericViewModel, NormalMode, SessionData, UserAnswers}
+import models.LocalDateBinder._
+import models.{AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTReturnPage}
+import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -43,7 +44,6 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private def onwardRoute = Call("GET", "/onward")
@@ -54,9 +54,9 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
   private val mockAmendmentHelper = mock[AmendmentHelper]
   private val mockAFTConnector = mock[AFTConnector]
 
-  private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE).url
+  private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
 
-  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE).url
+  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(
@@ -135,7 +135,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTAmendmentRoute)
           .withFormUrlEncodedBody(("value", "true"))

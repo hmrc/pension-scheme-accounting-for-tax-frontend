@@ -20,14 +20,14 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus
-import models.AmendedChargeStatus.{Updated, Deleted}
+import models.AmendedChargeStatus.{Deleted, Updated}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Member, UserAnswers, MemberDetails}
+import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -55,8 +55,8 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(MemberDetailsPage(2), SampleData.memberDetails).toOption.get
     .set(ChargeDetailsPage(2), SampleData.chargeDDetails).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  def removeLink(index: Int): String = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url
+  def viewLink(index: Int): String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+  def removeLink(index: Int): String = controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def expectedMember(memberDetails: MemberDetails, index: Int): Member =
     Member(index, memberDetails.fullName, memberDetails.nino, SampleData.chargeAmount1 + SampleData.chargeAmount2, viewLink(index), removeLink(index))
 
@@ -73,7 +73,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   ".getAnnualAllowanceMembers" must {
     "return all the members added in charge E" in {
-      chargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate)(request()) mustBe expectedAllMembersMinusDeleted
+      chargeDHelper.getLifetimeAllowanceMembers(allMembers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllMembersMinusDeleted
     }
   }
 

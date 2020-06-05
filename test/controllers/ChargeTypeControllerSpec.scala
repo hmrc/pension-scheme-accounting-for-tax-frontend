@@ -25,7 +25,7 @@ import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, Enumerable, GenericViewModel, SessionData, UserAnswers}
+import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -74,7 +74,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     fields = "form" -> form,
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url,
+      submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
       schemeName = SampleData.schemeName)
   )
@@ -147,7 +147,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
-        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -191,9 +191,9 @@ object ChargeTypeControllerSpec {
 
   private def form = new ChargeTypeFormProvider()()
 
-  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url
+  private def httpPathGETVersion: String = controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(srn, startDate).url
+  private def httpPathPOST: String = controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(ChargeTypeAnnualAllowance.toString)

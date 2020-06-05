@@ -94,5 +94,5 @@ trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataReques
 
 @ImplementedBy(classOf[DataUpdateActionImpl])
 trait DataUpdateAction {
-  def apply(srn: String, startDate: LocalDate, optionVersion: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataUpdate
+  def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataUpdate
 }
