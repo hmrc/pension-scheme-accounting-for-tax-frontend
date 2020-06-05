@@ -35,20 +35,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AFTLoginController @Inject()(
     override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
     identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
     val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    auditService: AuditService,
-    aftService: AFTService,
-    allowService: AllowAccessService,
-    quartersService: QuartersService,
-    schemeService: SchemeService
+    config: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
