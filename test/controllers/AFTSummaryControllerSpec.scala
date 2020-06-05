@@ -135,9 +135,18 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "AFTSummary Controller" when {
 
     "calling onPageLoad" must {
-      "return OK and the correct view without view all amendments link when compiling initial draft where no version is present in the request" in {
+      "return OK and the correct view without view all amendments link when compiling initial draft and " +
+        "there are no submitted versions available where no version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setSessionData(
+          SampleData.sessionData(
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 1,
+              accessMode = AccessMode.PageAccessModeCompile
+            )
+          )
+        )
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -152,9 +161,17 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
           jsonToPassToTemplate(version = None, includeReturnHistoryLink = false, isAmendment = false).apply(form))
       }
 
-      "return OK and the correct view without view all amendments link when compiling initial draft where a version is present in the request" in {
+      "return OK and the correct view without view all amendments link when compiling initial draft and " +
+        "there are no submitted versions available where a version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setSessionData(
+          SampleData.sessionData(
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 1,
+              accessMode = AccessMode.PageAccessModeCompile)
+          )
+        )
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -169,13 +186,18 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
           jsonToPassToTemplate(version = Some(version), includeReturnHistoryLink = false, isAmendment = false).apply(form))
       }
 
-      "return OK and the correct view with view all amendments link when compiling an amendment" in {
+      "include the view all amendments link in json passed to page when there are submitted versions available" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setSessionData(
           SampleData.sessionData(
-            sessionAccessData = SampleData.sessionAccessData(version = 2, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = true)
-          ))
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 2,
+              accessMode = AccessMode.PageAccessModeCompile,
+              areSubmittedVersionsAvailable = true
+            )
+          )
+        )
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
