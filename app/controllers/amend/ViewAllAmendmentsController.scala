@@ -112,11 +112,9 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     }
 
     Table(
-      captionClasses = Seq("govuk-heading-m"),
-      caption = Some(messages(s"allAmendments.table.caption.$caption")),
       head = head,
       rows = rows,
-      attributes = Map("role" -> "grid", "aria-label" -> caption )
+      attributes = Map("role" -> "grid", "aria-describedby" -> messages(s"allAmendments.table.caption.$caption") )
     )
 
   }

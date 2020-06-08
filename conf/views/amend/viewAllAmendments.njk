@@ -36,14 +36,17 @@
         </h1>
 
         {% if addedTable.rows.length > 0 %}
+        <h3 id ="added" class="govuk-heading-m">{{addedTable.caption}}</h1>
             {{ govukTable(addedTable) }}
         {% endif %}
 
         {% if deletedTable.rows.length > 0 %}
+        <h3 id ="deleted" class="govuk-heading-m">{{deletedTable.caption}}</h1>
             {{ govukTable(deletedTable) }}
         {% endif %}
 
          {% if updatedTable.rows.length > 0 %}
+         <h3 id ="updated" class="govuk-heading-m">{{updatedTable.caption}}</h1>
             {{ govukTable(updatedTable) }}
         {% endif %}
       </div>
