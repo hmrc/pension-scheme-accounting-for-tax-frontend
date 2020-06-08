@@ -15,7 +15,7 @@
  */
 
 package models
-import play.api.mvc.PathBindable
+import play.api.mvc.{JavascriptLiteral, PathBindable}
 
 sealed trait AccessType
 
@@ -25,6 +25,13 @@ case object Submission extends WithName("submission") with AccessType
 object AccessType {
 
   case class UnknownAccessTypeException() extends Exception
+
+  implicit val jsLiteral: JavascriptLiteral[AccessType] = new JavascriptLiteral[AccessType] {
+    override def to(value: AccessType): String = value match {
+      case Draft => "draft"
+      case Submission => "submission"
+    }
+  }
 
   implicit def accessTypePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[AccessType] = new PathBindable[AccessType] {
 

@@ -83,11 +83,12 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor5[Page, UserAnswers, Call, LocalDate, Int] =
       Table(
         ("Id", "UserAnswers", "Next Page", "Current Date", "Version"),
-        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt), aftSummaryYes, currentDate = LocalDate.now, version = 1),
+        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt),
+          aftSummaryYes, currentDate = LocalDate.now, version = 1),
         rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad(), currentDate = LocalDate.now, version = 1),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt),
+          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, startDate),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate.plusDays(1),
           version = 1),

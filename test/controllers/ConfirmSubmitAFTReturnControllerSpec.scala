@@ -47,9 +47,9 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
   private val formProvider = new ConfirmSubmitAFTReturnFormProvider()
   private val form = formProvider()
 
-  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def confirmSubmitAFTReturnRoute: String = routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, QUARTER_START_DATE).url
 
-  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(NormalMode, srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def confirmSubmitAFTReturnSubmitRoute: String = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, QUARTER_START_DATE).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))

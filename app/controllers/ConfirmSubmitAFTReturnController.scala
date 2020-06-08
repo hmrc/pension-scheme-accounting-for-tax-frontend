@@ -23,7 +23,7 @@ import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import javax.inject.Inject
-import models.{AccessType, GenericViewModel, Mode}
+import models.{AccessType, GenericViewModel, Mode, NormalMode}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTReturnPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,7 +54,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
@@ -64,7 +64,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate, accessType, version).url,
+          submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -81,7 +81,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
@@ -91,7 +91,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate, accessType, version).url,
+                submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(srn, startDate).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -110,7 +110,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, mode, updatedAnswers, srn, startDate, accessType, version))
+              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

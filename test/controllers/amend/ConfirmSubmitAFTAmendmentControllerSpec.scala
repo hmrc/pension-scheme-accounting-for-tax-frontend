@@ -54,9 +54,9 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
   private val mockAmendmentHelper = mock[AmendmentHelper]
   private val mockAFTConnector = mock[AFTConnector]
 
-  private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def confirmSubmitAFTAmendmentRoute: String = routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, QUARTER_START_DATE, accessType, 3).url
 
-  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def confirmSubmitAFTAmendmentSubmitRoute: String = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, QUARTER_START_DATE, accessType, 3).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val extraModules: Seq[GuiceableModule] = Seq(

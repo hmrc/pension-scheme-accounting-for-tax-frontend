@@ -126,7 +126,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
             if (request.isAmendment) {
               controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version)
             } else {
-              controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate, accessType, version)
+              controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, startDate)
             }
           }
       case _ => sessionExpiredPage
