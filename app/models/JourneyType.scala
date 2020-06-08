@@ -18,6 +18,8 @@ package models
 
 object JourneyType extends Enumeration {
   type Name = Value
-  val AFT_RETURN: JourneyType.Value = Value("AFTReturn")
-  val AFT_AMEND: JourneyType.Value = Value("AFTAmendment")
+  val AFT_COMPILE_RETURN: JourneyType.Value = Value("AFTReturnCompiled")
+  val AFT_SUBMIT_RETURN: JourneyType.Value = Value("AFTReturnSubmitted")
+  val AFT_COMPILE_AMEND: JourneyType.Value = Value("AFTAmendmentCompiled")
+  val AFT_SUBMIT_AMEND: JourneyType.Value = Value("AFTAmendmentSubmitted")
 }
