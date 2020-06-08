@@ -46,8 +46,8 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val schemeService = mock[SchemeService]
 
-  private val version1 = AFTVersion(1, LocalDate.now())
-  private val version2 = AFTVersion(2, LocalDate.now())
+  private val version1 = AFTVersion(1, LocalDate.now(), "submitted")
+  private val version2 = AFTVersion(2, LocalDate.now(), "submitted")
   private val versions = Seq(version1, version2)
 
   def service: AFTPartialService =

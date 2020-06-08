@@ -57,8 +57,9 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
       (page: Page, userAnswers: UserAnswers, call: Call, currentDate: LocalDate, version: Int) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString} and current date: $currentDate and version: $version" in {
           DateHelper.setDate(Option(currentDate))
-          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate, accessType, version)(
-            request(sessionAccessData=SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeCompile)))
+          val result = navigator.nextPage(page, mode, userAnswers, srn, startDate, accessType, version)(
+            request(sessionAccessData=SessionAccessData(version = version,
+              accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
           result mustBe call
         }
     }

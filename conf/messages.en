@@ -10,6 +10,7 @@ site.no = No
 site.yes = Yes
 site.continue = Continue
 site.viewOrChange = View or change
+site.change = Change
 site.save_and_continue = Save and continue
 site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
@@ -147,6 +148,7 @@ dob.error.future = The member’s date of birth must be in the past
 dob.error.past = The member’s date of birth must be after 31 12 1899
 
 return.to.link = Return to {0}
+viewAllSubmissionsForReturn = View all submissions for this AFT return
 
 chargeDetails.amount.label = Amount of tax due at 40%
 
@@ -954,9 +956,11 @@ quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
 
 returnHistory.title = AFT return history for {0} to {1}
-returnHistory.version = Version
-returnHistory.submission = Submission {0}
-returnHistory.dateSubmitted = Date submitted
+returnHistory.version = Submission
+returnHistory.status = Status
+returnHistory.submittedOn = Submitted on {0}
+returnHistory.compiledStatus = In progress
+returnHistory.versionDraft = Draft
 returnHistory.visuallyHidden = submission {0} of the AFT return
 
 amendYears.title = Which year do you want to view?

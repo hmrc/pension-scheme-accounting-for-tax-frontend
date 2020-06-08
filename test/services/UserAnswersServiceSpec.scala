@@ -281,7 +281,7 @@ object UserAnswersServiceSpec {
   private val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
 
   private def sessionData(version: Int): SessionData =
-    SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile))
+    SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false))
 
   private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
     DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))

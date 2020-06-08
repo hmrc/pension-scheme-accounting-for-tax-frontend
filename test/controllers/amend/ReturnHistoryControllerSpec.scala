@@ -21,10 +21,12 @@ import java.time.LocalDate
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
+import play.api.mvc.Result
+import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{AFTOverview, AFTVersion}
+import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -34,6 +36,7 @@ import org.mockito.Mockito.when
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
+import play.api.libs.json.JsArray
 import play.api.libs.json.JsObject
 import play.api.libs.json.Json
 import play.api.test.Helpers.route
@@ -54,9 +57,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private val cssHalfWidth = "govuk-!-width-one-half"
 
-  private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17))
-  private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17))
-  private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17))
+  private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "Submitted")
+  private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "Submitted")
+  private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "Compiled")
   private val versions = Seq(version1, version2, version3)
   private val multipleVersions = Seq[AFTOverview](
     AFTOverview(
@@ -80,17 +83,17 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       Json.arr(
         Json.obj("text" -> "Submission 3","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/6/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-3 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/3/summary> View<span class= govuk-visually-hidden>submission 3 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-3 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/3/summary> View<span class= govuk-visually-hidden>submission 3 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Submission 2","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/5/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-2 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/2/summary> View<span class= govuk-visually-hidden>submission 2 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-2 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/2/summary> View<span class= govuk-visually-hidden>submission 2 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Submission 1","classes" -> cssHalfWidth),
         Json.obj("text" -> "17/4/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-1 href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/1/summary> View<span class= govuk-visually-hidden>submission 1 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
+        Json.obj("html" -> s"<a id=report-version-1 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/1/summary> View<span class= govuk-visually-hidden>submission 1 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
       )
     )
   )
@@ -111,6 +114,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
+    when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
@@ -126,8 +130,46 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(),any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
+
+      val actual = jsonCaptor.getValue
+
+      val actualColumnTitles = (actual \ "versions" \ "head").validate[JsArray].asOpt
+          .map(_.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
+
+      val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
+        .map(_.value.flatMap( _.validate[JsArray].asOpt.toSeq
+          .flatMap( _.value.flatMap{jsValue =>
+            ((jsValue \ "text").validate[String].asOpt match {
+              case None => (jsValue \ "html").validate[String].asOpt
+              case t => t
+            }).toSeq
+          })))
+
+      actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
+
+      def anchor(startDate:String, version:Int, linkContent:String, accessType: AccessType) =
+        s"<a id= report-version-$version " +
+          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}> " +
+          s"""$linkContent<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span> </a>"""
+
+      val expectedStartDate = "2020-04-01"
+
+      actualColumnValues mustBe Some(
+        Seq(
+          messages("returnHistory.versionDraft"),
+          messages("returnHistory.compiledStatus"),
+          anchor(expectedStartDate, 3, messages("site.change"), Draft),
+          "2",
+          messages("returnHistory.submittedOn", "17 May 2020"),
+          anchor(expectedStartDate, 2, messages("site.view"), Submission),
+          "1",
+          messages("returnHistory.submittedOn", "17 April 2020"),
+          anchor(expectedStartDate, 1, messages("site.view"), Submission)
+        )
+      )
 
     }
   }

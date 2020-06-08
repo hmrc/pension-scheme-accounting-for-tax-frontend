@@ -51,7 +51,7 @@ class AllowAccessServiceSpec extends SpecBase with ScalaFutures  with BeforeAndA
   private val sessionId = "1"
   private val optionLockedByName = Some("bob")
   private def sessionData(sad:SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
-  private val sessionAccessDataViewOnly = SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly)
+  private val sessionAccessDataViewOnly = SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)
   private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty) = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
     DataRequest(request, "", PsaId(SampleData.psaId), ua, sessionData(sessionAccessDataViewOnly))

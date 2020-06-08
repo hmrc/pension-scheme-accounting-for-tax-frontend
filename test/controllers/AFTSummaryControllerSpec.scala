@@ -24,10 +24,10 @@ import forms.AFTSummaryFormProvider
 import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, MemberDetails, Quarter, UserAnswers}
+import models.{AccessMode, GenericViewModel, MemberDetails, Quarter, UserAnswers}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import pages._
 import play.api.data.Form
@@ -35,14 +35,13 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
-import play.api.mvc.Results.Ok
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.MemberSearchService.MemberRow
 import services.{AFTService, AllowAccessService, MemberSearchService, SchemeService}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.AFTConstants.QUARTER_END_DATE
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
@@ -87,32 +86,47 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
-  private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject =
-    form =>
-      Json.obj(
-        "srn" -> srn,
-        "startDate" -> Some(startDate),
-        "form" -> form,
-        "list" -> Nil,
-        "isAmendment" -> false,
-        "viewAllAmendmentsLink" -> emptyHtml.toString(),
-        "viewModel" -> GenericViewModel(
-          submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
-          schemeName = SampleData.schemeName
-        ),
-        "quarterStartDate" -> startDate.format(dateFormatterStartDate),
-        "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
-        "canChange" -> true,
-        "radios" -> Radios.yesNo(form("value"))
-    )
+  private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment:Boolean): Form[Boolean] => JsObject = { form =>
+    val returnHistoryJson = if (includeReturnHistoryLink) {
+      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
+    } else {
+      Json.obj()
+    }
+
+    Json.obj(
+      "srn" -> srn,
+      "startDate" -> Some(startDate),
+      "form" -> form,
+      "list" -> Nil,
+      "isAmendment" -> isAmendment,
+      "viewAllAmendmentsLink" -> emptyHtml.toString(),
+      "viewModel" -> GenericViewModel(
+        submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
+        schemeName = SampleData.schemeName
+      ),
+      "quarterStartDate" -> startDate.format(dateFormatterStartDate),
+      "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
+      "canChange" -> true,
+      "radios" -> Radios.yesNo(form("value"))
+    ) ++ returnHistoryJson
+  }
 
   "AFTSummary Controller" when {
 
     "calling onPageLoad" must {
-      "return OK and the correct view for a GET where no version is present in the request and call the aft service" in {
+      "return OK and the correct view without view all amendments link when compiling initial draft and " +
+        "there are no submitted versions available where no version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setSessionData(
+          SampleData.sessionData(
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 1,
+              accessMode = AccessMode.PageAccessModeCompile
+            )
+          )
+        )
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -123,12 +137,21 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRendered
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = None).apply(form))
+        jsonCaptor.getValue must containJson(
+          jsonToPassToTemplate(version = None, includeReturnHistoryLink = false, isAmendment = false).apply(form))
       }
 
-      "return OK and the correct view with view all amendments link for a GET where a version is present in the request" in {
+      "return OK and the correct view without view all amendments link when compiling initial draft and " +
+        "there are no submitted versions available where a version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setSessionData(
+          SampleData.sessionData(
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 1,
+              accessMode = AccessMode.PageAccessModeCompile)
+          )
+        )
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -139,8 +162,36 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRendered
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(version = Some(version)).apply(form))
+        jsonCaptor.getValue must containJson(
+          jsonToPassToTemplate(version = Some(version), includeReturnHistoryLink = false, isAmendment = false).apply(form))
       }
+
+      "include the view all amendments link in json passed to page when there are submitted versions available" in {
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataUpdateAction.setSessionData(
+          SampleData.sessionData(
+            sessionAccessData = SampleData.sessionAccessData(
+              version = 2,
+              accessMode = AccessMode.PageAccessModeCompile,
+              areSubmittedVersionsAvailable = true
+            )
+          )
+        )
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+        val result = route(application, httpGETRequest(httpPathGET(None))).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual templateToBeRendered
+        jsonCaptor.getValue must containJson(
+          jsonToPassToTemplate(version = None, includeReturnHistoryLink = true, isAmendment = true).apply(form))
+      }
+
     }
 
     "calling onSubmit" when {

@@ -33,12 +33,11 @@ import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
-import models.LocalDateBinder._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -58,12 +57,14 @@ class ReturnHistoryController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
     val endDate = Quarters.getQuarter(startDate).endDate
+    val internalId = s"$srn$startDate"
 
     val json = for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
       versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
-      table <- tableOfVersions(srn, versions, startDate, seqAFTOverview)
+      _ <- userAnswersCacheConnector.removeAll(internalId)
+      table <- tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {
       Json.obj(
         fields = "srn" -> srn,
@@ -77,38 +78,50 @@ class ReturnHistoryController @Inject()(
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, aftVersions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])(
-      implicit messages: Messages,
-      ec: ExecutionContext,
-      hc: HeaderCarrier): Future[JsObject] = {
-
-    val versions = aftVersions.sortBy(_.reportVersion).reverse
-    val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
-
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])(implicit messages: Messages,
+                                                                                                   ec: ExecutionContext,
+                                                                                                   hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
-      val dateFormatter = DateTimeFormatter.ofPattern("d/M/yyyy")
+      val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
+      val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
       def link(data: AFTVersion, linkText: String, accessType: AccessType)(implicit messages: Messages): Html = {
-        Html(
-          s"<a id= report-version-${data.reportVersion} href=${url(accessType, data.reportVersion)}> ${messages(linkText)}" +
-            s"<span class=govuk-visually-hidden>${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
+        Html(s"<a id= report-version-${data.reportVersion} href=${url(accessType, data.reportVersion)}> ${messages(linkText)}" +
+          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
       }
 
       val head = Seq(
         Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(msg"returnHistory.dateSubmitted", classes = Seq("govuk-!-width-one-quarter")),
+        Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
         Cell(msg"")
       )
+
+      def versionCell(reportVersion: Int, reportStatus: String): Cell = {
+        val version = reportStatus.toLowerCase match {
+          case "compiled" => msg"returnHistory.versionDraft"
+          case _          => Literal(reportVersion.toString)
+        }
+        Cell(version, classes = Seq("govuk-!-width-one-quarter"))
+      }
+
+      def statusCell(date: String, reportStatus: String): Cell = {
+        val status = reportStatus match {
+          case "Compiled" => msg"returnHistory.compiledStatus"
+          case _          => msg"returnHistory.submittedOn".withArgs(date)
+        }
+
+        Cell(status, classes = Seq("govuk-!-width-one-half"))
+      }
 
       val tableRows = versions.zipWithIndex.map { data =>
         val (version, index) = data
         val accessType = if (index == 0 && isCompileAvailable.contains(true)) Draft else Submission
 
-        getLinkText(index, srn, version.date).map { linkText =>
+        getLinkText(index, srn, version.date, version.reportStatus).map { linkText =>
           Seq(
-            Cell(msg"returnHistory.submission".withArgs(version.reportVersion), classes = Seq("govuk-!-width-one-quarter")),
-            Cell(Literal(version.date.format(dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
+            versionCell(version.reportVersion, version.reportStatus),
+            statusCell(version.date.format(dateFormatter), version.reportStatus),
             Cell(link(version, linkText, accessType), classes = Seq("govuk-!-width-one-quarter"))
           )
         }
@@ -118,15 +131,18 @@ class ReturnHistoryController @Inject()(
         Json.obj("versions" -> Table(head = head, rows = rows))
       }
     } else {
-      Future(Json.obj())
+      Future.successful(Json.obj())
     }
   }
 
-  private def getLinkText(index: Int, srn: String, date: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
+  private def getLinkText(index: Int, srn: String, date: String, reportStatus:String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
     if (index == 0) {
-      userAnswersCacheConnector.lockedBy(srn, date).map {
-        case Some(_) => "site.view"
-        case _       => "site.viewOrChange"
+      userAnswersCacheConnector.lockedBy(srn, date).map { lockedBy =>
+        (lockedBy, reportStatus) match {
+          case (Some(_), _) => "site.view"
+          case (_, "Compiled") => "site.change"
+          case _ => "site.viewOrChange"
+        }
       }
     } else {
       Future.successful("site.view")
