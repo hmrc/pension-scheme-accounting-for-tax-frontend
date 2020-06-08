@@ -114,7 +114,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     Table(
       head = head,
       rows = rows,
-      attributes = Map("role" -> "grid", "aria-describedby" -> messages(s"allAmendments.table.caption.$caption") )
+      attributes = Map("role" -> "grid", "aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
     )
 
   }

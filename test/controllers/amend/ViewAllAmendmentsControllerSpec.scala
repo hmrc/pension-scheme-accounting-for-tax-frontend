@@ -100,7 +100,7 @@ class ViewAllAmendmentsControllerSpec
     Table(
       head = tableHeadingRows,
       rows = tableRows,
-      attributes = Map("role" -> "grid" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption") )
+      attributes = Map("role" -> "grid" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
     )
   }
 

@@ -987,9 +987,9 @@ allAmendments.h1.submission.caption = Submission {0}
 allAmendments.memberDetails.h1 = Member details
 allAmendments.chargeType.h1 = Charge type
 allAmendments.chargeAmount.h1 = Charge amount
-allAmendments.table.caption.added = added
-allAmendments.table.caption.deleted = deleted
-allAmendments.table.caption.updated = updated
+allAmendments.table.caption.added = Added
+allAmendments.table.caption.deleted = Deleted
+allAmendments.table.caption.updated = Updated
 
 allAmendments.charge.type.lumpSumDeath = Special lump sum death benefits
 allAmendments.charge.type.lifeTimeAllowance = Lifetime Allowance
