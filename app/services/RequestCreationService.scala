@@ -95,14 +95,14 @@ class RequestCreationService @Inject()(
       request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, accessType, srn)
+      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, srn)
       savedUA <- save(updatedUA, sessionData)
     } yield {
       (schemeDetails, savedUA)
     }
   }
 
-  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean, isSubmission: Boolean) = {
+  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean): SessionAccessData = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
     val viewOnly = isLocked || psaSuspended || versionInt < maxVersion
     val anyVersions = seqAFTOverview.nonEmpty
@@ -121,13 +121,9 @@ class RequestCreationService @Inject()(
 
   private def save(ua: UserAnswers,
                    sad: SessionAccessData)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    val savedJsValue = userAnswersCacheConnector
-      .save(
-        request.internalId,
-        ua.data,
-        optionSessionData = Some(sad),
-        lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly
-      )
+    val savedJsValue = userAnswersCacheConnector.save(request.internalId, ua.data, optionSessionData = Some(sad),
+      lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly)
+
     savedJsValue.map(json => UserAnswers(json.as[JsObject]))
   }
 
@@ -155,10 +151,11 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, accessType: AccessType, srn: String)(
+  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, srn: String)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[(UserAnswers, SessionAccessData)] = {
+
     def updateMinimalPsaDetailsInUa(ua: UserAnswers): Future[UserAnswers] = {
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
       uaWithStatus.get(IsPsaSuspendedQuery) match {
@@ -181,7 +178,7 @@ class RequestCreationService @Inject()(
       ua <- updateMinimalPsaDetailsInUa(request.userAnswers.getOrElse(UserAnswers()))
     } yield {
       val sessionData = createSessionAccessData(version, seqAFTOverview, optionLockedBy.isDefined,
-        ua.get(IsPsaSuspendedQuery).getOrElse(true), accessType == Submission)
+        ua.get(IsPsaSuspendedQuery).getOrElse(true))
       if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
         Future.successful(
           (ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))

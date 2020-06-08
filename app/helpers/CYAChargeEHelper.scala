@@ -26,9 +26,9 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class CYAChargeEHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
-  def chargeEMemberDetails(index: Int, answer: models.MemberDetails, accessType: AccessType, version: Int): Seq[Row] = {
+  def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
     Seq(
       Row(
         key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
@@ -55,7 +55,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
     )
   }
 
-  def chargeETaxYear(index: Int, answer: YearRange, accessType: AccessType, version: Int): Seq[Row] = {
+  def chargeETaxYear(index: Int, answer: YearRange): Seq[Row] = {
     Seq(
       Row(
         key = Key(msg"chargeE.cya.taxYear.label", classes = Seq("govuk-!-width-one-half")),
@@ -72,7 +72,7 @@ class CYAChargeEHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
   }
 
 
-  def chargeEDetails(index: Int, answer: ChargeEDetails, accessType: AccessType, version: Int): Seq[Row] = {
+  def chargeEDetails(index: Int, answer: ChargeEDetails): Seq[Row] = {
     Seq(
       Row(
         key = Key(msg"chargeEDetails.chargeAmount.label", classes = Seq("govuk-!-width-one-half")),

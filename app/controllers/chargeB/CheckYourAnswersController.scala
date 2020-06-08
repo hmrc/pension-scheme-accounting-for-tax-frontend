@@ -58,7 +58,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
     implicit request =>
-      DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
+      DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate, accessType, version) { (chargeDetails, schemeName) =>
         val helper = new CYAChargeBHelper(srn, startDate, accessType, version)
         val seqRows = helper.chargeBDetails(chargeDetails)
 

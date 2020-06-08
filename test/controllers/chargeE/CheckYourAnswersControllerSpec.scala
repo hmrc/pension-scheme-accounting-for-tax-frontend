@@ -44,11 +44,11 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(AnnualAllowanceYearPage(0), dynamicYearRange).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  private val helper = new CYAChargeEHelper(srn, startDate)
+  private val helper = new CYAChargeEHelper(srn, startDate, accessType, versionInt)
   private val rows = Seq(
-    helper.chargeEMemberDetails(0, memberDetails, accessType, versionInt),
-    helper.chargeETaxYear(0, dynamicYearRange, accessType, versionInt),
-    helper.chargeEDetails(0, chargeEDetails, accessType, versionInt)
+    helper.chargeEMemberDetails(0, memberDetails),
+    helper.chargeETaxYear(0, dynamicYearRange),
+    helper.chargeEDetails(0, chargeEDetails)
   ).flatten
 
   private val jsonToPassToTemplate: JsObject = Json.obj(

@@ -54,7 +54,8 @@ class AFTLoginController @Inject()(
 
       case _ =>
         val defaultQuarter = Quarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
-        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear), Draft, 1)))
+        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn,
+          Quarters.getStartDate(defaultQuarter, defaultYear), Draft, version = 1)))
     }
   }
 

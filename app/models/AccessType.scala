@@ -39,8 +39,8 @@ object AccessType {
     }
 
     override def unbind(key: String, value: AccessType): String = {
-      val modeValue = accessTypes.find(_ == value).map(_.toString).getOrElse(throw UnknownAccessTypeException())
-      stringBinder.unbind(key, modeValue)
+      val accessTypeValue = accessTypes.find(_ == value).map(_.toString).getOrElse(throw UnknownAccessTypeException())
+      stringBinder.unbind(key, accessTypeValue)
     }
   }
 }
