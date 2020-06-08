@@ -22,12 +22,12 @@ import com.google.inject.Inject
 import helpers.FormatHelper
 import javax.inject.Singleton
 import models.requests.DataRequest
-import models.{ChargeType, Member, UserAnswers}
+import models.{AccessType, ChargeType, Member, UserAnswers}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Writes, Json, _}
+import play.api.libs.json.{Json, Writes, _}
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
@@ -54,7 +54,7 @@ class MemberSearchService @Inject()(
       }
     }
 
-    listOfRows(listOfMembers(ua, srn, startDate).filter(searchFunc), request.isViewOnly)
+    listOfRows(listOfMembers(ua, srn, startDate, accessType, version).filter(searchFunc), request.isViewOnly)
   }
 
   private def listOfMembers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)

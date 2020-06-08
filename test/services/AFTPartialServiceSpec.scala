@@ -196,7 +196,7 @@ object AFTPartialServiceSpec {
       Some(msg"aftPartial.status.lockedBy".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
-        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/1/summary",
+        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
         linkText = msg"aftPartial.view.link",
         hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
@@ -218,7 +218,7 @@ object AFTPartialServiceSpec {
       Some(msg"aftPartial.status.lockedBy".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
-        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/summary",
+        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
         linkText = msg"aftPartial.view.link",
         hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
@@ -229,7 +229,7 @@ object AFTPartialServiceSpec {
       Some(msg"aftPartial.status.inProgress"),
       Link(
         id = "aftSummaryPageLink",
-        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/new-return/$startDate/1/summary",
+        url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
         linkText = msg"aftPartial.view.link",
         hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
@@ -271,7 +271,7 @@ object AFTPartialServiceSpec {
   val aftLoginUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/aft-login"
   val amendUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/previous-return/amend-select"
   val returnHistoryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/previous-return/2020-10-01/amend-previous"
-  val aftSummaryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/2020-10-01/2/summary"
+  val aftSummaryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/select-quarter-in-progress"
 
   def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,

@@ -80,11 +80,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
-    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any())(any(), any())).thenReturn(emptyHtml)
+    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
   private def jsonToPassToTemplate(version: Option[String]): Form[Boolean] => JsObject =
@@ -98,7 +98,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "viewAllAmendmentsLink" -> emptyHtml.toString(),
         "viewModel" -> GenericViewModel(
           submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
           schemeName = SampleData.schemeName
         ),
         "quarterStartDate" -> startDate.format(dateFormatterStartDate),

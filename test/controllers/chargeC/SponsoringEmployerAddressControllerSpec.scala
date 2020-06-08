@@ -89,7 +89,7 @@ class SponsoringEmployerAddressControllerSpec extends ControllerSpecBase with Mo
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressController.
         onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName),
     "sponsorName" -> sponsorName,
     "countries" -> Seq(

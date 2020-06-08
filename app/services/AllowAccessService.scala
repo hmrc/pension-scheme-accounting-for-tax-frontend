@@ -25,7 +25,7 @@ import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
-import models.{AccessType, SchemeStatus, UserAnswers}
+import models.{AccessType, Draft, SchemeStatus, UserAnswers}
 import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
@@ -89,14 +89,14 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                        version: Int,
                                        accessType: AccessType)
                                       (implicit request: DataRequest[_]): Future[Option[Result]] =
-    (isSuspended, request.isViewOnly, optPage, version, isPreviousPageWithinAFT) match {
-    case (true, _, Some(AFTSummaryPage), _, false) =>
+    (isSuspended, request.isViewOnly, optPage, version, accessType, isPreviousPageWithinAFT) match {
+    case (true, _, Some(AFTSummaryPage), _, _, false) =>
       Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
-    case (true, _, Some(ChargeTypePage), _, _) =>
+    case (true, _, Some(ChargeTypePage), _, _, _) =>
       Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
-    case (false, true, Some(ChargeTypePage), _, _) =>
+    case (false, true, Some(ChargeTypePage), _, _, _) =>
       Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
-    case (false, true, None, _, _) =>
+    case (false, true, None, _, _, _) =>
       //todo redirect to new error page for form-pages in view-only returns once it is created
       Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
     case _ =>

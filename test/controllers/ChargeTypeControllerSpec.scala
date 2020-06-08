@@ -75,7 +75,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.routes.ChargeTypeController.onSubmit(srn, startDate, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName)
   )
 
@@ -84,7 +84,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
@@ -93,7 +93,6 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "on a GET" must {
 
       "return OK with the correct view and call the aft service" in {
-//        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeName))
         fakeDataUpdateAction.setSessionData(SampleData.sessionData())
 

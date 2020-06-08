@@ -64,7 +64,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = confirmSubmitAFTReturnSubmitRoute,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value"))
   )

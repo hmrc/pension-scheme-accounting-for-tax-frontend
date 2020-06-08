@@ -127,11 +127,11 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
                   PsaId("A2100000"),
                   UserAnswers(),
                   SampleData.sessionData(sessionAccessData = sessionData))
-    def amendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+    def amendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, versionInt).url
 
     "have correct link text when its amendment compile" in {
 
-      val link = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate)(implicitly, dataRequest())
+      val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly, dataRequest())
 
       link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
         "allAmendments.view.changes.draft.link")}</a>""".stripMargin).toString()}")
@@ -140,7 +140,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
 
     "have correct link text when its previous submission" in {
 
-      val link = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate)(implicitly,
+      val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly,
         dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly)))
 
       link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(

@@ -95,7 +95,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeD.routes.AddMembersController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName),
     "radios" -> Radios.yesNo(form("value")),
     "quarterStart" -> LocalDate.parse(QUARTER_START_DATE).format(dateFormatterDMY),

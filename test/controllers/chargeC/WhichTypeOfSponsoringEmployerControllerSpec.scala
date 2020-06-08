@@ -64,7 +64,7 @@ class WhichTypeOfSponsoringEmployerControllerSpec
   private def httpPathPOST: String = routes.WhichTypeOfSponsoringEmployerController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
 
   private def viewModel = GenericViewModel(submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url, schemeName = schemeName)
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url, schemeName = schemeName)
 
   "IsSponsoringEmployerIndividual Controller" must {
 

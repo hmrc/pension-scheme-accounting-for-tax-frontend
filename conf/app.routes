@@ -225,6 +225,7 @@ GET         /accessibility-statement                                            
 GET         /:srn/:startDate/:accessType/:version/return-to-scheme-details                                                            controllers.ReturnToSchemeDetailsController.returnToSchemeDetails(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
+
 GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
 
 GET         /:srn/new-return/select-quarter-in-progress                                                                      controllers.amend.ContinueQuartersController.onPageLoad(srn: String)

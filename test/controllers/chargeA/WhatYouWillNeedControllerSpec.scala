@@ -47,7 +47,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "schemeName" -> schemeName, "nextPage" -> dummyCall.url, "viewModel" -> GenericViewModel(
       submitUrl = "",
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
   override def beforeEach: Unit = {

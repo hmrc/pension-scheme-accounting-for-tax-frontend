@@ -47,7 +47,7 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = redirectUrl,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
   override def beforeEach: Unit = {

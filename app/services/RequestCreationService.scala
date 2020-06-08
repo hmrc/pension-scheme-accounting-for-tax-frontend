@@ -26,7 +26,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, AccessMode, AccessType, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, Submission, UserAnswers}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
@@ -74,11 +74,16 @@ class RequestCreationService @Inject()(
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
+      (data, version, accessType, optionCurrentPage, isPreviousPageWithinAFT) match {
+        case (None, 1, Draft, Some(AFTSummaryPage), true) =>
+          Future.successful(optionalDataRequest(None))
+        case _ =>
+          val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
 
-      tuple.flatMap {
-        case (_, ua) =>
-          userAnswersCacheConnector.getSessionData(id).map { sd => OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
+          tuple.flatMap {
+            case (_, ua) =>
+              userAnswersCacheConnector.getSessionData(id).map { sd => OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
+              }
           }
       }
     }
@@ -97,16 +102,16 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def createSessionAccessData(optionVersion: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
+  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean, isSubmission: Boolean) = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
-    val viewOnly = isLocked || psaSuspended || optionVersion < maxVersion
+    val viewOnly = isLocked || psaSuspended || versionInt < maxVersion
     val anyVersions = seqAFTOverview.nonEmpty
     val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
 
     val (version, accessMode) =
       (viewOnly, anyVersions, isInCompile) match {
         case (true, false, _)    => (1, AccessMode.PageAccessModeViewOnly)
-        case (true, true, _)     => (optionVersion, AccessMode.PageAccessModeViewOnly)
+        case (true, true, _)     => (versionInt, AccessMode.PageAccessModeViewOnly)
         case (false, true, true) => (maxVersion, AccessMode.PageAccessModeCompile)
         case _                   => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
@@ -175,7 +180,8 @@ class RequestCreationService @Inject()(
       seqAFTOverview <- getAftOverview(schemeDetails.pstr, startDate)
       ua <- updateMinimalPsaDetailsInUa(request.userAnswers.getOrElse(UserAnswers()))
     } yield {
-      val sessionData = createSessionAccessData(version, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
+      val sessionData = createSessionAccessData(version, seqAFTOverview, optionLockedBy.isDefined,
+        ua.get(IsPsaSuspendedQuery).getOrElse(true), accessType == Submission)
       if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
         Future.successful(
           (ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))

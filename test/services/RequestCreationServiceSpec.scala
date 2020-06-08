@@ -211,6 +211,9 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             compiledVersionAvailable = true
           )
         )
+        when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
         when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(multipleVersions))
 
