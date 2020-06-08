@@ -26,17 +26,17 @@ class SessionDataSpec extends WordSpec with MustMatchers with MockitoSugar with 
 
   "deriveMinimumChargeValueAllowed" must {
     "give 0.01 when version is 1 and access mode is pre-compile" in {
-      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModePreCompile))
+      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModePreCompile, areSubmittedVersionsAvailable = false))
       sd.deriveMinimumChargeValueAllowed mustBe BigDecimal(0.01)
     }
 
     "give 0.00 when version is 1 and access mode is compile" in {
-      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile))
+      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false))
       sd.deriveMinimumChargeValueAllowed mustBe BigDecimal(0.00)
     }
 
     "give 0.00 when version is 2 and access mode is pre-compile" in {
-      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(2, AccessMode.PageAccessModePreCompile))
+      val sd = SampleData.sessionData(sessionAccessData = SessionAccessData(2, AccessMode.PageAccessModePreCompile, areSubmittedVersionsAvailable = false))
       sd.deriveMinimumChargeValueAllowed mustBe BigDecimal(0.00)
     }
   }

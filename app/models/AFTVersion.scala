@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json}
 
-case class AFTVersion(reportVersion: Int, date: LocalDate)
+case class AFTVersion(reportVersion: Int, date: LocalDate, reportStatus: String)
 
 object AFTVersion {
 

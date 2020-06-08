@@ -67,7 +67,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val internalId = s"$srn$startDate"
 
   private val nameLockedBy = None
-  private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile)
+  private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
   private val emptyUserAnswers = UserAnswers()
@@ -87,7 +87,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val email = "test@test.com"
   private val psaName = "Pension Scheme Administrator"
 
-  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1)))
+  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1), "submitted"))
 
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
@@ -147,7 +147,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         verify(mockUserAnswersCacheConnector, times(1))
           .save(any(),
             any(),
-            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly))),
+            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true))),
             Matchers.eq(false))(any(), any())
       }
     }
