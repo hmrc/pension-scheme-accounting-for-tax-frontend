@@ -90,7 +90,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName)
 
   "DeleteEmployer Controller" must {

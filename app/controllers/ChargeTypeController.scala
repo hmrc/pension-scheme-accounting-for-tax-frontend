@@ -71,7 +71,7 @@ class ChargeTypeController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
-      requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage))).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
@@ -115,7 +115,7 @@ class ChargeTypeController @Inject()(
   private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
   }

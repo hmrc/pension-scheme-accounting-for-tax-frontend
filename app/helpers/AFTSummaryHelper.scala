@@ -132,14 +132,15 @@ class AFTSummaryHelper {
     summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)
   }
 
-  def viewAmendmentsLink(version: String, srn: String, startDate: LocalDate)(implicit messages: Messages, request: DataRequest[_]): Html = {
+  def viewAmendmentsLink(version: Int, srn: String, startDate: LocalDate, accessType: AccessType)
+                        (implicit messages: Messages, request: DataRequest[_]): Html = {
 
     val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
       messages("allAmendments.view.changes.draft.link")
     } else {
       messages("allAmendments.view.changes.submission.link")
     }
-    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version).url
 
     Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }

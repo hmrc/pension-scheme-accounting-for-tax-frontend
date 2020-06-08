@@ -18,29 +18,28 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
+import com.google.inject.{ImplementedBy, Inject}
+import models.AccessType
 import models.requests.DataRequest
 import pages.Page
-import play.api.mvc.ActionFilter
-import play.api.mvc.Result
+import play.api.mvc.{ActionFilter, Result}
 import services.AllowAccessService
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService, optionPage:Option[Page])
+class AllowAccessAction(srn: String, startDate: LocalDate, allowService: AllowAccessService, optionPage:Option[Page], version: Int, accessType: AccessType)
                        (implicit val executionContext: ExecutionContext)
     extends ActionFilter[DataRequest] {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] =
-    allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers, optionPage)(request)
+    allowService.filterForIllegalPageAccess(srn, startDate, request.userAnswers, optionPage, version, accessType)(request)
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None): ActionFilter[DataRequest]
+  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(allowService: AllowAccessService)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None) = new AllowAccessAction(srn, startDate, allowService, optionPage)
+  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None, version: Int, accessType: AccessType) =
+    new AllowAccessAction(srn, startDate, allowService, optionPage, version, accessType)
 }

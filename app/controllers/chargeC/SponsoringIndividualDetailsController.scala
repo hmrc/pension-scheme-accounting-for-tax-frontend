@@ -57,7 +57,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
   private val form = formProvider()
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(SponsoringIndividualDetailsPage(index)) match {
           case None        => form
@@ -66,7 +66,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -91,7 +91,7 @@ class SponsoringIndividualDetailsController @Inject()(override val messagesApi: 
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.SponsoringIndividualDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 

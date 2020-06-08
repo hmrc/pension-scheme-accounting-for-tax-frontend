@@ -70,7 +70,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     "form" -> form,
     "viewModel" -> GenericViewModel(
       submitUrl = controllers.chargeA.routes.ChargeDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName)
   )
 

@@ -45,7 +45,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
     fields =
       "schemeName" -> SampleData.schemeName,
     "nextPage" -> SampleData.dummyCall.url,
-    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url)
+    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url)
 
   override def beforeEach: Unit = {
     super.beforeEach

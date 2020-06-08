@@ -40,7 +40,7 @@ class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
       val argCaptor = ArgumentCaptor.forClass(classOf[String])
       val result =
-        route(application, FakeRequest(GET, controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url)).value
+        route(application, FakeRequest(GET, controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url)).value
 
       status(result) mustBe SEE_OTHER
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(argCaptor.capture())(any(), any())

@@ -53,7 +53,7 @@ class ConfirmationController @Inject()(
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate) andThen allowSubmission).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
         DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
@@ -72,7 +72,7 @@ class ConfirmationController @Inject()(
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
           )

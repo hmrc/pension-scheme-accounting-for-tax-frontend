@@ -58,13 +58,13 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
     formProvider(messages("deleteCharge.error.required", messages("chargeB").toLowerCase()))
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
             submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
@@ -91,7 +91,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 

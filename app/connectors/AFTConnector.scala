@@ -69,9 +69,6 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extend
                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
     val url = config.aftOverviewUrl
 
-    println("\n\n\n startDate : "+startDate)
-    println("\n\n\n endDate : "+endDate)
-
     val schemeHc = hc.withExtraHeaders(
       "pstr" -> pstr,
       "startDate" -> startDate.getOrElse(aftOverviewStartDate.toString),

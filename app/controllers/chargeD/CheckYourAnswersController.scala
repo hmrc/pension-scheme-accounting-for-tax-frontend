@@ -57,7 +57,8 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.cyaChargeD(index, srn, startDate) { (memberDetails, chargeDetails, schemeName) =>
         val helper = new CYAChargeDHelper(srn, startDate, accessType, version)
 
@@ -71,14 +72,13 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
           .render(
             "check-your-answers.njk",
             Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
                 submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               ),
+              "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeD",
               "canChange" -> !request.isViewOnly
             )

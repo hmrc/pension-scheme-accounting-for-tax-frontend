@@ -72,7 +72,7 @@ class AFTSummaryController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
-      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
           getJson(
@@ -92,7 +92,7 @@ class AFTSummaryController @Inject()(
 
   def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
-      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val ua = request.userAnswers
         memberSearchForm
@@ -147,7 +147,7 @@ class AFTSummaryController @Inject()(
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
 
-    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version.toString, srn, startDate)
+    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate, accessType)
 
     Json.obj(
       "srn" -> srn,
@@ -179,7 +179,7 @@ class AFTSummaryController @Inject()(
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Int, accessType: AccessType): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
   }

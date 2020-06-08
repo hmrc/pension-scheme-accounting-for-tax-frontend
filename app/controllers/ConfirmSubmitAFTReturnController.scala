@@ -56,7 +56,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
-      requireData andThen allowAccess(srn, startDate) andThen allowSubmission ).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(ConfirmSubmitAFTReturnPage) match {
           case None        => form
@@ -65,7 +65,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
         val viewModel = GenericViewModel(
           submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate, accessType, version).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -83,7 +83,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
-      allowAccess(srn, startDate) andThen allowSubmission ).async { implicit request =>
+      allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission ).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
           .bindFromRequest()
@@ -92,7 +92,7 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
               val viewModel = GenericViewModel(
                 submitUrl = routes.ConfirmSubmitAFTReturnController.onSubmit(mode, srn, startDate, accessType, version).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 

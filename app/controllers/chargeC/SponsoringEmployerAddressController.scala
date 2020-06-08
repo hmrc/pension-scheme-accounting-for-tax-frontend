@@ -82,7 +82,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
       }
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         val preparedForm = request.userAnswers.get(SponsoringEmployerAddressPage(index)) match {
@@ -91,7 +91,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
         }
         val viewModel = GenericViewModel(
           submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -121,7 +121,7 @@ class SponsoringEmployerAddressController @Inject()(override val messagesApi: Me
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.SponsoringEmployerAddressController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 

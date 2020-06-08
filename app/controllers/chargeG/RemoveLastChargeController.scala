@@ -46,13 +46,13 @@ class RemoveLastChargeController @Inject()(override val messagesApi: MessagesApi
     with NunjucksSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
             submitUrl = routes.ChargeAmountsController.onSubmit(CheckMode, srn, startDate, accessType, version, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 

@@ -211,15 +211,18 @@ GET        /:srn/:startDate/:accessType/:version/declaration/on-submit-declarati
 GET        /:srn/:startDate/:accessType/:version/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 
-GET         /:srn/new-return/:startDate/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String)
-GET         /:srn/new-return/:startDate/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String] = None)
-GET         /:srn/new-return/:startDate/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, version: Option[String])
+GET         /:srn/:startDate/:accessType/:version/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+GET         /:srn/:startDate/:accessType/:version/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+GET         /:srn/:startDate/:accessType/:version/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+
+GET         /:srn/:startDate/:accessType/:version/changes-made-in-submission                                                      controllers.amend.ViewAllAmendmentsController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /unauthorised                                                                                                       controllers.UnauthorisedController.onPageLoad
 
 GET         /accessibility-statement                                                                                            controllers.AccessibilityController.onPageLoad
 
-GET         /:srn/new-return/:startDate/return-to-scheme-details                                                            controllers.ReturnToSchemeDetailsController.returnToSchemeDetails(srn: String, startDate: String)
+GET         /:srn/:startDate/:accessType/:version/return-to-scheme-details                                                            controllers.ReturnToSchemeDetailsController.returnToSchemeDetails(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /:srn/new-return/aft-login                                                                                       controllers.AFTLoginController.onPageLoad(srn: String)
 GET         /:srn/previous-return/amend-select                                                                               controllers.amend.AFTAmendController.onPageLoad(srn: String)
@@ -234,8 +237,6 @@ GET         /:srn/previous-return/:year/view-quarter                            
 POST        /:srn/previous-return/:year/view-quarter                                                                              controllers.amend.AmendQuartersController.onSubmit(srn: String, year: String)
 
 GET         /:srn/previous-return/:startDate/amend-previous                                                                             controllers.amend.ReturnHistoryController.onPageLoad(srn: String, startDate: String)
-
-GET         /:srn/previous-return/:startDate/:version/changes-made-in-submission                                                      controllers.amend.ViewAllAmendmentsController.onPageLoad(srn: String, startDate: String, version: String)
 
 GET         /:srn/new-return/select-year                                                                                 controllers.YearsController.onPageLoad(srn: String)
 POST        /:srn/new-return/select-year                                                                                 controllers.YearsController.onSubmit(srn: String)

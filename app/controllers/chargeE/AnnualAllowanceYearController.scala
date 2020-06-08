@@ -59,7 +59,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
     formProvider("annualAllowanceYear.error.required")
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm: Form[YearRange] = request.userAnswers.get(AnnualAllowanceYearPage(index)) match {
           case Some(value) => form.fill(value)
@@ -68,7 +68,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
 
         val viewModel = GenericViewModel(
           submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -93,7 +93,7 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
             formWithErrors => {
               val viewModel = GenericViewModel(
                 submitUrl = routes.AnnualAllowanceYearController.onSubmit(mode, srn, startDate, accessType, version, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 

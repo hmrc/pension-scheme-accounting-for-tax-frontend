@@ -60,7 +60,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
   def form: Form[Boolean] = formProvider("chargeE.addMembers.error")
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(QuarterPage)) match {
         case (Some(schemeName), Some(quarter)) =>
           renderer.render(template = "chargeE/addMembers.njk", getJson(srn, startDate, form, schemeName, quarter, accessType, version)).map(Ok(_))
@@ -96,7 +96,7 @@ class AddMembersController @Inject()(override val messagesApi: MessagesApi,
       implicit request: DataRequest[AnyContent]): JsObject = {
 
     val viewModel = GenericViewModel(submitUrl = routes.AddMembersController.onSubmit(srn, startDate, accessType, version).url,
-                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                                     returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                                      schemeName = schemeName)
 
     val members = chargeEHelper.getAnnualAllowanceMembers(request.userAnswers, srn, startDate, accessType, version)

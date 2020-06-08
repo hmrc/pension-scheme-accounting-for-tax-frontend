@@ -76,7 +76,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
 
   private def viewModel: GenericViewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
     schemeName = schemeName
   )
 

@@ -20,13 +20,13 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.{AFTConnector, MinimalPsaConnector}
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{AFTOverview, AccessMode, AccessType, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
@@ -48,7 +48,6 @@ class RequestCreationService @Inject()(
                                                                         executionContext: ExecutionContext,
                                                                         headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
-
     for {
       data <- userAnswersCacheConnector.fetch(id)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
@@ -61,33 +60,25 @@ class RequestCreationService @Inject()(
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def retrieveAndCreateRequest[A](srn: String, startDate: LocalDate, version: Int,
-                                  accessType: AccessType, optionCurrentPage: Option[Page])(
+  def retrieveAndCreateRequest[A](srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page])(
       implicit request: IdentifierRequest[A],
       executionContext: ExecutionContext,
       headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
 
     val id = s"$srn$startDate"
 
-    def optionalDataRequest(optionJsValue:Option[JsValue]): OptionalDataRequest[A] = {
-      val optionUA = optionJsValue.map { jsValue =>
-        UserAnswers(jsValue.as[JsObject])
+    def optionalDataRequest(optionJsValue: Option[JsValue]): OptionalDataRequest[A] = {
+      val optionUA = optionJsValue.map { jsValue => UserAnswers(jsValue.as[JsObject])
       }
       OptionalDataRequest[A](request, id, request.psaId, optionUA, None)
     }
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
-      (data, version, optionCurrentPage, isPreviousPageWithinAFT) match {
-        case (None, 1, Some(AFTSummaryPage), true) =>
-          Future.successful(optionalDataRequest(None))
-        case _ =>
-          val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
+      val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
 
-          tuple.flatMap {
-            case (_, ua) =>
-              userAnswersCacheConnector.getSessionData(id).map { sd =>
-                OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
-              }
+      tuple.flatMap {
+        case (_, ua) =>
+          userAnswersCacheConnector.getSessionData(id).map { sd => OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
           }
       }
     }
@@ -99,8 +90,8 @@ class RequestCreationService @Inject()(
       request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      updatedUA <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, accessType)
-      savedUA <- save(updatedUA, srn, startDate, optionVersion, schemeDetails.pstr)
+      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, accessType, srn)
+      savedUA <- save(updatedUA, sessionData)
     } yield {
       (schemeDetails, savedUA)
     }
@@ -108,7 +99,6 @@ class RequestCreationService @Inject()(
 
   private def createSessionAccessData(optionVersion: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean) = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
-
     val viewOnly = isLocked || psaSuspended || optionVersion < maxVersion
     val anyVersions = seqAFTOverview.nonEmpty
     val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
@@ -124,30 +114,16 @@ class RequestCreationService @Inject()(
     SessionAccessData(version, accessMode)
   }
 
-  private def save(ua: UserAnswers, srn: String, startDate: LocalDate, optionVersion: Int, pstr: String)(
-      implicit request: OptionalDataRequest[_],
-      hc: HeaderCarrier,
-      ec: ExecutionContext): Future[UserAnswers] = {
-    def saveAll(optionLockedBy: Option[String],
-                seqAFTOverview: Seq[AFTOverview])(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext) = {
-      val sad: SessionAccessData =
-        createSessionAccessData(optionVersion, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
-      userAnswersCacheConnector
-        .save(
-          request.internalId,
-          ua.data,
-          optionSessionData = Some(sad),
-          lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly
-        )
-    }
-
-    for {
-      optionLockedBy <- userAnswersCacheConnector.lockedBy(srn, startDate)
-      seqAFTOverview <- getAftOverview(pstr, startDate)
-      savedJson <- saveAll(optionLockedBy, seqAFTOverview.filter(_.periodStartDate == startDate))
-    } yield {
-      UserAnswers(savedJson.as[JsObject])
-    }
+  private def save(ua: UserAnswers,
+                   sad: SessionAccessData)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+    val savedJsValue = userAnswersCacheConnector
+      .save(
+        request.internalId,
+        ua.data,
+        optionSessionData = Some(sad),
+        lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly
+      )
+    savedJsValue.map(json => UserAnswers(json.as[JsObject]))
   }
 
   private def isOverviewApiDisabled: Boolean =
@@ -170,34 +146,16 @@ class RequestCreationService @Inject()(
           }
         }
     } else { // After 1st July
-      aftConnector.getAftOverview(pstr)
+      aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, accessType: AccessType)(
+  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, accessType: AccessType, srn: String)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
-      request: OptionalDataRequest[_]): Future[UserAnswers] = {
-
-    def currentUserAnswers: UserAnswers = request.userAnswers.getOrElse(UserAnswers())
-
-    val futureUserAnswers = version == 1 && accessType == Draft match {
-      case true =>
-        Future.successful(
-            currentUserAnswers
-              .setOrException(QuarterPage, Quarters.getQuarter(startDate))
-              .setOrException(AFTStatusQuery, value = "Compiled")
-              .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-              .setOrException(PSTRQuery, schemeDetails.pstr)
-        )
-      case false =>
-        aftConnector.getAFTDetails(schemeDetails.pstr, startDate, version.toString)
-          .map(aftDetails => UserAnswers(aftDetails.as[JsObject]))
-    }
-
-    futureUserAnswers.flatMap { ua =>
+      request: OptionalDataRequest[_]): Future[(UserAnswers, SessionAccessData)] = {
+    def updateMinimalPsaDetailsInUa(ua: UserAnswers): Future[UserAnswers] = {
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
-
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
           minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
@@ -211,5 +169,26 @@ class RequestCreationService @Inject()(
           Future.successful(uaWithStatus)
       }
     }
+
+    val uaWithSessionData = for {
+      optionLockedBy <- userAnswersCacheConnector.lockedBy(srn, startDate)
+      seqAFTOverview <- getAftOverview(schemeDetails.pstr, startDate)
+      ua <- updateMinimalPsaDetailsInUa(request.userAnswers.getOrElse(UserAnswers()))
+    } yield {
+      val sessionData = createSessionAccessData(version, seqAFTOverview, optionLockedBy.isDefined, ua.get(IsPsaSuspendedQuery).getOrElse(true))
+      if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
+        Future.successful(
+          (ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
+             .setOrException(AFTStatusQuery, value = "Compiled")
+             .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+             .setOrException(PSTRQuery, schemeDetails.pstr),
+           sessionData))
+      } else {
+        aftConnector
+          .getAFTDetails(schemeDetails.pstr, startDate, version.toString)
+          .map(aftDetails => (UserAnswers(ua.data ++ aftDetails.as[JsObject]), sessionData))
+      }
+    }
+    uaWithSessionData.flatMap(identity)
   }
 }

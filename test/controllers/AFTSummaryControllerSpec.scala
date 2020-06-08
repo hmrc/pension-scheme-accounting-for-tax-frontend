@@ -98,7 +98,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         "viewAllAmendmentsLink" -> emptyHtml.toString(),
         "viewModel" -> GenericViewModel(
           submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = SampleData.schemeName
         ),
         "quarterStartDate" -> startDate.format(dateFormatterStartDate),
