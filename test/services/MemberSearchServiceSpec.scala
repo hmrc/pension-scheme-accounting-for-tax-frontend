@@ -19,10 +19,10 @@ package services
 import java.time.LocalDate
 
 import base.SpecBase
-import data.SampleData.{accessType, versionInt}
+import data.SampleData
 import helpers.FormatHelper
 import models.requests.DataRequest
-import models.{Member, UserAnswers}
+import models.{AccessMode, Member, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -116,6 +116,13 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     "return no results when nothing matches" in {
       memberSearchService.search(emptyUserAnswers, srn, startDate, "ZZ098765A", accessType, versionInt) mustBe Nil
     }
+
+    "return valid results with no remove link when read only" in {
+      val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
+
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C")(implicitly, fakeDataRequest) mustBe
+        searchResultsMemberDetailsChargeD("Bill Bloggs", "CS121212C", BigDecimal("55.55"), removeLink = false)
+    }
   }
 
 }
@@ -125,7 +132,7 @@ object MemberSearchServiceSpec {
   private val srn = "srn"
   private def emptyUserAnswers: UserAnswers = UserAnswers()
 
-  private def searchResultsMemberDetailsChargeD(name: String, nino: String, totalAmount:BigDecimal, index:Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeD(name: String, nino: String, totalAmount:BigDecimal, index:Int = 0, removeLink: Boolean = true) = Seq(
     MemberRow(
       name,
       Seq(
@@ -144,18 +151,28 @@ object MemberSearchServiceSpec {
             classes = Seq("govuk-!-width-one-half"))
         )
       ),
-      Seq(
-        Action(
-          Message("site.view"),
-          "view-link",
-          None
-        ),
-        Action(
-          Message("site.remove"),
-          "remove-link",
-          None
+      if(removeLink) {
+        Seq(
+          Action(
+            Message("site.view"),
+            "view-link",
+            None
+          ),
+          Action(
+            Message("site.remove"),
+            "remove-link",
+            None
+          )
         )
-      )
+      } else {
+        Seq(
+          Action(
+            Message("site.view"),
+            "view-link",
+            None
+          )
+        )
+      }
     )
   )
 
