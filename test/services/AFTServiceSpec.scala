@@ -22,14 +22,19 @@ import base.SpecBase
 import connectors.AFTConnector
 import data.SampleData
 import data.SampleData._
-import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.JourneyType
+import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
 import models.requests.{DataRequest, OptionalDataRequest}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.mvc.{AnyContentAsEmpty, Results}
+import pages.AFTStatusQuery
+import play.api.libs.json.JsObject
+import play.api.mvc.{Results, AnyContentAsEmpty}
 import uk.gov.hmrc.domain.PsaId
 import utils.DateHelper
 
@@ -54,14 +59,32 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, sessionData)
 
-  "fileAFTReturn" must {
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(mockAFTConnector)
+  }
 
+  "fileAFTReturn" must {
     "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
-        verify(mockAFTConnector, times(1)).fileAFTReturn(any(), any(), any())(any(), any())
+        verify(mockAFTConnector, times(1))
+          .fileAFTReturn(any(), any(), Matchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
       }
+    }
+  }
+
+  "fileCompileReturn" must {
+    "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
+      val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
+      when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
+      whenReady(aftService.fileCompileReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
+        verify(mockAFTConnector, times(1))
+          .fileAFTReturn(any(), jsonCaptor.capture(), Matchers.eq(JourneyType.AFT_COMPILE_RETURN))(any(), any())
+      }
+      jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Compiled"
     }
   }
 
