@@ -39,7 +39,7 @@ class DeleteAFTChargeService @Inject()(
     implicit ec: ExecutionContext,
     hc: HeaderCarrier,
     request: DataRequest[AnyContent]): Future[Unit] = {
-    aftService.fileAFTReturn(pstr, answers).flatMap { _ =>
+    aftService.fileCompileReturn(pstr, answers).flatMap { _ =>
       if (deleteChargeHelper.allChargesDeletedOrZeroed(answers) && !request.isAmendment) {
        userAnswersCacheConnector.removeAll(request.internalId).map(_ => ())
       } else {
