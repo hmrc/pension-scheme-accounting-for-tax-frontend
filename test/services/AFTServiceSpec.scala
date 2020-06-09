@@ -66,12 +66,14 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
   "fileAFTReturn" must {
     "remove lock and all user answers if no valid charges to be saved (i.e. user has deleted last member/ employer)" in {
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
       val uaBeforeCalling = userAnswersWithSchemeNamePstrQuarter
       when(mockAFTConnector.fileAFTReturn(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
       whenReady(aftService.fileAFTReturn(pstr, uaBeforeCalling)(implicitly, implicitly, dataRequest(uaBeforeCalling))) { _ =>
         verify(mockAFTConnector, times(1))
-          .fileAFTReturn(any(), any(), Matchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
+          .fileAFTReturn(any(), jsonCaptor.capture(), Matchers.eq(JourneyType.AFT_SUBMIT_RETURN))(any(), any())
       }
+      jsonCaptor.getValue.getOrException(AFTStatusQuery) mustBe "Submitted"
     }
   }
 

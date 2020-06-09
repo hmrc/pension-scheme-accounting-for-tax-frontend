@@ -16,34 +16,25 @@
 
 package services
 
-import pages.{IsPsaSuspendedQuery, PSTRQuery, SchemeNameQuery, Page, QuarterPage, PSAEmailQuery, AFTSummaryPage, PSANameQuery, SchemeStatusQuery, AFTStatusQuery}
-import play.api.mvc.Request
-import uk.gov.hmrc.domain.PsaId
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.{AFTConnector, MinimalPsaConnector}
 import connectors.cache.UserAnswersCacheConnector
-import connectors.AFTConnector
-import connectors.MinimalPsaConnector
 import javax.inject.Singleton
-import models.AFTOverview
-import models.AccessMode
 import models.LocalDateBinder._
-import models.Quarters
 import models.SchemeStatus.statusByName
-import models.SessionAccessData
+import models.{AFTOverview, AccessMode, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import models.requests.OptionalDataRequest
-import models.SchemeDetails
-import models.SessionData
-import models.UserAnswers
-import models.requests.DataRequest
+import pages._
 import play.api.libs.json._
+import play.api.mvc.Request
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RequestCreationService @Inject()(
@@ -197,7 +188,6 @@ class RequestCreationService @Inject()(
         Future.successful(
             currentUserAnswers
               .setOrException(QuarterPage, Quarters.getQuarter(startDate))
-              .setOrException(AFTStatusQuery, value = "Compiled")
               .setOrException(SchemeNameQuery, schemeDetails.schemeName)
               .setOrException(PSTRQuery, schemeDetails.pstr)
         )
