@@ -78,7 +78,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     )
   )
 
-  "fileAFTReturn" must {
+  "fileSubmitReturn" must {
 
     "return successfully when the backend has returned OK" in {
       val data = Json.obj(fields = "Id" -> "value")
