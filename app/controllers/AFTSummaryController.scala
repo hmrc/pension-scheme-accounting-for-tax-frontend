@@ -22,25 +22,25 @@ import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
-import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
+import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
 import helpers.AFTSummaryHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTSummaryController @Inject()(
     override val messagesApi: MessagesApi,
@@ -148,6 +148,11 @@ class AFTSummaryController @Inject()(
     val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
 
     val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
+    val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
+      Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
+    } else {
+      Json.obj()
+    }
 
     Json.obj(
       "srn" -> srn,
@@ -162,7 +167,8 @@ class AFTSummaryController @Inject()(
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
-    )
+    ) ++ returnHistoryURL
+
   }
 
   private def getJson(form: Form[Boolean],

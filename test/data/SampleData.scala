@@ -98,11 +98,13 @@ object SampleData {
   val lockedByName = Some("Name")
   val accessModeViewOnly = AccessMode.PageAccessModeViewOnly
 
-  def sessionAccessData(version: Int = version.toInt, accessMode: AccessMode = AccessMode.PageAccessModeCompile) =
-    SessionAccessData(version, accessMode)
+  def sessionAccessData(version: Int = version.toInt,
+                        accessMode: AccessMode = AccessMode.PageAccessModeCompile,
+                        areSubmittedVersionsAvailable: Boolean = false) =
+    SessionAccessData(version, accessMode, areSubmittedVersionsAvailable = areSubmittedVersionsAvailable)
 
-  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile)
-  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile)
+  val sessionAccessDataCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
+  val sessionAccessDataPreCompile = SessionAccessData(version.toInt, AccessMode.PageAccessModePreCompile, areSubmittedVersionsAvailable = false)
 
   def sessionData(
                    sessionId: String = sessionId,

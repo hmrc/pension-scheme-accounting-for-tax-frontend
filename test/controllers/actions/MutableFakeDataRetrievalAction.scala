@@ -35,7 +35,8 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
     name = None,
     sessionAccessData = SessionAccessData(
       version = 1,
-      accessMode = AccessMode.PageAccessModeCompile
+      accessMode = AccessMode.PageAccessModeCompile,
+      areSubmittedVersionsAvailable = false
     )
   )
 
@@ -45,7 +46,8 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
     storedSessionData = storedSessionData copy (
       sessionAccessData = SessionAccessData(
         storedSessionData.sessionAccessData.version,
-        if (viewOnly) AccessMode.PageAccessModeCompile else AccessMode.PageAccessModeViewOnly
+        if (viewOnly) AccessMode.PageAccessModeCompile else AccessMode.PageAccessModeViewOnly,
+        areSubmittedVersionsAvailable = false
       )
     )
   }
@@ -69,7 +71,8 @@ object MutableFakeDataRetrieval {
     name = None,
     sessionAccessData = SessionAccessData(
       version = 1,
-      accessMode = AccessMode.PageAccessModeViewOnly
+      accessMode = AccessMode.PageAccessModeViewOnly,
+      areSubmittedVersionsAvailable = false
     )
   )
 }

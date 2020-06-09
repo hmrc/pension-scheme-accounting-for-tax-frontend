@@ -45,7 +45,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   private val aftService = new AFTService(mockAFTConnector)
 
   private val emptyUserAnswers = UserAnswers()
-  private val sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile)
+  private val sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
   private val sessionData = SessionData("1", Some("name"), sessionAccessData)
 
   implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =

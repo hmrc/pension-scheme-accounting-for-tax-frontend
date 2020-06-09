@@ -83,7 +83,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "return OK and the correct view for submission for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile)))
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(PSAEmailQuery, email).getOrElse(UserAnswers())))
 
@@ -99,7 +100,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
     "return OK and the correct view for amendment for a GET" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
-      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None, SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(PSAEmailQuery, email)))
 
       val result = route(application, request).value
