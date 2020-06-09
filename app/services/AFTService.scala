@@ -44,7 +44,9 @@ class AFTService @Inject()(
 
   def fileCompileReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
     val journeyType = if (request.isAmendment) JourneyType.AFT_COMPILE_AMEND else JourneyType.AFT_COMPILE_RETURN
-    aftConnector.fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType).flatMap { _ => Future.successful(())}
+    aftConnector
+      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
+      .flatMap { _ => Future.successful(())}
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {

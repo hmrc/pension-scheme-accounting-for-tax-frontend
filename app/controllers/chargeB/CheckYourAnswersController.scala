@@ -92,7 +92,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
   def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        aftService.fileAFTReturn(pstr, request.userAnswers).map { _ =>
+        aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
         }
       }
