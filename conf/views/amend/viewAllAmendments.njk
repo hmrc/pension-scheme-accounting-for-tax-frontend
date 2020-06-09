@@ -36,14 +36,17 @@
         </h1>
 
         {% if addedTable.rows.length > 0 %}
+        <h3 id ="added" class="govuk-heading-m">{{messages("allAmendments.table.caption.added")}}</h1>
             {{ govukTable(addedTable) }}
         {% endif %}
 
         {% if deletedTable.rows.length > 0 %}
+        <h3 id ="deleted" class="govuk-heading-m">{{messages("allAmendments.table.caption.deleted")}}</h1>
             {{ govukTable(deletedTable) }}
         {% endif %}
 
          {% if updatedTable.rows.length > 0 %}
+         <h3 id ="updated" class="govuk-heading-m">{{messages("allAmendments.table.caption.updated")}}</h1>
             {{ govukTable(updatedTable) }}
         {% endif %}
       </div>

@@ -98,11 +98,9 @@ class ViewAllAmendmentsControllerSpec
     }
 
     Table(
-      captionClasses = Seq("govuk-heading-m"),
-      caption = Some(messages(s"allAmendments.table.caption.$caption")),
       head = tableHeadingRows,
       rows = tableRows,
-      attributes = Map("role" -> "grid" ,"aria-label" -> caption )
+      attributes = Map("role" -> "grid" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
     )
   }
 
