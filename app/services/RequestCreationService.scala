@@ -171,7 +171,7 @@ class RequestCreationService @Inject()(
             )
           }
         }
-    } else { // After 1st July
+    } else { // After 21st July
       aftConnector.getAftOverview(pstr)
     }
   }
