@@ -26,7 +26,7 @@ import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
 import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, Submission, UserAnswers}
+import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request

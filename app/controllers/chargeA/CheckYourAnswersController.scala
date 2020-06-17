@@ -111,7 +111,7 @@ class CheckYourAnswersController @Inject()(override val messagesApi: MessagesApi
           for {
             updatedUserAnswers <- Future.fromTry(request.userAnswers.set(ChargeDetailsPage, updatedChargeDetails))
             _ <- userAnswersCacheConnector.save(request.internalId, updatedUserAnswers.data)
-            _ <- aftService.fileAFTReturn(pstr, updatedUserAnswers)
+            _ <- aftService.fileCompileReturn(pstr, updatedUserAnswers)
           } yield Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, updatedUserAnswers, srn, startDate, accessType, version))
         case _ =>
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

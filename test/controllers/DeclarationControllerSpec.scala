@@ -104,40 +104,43 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockAFTService, times(1)).fileAFTReturn(any(), any())(any(), any(), any())
+      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
-      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(
+        any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-      journeyTypeCaptor.getValue mustEqual "AFTReturn"
+      journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
       templateCaptor.getValue mustEqual fileAFTReturnTemplateId
       emailParamsCaptor.getValue mustEqual emailParams()
     }
 
     "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
-      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData = SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-      when(mockAFTService.fileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
-      verify(mockEmailConnector, times(1)).sendEmail(journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(any(), journeyTypeCaptor.capture(), any(),
+        templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-      journeyTypeCaptor.getValue mustEqual "AFTAmend"
+      journeyTypeCaptor.getValue mustEqual "AFTAmendmentSubmitted"
       templateCaptor.getValue mustEqual amendAftReturnTemplateIdId
       emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
     }

@@ -52,12 +52,26 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     super.beforeEach
     reset(mockAppConfig)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-21")
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }
 
   "AFTLogin Controller" when {
-    "on a GET" must {
+
+    "on a GET and overviewApi is disabled i.e before 21st July 2020" must {
+
+      "return to ChargeType page in every case" in {
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 20)))
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
+      }
+    }
+    "on a GET and overviewApi is enabled i.e after 21st July 2020" must {
 
       "return to Years page if more than 1 years are available to choose from" in {
         DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))

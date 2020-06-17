@@ -85,7 +85,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
-    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-01")
+    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-21")
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
@@ -106,7 +106,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   "retrieveAndCreateRequest" when {
 
 
-    "requested version is less than latest and date is after 1st July" must {
+    "requested version is less than latest and date is on or after 21st July" must {
       "NOT save with a lock and create session access data with viewonly page access mode" in {
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(
@@ -124,7 +124,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
-        DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
+        DateHelper.setDate(Some(LocalDate.of(2020, 7, 21)))
 
         Await.result(
           requestCreationService

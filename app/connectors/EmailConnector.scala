@@ -22,6 +22,8 @@ import models.SendEmailRequest
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Json
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -35,11 +37,16 @@ case object EmailNotSent extends EmailStatus
 
 class EmailConnector @Inject()(
     appConfig: FrontendAppConfig,
-    http: HttpClient
+    http: HttpClient,
+    crypto: ApplicationCrypto
 ) {
-  def callbackUrl(journeyType: String): String = s"${appConfig.aftUrl}/pension-scheme-accounting-for-tax/email-response/$journeyType"
+  private def callBackUrl(journeyType: String, psaId: PsaId): String = {
+    val encryptedPsaId = crypto.QueryParameterCrypto.encrypt(PlainText(psaId.value)).value
+    appConfig.aftEmailCallback(journeyType, encryptedPsaId)
+  }
 
   def sendEmail(
+      psaId: PsaId,
       journeyType: String,
       emailAddress: String,
       templateName: String,
@@ -47,7 +54,7 @@ class EmailConnector @Inject()(
   )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callbackUrl(journeyType))
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callBackUrl(journeyType, psaId))
 
     val jsonData = Json.toJson(sendEmailReq)
 

@@ -27,7 +27,7 @@ import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.{AccessType, Declaration, GenericViewModel, NormalMode, Quarter}
 import navigators.CompoundNavigator
-import pages.{AFTStatusQuery, DeclarationPage, PSANameQuery}
+import pages.{DeclarationPage, PSANameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -75,9 +75,8 @@ class DeclarationController @Inject()(
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
         for {
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
-          updatedStatus <- Future.fromTry(answersWithDeclaration.set(AFTStatusQuery, value = "Submitted"))
-          _ <- userAnswersCacheConnector.save(request.internalId, updatedStatus.data)
-          _ <- aftService.fileAFTReturn(pstr, updatedStatus)
+          _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
+          _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
@@ -105,11 +104,11 @@ class DeclarationController @Inject()(
     ) ++ (if(isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val (journeyType, templateId) = if (isAmendment) {
-      ("AFTAmend", config.amendAftReturnTemplateIdId)
+      ("AFTAmendmentSubmitted", config.amendAftReturnTemplateIdId)
     } else {
-      ("AFTReturn", config.fileAFTReturnTemplateId)
+      ("AFTReturnSubmitted", config.fileAFTReturnTemplateId)
     }
 
-    emailConnector.sendEmail(journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(request.psaId, journeyType, email, templateId, templateParams)
   }
 }

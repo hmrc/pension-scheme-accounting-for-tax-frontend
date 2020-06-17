@@ -16,20 +16,18 @@
 
 package controllers
 
-import audit.AuditService
+import java.time.LocalDate
+
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.{Draft, Quarters, StartYears}
-import navigators.CompoundNavigator
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
-import services.{AFTService, AllowAccessService, QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,17 +43,23 @@ class AFTLoginController @Inject()(
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     val defaultYear = StartYears.minYear(config)
-    (StartYears.values(config).size, Quarters.availableQuarters(defaultYear)(config).size) match {
-      case (years, _) if years > 1 =>
-        Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
+    if (!LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)) {
+      (StartYears.values(config).size, Quarters.availableQuarters(defaultYear)(config).size) match {
+        case (years, _) if years > 1 =>
+          Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
 
-      case (_, quarters) if quarters > 1 =>
-        Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
+        case (_, quarters) if quarters > 1 =>
+          Future.successful(Redirect(controllers.routes.QuartersController.onPageLoad(srn, defaultYear.toString)))
 
-      case _ =>
-        val defaultQuarter = Quarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
-        Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn,
-          Quarters.getStartDate(defaultQuarter, defaultYear), Draft, version = 1)))
+        case _ =>
+          val defaultQuarter = Quarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
+          Future.successful(
+            Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear), Draft, version = 1)))
+      }
+    } else {
+      val defaultQuarter = Quarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
+      Future.successful(
+        Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear), Draft, version = 1)))
     }
   }
 

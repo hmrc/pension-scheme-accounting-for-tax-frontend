@@ -38,7 +38,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
-  private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return/AFTReturn"
+  private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return/AFTReturnSubmitted"
   private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
   private val getIsAftNonZeroUrl = "/pension-scheme-accounting-for-tax/get-is-aft-non-zero"
@@ -78,7 +78,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
     )
   )
 
-  "fileAFTReturn" must {
+  "fileSubmitReturn" must {
 
     "return successfully when the backend has returned OK" in {
       val data = Json.obj(fields = "Id" -> "value")
@@ -90,7 +90,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN) map {
+      connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN) map {
         _ => server.findAll(postRequestedFor(urlEqualTo(aftSubmitUrl))).size() mustBe 1
       }
     }
@@ -106,7 +106,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[BadRequestException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
       } map {
         _.responseCode mustEqual Status.BAD_REQUEST
       }
@@ -123,7 +123,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       )
 
       recoverToExceptionIf[NotFoundException] {
-        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)
+        connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)
       } map {
         _.responseCode mustEqual Status.NOT_FOUND
       }
@@ -139,7 +139,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_RETURN)) map {
+      recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
         _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }

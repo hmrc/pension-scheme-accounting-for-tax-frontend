@@ -26,6 +26,7 @@ import models.requests.DataRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 import models.JourneyType
+import pages.AFTStatusQuery
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,12 +35,16 @@ class AFTService @Inject()(
     aftConnector: AFTConnector
 ) {
 
-  def fileAFTReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+  def fileSubmitReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+    val journeyType = if (request.isAmendment) JourneyType.AFT_SUBMIT_AMEND else JourneyType.AFT_SUBMIT_RETURN
+    aftConnector
+      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Submitted"), journeyType)
+  }
 
-    val journeyType = if (request.isAmendment) JourneyType.AFT_AMEND else JourneyType.AFT_RETURN
-
-    aftConnector.fileAFTReturn(pstr, answers, journeyType).flatMap { _ => Future.successful(())
-    }
+  def fileCompileReturn(pstr: String, answers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier, request: DataRequest[_]): Future[Unit] = {
+    val journeyType = if (request.isAmendment) JourneyType.AFT_COMPILE_AMEND else JourneyType.AFT_COMPILE_RETURN
+    aftConnector
+      .fileAFTReturn(pstr, answers.setOrException(AFTStatusQuery, "Compiled"), journeyType)
   }
 
   def isSubmissionDisabled(quarterEndDate: String): Boolean = {

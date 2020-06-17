@@ -96,7 +96,7 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
-        aftService.fileAFTReturn(pstr, request.userAnswers).map { _ =>
+        aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
           Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }

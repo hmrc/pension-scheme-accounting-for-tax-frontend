@@ -27,6 +27,7 @@ import models.{AccessType, ChargeType, NormalMode, UserAnswers}
 import pages._
 import play.api.mvc.{AnyContent, Call}
 import services.{AFTService, ChargeDService, ChargeEService, ChargeGService}
+import utils.DateHelper
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -120,7 +121,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
       case (Some(true), _) =>
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version)
       case (Some(false), Some(quarter)) =>
-          if (aftService.isSubmissionDisabled(quarter.endDate)) {
+          if (aftService.isSubmissionDisabled(quarter.endDate) || DateHelper.today.isBefore(config.overviewApiEnablementDate)) {
             Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
           } else {
             if (request.isAmendment) {
