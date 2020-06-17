@@ -271,7 +271,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "calling onSearchMember" when {
-      "display search results when Search is triggered" in {
+      "display search results when Search is triggered and not display view amendments link" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
         when(mockMemberSearchService.search(any(), any(), any(), any())(any(), any()))
