@@ -104,11 +104,11 @@ class DeclarationController @Inject()(
     ) ++ (if(isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val (journeyType, templateId) = if (isAmendment) {
-      ("AFTAmend", config.amendAftReturnTemplateIdId)
+      ("AFTAmendmentSubmitted", config.amendAftReturnTemplateIdId)
     } else {
-      ("AFTReturn", config.fileAFTReturnTemplateId)
+      ("AFTReturnSubmitted", config.fileAFTReturnTemplateId)
     }
 
-    emailConnector.sendEmail(journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(request.psaId, journeyType, email, templateId, templateParams)
   }
 }

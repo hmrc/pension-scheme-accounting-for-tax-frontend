@@ -19,20 +19,20 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
 class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+  override protected def portConfigKey: String = "microservice.services.email.port"
+
+  private val url: String = "/hmrc/email"
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
+  private val testPsaId = PsaId("A1234567")
 
   private val testEmailAddress = "test@test.com"
   private val testTemplate = "testTemplate"
-  private val journeyType = "AFTReturn"
-
-  private def url = s"/hmrc/email"
-
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  override protected def portConfigKey: String = "microservice.services.email.port"
+  private val journeyType = "AFTReturnSubmitted"
 
   private lazy val connector = injector.instanceOf[EmailConnector]
 
@@ -46,7 +46,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
+        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
         }
       }
     }
@@ -60,7 +60,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
 
@@ -71,7 +71,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }

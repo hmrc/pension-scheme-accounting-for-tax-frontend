@@ -72,6 +72,9 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val emailApiUrl: String = servicesConfig.baseUrl("email")
   lazy val emailSendForce: Boolean = configuration.getOptional[Boolean]("email.force").getOrElse(false)
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
+  def aftEmailCallback(journeyType: String, encryptedPsaId: String) = s"$aftUrl${configuration.get[String](path = "urls.emailCallback").
+    format(journeyType, encryptedPsaId)}"
+
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val pensionsAdministratorUrl:String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
