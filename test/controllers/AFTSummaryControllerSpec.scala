@@ -296,6 +296,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
           "list" ->
             Json.toJson(searchResult))
         jsonCaptor.getValue must containJson(expectedJson)
+        (jsonCaptor.getValue \ "viewAllAmendmentsLink").isEmpty mustBe true
       }
     }
   }

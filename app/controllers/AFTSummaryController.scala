@@ -145,9 +145,7 @@ class AFTSummaryController @Inject()(
                             schemeName: String,
                             optionVersion: Option[String])(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-    val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
 
-    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -160,7 +158,6 @@ class AFTSummaryController @Inject()(
       "form" -> form,
       "formSearchText" -> formSearchText,
       "isAmendment" -> request.isAmendment,
-      "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString(),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
@@ -168,7 +165,6 @@ class AFTSummaryController @Inject()(
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
     ) ++ returnHistoryURL
-
   }
 
   private def getJson(form: Form[Boolean],
@@ -177,9 +173,13 @@ class AFTSummaryController @Inject()(
                       srn: String,
                       startDate: LocalDate,
                       schemeName: String,
-                      optionVersion: Option[String])(implicit request: DataRequest[AnyContent]): JsObject =
+                      optionVersion: Option[String])(implicit request: DataRequest[AnyContent]): JsObject = {
+    val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
+    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
     getJsonCommon(form, formSearchText, srn, startDate, schemeName, optionVersion) ++ Json.obj(
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate))
+      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate)) ++
+      Json.obj("viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString())
+  }
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {
     GenericViewModel(

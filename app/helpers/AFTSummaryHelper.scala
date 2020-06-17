@@ -140,7 +140,7 @@ class AFTSummaryHelper {
       messages("allAmendments.view.changes.submission.link")
     }
     val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
-
+println( "\n>>>>" + viewAllAmendmentsUrl)
     Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }
 }
