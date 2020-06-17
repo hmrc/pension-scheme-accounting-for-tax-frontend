@@ -174,11 +174,20 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       optionVersion: Option[String])(implicit request: DataRequest[AnyContent]): JsObject = {
-    val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
-    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
-    getJsonCommon(form, formSearchText, srn, startDate, schemeName, optionVersion) ++ Json.obj(
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate)) ++
-      Json.obj("viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString())
+    val amendmentsLink = if (request.isAmendment) {
+      val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
+      val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
+      Json.obj(
+        "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString()
+      )
+    } else {
+      Json.obj()
+    }
+    getJsonCommon(form, formSearchText, srn, startDate, schemeName, optionVersion) ++
+      Json.obj(
+      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate)
+      ) ++ amendmentsLink
+
   }
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {

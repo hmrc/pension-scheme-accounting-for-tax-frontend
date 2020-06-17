@@ -113,13 +113,14 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.obj()
     }
 
+    val amendmentsLink = if (isAmendment) Json.obj("viewAllAmendmentsLink" -> emptyHtml.toString()) else Json.obj()
+
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
       "list" -> Nil,
       "isAmendment" -> isAmendment,
-      "viewAllAmendmentsLink" -> emptyHtml.toString(),
       "viewModel" -> GenericViewModel(
         submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
@@ -129,7 +130,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
       "canChange" -> true,
       "radios" -> Radios.yesNo(form("value"))
-    ) ++ returnHistoryJson
+    ) ++ returnHistoryJson ++ amendmentsLink
   }
 
   "AFTSummary Controller" when {
