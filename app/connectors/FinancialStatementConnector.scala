@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.financialStatement.PsaFS
+import models.financialStatement.{PsaFS, SchemeFS}
 import play.api.Logger
 import play.api.http.Status.OK
 import play.api.libs.json._
@@ -31,8 +31,7 @@ import scala.util.Failure
 
 class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
-  def getPsaFS(psaId: String)
-                    (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
+  def getPsaFS(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
 
     val url = config.psaFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
@@ -49,6 +48,26 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
       }
     } andThen {
       case Failure(t: Throwable) => Logger.warn("Unable to get psa financial statement", t)
+    }
+  }
+
+  def getSchemeFS(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFS]] = {
+
+    val url = config.schemeFinancialStatementUrl
+    val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
+
+    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+      response.status match {
+        case OK =>
+          val json = Json.parse(response.body)
+          json.validate[Seq[SchemeFS]] match {
+            case JsSuccess(value, _) => value
+            case JsError(errors) => throw JsResultException(errors)
+          }
+        case _ => handleErrorResponse("GET", url)(response)
+      }
+    } andThen {
+      case Failure(t: Throwable) => Logger.warn("Unable to get scheme financial statement", t)
     }
   }
 

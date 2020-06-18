@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.financialStatement.FSChargeType.{AFT_INITIAL_LLP, OTC_6_MONTH_LLP}
-import models.financialStatement.PsaFS
+import models.financialStatement.{PsaFS, SchemeFS}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -36,7 +36,9 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
 
   private val psaId = "test-psa-id"
+  private val pstr = "test-pstr"
   private val psaFSUrl = "/pension-scheme-accounting-for-tax/psa-financial-statement"
+  private val schemeFSUrl = "/pension-scheme-accounting-for-tax/scheme-financial-statement"
 
   private val psaFSResponse: Seq[PsaFS] = Seq(
     PsaFS(
@@ -60,6 +62,31 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
       periodStartDate =  LocalDate.parse("2020-04-01"),
       periodEndDate =  LocalDate.parse("2020-06-30"),
       pstr = "24000041IN"
+    )
+  )
+
+  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+    SchemeFS(
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LLP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 23000.55,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30")
+    ),
+    SchemeFS(
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LLP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 24000.41,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30")
     )
   )
 
@@ -101,6 +128,49 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
 
       recoverToSucceededIf[BadRequestException] {
         connector.getPsaFS(psaId)
+      }
+
+    }
+  }
+
+  "getSchemeFS" must {
+
+    "return the Scheme financial statement for a valid request/response with pstr" in {
+
+      server.stubFor(
+        get(urlEqualTo(schemeFSUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.OK)
+              .withHeader("Content-Type", "application/json")
+              .withBody(Json.toJson(schemeFSResponse).toString)
+          )
+      )
+
+      val connector = injector.instanceOf[FinancialStatementConnector]
+
+      connector.getSchemeFS(pstr).map(fs =>
+        fs mustBe schemeFSResponse
+      )
+
+    }
+
+    "throw BadRequestException for a 400 INVALID_PSTR response" in {
+
+      server.stubFor(
+        get(urlEqualTo(schemeFSUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .willReturn(
+            badRequest
+              .withHeader("Content-Type", "application/json")
+              .withBody(errorResponse("INVALID_PSTR"))
+          )
+      )
+      val connector = injector.instanceOf[FinancialStatementConnector]
+
+      recoverToSucceededIf[BadRequestException] {
+        connector.getSchemeFS(pstr)
       }
 
     }
