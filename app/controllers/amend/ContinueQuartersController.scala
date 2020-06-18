@@ -22,7 +22,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Quarter, Quarters}
+import models.{Draft, GenericViewModel, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -102,7 +102,7 @@ class ContinueQuartersController @Inject()(
                 val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
                 if (!aftOverviewElement.submittedVersionAvailable) {
                   Future.successful(
-                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Some("1"))))
+                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version = 1)))
                 } else {
                   Future.successful(
                     Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))

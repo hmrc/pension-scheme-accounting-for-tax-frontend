@@ -25,10 +25,7 @@ import controllers.actions._
 import models.LocalDateBinder._
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import javax.inject.Inject
-import models.GenericViewModel
-import models.Index
-import models.Mode
-import models.TolerantAddress
+import models.{AccessType, GenericViewModel, Index, Mode, TolerantAddress}
 import models.chargeC.SponsoringEmployerAddress
 import models.requests.DataRequest
 import navigators.CompoundNavigator
@@ -67,18 +64,18 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
-      presentPage(mode, srn, startDate, index, form, Ok)
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+      presentPage(mode, srn, startDate, index, form, Ok, accessType, version)
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
-            presentPage(mode, srn, startDate, index, formWithErrors, BadRequest)
+            presentPage(mode, srn, startDate, index, formWithErrors, BadRequest, accessType, version)
           },
           value => {
             request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
@@ -88,7 +85,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
                 for {
                   updatedAnswers <- Future.fromTry(userAnswersService.set(SponsoringEmployerAddressPage(index), fromTolerantAddress(addresses(value)), mode))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate))
+                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressResultsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
 
           }
@@ -115,15 +112,15 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
     }
   }
 
-  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status
-                         )(implicit request: DataRequest[AnyContent]): Future[Result] = {
+  private def presentPage(mode: Mode, srn: String, startDate: LocalDate, index: Index, form:Form[Int], status:Status,
+                          accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
     DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
       request.userAnswers.get(SponsoringEmployerAddressSearchPage(index)) match {
         case None => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         case Some(addresses) =>
           val viewModel = GenericViewModel(
-            submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, index).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+            submitUrl = routes.SponsoringEmployerAddressResultsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
@@ -133,7 +130,7 @@ class SponsoringEmployerAddressResultsController @Inject()(override val messages
             "form" -> form,
             "viewModel" -> viewModel,
             "sponsorName" -> sponsorName,
-            "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url,
+            "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url,
             "addresses" -> addressesAsJson
           )
 

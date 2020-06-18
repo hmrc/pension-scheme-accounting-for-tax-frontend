@@ -25,7 +25,7 @@ import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
-import models.{SchemeStatus, UserAnswers}
+import models.{AccessType, Draft, SchemeStatus, UserAnswers}
 import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.{Result, Results}
@@ -61,7 +61,8 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                  startDate: LocalDate,
                                  ua: UserAnswers,
                                  optPage: Option[Page] = None,
-                                 optVersion: Option[String] = None)(implicit request: DataRequest[_]): Future[Option[Result]] = {
+                                 version: Int,
+                                 accessType: AccessType)(implicit request: DataRequest[_]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
@@ -75,7 +76,7 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
         errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
       case (isSuspended, _) =>
         pensionsSchemeConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true => associatedPsaRedirection(srn, startDate, isSuspended, optPage, optVersion)
+          case true => associatedPsaRedirection(srn, startDate, isSuspended, optPage, version, accessType)
           case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
         }
     }
@@ -85,18 +86,19 @@ class AllowAccessService @Inject()(pensionsSchemeConnector: SchemeDetailsConnect
                                        startDate: String,
                                        isSuspended: Boolean,
                                        optPage: Option[Page],
-                                       optVersion: Option[String])
+                                       version: Int,
+                                       accessType: AccessType)
                                       (implicit request: DataRequest[_]): Future[Option[Result]] =
-    (isSuspended, request.isViewOnly, optPage, optVersion, isPreviousPageWithinAFT) match {
-    case (true, _, Some(AFTSummaryPage), Some(_), false) =>
-      Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, optVersion))))
+    (isSuspended, request.isViewOnly, optPage, version, isPreviousPageWithinAFT) match {
+    case (true, _, Some(AFTSummaryPage), _, false) =>
+      Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
     case (true, _, Some(ChargeTypePage), _, _) =>
-      Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate))))
+      Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
     case (false, true, Some(ChargeTypePage), _, _) =>
-      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
     case (false, true, None, _, _) =>
       //todo redirect to new error page for form-pages in view-only returns once it is created
-      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))))
+      Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
     case _ =>
       Future.successful(None)
   }

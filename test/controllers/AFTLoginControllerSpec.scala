@@ -68,7 +68,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url)
+        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
       }
     }
     "on a GET and overviewApi is enabled i.e after 21st July 2020" must {
@@ -100,7 +100,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate).url)
+        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
       }
     }
 

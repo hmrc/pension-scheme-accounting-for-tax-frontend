@@ -22,7 +22,7 @@ import base.SpecBase
 import controllers._
 import controllers.chargeB.{routes => _}
 import data.SampleData
-import data.SampleData.{sessionAccessDataCompile, version}
+import data.SampleData.{accessType, sessionAccessDataCompile, version, versionInt}
 import models.ChargeType.{ChargeTypeAnnualAllowance, _}
 import models.LocalDateBinder._
 import models.chargeA.{ChargeDetails => ChargeADetails}
@@ -78,32 +78,32 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
   "summaryListData" must {
 
     "return all the rows if all the charges have data" in {
-      val result = aftSummaryHelper.summaryListData(userAnswers, srn, startDate)
+      val result = aftSummaryHelper.summaryListData(userAnswers, srn, startDate, accessType, versionInt)
 
       result mustBe Seq(
-        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate).url)),
-        createRow(ChargeTypeAuthSurplus, BigDecimal(200.00), Some(chargeC.routes.AddEmployersController.onPageLoad(srn, startDate).url)),
-        createRow(ChargeTypeDeRegistration, BigDecimal(300.00), Some(chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url)),
-        createRow(ChargeTypeLifetimeAllowance, BigDecimal(400.00), Some(chargeD.routes.AddMembersController.onPageLoad(srn, startDate).url)),
-        createRow(ChargeTypeShortService, BigDecimal(500.00), Some(chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url)),
-        createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00), Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate).url)),
+        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeAuthSurplus, BigDecimal(200.00), Some(chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeDeRegistration, BigDecimal(300.00), Some(chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeLifetimeAllowance, BigDecimal(400.00), Some(chargeD.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeShortService, BigDecimal(500.00), Some(chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
+        createRow(ChargeTypeLumpSumDeath, BigDecimal(600.00), Some(chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
                         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
-        createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00), Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate).url))
+        createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00), Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url))
       )
     }
 
     "return only one row with link and others with zero amount if only one charge has data" in {
       val result = aftSummaryHelper.summaryListData(UserAnswers(Json.obj()).setOrException(pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00)),
                                                     srn,
-                                                    startDate)
+                                                    startDate, accessType, versionInt)
 
       result mustBe Seq(
-        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate).url)),
+        createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
         createRow(ChargeTypeAuthSurplus, BigDecimal(0.00), None),
         createRow(ChargeTypeDeRegistration, BigDecimal(0.00), None),
         createRow(ChargeTypeLifetimeAllowance, BigDecimal(0.00), None),
@@ -127,11 +127,11 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
                   PsaId("A2100000"),
                   UserAnswers(),
                   SampleData.sessionData(sessionAccessData = sessionData))
-    def amendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+    def amendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, versionInt).url
 
     "have correct link text when its amendment compile" in {
 
-      val link = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate)(implicitly, dataRequest())
+      val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly, dataRequest())
 
       link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
         "allAmendments.view.changes.draft.link")}</a>""".stripMargin).toString()}")
@@ -140,7 +140,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
 
     "have correct link text when its previous submission" in {
 
-      val link = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate)(implicitly,
+      val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly,
         dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)))
 
       link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(

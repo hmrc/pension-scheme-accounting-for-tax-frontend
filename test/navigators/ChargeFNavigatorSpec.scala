@@ -18,6 +18,7 @@ package navigators
 
 import controllers.chargeF.routes.{ChargeDetailsController, CheckYourAnswersController}
 import controllers.routes.AFTSummaryController
+import data.SampleData.{accessType, versionInt}
 import models.LocalDateBinder._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
@@ -35,22 +36,22 @@ class ChargeFNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate)),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate)),
-        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, startDate, None))
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt)),
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt)),
+        row(CheckYourAnswersPage)(AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate, accessType, versionInt)
   }
 
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate))
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate, accessType, versionInt)
   }
 
 }

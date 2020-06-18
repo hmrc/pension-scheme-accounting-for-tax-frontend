@@ -19,7 +19,9 @@ package controllers.chargeF
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import data.SampleData._
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -32,20 +34,18 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import SampleData._
-import models.LocalDateBinder._
 
 class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeF/whatYouWillNeed.njk"
-  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
 
   private val jsonToPassToTemplate:JsObject = Json.obj(
     fields =
       "schemeName" -> SampleData.schemeName,
     "nextPage" -> SampleData.dummyCall.url,
-    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url)
+    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url)
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -60,7 +60,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 

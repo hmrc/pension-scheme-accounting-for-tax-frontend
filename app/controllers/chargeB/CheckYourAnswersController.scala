@@ -25,7 +25,7 @@ import controllers.actions.{AllowAccessActionProvider, DataRequiredAction, DataR
 import helpers.{CYAChargeBHelper, DeleteChargeHelper}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, NormalMode}
+import models.{AccessType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages.ViewOnlyAccessiblePage
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage}
@@ -54,27 +54,27 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async {
     implicit request =>
-      DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate) { (chargeDetails, schemeName) =>
-        val helper = new CYAChargeBHelper(srn, startDate)
+      DataRetrievals.cyaChargeGeneric(ChargeBDetailsPage, srn, startDate, accessType, version) { (chargeDetails, schemeName) =>
+        val helper = new CYAChargeBHelper(srn, startDate, accessType, version)
         val seqRows = helper.chargeBDetails(chargeDetails)
 
         renderer
           .render(
             "check-your-answers.njk",
             Json.obj(
-              "srn" -> srn,
-              "startDate" -> Some(startDate),
               "list" -> helper.rows(request.isViewOnly, seqRows),
               "viewModel" -> GenericViewModel(
-                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.CheckYourAnswersController.onClick(srn, startDate, accessType, version).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               ),
+              "returnToSummaryLink" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url,
               "chargeName" -> "chargeB",
-              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate),
+              "removeChargeUrl" -> getDeleteChargeUrl(srn, startDate, accessType, version),
               "canChange" -> !request.isViewOnly
             )
           )
@@ -82,18 +82,19 @@ class CheckYourAnswersController @Inject()(config: FrontendAppConfig,
       }
     }
 
-  private def getDeleteChargeUrl(srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): String =
+  private def getDeleteChargeUrl(srn: String, startDate: String, accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): String =
     if(deleteChargeHelper.isLastCharge(request.userAnswers) && request.sessionData.sessionAccessData.version > 1) {
-      routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+      routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version).url
     } else {
-      routes.DeleteChargeController.onPageLoad(srn, startDate).url
+      routes.DeleteChargeController.onPageLoad(srn, startDate, accessType, version).url
     }
 
-  def onClick(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onClick(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrievePSTR { pstr =>
         aftService.fileCompileReturn(pstr, request.userAnswers).map { _ =>
-          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate))
+          Redirect(navigator.nextPage(CheckYourAnswersPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
       }
   }

@@ -21,6 +21,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.MemberDetailsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.{GenericViewModel, MemberDetails, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -34,7 +35,6 @@ import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -44,15 +44,15 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val form: Form[MemberDetails] = formProvider()
 
   lazy val httpPathGET: String =
-    controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
+    controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
   lazy val httpPathPOST: String =
-    controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
+    controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = controllers.chargeE.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName)
   )
 
@@ -138,7 +138,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

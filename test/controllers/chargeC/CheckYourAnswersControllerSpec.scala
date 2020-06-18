@@ -32,8 +32,8 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
   private val index = 0
-  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, index).url
+  private def httpGETRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+  private def httpOnClickRoute: String = controllers.chargeC.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, index).url
 
   private def uaInd: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(ChargeCDetailsPage(index), chargeCDetails).toOption.get
@@ -47,7 +47,7 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
     .set(SponsoringOrganisationDetailsPage(index), sponsoringOrganisationDetails).toOption.get
     .set(SponsoringEmployerAddressPage(index), sponsoringEmployerAddress).toOption.get
 
-  private def helper(ua: UserAnswers) = new CYAChargeCHelper(srn, startDate)
+  private def helper(ua: UserAnswers) = new CYAChargeCHelper(srn, startDate, accessType, versionInt)
   
   private val answersInd: Seq[SummaryList.Row] = Seq(
     Seq(helper(uaInd).chargeCWhichTypeOfSponsoringEmployer(index, uaInd.get(WhichTypeOfSponsoringEmployerPage(index)).get)),

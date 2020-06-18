@@ -26,7 +26,7 @@ import forms.chargeB.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Mode}
+import models.{AccessType, GenericViewModel, Mode}
 import models.chargeB.ChargeBDetails
 import navigators.CompoundNavigator
 import pages.chargeB.ChargeBDetailsPage
@@ -61,15 +61,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(minimumChargeValue:BigDecimal)(implicit messages: Messages): Form[ChargeBDetails] =
     formProvider(minimumChargeValueAllowed = minimumChargeValue)
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, accessType: AccessType, version: Int): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
@@ -85,14 +85,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "srn" -> srn,
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+          "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
         )
 
         renderer.render(template = "chargeB/chargeDetails.njk", json).map(Ok(_))
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
@@ -106,7 +106,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
-                "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+                "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
               )
               renderer.render(template = "chargeB/chargeDetails.njk", json).map(BadRequest(_))
             },
@@ -114,7 +114,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeBDetailsPage, value, mode, isMemberBased = false))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeBDetailsPage, mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

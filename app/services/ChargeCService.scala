@@ -27,7 +27,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, UserAnswers}
+import models.{AccessType, Employer, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
@@ -49,7 +49,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
   }
 
-  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate)
+  def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                             (implicit request: DataRequest[AnyContent]): Seq[Employer] = {
 
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
@@ -62,8 +62,8 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
               index,
               name,
               chargeDetails.amountTaxDue,
-              viewUrl(index, srn, startDate).url,
-              removeUrl(index, srn, startDate, ua).url
+              viewUrl(index, srn, startDate, accessType, version).url,
+              removeUrl(index, srn, startDate, ua, accessType, version).url
             )
           }
         }.toSeq
@@ -95,14 +95,15 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }.flatten
   }
 
-  def viewUrl(index: Int, srn: String, startDate: LocalDate): Call =
-    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index)
+  def viewUrl(index: Int, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Call =
+    controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version, index)
 
-  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Call =
+  private def removeUrl(index: Int, srn: String, startDate: LocalDate, ua: UserAnswers, accessType: AccessType, version: Int)
+                       (implicit request: DataRequest[AnyContent]): Call =
     if (request.isAmendment && deleteChargeHelper.isLastCharge(ua)) {
-      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index)
+      controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, version, index)
     } else {
-      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index)
+      controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, index)
     }
 
   def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {

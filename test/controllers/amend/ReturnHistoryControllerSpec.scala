@@ -26,7 +26,7 @@ import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.AFTVersion
+import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -61,6 +61,15 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "Submitted")
   private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "Compiled")
   private val versions = Seq(version1, version2, version3)
+  private val multipleVersions = Seq[AFTOverview](
+    AFTOverview(
+      periodStartDate = LocalDate.of(2020, 4, 1),
+      periodEndDate = LocalDate.of(2020, 6, 28),
+      numberOfVersions = 3,
+      submittedVersionAvailable = true,
+      compiledVersionAvailable = true
+    )
+  )
 
   private def versionsTable = Json.obj(
     "firstCellIsHeader" -> false,
@@ -103,6 +112,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SampleData.schemeDetails))
     when(mockAFTConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(versions))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(multipleVersions))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -140,9 +150,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
       actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
 
-      def anchor(startDate:String, version:String, linkContent:String) =
+      def anchor(startDate:String, version:Int, linkContent:String, accessType: AccessType) =
         s"<a id= report-version-$version " +
-          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(version)).url}> " +
+          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}> " +
           s"""$linkContent<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span> </a>"""
 
       val expectedStartDate = "2020-04-01"
@@ -151,13 +161,13 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
         Seq(
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
-          anchor(expectedStartDate, "3", messages("site.change")),
+          anchor(expectedStartDate, 3, messages("site.change"), Draft),
           "2",
           messages("returnHistory.submittedOn", "17 May 2020"),
-          anchor(expectedStartDate, "2", messages("site.view")),
+          anchor(expectedStartDate, 2, messages("site.view"), Submission),
           "1",
           messages("returnHistory.submittedOn", "17 April 2020"),
-          anchor(expectedStartDate, "1", messages("site.view"))
+          anchor(expectedStartDate, 1, messages("site.view"), Submission)
         )
       )
 

@@ -18,7 +18,6 @@ package controllers.chargeA
 
 import java.time.LocalDate
 
-import models.LocalDateBinder._
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
@@ -26,27 +25,21 @@ import controllers.actions._
 import forms.chargeA.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
 import javax.inject.Inject
-import models.SessionData
+import models.LocalDateBinder._
 import models.chargeA.ChargeDetails
-import models.GenericViewModel
-import models.Mode
+import models.{AccessType, GenericViewModel, Mode}
 import navigators.CompoundNavigator
 import pages.chargeA.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -68,15 +61,15 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
   private def form(minimumChargeValue:BigDecimal)(implicit messages: Messages): Form[ChargeDetails] =
     formProvider(minimumChargeValueAllowed = minimumChargeValue)
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, accessType: AccessType, version: Int): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
@@ -92,14 +85,14 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "srn" -> srn,
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+          "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
         )
 
         renderer.render(template = "chargeA/chargeDetails.njk", json).map(Ok(_))
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
@@ -111,7 +104,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors.copy(errors = formWithErrors.errors.distinct),
-                "viewModel" -> viewModel(mode, srn, startDate, schemeName)
+                "viewModel" -> viewModel(mode, srn, startDate, schemeName, accessType, version)
               )
               renderer.render(template = "chargeA/chargeDetails.njk", json).map(BadRequest(_))
             },
@@ -119,7 +112,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeDetailsPage, value, mode, isMemberBased = false))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage, mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

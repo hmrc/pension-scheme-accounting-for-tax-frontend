@@ -44,7 +44,8 @@ class CannotStartAFTReturnControllerSpec extends ControllerSpecBase {
       val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
       val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
 
-      val request = FakeRequest(GET, routes.CannotStartAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate).url)
+      val request = FakeRequest(GET, routes.CannotStartAFTReturnController.
+        onPageLoad(SampleData.srn, SampleData.startDate, SampleData.accessType, SampleData.versionInt).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 

@@ -41,7 +41,7 @@ class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
 
-      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
+      val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, SampleData.accessType, SampleData.versionInt).url)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
 
@@ -58,7 +58,7 @@ class CannotChangeAFTReturnControllerSpec extends ControllerSpecBase {
   }
 
   "redirect to session expired page when there is no scheme name and quarter" in {
-    val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, None).url)
+    val request = FakeRequest(GET, routes.CannotChangeAFTReturnController.onPageLoad(SampleData.srn, SampleData.startDate, SampleData.accessType, SampleData.versionInt).url)
 
     mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
     val result = route(application, request).value

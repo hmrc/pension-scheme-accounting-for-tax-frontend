@@ -19,14 +19,15 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeC.routes._
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
+import models.LocalDateBinder._
 import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
 import org.scalatest.prop.TableFor3
-import pages.{Page, chargeA, chargeB}
 import pages.chargeC._
+import pages.{Page, chargeA, chargeB}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
-import models.LocalDateBinder._
 
 class ChargeCNavigatorSpec extends NavigatorBehaviour {
   private val navigator: CompoundNavigator = injector.instanceOf[CompoundNavigator]
@@ -38,42 +39,65 @@ class ChargeCNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringOrganisationDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
-        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringIndividualDetailsController.onPageLoad(NormalMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
-        row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(SponsoringEmployerAddressSearchPage(index))(SponsoringEmployerAddressResultsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(SponsoringEmployerAddressResultsPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, index)),
-        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index)),
-        row(CheckYourAnswersPage)(AddEmployersController.onPageLoad(srn, startDate)),
-        row(AddEmployersPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, index), addEmployersYes),
-        row(AddEmployersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), addEmployersNo),
-        row(DeleteEmployerPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
-        row(DeleteEmployerPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None), multipleCharges),
-        row(DeleteEmployerPage)(AddEmployersController.onPageLoad(srn, startDate), Some(SampleData.chargeCEmployer))
+        row(WhatYouWillNeedPage)(WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(
+          SponsoringOrganisationDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerIsOrganisation)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(
+          SponsoringIndividualDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerIsIndividual)),
+        row(SponsoringOrganisationDetailsPage(index))(
+          SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringIndividualDetailsPage(index))(
+          SponsoringEmployerAddressSearchController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringEmployerAddressSearchPage(index))(
+          SponsoringEmployerAddressResultsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringEmployerAddressResultsPage(index))(
+          ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringEmployerAddressPage(index))(
+          ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index)),
+        row(ChargeCDetailsPage(index))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index)),
+        row(CheckYourAnswersPage)(
+          AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt)),
+        row(AddEmployersPage)(
+          WhichTypeOfSponsoringEmployerController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, index), addEmployersYes),
+        row(AddEmployersPage)(
+          controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), addEmployersNo),
+        row(DeleteEmployerPage)(
+          Call("GET",config.managePensionsSchemeSummaryUrl.format(srn)), zeroedCharge),
+        row(DeleteEmployerPage)(
+          controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt), multipleCharges),
+        row(DeleteEmployerPage)(
+          AddEmployersController.onPageLoad(srn, startDate, accessType, versionInt), Some(SampleData.chargeCEmployer))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes,srn, startDate, accessType, versionInt)
   }
 
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringOrganisationDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsOrganisation)),
-        row(WhichTypeOfSponsoringEmployerPage(index))(SponsoringIndividualDetailsController.onPageLoad(CheckMode,srn, startDate, index), Some(sponsoringEmployerIsIndividual)),
-        row(SponsoringOrganisationDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index), Some(sponsoringEmployerAddress)),
-        row(SponsoringOrganisationDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode,srn, startDate, index)),
-        row(SponsoringIndividualDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index), Some(sponsoringEmployerAddress)),
-        row(SponsoringIndividualDetailsPage(index))(SponsoringEmployerAddressController.onPageLoad(CheckMode,srn, startDate, index)),
-        row(SponsoringEmployerAddressPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index), Some(chargeCDetails)),
-        row(SponsoringEmployerAddressPage(index))(ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index)),
-        row(ChargeCDetailsPage(index))(CheckYourAnswersController.onPageLoad(srn, startDate, index))
+        row(WhichTypeOfSponsoringEmployerPage(index))(
+          SponsoringOrganisationDetailsController.onPageLoad(CheckMode,srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerIsOrganisation)),
+        row(WhichTypeOfSponsoringEmployerPage(index))(
+          SponsoringIndividualDetailsController.onPageLoad(CheckMode,srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerIsIndividual)),
+        row(SponsoringOrganisationDetailsPage(index))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerAddress)),
+        row(SponsoringOrganisationDetailsPage(index))(
+          SponsoringEmployerAddressController.onPageLoad(CheckMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringIndividualDetailsPage(index))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(sponsoringEmployerAddress)),
+        row(SponsoringIndividualDetailsPage(index))(
+          SponsoringEmployerAddressController.onPageLoad(CheckMode,srn, startDate, accessType, versionInt, index)),
+        row(SponsoringEmployerAddressPage(index))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index), Some(chargeCDetails)),
+        row(SponsoringEmployerAddressPage(index))(
+          ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, versionInt, index)),
+        row(ChargeCDetailsPage(index))(
+          CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate, accessType, versionInt)
   }
 }
 

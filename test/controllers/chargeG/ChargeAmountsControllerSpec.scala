@@ -21,39 +21,29 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.chargeG.ChargeAmountsFormProvider
 import matchers.JsonMatchers
+import models.LocalDateBinder._
 import models.chargeG.ChargeAmounts
-import models.GenericViewModel
-import models.NormalMode
-import models.UserAnswers
+import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.when
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
-import pages.chargeG.ChargeAmountsPage
-import pages.chargeG.MemberDetailsPage
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
+import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.test.Helpers.redirectLocation
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers._
+import play.api.libs.json.{JsObject, Json}
+import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
 
 class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeG/chargeAmounts.njk"
   private val form = new ChargeAmountsFormProvider()("first last", BigDecimal("0.01"))
-  private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, 0).url
-  private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url
+  private def httpPathGET: String = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
+  private def httpPathPOST: String = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "amountTransferred" -> Seq("33.44"),
@@ -73,8 +63,8 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val jsonToPassToTemplate:Form[ChargeAmounts]=>JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = controllers.chargeG.routes.ChargeAmountsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName),
     "memberName" -> "first last"
   )
@@ -135,7 +125,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
 
@@ -172,7 +162,7 @@ class ChargeAmountsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     }
 
     "return a redirect when zero amount is submitted and the new return flag is NOT set" in {
-      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeAmountsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(validData))
       mutableFakeDataRetrievalAction.setSessionData(sessionData(sessionAccessData = sessionAccessDataCompile))

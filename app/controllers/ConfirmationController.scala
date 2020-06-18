@@ -22,7 +22,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.GenericViewModel
+import models.{AccessType, GenericViewModel}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -52,8 +52,8 @@ class ConfirmationController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate) andThen allowSubmission).async {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
         DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
@@ -72,7 +72,7 @@ class ConfirmationController @Inject()(
             "pensionSchemesUrl" -> listSchemesUrl,
             "viewModel" -> GenericViewModel(
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
             )
           )

@@ -19,11 +19,12 @@ package controllers
 import java.time.LocalDate
 
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeG.{MemberDetails => ChargeGMemberDetails}
 import models.requests.DataRequest
-import models.{MemberDetails, Quarter, SponsoringEmployerType, UserAnswers}
+import models.{Draft, MemberDetails, Quarter, SponsoringEmployerType, UserAnswers}
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import pages._
 import pages.chargeC._
@@ -208,7 +209,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now())(result)(request)
+      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now(), Draft, 1)(result)(request)
       status(res) must be(OK)
     }
 
@@ -220,7 +221,7 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now())(result)(request)
+      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", LocalDate.now(), Draft, 1)(result)(request)
       status(res) must be(OK)
     }
 
@@ -231,14 +232,14 @@ class DataRetrievalsSpec extends FreeSpec with MustMatchers with OptionValues {
         flatMap(_.set(ChargeCDetailsPage(0), ChargeCDetails(LocalDate.now(), 100.00)))
         .getOrElse(UserAnswers())
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
+      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate, Draft, 1)(result)(request)
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", accessType, versionInt).url
     }
 
     "return aft summary when there is no sponsoring employer details in user answers" in {
       val request: DataRequest[AnyContent] = DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), UserAnswers(), SampleData.sessionData())
-      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate)(result)(request)
-      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", None).url
+      val res = DataRetrievals.cyaChargeC(index = 0, "test-srn", startDate, Draft, 1)(result)(request)
+      redirectLocation(res).value mustBe controllers.routes.AFTSummaryController.onPageLoad("test-srn", "2020-01-01", accessType, versionInt).url
     }
   }
 }

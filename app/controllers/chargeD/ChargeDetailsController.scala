@@ -25,7 +25,7 @@ import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, Mode, Quarters}
+import models.{AccessType, GenericViewModel, Index, Mode, Quarters}
 import models.chargeD.ChargeDDetails
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
@@ -65,15 +65,16 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, index: Index, schemeName: String): GenericViewModel =
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate,
+                        accessType: AccessType, version: Int, index: Index, schemeName: String): GenericViewModel =
     GenericViewModel(
-      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
@@ -87,7 +88,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
           "srn" -> srn,
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
-          "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
+          "viewModel" -> viewModel(mode, srn, startDate, accessType, version, index, schemeName),
           "date" -> DateInput.localDate(preparedForm("dateOfEvent")),
           "memberName" -> memberName
         )
@@ -96,7 +97,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndMember(MemberDetailsPage(index)) { (schemeName, memberName) =>
 
@@ -111,7 +112,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                 "srn" -> srn,
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
-                "viewModel" -> viewModel(mode, srn, startDate, index, schemeName),
+                "viewModel" -> viewModel(mode, srn, startDate, accessType, version, index, schemeName),
                 "date" -> DateInput.localDate(formWithErrors("dateOfEvent")),
                 "memberName" -> memberName
               )
@@ -121,7 +122,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswerService.set(ChargeDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
           )
       }

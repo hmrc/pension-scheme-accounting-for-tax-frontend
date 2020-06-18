@@ -21,8 +21,7 @@ import data.SampleData
 import models.requests.DataRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
@@ -31,8 +30,7 @@ import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
@@ -40,7 +38,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   class TestHarness(
                      srn: String
-                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService, None) {
+                   )(implicit ec: ExecutionContext) extends AllowAccessAction(srn, QUARTER_START_DATE, allowAccessService,
+    None, SampleData.versionInt, SampleData.accessType) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
@@ -48,7 +47,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "delegate to the allow access service with the correct srn, startDate" in {
       reset(allowAccessService)
       val srnCaptor = ArgumentCaptor.forClass(classOf[String])
-      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any(), any())(any()))
+      when(allowAccessService.filterForIllegalPageAccess(srnCaptor.capture(),any(), any(), any(), any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       val ua = SampleData.userAnswersWithSchemeNamePstrQuarter

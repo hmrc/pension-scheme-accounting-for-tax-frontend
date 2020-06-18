@@ -25,7 +25,7 @@ import controllers.actions._
 import forms.chargeC.IsSponsoringEmployerIndividualFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Index, Mode, SponsoringEmployerType}
+import models.{AccessType, GenericViewModel, Index, Mode, SponsoringEmployerType}
 import navigators.CompoundNavigator
 import pages.chargeC.WhichTypeOfSponsoringEmployerPage
 import play.api.data.Field
@@ -58,8 +58,8 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         val preparedForm = request.userAnswers.get(WhichTypeOfSponsoringEmployerPage(index)) match {
           case None        => form
@@ -67,8 +67,8 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -84,7 +84,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -93,8 +93,8 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.WhichTypeOfSponsoringEmployerController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 
@@ -110,7 +110,7 @@ class WhichTypeOfSponsoringEmployerController @Inject()(override val messagesApi
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(WhichTypeOfSponsoringEmployerPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(WhichTypeOfSponsoringEmployerPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

@@ -19,14 +19,9 @@ package navigators
 import java.time.LocalDate
 
 import base.SpecBase
-import models.AccessMode
-import models.SessionAccessData
-import models.SessionData
-import models.{Mode, UserAnswers}
+import models.{AccessMode, AccessType, Mode, SessionAccessData, UserAnswers}
 import org.scalatest.MustMatchers
-import org.scalatest.prop.TableFor3
-import org.scalatest.prop.TableFor4
-import org.scalatest.prop.TableFor5
+import org.scalatest.prop.{TableFor3, TableFor5}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.Page
 import play.api.mvc.Call
@@ -44,12 +39,12 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
 
   protected def navigatorWithRoutesForMode(mode: Mode)(navigator: CompoundNavigator,
                                                        routes: TableFor3[Page, UserAnswers, Call],
-                                                       srn: String, startDate: LocalDate): Unit = {
+                                                       srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString}" in {
           DateHelper.setDate(Option(LocalDate.now))
-          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)(request())
+          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate, accessType, version)(request())
           result mustBe call
         }
     }
@@ -57,13 +52,14 @@ trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPrope
 
   protected def navigatorWithRoutesForModeDateAndVersion(mode: Mode)(navigator: CompoundNavigator,
                                                                      routes: TableFor5[Page, UserAnswers, Call, LocalDate, Int],
-                                                                     srn: String, startDate: LocalDate): Unit = {
+                                                                     srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Unit = {
     forAll(routes) {
       (page: Page, userAnswers: UserAnswers, call: Call, currentDate: LocalDate, version: Int) =>
         s"move from $page to $call in ${Mode.jsLiteral.to(mode)} with data: ${userAnswers.toString} and current date: $currentDate and version: $version" in {
           DateHelper.setDate(Option(currentDate))
-          val result = navigator.nextPage(page, mode, userAnswers,srn, startDate)(
-            request(sessionAccessData=SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+          val result = navigator.nextPage(page, mode, userAnswers, srn, startDate, accessType, version)(
+            request(sessionAccessData=SessionAccessData(version = version,
+              accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
           result mustBe call
         }
     }
