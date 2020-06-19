@@ -32,6 +32,10 @@ object FSChargeType extends Enumerable.Implicits {
   case object OTC_6_MONTH_LLP extends WithName("OTC 6 Month LPP") with FSChargeType
   case object OTC_12_MONTH_LLP extends WithName("OTC 12 Month LPP") with FSChargeType
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with FSChargeType
+  case object PSS_AFT_RETURN extends WithName("PSS AFT Return") with FSChargeType
+  case object PSS_AFT_RETURN_INTEREST extends WithName("PSS AFT Return Interest") with FSChargeType
+  case object PSS_OTC_AFT_RETURN extends WithName("PSS OTC AFT Return") with FSChargeType
+  case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("PSS OTC AFT Return Interest") with FSChargeType
 
   val values: Seq[FSChargeType] = Seq(
     AFT_INITIAL_LLP,
@@ -42,7 +46,11 @@ object FSChargeType extends Enumerable.Implicits {
     OTC_30_DAY_LLP,
     OTC_6_MONTH_LLP,
     OTC_12_MONTH_LLP,
-    PAYMENT_ON_ACCOUNT
+    PAYMENT_ON_ACCOUNT,
+    PSS_AFT_RETURN,
+    PSS_AFT_RETURN_INTEREST,
+    PSS_OTC_AFT_RETURN,
+    PSS_OTC_AFT_RETURN_INTEREST
   )
 
   implicit val enumerable: Enumerable[FSChargeType] =
