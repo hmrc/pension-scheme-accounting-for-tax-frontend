@@ -147,7 +147,6 @@ class AFTSummaryController @Inject()(
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
 
-    val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate, accessType)
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -160,7 +159,6 @@ class AFTSummaryController @Inject()(
       "form" -> form,
       "formSearchText" -> formSearchText,
       "isAmendment" -> request.isAmendment,
-      "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString(),
       "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, version, accessType),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
@@ -168,9 +166,9 @@ class AFTSummaryController @Inject()(
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version).url
     ) ++ returnHistoryURL
-
   }
 
+  //scalastyle:off parameter.number
   private def getJson(form: Form[Boolean],
                       formSearchText: Form[String],
                       ua: UserAnswers,
@@ -178,9 +176,21 @@ class AFTSummaryController @Inject()(
                       startDate: LocalDate,
                       schemeName: String,
                       version: Int,
-                      accessType: AccessType)(implicit request: DataRequest[AnyContent]): JsObject =
-    getJsonCommon(form, formSearchText, srn, startDate, schemeName, version, accessType) ++ Json.obj(
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version))
+                      accessType: AccessType)(implicit request: DataRequest[AnyContent]): JsObject = {
+    val amendmentsLink = if (request.isAmendment) {
+      val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate, accessType)
+      Json.obj(
+        "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString()
+      )
+    } else {
+      Json.obj()
+    }
+    getJsonCommon(form, formSearchText, srn, startDate, schemeName, version, accessType) ++
+      Json.obj(
+      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version)
+      ) ++ amendmentsLink
+
+  }
 
   private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Int, accessType: AccessType): GenericViewModel = {
     GenericViewModel(

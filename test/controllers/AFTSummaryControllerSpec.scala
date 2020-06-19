@@ -93,13 +93,14 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.obj()
     }
 
+    val amendmentsLink = if (isAmendment) Json.obj("viewAllAmendmentsLink" -> emptyHtml.toString()) else Json.obj()
+
     Json.obj(
       "srn" -> srn,
       "startDate" -> Some(startDate),
       "form" -> form,
       "list" -> Nil,
       "isAmendment" -> isAmendment,
-      "viewAllAmendmentsLink" -> emptyHtml.toString(),
       "viewModel" -> GenericViewModel(
         submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
         returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
@@ -109,7 +110,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "quarterEndDate" -> QUARTER_END_DATE.format(dateFormatterDMY),
       "canChange" -> true,
       "radios" -> Radios.yesNo(form("value"))
-    ) ++ returnHistoryJson
+    ) ++ returnHistoryJson ++ amendmentsLink
   }
 
   "AFTSummary Controller" when {
@@ -251,7 +252,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "calling onSearchMember" when {
-      "display search results when Search is triggered" in {
+      "display search results when Search is triggered and not display view amendments link" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
         when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
@@ -276,6 +277,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
           "list" ->
             Json.toJson(searchResult))
         jsonCaptor.getValue must containJson(expectedJson)
+        (jsonCaptor.getValue \ "viewAllAmendmentsLink").isEmpty mustBe true
       }
     }
   }
