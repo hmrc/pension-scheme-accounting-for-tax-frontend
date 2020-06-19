@@ -19,15 +19,12 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.financialStatement.{PsaFS, SchemeFS}
-import play.api.Logger
-import play.api.http.Status.OK
-import play.api.libs.json._
+import play.api.http.Status
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
 
 class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
 
@@ -37,17 +34,8 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      response.status match {
-        case OK =>
-          val json = Json.parse(response.body)
-          json.validate[Seq[PsaFS]] match {
-            case JsSuccess(value, _) => value
-            case JsError(errors) => throw JsResultException(errors)
-          }
-        case _ => handleErrorResponse("GET", url)(response)
-      }
-    } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get psa financial statement", t)
+      require(response.status == Status.OK)
+      response.json.as[Seq[PsaFS]]
     }
   }
 
@@ -57,17 +45,8 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      response.status match {
-        case OK =>
-          val json = Json.parse(response.body)
-          json.validate[Seq[SchemeFS]] match {
-            case JsSuccess(value, _) => value
-            case JsError(errors) => throw JsResultException(errors)
-          }
-        case _ => handleErrorResponse("GET", url)(response)
-      }
-    } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get scheme financial statement", t)
+      require(response.status == Status.OK)
+      response.json.as[Seq[SchemeFS]]
     }
   }
 
