@@ -40,13 +40,13 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "removeLastCharge.njk"
 
-  private def httpPathGET: String = controllers.chargeF.routes.RemoveLastChargeController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = controllers.chargeF.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate).url
+  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt).url
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = redirectUrl,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
   override def beforeEach: Unit = {

@@ -16,54 +16,34 @@
 
 package controllers
 
-import controllers.actions.DataUpdateAction
-import controllers.actions.MutableFakeDataRetrievalAction
-import controllers.actions.MutableFakeDataUpdateAction
+import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import forms.AFTSummaryFormProvider
-import helpers.AFTSummaryHelper
-import helpers.FormatHelper
+import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
-import models.AccessMode
 import models.LocalDateBinder._
-import models.GenericViewModel
-import models.MemberDetails
-import models.Quarter
-import models.UserAnswers
+import models.{AccessMode, GenericViewModel, MemberDetails, Quarter, UserAnswers}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
 import pages._
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers._
+import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.MemberSearchService.MemberRow
-import services.AFTService
-import services.AllowAccessService
-import services.MemberSearchService
-import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.Action
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.Text.Message
-import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.Radios
+import services.{AFTService, AllowAccessService, MemberSearchService, SchemeService}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import utils.AFTConstants.QUARTER_END_DATE
-import utils.DateHelper.dateFormatterDMY
-import utils.DateHelper.dateFormatterStartDate
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future
 
@@ -99,11 +79,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
-    when(mockAFTSummaryHelper.summaryListData(any(), any(), any())(any())).thenReturn(Nil)
-    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any())(any(), any())).thenReturn(emptyHtml)
+    when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
+    when(mockAFTSummaryHelper.viewAmendmentsLink(any(), any(), any(), any())(any(), any())).thenReturn(emptyHtml)
   }
 
   private def jsonToPassToTemplate(version: Option[String], includeReturnHistoryLink: Boolean, isAmendment:Boolean): Form[Boolean] => JsObject = { form =>
@@ -122,8 +102,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "list" -> Nil,
       "isAmendment" -> isAmendment,
       "viewModel" -> GenericViewModel(
-        submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, version).url,
-        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+        submitUrl = routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url,
+        returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
         schemeName = SampleData.schemeName
       ),
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
@@ -217,7 +197,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
     "calling onSubmit" when {
       "redirect to next page when user selects yes" in {
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataUpdateAction.setDataToReturn(userAnswers)
@@ -234,7 +214,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "redirect to next page when user selects no" in {
         when(mockAFTService.isSubmissionDisabled(any())).thenReturn(false)
-        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+        when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
         fakeDataUpdateAction.setDataToReturn(userAnswers)
@@ -275,7 +255,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "display search results when Search is triggered and not display view amendments link" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
-        when(mockMemberSearchService.search(any(), any(), any(), any())(any(), any()))
+        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
           .thenReturn(searchResult)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -285,11 +265,11 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val controllerInstance = application.injector.instanceOf[AFTSummaryController]
 
-        val result = controllerInstance.onSearchMember(SampleData.srn, startDate, None).apply(fakeRequest)
+        val result = controllerInstance.onSearchMember(SampleData.srn, startDate, accessType, versionInt).apply(fakeRequest)
 
         status(result) mustEqual OK
 
-        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"))(any(), any())
+        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"), any(), any())(any(), any())
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustBe templateToBeRendered
 
@@ -314,9 +294,9 @@ object AFTSummaryControllerSpec {
   private val emptyHtml = Html("")
 
   private def httpPathGET(version: Option[String]): String =
-    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, version).url
+    controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, None).url
+  private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url
 
   private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0) = Seq(
     MemberRow(
@@ -339,12 +319,12 @@ object AFTSummaryControllerSpec {
       Seq(
         Action(
           Message("site.view"),
-          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url,
+          controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         ),
         Action(
           Message("site.remove"),
-          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, index).url,
+          controllers.chargeD.routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         )
       )

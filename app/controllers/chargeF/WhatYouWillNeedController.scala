@@ -22,7 +22,7 @@ import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.NormalMode
+import models.{AccessType, NormalMode}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeF.WhatYouWillNeedPage
@@ -50,16 +50,16 @@ class WhatYouWillNeedController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       val ua = request.userAnswers
       val schemeName = ua.get(SchemeNameQuery).getOrElse("the scheme")
-      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate)
+      val nextPage = navigator.nextPage(WhatYouWillNeedPage, NormalMode, ua, srn, startDate, accessType, version)
 
       renderer
         .render(template = "chargeF/whatYouWillNeed.njk",
                 Json.obj(fields = "schemeName" -> schemeName, "nextPage" -> nextPage.url, "srn" -> srn, "startDate" -> Some(startDate),
-                  "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
+                  "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url))
         .map(Ok(_))
     }
 }

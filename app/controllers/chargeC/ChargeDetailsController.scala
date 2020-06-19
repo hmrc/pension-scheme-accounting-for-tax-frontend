@@ -25,12 +25,8 @@ import controllers.actions._
 import forms.chargeC.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.SessionData
+import models.{AccessType, GenericViewModel, Index, Mode, Quarters, SessionData}
 import models.chargeC.ChargeCDetails
-import models.GenericViewModel
-import models.Index
-import models.Mode
-import models.Quarters
 import navigators.CompoundNavigator
 import pages.chargeC.ChargeCDetailsPage
 import play.api.data.Form
@@ -75,8 +71,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
     )
   }
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
 
         val mininimumChargeValue:BigDecimal = request.sessionData.deriveMinimumChargeValueAllowed
@@ -87,8 +83,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -105,7 +101,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
 
@@ -117,8 +113,8 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.ChargeDetailsController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 
@@ -137,7 +133,7 @@ class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(userAnswersService.set(ChargeCDetailsPage(index), value, mode))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

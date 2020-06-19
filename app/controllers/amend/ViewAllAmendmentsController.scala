@@ -26,7 +26,7 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, GenericViewModel, UserAnswers}
+import models.{AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -55,11 +55,11 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, version: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen
-      requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage))).async { implicit request =>
+      requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
-        val previousVersion = version.toInt - 1
+        val previousVersion = version - 1
 
         aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousUaJsValue =>
           aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$version").flatMap { currentUaJsValue =>
@@ -67,7 +67,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
             val viewModel = GenericViewModel(
-              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$version")).url,
+              submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Draft, version).url,
               returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
               schemeName = schemeName
             )

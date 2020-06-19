@@ -26,9 +26,7 @@ import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.ChargeType
-import models.GenericViewModel
-import models.NormalMode
+import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages._
 import play.api.i18n.I18nSupport
@@ -71,8 +69,9 @@ class ChargeTypeController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, None, optionCurrentPage = Some(ChargeTypePage)) andThen requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage))).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
+      requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
@@ -81,13 +80,14 @@ class ChargeTypeController @Inject()(
           "startDate" -> Some(startDate),
           "form" -> preparedForm,
           "radios" -> ChargeType.radios(preparedForm),
-          "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate)
+          "viewModel" -> viewModel(schemeDetails.schemeName, srn, startDate, accessType, version)
         )
         renderer.render(template = "chargeType.njk", json).map(Ok(_))
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -99,7 +99,7 @@ class ChargeTypeController @Inject()(
                 "startDate" -> Some(startDate),
                 "form" -> formWithErrors,
                 "radios" -> ChargeType.radios(formWithErrors),
-                "viewModel" -> viewModel(schemeName, srn, startDate)
+                "viewModel" -> viewModel(schemeName, srn, startDate, accessType, version)
               )
               renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
             },
@@ -107,15 +107,15 @@ class ChargeTypeController @Inject()(
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate))
+              } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
   }
 
-  private def viewModel(schemeName: String, srn: String, startDate: LocalDate): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = routes.ChargeTypeController.onSubmit(srn, startDate, accessType, version).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
   }

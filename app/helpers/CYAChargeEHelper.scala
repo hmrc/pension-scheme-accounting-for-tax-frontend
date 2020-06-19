@@ -20,13 +20,13 @@ import java.time.LocalDate
 
 import models.LocalDateBinder._
 import models.chargeE.ChargeEDetails
-import models.{CheckMode, YearRange}
+import models.{AccessType, CheckMode, YearRange}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 
-class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeEHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeEMemberDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
     Seq(
@@ -36,7 +36,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
           )
         )
@@ -47,7 +47,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
           )
         )
@@ -63,7 +63,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.taxYear.label")
           )
         )
@@ -80,7 +80,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.chargeAmount.label")
           )
         )
@@ -91,7 +91,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.dateNoticeReceived.label")
           )
         )
@@ -102,7 +102,7 @@ class CYAChargeEService(srn: String, startDate: LocalDate)(implicit messages: Me
         actions = List(
           Action(
             content = msg"site.edit",
-            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, index).url,
+            href = controllers.chargeE.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
             visuallyHiddenText = Some(msg"chargeE.visuallyHidden.isPaymentMandatory.label")
           )
         )

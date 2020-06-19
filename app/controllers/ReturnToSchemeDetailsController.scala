@@ -22,6 +22,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
+import models.AccessType
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -37,7 +38,7 @@ class ReturnToSchemeDetailsController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def returnToSchemeDetails(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async { implicit request =>
+  def returnToSchemeDetails(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = identify.async { implicit request =>
     val id = s"$srn$startDate"
     userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.managePensionsSchemeSummaryUrl.format(srn)))
   }

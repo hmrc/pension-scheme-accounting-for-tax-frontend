@@ -18,14 +18,14 @@ package helpers
 
 import java.time.LocalDate
 
-import models.CheckMode
+import models.{AccessType, CheckMode}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import models.LocalDateBinder._
 
-class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Messages) extends CYAHelper {
+class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages) extends CYAHelper {
 
   def chargeAMembers(answer: models.chargeA.ChargeDetails): Row = {
     Row(
@@ -34,7 +34,7 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -49,7 +49,7 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
         )
       )
@@ -64,7 +64,7 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate)(implicit messages: Mes
       actions = List(
         Action(
           content = msg"site.edit",
-          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate).url,
+          href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
           visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
         )
       )

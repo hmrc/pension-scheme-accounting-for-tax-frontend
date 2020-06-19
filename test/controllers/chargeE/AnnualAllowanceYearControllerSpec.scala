@@ -24,25 +24,24 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.YearRangeFormProvider
 import matchers.JsonMatchers
-import models.YearRange
-import models.{YearRange, GenericViewModel, UserAnswers, NormalMode, Enumerable}
+import models.LocalDateBinder._
+import models.{Enumerable, GenericViewModel, NormalMode, UserAnswers, YearRange}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, reset, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor}
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import pages.chargeE.{AnnualAllowanceMembersQuery, AnnualAllowanceYearPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{route, status, GET, _}
+import play.api.test.Helpers.{GET, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper
 
 import scala.concurrent.Future
-import models.LocalDateBinder._
-import utils.DateHelper
 
 class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with Enumerable.Implicits {
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
@@ -65,16 +64,16 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
     fields = "form" -> form,
     "radios" -> YearRange.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName)
   )
 
   private def form = new YearRangeFormProvider()()
 
-  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, 0).url
+  private def httpPathGET: String = controllers.chargeE.routes.AnnualAllowanceYearController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, 0).url
+  private def httpPathPOST: String = controllers.chargeE.routes.AnnualAllowanceYearController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -140,7 +139,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         )
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(AnnualAllowanceYearPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

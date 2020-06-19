@@ -81,7 +81,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   override def beforeEach: Unit = {
     super.beforeEach
-    when(mockAFTConnector.getAftOverview(any())(any(), any()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(aftOverviewQ22020, aftOverviewQ32020, aftOverviewQ42020)))
     when(mockQuartersService.getPastQuarters(any(), any())(any(), any())).thenReturn(Future.successful(displayQuarters))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

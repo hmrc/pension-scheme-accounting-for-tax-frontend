@@ -17,12 +17,13 @@
 package navigators
 
 import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
+import data.SampleData.{accessType, versionInt}
+import models.LocalDateBinder._
 import models.{CheckMode, NormalMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
-import models.LocalDateBinder._
 import utils.AFTConstants.QUARTER_START_DATE
 
 class ChargeANavigatorSpec extends NavigatorBehaviour {
@@ -34,22 +35,22 @@ class ChargeANavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate)),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate)),
-        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None))
+        row(WhatYouWillNeedPage)(ChargeDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt)),
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt)),
+        row(CheckYourAnswersPage)(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, versionInt))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
   }
 
   "CheckMode" must {
     def checkModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate))
+        row(ChargeDetailsPage)(CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt))
       )
 
-    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate)
+    behave like navigatorWithRoutesForMode(CheckMode)(navigator, checkModeRoutes,srn, startDate, accessType, versionInt)
   }
 
 }

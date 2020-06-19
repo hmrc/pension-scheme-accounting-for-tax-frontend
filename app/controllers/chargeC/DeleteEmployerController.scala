@@ -27,7 +27,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
-import models.{GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
 import pages.chargeC._
 import play.api.data.Form
@@ -63,12 +63,12 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
   private def form(memberName: String)(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteEmployer.chargeC.error.required", memberName))
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
         val viewModel = GenericViewModel(
-          submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
 
@@ -85,7 +85,7 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, index: Index): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, employerName) =>
         form(employerName)
@@ -94,8 +94,8 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 
@@ -116,34 +116,36 @@ class DeleteEmployerController @Inject()(override val messagesApi: MessagesApi,
                 DataRetrievals.retrievePSTR { pstr =>
 
                   for {
-                    updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate))
+                    updatedAnswers <- Future.fromTry(removeCharge(index, srn, startDate, accessType, version))
                     _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, updatedAnswers)
-                  } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate))
+                  } yield Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
                 }
               } else {
-                Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate)))
+                Future.successful(Redirect(navigator.nextPage(DeleteEmployerPage, NormalMode, request.userAnswers, srn, startDate, accessType, version)))
               }
           )
       }
     }
-  private def removeCharge(index: Int, srn: String, startDate: String)(implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
+  private def removeCharge(index: Int, srn: String, startDate: String, accessType: AccessType, version: Int)
+                          (implicit request: DataRequest[AnyContent]): Try[UserAnswers] = {
     val ua = request.userAnswers
     (ua.get(WhichTypeOfSponsoringEmployerPage(index)),
       ua.get(SponsoringIndividualDetailsPage(index)),
       ua.get(SponsoringOrganisationDetailsPage(index))) match {
 
       case (Some(SponsoringEmployerTypeIndividual), Some(_), _) =>
-        userAnswersService.removeMemberBasedCharge(SponsoringIndividualDetailsPage(index), totalAmount(srn, startDate))
+        userAnswersService.removeMemberBasedCharge(SponsoringIndividualDetailsPage(index), totalAmount(srn, startDate, accessType, version))
 
       case (Some(SponsoringEmployerTypeOrganisation), _, Some(_)) =>
-        userAnswersService.removeMemberBasedCharge(SponsoringOrganisationDetailsPage(index), totalAmount(srn, startDate))
+        userAnswersService.removeMemberBasedCharge(SponsoringOrganisationDetailsPage(index), totalAmount(srn, startDate, accessType, version))
 
       case _ => Try(ua)
     }
   }
 
-  private def totalAmount(srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal = {
-    chargeCHelper.getSponsoringEmployers(_, srn, startDate).map(_.amount).sum
+  private def totalAmount(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
+                         (implicit request: DataRequest[AnyContent]): UserAnswers => BigDecimal = {
+    chargeCHelper.getSponsoringEmployers(_, srn, startDate, accessType, version).map(_.amount).sum
   }
 
 

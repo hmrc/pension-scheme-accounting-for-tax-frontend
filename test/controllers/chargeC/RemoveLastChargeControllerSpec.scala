@@ -41,13 +41,13 @@ class RemoveLastChargeControllerSpec extends ControllerSpecBase with NunjucksSup
   private val templateToBeRendered = "removeLastCharge.njk"
   private val index = Index(0)
 
-  private def httpPathGET: String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index).url
+  private def httpPathGET: String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt, index).url
 
-  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, index).url
+  val redirectUrl: String = routes.ChargeDetailsController.onSubmit(CheckMode, srn, startDate, accessType, versionInt, index).url
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "viewModel" -> GenericViewModel(
       submitUrl = redirectUrl,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
   override def beforeEach: Unit = {

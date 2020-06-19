@@ -16,47 +16,28 @@
 
 package controllers.chargeC
 
-import audit.AddressLookupAuditEvent
-import audit.AuditService
-import audit.StartAFTAuditEvent
+import audit.{AddressLookupAuditEvent, AuditService, StartAFTAuditEvent}
 import connectors.AddressLookupConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
-import data.SampleData.companyName
-import org.mockito.Mockito._
-import data.SampleData.dummyCall
-import data.SampleData.srn
-import data.SampleData.startDate
-import data.SampleData.userAnswersWithSchemeNameAndIndividual
-import data.SampleData.userAnswersWithSchemeNameAndOrganisation
+import data.SampleData.{companyName, dummyCall, srn, startDate, userAnswersWithSchemeNameAndIndividual, userAnswersWithSchemeNameAndOrganisation, _}
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import matchers.JsonMatchers
-import models.GenericViewModel
-import models.NormalMode
-import models.TolerantAddress
-import models.UserAnswers
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
+import models.LocalDateBinder._
+import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.when
-import org.scalatest.OptionValues
-import org.scalatest.TryValues
+import org.mockito.Mockito.{times, verify, when, _}
+import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.SponsoringEmployerAddressSearchPage
-import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.chargeC.WhichTypeOfSponsoringEmployerPage
+import pages.chargeC.{SponsoringEmployerAddressSearchPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage}
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
+import play.api.inject.bind
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import models.LocalDateBinder._
-import data.SampleData._
-import play.api.inject.bind
 
 import scala.concurrent.Future
 
@@ -89,10 +70,10 @@ class SponsoringEmployerAddressSearchControllerSpec
     Seq[TolerantAddress](TolerantAddress(Some("addr1"), Some("addr2"), Some("addr3"), Some("addr4"), Some("postcode"), Some("UK")))
 
   private def httpPathGET: String =
-    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, index).url
+    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
 
   private def httpPathPOST: String =
-    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url
+    controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(postcode)
@@ -107,12 +88,12 @@ class SponsoringEmployerAddressSearchControllerSpec
       Json.obj(
         "form" -> form,
         "viewModel" -> GenericViewModel(
-          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          submitUrl = controllers.chargeC.routes.SponsoringEmployerAddressSearchController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
           schemeName = schemeName
         ),
         "sponsorName" -> sponsorName,
-        "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, index).url
+        "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, index).url
     )
 
   override def beforeEach: Unit = {
@@ -182,7 +163,7 @@ class SponsoringEmployerAddressSearchControllerSpec
         SponsoringEmployerAddressSearchPage.toString -> seqAddresses
       )
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressSearchPage(index)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(SponsoringEmployerAddressSearchPage(index)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAddressLookupConnector.addressLookupByPostCode(any())(any(), any())).thenReturn(Future.successful(seqAddresses))
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersOrganisation)

@@ -44,15 +44,15 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   val form: Form[MemberDetails] = formProvider()
 
   lazy val httpPathGET: String =
-    controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, 0).url
+    controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt, 0).url
   lazy val httpPathPOST: String =
-    controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url
+    controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url
 
   private val jsonToPassToTemplate: Form[MemberDetails] => JsObject = form => Json.obj(
     "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, 0).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = controllers.chargeD.routes.MemberDetailsController.onSubmit(NormalMode, srn, startDate, accessType, versionInt, 0).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
       schemeName = schemeName)
   )
 
@@ -138,7 +138,7 @@ class MemberDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
     "Save data to user answers and redirect to next page when valid data is submitted" in {
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(MemberDetailsPage(0)), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
 

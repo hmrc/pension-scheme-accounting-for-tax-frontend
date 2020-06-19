@@ -19,7 +19,7 @@ package controllers.chargeD
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CYAChargeDService
+import helpers.CYAChargeDHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.UserAnswers
@@ -31,14 +31,14 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
-  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
+  private def httpGETRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
+  private def httpOnClickRoute: String = controllers.chargeD.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(ChargeDetailsPage(0), chargeDDetails).toOption.get
 
-  private val helper = new CYAChargeDService(srn, startDate)
+  private val helper = new CYAChargeDHelper(srn, startDate, accessType, versionInt)
   private val rows = Seq(
     helper.chargeDMemberDetails(0, memberDetails),
     helper.chargeDDetails(0, chargeDDetails),

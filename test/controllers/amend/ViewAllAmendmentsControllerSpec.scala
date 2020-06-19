@@ -52,7 +52,7 @@ class ViewAllAmendmentsControllerSpec
     with JsonMatchers
     with BeforeAndAfterEach {
 
-  private def httpPathGET: String = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, QUARTER_START_DATE, versionNumber.toString).url
+  private def httpPathGET: String = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionNumber).url
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val mockAmendmentHelper: AmendmentHelper = mock[AmendmentHelper]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
@@ -108,11 +108,11 @@ class ViewAllAmendmentsControllerSpec
     fields = "srn" -> srn,
     "startDate" -> Some(startDate),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, Some(s"$versionNumber")).url,
+      submitUrl = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version = 3).url,
       returnUrl = dummyCall.url,
       schemeName = schemeName
     ),
-    "versionNumber" -> versionNumber.toString,
+    "versionNumber" -> versionNumber,
     "isDraft" -> true,
     "addedTable" -> table("added", Nil),
     "deletedTable" -> table("deleted", Nil),

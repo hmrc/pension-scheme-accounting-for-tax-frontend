@@ -119,16 +119,16 @@ class QuartersControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
     "redirect to next page when valid data is submitted" in {
 
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, q12021.startDate).url)
+      redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, q12021.startDate, accessType, versionInt).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {
-      when(mockAFTConnector.getAftOverview(any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
+      when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(aftOverviewQ12021)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 

@@ -24,7 +24,7 @@ import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{ChargeType, UserAnswers}
+import models.{AccessType, ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.Html
@@ -36,49 +36,49 @@ class AFTSummaryHelper {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
-  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeAnnualAllowance,
       totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeAuthSurplus,
       totalAmount = ua.get(pages.chargeC.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate)
+      href = chargeC.routes.AddEmployersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeDeRegistration,
       totalAmount = ua.get(pages.chargeF.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeF.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeLifetimeAllowance,
       totalAmount = ua.get(pages.chargeD.TotalChargeAmountPage).getOrElse(BigDecimal(0.00)),
-      href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeD.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeShortService,
       totalAmount = ua.get(pages.chargeA.ChargeDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeA.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     ),
     SummaryDetails(
       chargeType = ChargeTypeLumpSumDeath,
       totalAmount = ua.get(pages.chargeB.ChargeBDetailsPage).map(_.totalAmount).getOrElse(BigDecimal(0)),
-      href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)
+      href = chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)
     )
   )
 
-  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryDetails] = Seq(
+  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeOverseasTransfer,
       totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
-      href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate)
+      href = chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, version)
     )
   )
 
-  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
-    summaryDataUK(ua, srn, startDate).map { data =>
+  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
+    summaryDataUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
@@ -98,8 +98,8 @@ class AFTSummaryHelper {
   }
 
 
-  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate): Seq[SummaryList.Row] =
-    summaryDataNonUK(ua, srn, startDate).map { data =>
+  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
+    summaryDataNonUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
@@ -120,26 +120,27 @@ class AFTSummaryHelper {
 
 
 
-  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate)(implicit messages: Messages): Seq[Row] = {
+  def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
 
     val totalRow: Seq[SummaryList.Row] = Seq(Row(
       key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
-      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate).map(_.totalAmount).sum)}"),
+      value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(summaryDataUK(ua, srn, startDate, accessType, version).map(_.totalAmount).sum)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = Nil
     ))
 
-    summaryRowsUK(ua, srn, startDate) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate)
+    summaryRowsUK(ua, srn, startDate, accessType, version) ++ totalRow ++ summaryRowsNonUK(ua, srn, startDate, accessType, version)
   }
 
-  def viewAmendmentsLink(version: String, srn: String, startDate: LocalDate)(implicit messages: Messages, request: DataRequest[_]): Html = {
+  def viewAmendmentsLink(version: Int, srn: String, startDate: LocalDate, accessType: AccessType)
+                        (implicit messages: Messages, request: DataRequest[_]): Html = {
 
     val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
       messages("allAmendments.view.changes.draft.link")
     } else {
       messages("allAmendments.view.changes.submission.link")
     }
-    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, version).url
+    val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version).url
     Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }
 }

@@ -17,30 +17,29 @@
 package controllers
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
-import forms.{MemberSearchFormProvider, AFTSummaryFormProvider}
+import forms.{AFTSummaryFormProvider, MemberSearchFormProvider}
 import helpers.AFTSummaryHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{Quarters, GenericViewModel, UserAnswers, NormalMode, Mode}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTSummaryController @Inject()(
     override val messagesApi: MessagesApi,
@@ -71,9 +70,9 @@ class AFTSummaryController @Inject()(
   private val form = formProvider()
   private val memberSearchForm = memberSearchFormProvider()
 
-  def onPageLoad(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
-    (identify andThen updateData(srn, startDate, optionVersion, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
-      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val json =
           getJson(
@@ -83,32 +82,33 @@ class AFTSummaryController @Inject()(
             srn,
             startDate,
             schemeDetails.schemeName,
-            optionVersion
+            version,
+            accessType
           )
 
         renderer.render(nunjucksTemplate, json).map(Ok(_))
       }
     }
 
-  def onSearchMember(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
+  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
-      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage))).async { implicit request =>
+      allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         val ua = request.userAnswers
         memberSearchForm
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              val json = getJson(form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName, optionVersion)
+              val json = getJson(form, formWithErrors, ua, srn, startDate, schemeDetails.schemeName, version, accessType)
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
               val preparedForm: Form[String] = memberSearchForm.fill(value)
-              val searchResults = memberSearchService.search(ua, srn, startDate, value)
+              val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
               val json =
-                getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, optionVersion) ++
+                getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> searchResults) ++
-                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url)
+                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url)
 
               renderer.render(template = nunjucksTemplate, json).map(Ok(_))
             }
@@ -116,7 +116,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate, optionVersion: Option[String]): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
         form
@@ -124,13 +124,13 @@ class AFTSummaryController @Inject()(
           .fold(
             formWithErrors => {
               val ua = request.userAnswers
-              val json = getJson(formWithErrors, memberSearchForm, ua, srn, startDate, schemeName, optionVersion)
+              val json = getJson(formWithErrors, memberSearchForm, ua, srn, startDate, schemeName, version, accessType)
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
                 Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
                   userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
-                    Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate))
+                    Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate, accessType, version))
                   }
                 }
             }
@@ -143,7 +143,8 @@ class AFTSummaryController @Inject()(
                             srn: String,
                             startDate: LocalDate,
                             schemeName: String,
-                            optionVersion: Option[String])(implicit request: DataRequest[_]): JsObject = {
+                            version: Int,
+                            accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
 
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
@@ -158,42 +159,43 @@ class AFTSummaryController @Inject()(
       "form" -> form,
       "formSearchText" -> formSearchText,
       "isAmendment" -> request.isAmendment,
-      "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, optionVersion),
+      "viewModel" -> viewModel(NormalMode, srn, startDate, schemeName, version, accessType),
       "radios" -> Radios.yesNo(form("value")),
       "quarterStartDate" -> startDate.format(dateFormatterStartDate),
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
-      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, optionVersion).url
+      "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version).url
     ) ++ returnHistoryURL
   }
 
+  //scalastyle:off parameter.number
   private def getJson(form: Form[Boolean],
                       formSearchText: Form[String],
                       ua: UserAnswers,
                       srn: String,
                       startDate: LocalDate,
                       schemeName: String,
-                      optionVersion: Option[String])(implicit request: DataRequest[AnyContent]): JsObject = {
+                      version: Int,
+                      accessType: AccessType)(implicit request: DataRequest[AnyContent]): JsObject = {
     val amendmentsLink = if (request.isAmendment) {
-      val versionNumber = optionVersion.getOrElse(request.aftVersion.toString)
-      val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(versionNumber, srn, startDate)
+      val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate, accessType)
       Json.obj(
         "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString()
       )
     } else {
       Json.obj()
     }
-    getJsonCommon(form, formSearchText, srn, startDate, schemeName, optionVersion) ++
+    getJsonCommon(form, formSearchText, srn, startDate, schemeName, version, accessType) ++
       Json.obj(
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate)
+      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version)
       ) ++ amendmentsLink
 
   }
 
-  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Option[String]): GenericViewModel = {
+  private def viewModel(mode: Mode, srn: String, startDate: LocalDate, schemeName: String, version: Int, accessType: AccessType): GenericViewModel = {
     GenericViewModel(
-      submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, version).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+      submitUrl = routes.AFTSummaryController.onSubmit(srn, startDate, accessType, version).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
       schemeName = schemeName
     )
   }

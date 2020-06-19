@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.{AFTOverview, AFTVersion, Quarters}
+import models.{AFTOverview, AFTVersion, Draft, Quarters}
 import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
@@ -169,7 +169,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
         else {
           Some(msg"aftPartial.status.locked")
         },
-        Link(id = "aftSummaryLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, overview.numberOfVersions),
+        Link(id = "aftSummaryLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
           linkText = msg"aftPartial.view.link",
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
         )
@@ -179,7 +179,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
         Some(msg"aftPartial.status.inProgress"),
         Link(
           id = "aftSummaryLink",
-          url = appConfig.aftSummaryPageUrl.format(srn, startDate, overview.numberOfVersions),
+          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
           linkText = msg"aftPartial.view.link",
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
       )))
@@ -230,7 +230,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
           else {
             Some(msg"aftPartial.status.locked")
           },
-          Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageNoVersionUrl.format(srn, startDate),
+          Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageNoVersionUrl.format(srn, startDate, Draft, 1),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate))
           )
@@ -246,7 +246,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
             Some(msg"aftPartial.status.locked")
           },
           Link(id = "aftSummaryPageLink",
-            url = appConfig.aftSummaryPageUrl.format(srn, startDate, versions.head.reportVersion),
+            url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
         )
@@ -258,7 +258,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
           Some(msg"aftPartial.status.inProgress"),
           Link(
             id = "aftSummaryPageLink",
-            url = appConfig.aftSummaryPageUrl.format(srn, startDate, versions.head.reportVersion),
+            url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
         )

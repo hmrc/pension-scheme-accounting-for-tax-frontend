@@ -24,16 +24,19 @@ import pages.Page
 import play.api.mvc.{AnyContent, Call}
 
 trait Navigator {
-  protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)(implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
+  protected def routeMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+                         accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+  protected def editRouteMap(userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+                             accessType: AccessType, version: Int)
                             (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call]
 
-  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate)
+  def nextPageOptional(mode: Mode, userAnswers: UserAnswers, srn: String, startDate: LocalDate,
+                       accessType: AccessType, version: Int)
                       (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
     mode match {
-      case NormalMode => routeMap(userAnswers, srn, startDate)
-      case CheckMode  => editRouteMap(userAnswers, srn, startDate)
+      case NormalMode => routeMap(userAnswers, srn, startDate, accessType, version)
+      case CheckMode  => editRouteMap(userAnswers, srn, startDate, accessType, version)
     }
   }
 }

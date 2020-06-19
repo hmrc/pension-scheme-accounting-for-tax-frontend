@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import data.SampleData.{dummyCall, srn, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{AccessMode, GenericViewModel, SessionAccessData, SessionData, UserAnswers}
@@ -63,7 +63,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "pensionSchemesUrl" -> testManagePensionsUrl.url,
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName)
   )
 
@@ -72,7 +72,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockAllowAccessActionProvider)
-    when(mockAllowAccessActionProvider.apply(any(), any(), any())).thenReturn(FakeActionFilter)
+    when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
@@ -82,7 +82,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   "Confirmation Controller" must {
 
     "return OK and the correct view for submission for a GET" in {
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
@@ -99,7 +99,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     }
 
     "return OK and the correct view for amendment for a GET" in {
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(PSAEmailQuery, email)))
@@ -114,7 +114,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
-      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE).url)
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setDataToReturn(None)
       val result = route(application, request).value
 

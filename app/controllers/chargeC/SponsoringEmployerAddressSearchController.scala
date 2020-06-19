@@ -18,30 +18,28 @@ package controllers.chargeC
 
 import java.time.LocalDate
 
-import audit.AddressLookupAuditEvent
-import audit.AuditService
-import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
-import pages.chargeC.{SponsoringEmployerAddressSearchPage, WhichTypeOfSponsoringEmployerPage}
+import audit.{AddressLookupAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.AddressLookupConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
+import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{TolerantAddress, GenericViewModel, UserAnswers, Mode, Index}
 import models.requests.DataRequest
+import models.{AccessType, GenericViewModel, Index, Mode}
 import navigators.CompoundNavigator
+import pages.chargeC.SponsoringEmployerAddressSearchPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Result, AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class SponsoringEmployerAddressSearchController @Inject()(override val messagesApi: MessagesApi,
                                                           userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -60,41 +58,43 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
 
   private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+          submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName)
 
         val json = Json.obj(
           "form" -> form,
           "viewModel" -> viewModel,
           "sponsorName" -> sponsorName,
-          "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
+          "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
         )
 
         renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(Ok(_))
       }
   }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, index: Index): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
         form.bindFromRequest().fold(
           formWithErrors => {
             val viewModel = GenericViewModel(
-              submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+              submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName)
 
             val json = Json.obj(
               "form" -> formWithErrors,
               "viewModel" -> viewModel,
               "sponsorName" -> sponsorName,
-              "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
+              "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
             )
 
             renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(BadRequest(_))
@@ -103,15 +103,15 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
             addressLookupConnector.addressLookupByPostCode(value).flatMap {
               case Nil =>
                 val viewModel = GenericViewModel(
-                submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, index).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.SponsoringEmployerAddressSearchController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName)
 
                 val json = Json.obj(
                   "form" -> formWithError("chargeC.employerAddressSearch.error.invalid"),
                   "viewModel" -> viewModel,
                   "sponsorName" -> sponsorName,
-                  "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, index).url
+                  "enterManuallyUrl" -> routes.SponsoringEmployerAddressController.onPageLoad(mode, srn, startDate, accessType, version, index).url
                 )
 
                 renderer.render("chargeC/sponsoringEmployerAddressSearch.njk", json).map(BadRequest(_))
@@ -121,7 +121,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
                 for {
                   updatedAnswers <- Future.fromTry(request.userAnswers.set(SponsoringEmployerAddressSearchPage(index), addresses))
                   _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage(index), mode, updatedAnswers, srn, startDate))
+                } yield Redirect(navigator.nextPage(SponsoringEmployerAddressSearchPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
             }
         )
 

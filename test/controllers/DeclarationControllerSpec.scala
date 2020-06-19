@@ -57,13 +57,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
   private val templateToBeRendered = "declaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
 
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(
-      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName)
   )
 
@@ -106,7 +106,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -130,7 +130,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
@@ -159,8 +159,8 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 object DeclarationControllerSpec {
 
   private val templateToBeRendered = "declaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url
+  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
+  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -172,8 +172,8 @@ object DeclarationControllerSpec {
     _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(PSANameQuery, psaName))
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName)
   )
   private val amendAftReturnTemplateIdId = "pods_aft_amended_return"

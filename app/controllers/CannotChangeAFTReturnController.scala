@@ -22,6 +22,8 @@ import java.time.format.DateTimeFormatter
 import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
+import models.AccessType
+import models.LocalDateBinder._
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -30,7 +32,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
-import models.LocalDateBinder._
 
 class CannotChangeAFTReturnController @Inject()(
     identify: IdentifierAction,
@@ -47,7 +48,7 @@ class CannotChangeAFTReturnController @Inject()(
   private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val dateFormatterStartDate = DateTimeFormatter.ofPattern("d MMMM")
 
-  def onPageLoad(srn: String, startDate: LocalDate, optionVersion:Option[String]): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
@@ -56,10 +57,10 @@ class CannotChangeAFTReturnController @Inject()(
             "cannot-change-aft-return.njk",
             Json.obj(
               "schemeName" -> schemeName,
-              "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+              "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               "quarterStart" -> quarter.startDate.format(dateFormatterStartDate),
               "quarterEnd" -> quarter.endDate.format(dateFormatter),
-              "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, optionVersion).url
+              "viewVersionURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url
             )
           )
           .map(Ok(_))

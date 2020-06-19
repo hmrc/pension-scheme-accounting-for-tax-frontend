@@ -21,6 +21,7 @@ import java.time.LocalDate
 import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
 import javax.inject.Inject
+import models.AccessType
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -43,13 +44,14 @@ class CannotStartAFTReturnController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         renderer
           .render("cannot-start-aft-return.njk",
                   Json.obj("schemeName" -> schemeName,
-                    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url))
+                    "returnUrl" -> controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url))
           .map(Ok(_))
       }
   }

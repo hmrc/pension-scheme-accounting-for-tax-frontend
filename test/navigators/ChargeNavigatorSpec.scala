@@ -20,17 +20,14 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.Quarter
-import models.{NormalMode, ChargeType, UserAnswers}
-import org.scalatest.prop.TableFor3
-import org.scalatest.prop.TableFor4
-import org.scalatest.prop.TableFor5
+import models.{ChargeType, NormalMode, Quarter, UserAnswers}
+import org.scalatest.prop.{TableFor3, TableFor5}
 import pages._
 import play.api.mvc.Call
 import utils.AFTConstants._
-import utils.DateHelper
 
 class ChargeNavigatorSpec extends NavigatorBehaviour {
 
@@ -61,42 +58,43 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeShortService)),
-        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeLumpSumDeath)),
-        row(ChargeTypePage)(controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeAuthSurplus)),
-        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeAnnualAllowance)),
-        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeEMemberExists),
-        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeLifetimeAllowance)),
-        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeDMemberExists),
-        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate), optUA(ChargeTypeOverseasTransfer)),
-        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, 1), chargeGMemberExists),
+        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeShortService)),
+        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLumpSumDeath)),
+        row(ChargeTypePage)(controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAuthSurplus)),
+        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeEMemberExists),
+        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeDeRegistration)),
+        row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeDMemberExists),
+        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
         row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
         row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
 
-        row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate)),
-        row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate))
+        row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt)),
+        row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt))
       )
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate)
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
   }
 
   "NormalMode for AFT Summary Page" must {
     def normalModeRoutes: TableFor5[Page, UserAnswers, Call, LocalDate, Int] =
       Table(
         ("Id", "UserAnswers", "Next Page", "Current Date", "Version"),
-        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate), aftSummaryYes, currentDate = LocalDate.now, version = 1),
+        rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt),
+          aftSummaryYes, currentDate = LocalDate.now, version = 1),
         rowWithDateAndVersion(AFTSummaryPage)(controllers.routes.SessionExpiredController.onPageLoad(), currentDate = LocalDate.now, version = 1),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(NormalMode, srn, startDate),
+          controllers.routes.ConfirmSubmitAFTReturnController.onPageLoad(srn, startDate),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate.plusDays(1),
           version = 1),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate),
+          controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version = 2),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate.plusDays(1),
           version = 2),
@@ -108,7 +106,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
           version = 1)
       )
 
-    behave like navigatorWithRoutesForModeDateAndVersion(NormalMode)(navigator, normalModeRoutes, srn, startDate)
+    behave like navigatorWithRoutesForModeDateAndVersion(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
 
 
   }

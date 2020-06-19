@@ -24,7 +24,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{GenericViewModel, Quarter, Quarters, SubmittedHint}
+import models.{Draft, GenericViewModel, Quarter, Quarters, SubmittedHint}
 import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -112,11 +112,11 @@ class QuartersController @Inject()(
                 value => {
                   val selectedDisplayQuarter = displayQuarters.find(_.quarter == value).getOrElse(throw InvalidValueSelected)
                   selectedDisplayQuarter.hintText match {
-                    case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate)))
+                    case None => Future.successful(Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, value.startDate, Draft, version = 1)))
                     case Some(SubmittedHint) => Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
                     case _ =>
-                      val version = Some(aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected).numberOfVersions.toString)
-                      Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, version)))
+                      val version = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected).numberOfVersions
+                      Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version)))
                   }
                 }
               )

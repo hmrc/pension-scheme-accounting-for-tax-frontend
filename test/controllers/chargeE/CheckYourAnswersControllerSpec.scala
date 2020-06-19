@@ -21,7 +21,7 @@ import java.time.LocalDate
 import behaviours.CheckYourAnswersBehaviour
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import helpers.CYAChargeEService
+import helpers.CYAChargeEHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{UserAnswers, YearRange}
@@ -36,15 +36,15 @@ class CheckYourAnswersControllerSpec extends ControllerSpecBase with NunjucksSup
 
   private val templateToBeRendered = "check-your-answers.njk"
 
-  private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, 0).url
-  private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(srn, startDate, 0).url
+  private def httpGETRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
+  private def httpOnClickRoute: String = controllers.chargeE.routes.CheckYourAnswersController.onClick(srn, startDate, accessType, versionInt, 0).url
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).toOption.get
     .set(AnnualAllowanceYearPage(0), dynamicYearRange).toOption.get
     .set(ChargeDetailsPage(0), chargeEDetails).toOption.get
 
-  private val helper = new CYAChargeEService(srn, startDate)
+  private val helper = new CYAChargeEHelper(srn, startDate, accessType, versionInt)
   private val rows = Seq(
     helper.chargeEMemberDetails(0, memberDetails),
     helper.chargeETaxYear(0, dynamicYearRange),

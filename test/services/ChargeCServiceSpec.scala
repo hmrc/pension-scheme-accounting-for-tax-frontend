@@ -20,20 +20,21 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
+import data.SampleData.{accessType, versionInt}
 import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus
-import models.AmendedChargeStatus.{Updated, Added}
+import models.AmendedChargeStatus.{Added, Updated}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, UserAnswers, MemberDetails}
+import models.{Employer, MemberDetails, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{SponsoringOrganisationDetailsPage, ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, _}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage, _}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -67,9 +68,9 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
     .set(SponsoringIndividualDetailsPage(2), SampleData.memberDetails).toOption.get
     .set(ChargeCDetailsPage(2), SampleData.chargeCDetails).toOption.get
 
-  def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, index).url
-  def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, index).url
-  def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, index).url
+  def viewLink(index: Int): String = controllers.chargeC.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+  def removeLink(index: Int): String = controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, index).url
+  def lastChargeLink(index: Int): String = controllers.chargeC.routes.RemoveLastChargeController.onPageLoad(srn, startDate, accessType, versionInt, index).url
   def expectedEmployer(memberDetails: MemberDetails, index: Int): Employer =
     Employer(index, memberDetails.fullName, SampleData.chargeAmount1, viewLink(index), removeLink(index))
 
@@ -98,12 +99,12 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
 
   ".getSponsoringEmployers" must {
     "return all the members added in charge C when it is not the last charge" in {
-      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate)(request()) mustBe expectedAllEmployers
+      chargeCHelper.getSponsoringEmployers(allEmployers, srn, startDate, accessType, versionInt)(request()) mustBe expectedAllEmployers
     }
 
     "return all the members added in charge C when it is the last charge" in {
       when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
-      chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate)(dataRequest()) mustBe expectedLastChargeEmployer
+      chargeCHelper.getSponsoringEmployers(oneEmployerLastCharge, srn, startDate, accessType, versionInt)(dataRequest()) mustBe expectedLastChargeEmployer
     }
   }
 

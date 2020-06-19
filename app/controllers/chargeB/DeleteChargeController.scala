@@ -24,20 +24,19 @@ import controllers.actions._
 import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.UserAnswers
-import models.{NormalMode, GenericViewModel}
+import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeB.{SpecialDeathBenefitsQuery, DeleteChargePage}
+import pages.chargeB.{DeleteChargePage, SpecialDeathBenefitsQuery}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{UserAnswersService, DeleteAFTChargeService}
+import services.{DeleteAFTChargeService, UserAnswersService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        navigator: CompoundNavigator,
@@ -58,14 +57,14 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
   private def form(implicit messages: Messages): Form[Boolean] =
     formProvider(messages("deleteCharge.error.required", messages("chargeB").toLowerCase()))
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate)).async {
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async {
       implicit request =>
         DataRetrievals.retrieveSchemeName { schemeName =>
 
           val viewModel = GenericViewModel(
-            submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+            submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
+            returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
             schemeName = schemeName
           )
 
@@ -82,7 +81,7 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
         }
     }
 
-  def onSubmit(srn: String, startDate: LocalDate): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
@@ -91,8 +90,8 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+                submitUrl = routes.DeleteChargeController.onSubmit(srn, startDate, accessType, version).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
 
@@ -115,11 +114,11 @@ class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                   for {
                       _ <- deleteAFTChargeService.deleteAndFileAFTReturn(pstr, userAnswers)
                     } yield {
-                    Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate))
+                    Redirect(navigator.nextPage(DeleteChargePage, NormalMode, userAnswers, srn, startDate, accessType, version))
                   }
                 }
               } else {
-                Future.successful(Redirect(controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate)))
+                Future.successful(Redirect(controllers.chargeB.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, version)))
               }
           )
       }

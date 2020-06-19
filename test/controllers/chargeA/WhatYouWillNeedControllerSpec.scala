@@ -42,12 +42,12 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val templateToBeRendered = "chargeA/whatYouWillNeed.njk"
 
-  private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt).url
 
   private val jsonToPassToTemplate: JsObject = Json.obj(
     fields = "schemeName" -> schemeName, "nextPage" -> dummyCall.url, "viewModel" -> GenericViewModel(
       submitUrl = "",
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE).url,
+      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName))
 
   override def beforeEach: Unit = {
@@ -63,7 +63,7 @@ class WhatYouWillNeedControllerSpec extends ControllerSpecBase with NunjucksSupp
 
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockCompoundNavigator.nextPage(Matchers.eq(WhatYouWillNeedPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
 
       val result = route(application, httpGETRequest(httpPathGET)).value
 

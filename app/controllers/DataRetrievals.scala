@@ -22,7 +22,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
+import models.{AccessType, Draft, Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -114,7 +114,7 @@ object DataRetrievals {
     }
   }
 
-  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate)(
+  def cyaChargeGeneric[A](chargeDetailsPage: QuestionPage[A], srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (A, String) => Future[Result])(implicit request: DataRequest[AnyContent], reads: Reads[A]): Future[Result] = {
     (
       request.userAnswers.get(chargeDetailsPage),
@@ -123,11 +123,11 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(schemeName)) =>
         block(chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
-  def cyaChargeC(index: Index, srn: String, startDate: LocalDate)(
+  def cyaChargeC(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (SponsoringEmployerType,
               Either[models.MemberDetails, SponsoringOrganisationDetails],
               SponsoringEmployerAddress,
@@ -150,14 +150,14 @@ object DataRetrievals {
           case (None, Some(organisation)) =>
             block(whichTypeOfSponsoringEmployer, Right(organisation), sponsoringEmployerAddress, chargeDetails, schemeName)
           case _ =>
-            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+            Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
         }
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
-  def cyaChargeD(index: Index, srn: String, startDate: LocalDate)(
+  def cyaChargeD(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (models.MemberDetails, models.chargeD.ChargeDDetails, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -168,11 +168,11 @@ object DataRetrievals {
       case (Some(memberDetails), Some(chargeDetails), Some(schemeName)) =>
         block(memberDetails, chargeDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
-  def cyaChargeE(index: Index, srn: String, startDate: LocalDate)(
+  def cyaChargeE(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (MemberDetails, YearRange, models.chargeE.ChargeEDetails, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -184,11 +184,11 @@ object DataRetrievals {
       case (Some(memberDetails), Some(taxYear), Some(chargeEDetails), Some(schemeName)) =>
         block(memberDetails, taxYear, chargeEDetails, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 
-  def cyaChargeG(index: Index, srn: String, startDate: LocalDate)(
+  def cyaChargeG(index: Index, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(
       block: (models.chargeG.ChargeDetails, models.chargeG.MemberDetails, models.chargeG.ChargeAmounts, String) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     (
@@ -200,7 +200,7 @@ object DataRetrievals {
       case (Some(chargeDetails), Some(memberDetails), Some(chargeAmounts), Some(schemeName)) =>
         block(chargeDetails, memberDetails, chargeAmounts, schemeName)
       case _ =>
-        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, None)))
+        Future.successful(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version)))
     }
   }
 

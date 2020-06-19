@@ -56,13 +56,13 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteMember.chargeD.error.required", memberName))
 
-  private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, 0).url
+  private def httpPathGET: String = routes.DeleteMemberController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, 0).url
+  private def httpPathPOST: String = routes.DeleteMemberController.onSubmit(srn, startDate, accessType, versionInt, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
     schemeName = schemeName)
 
   private val userAnswers: UserAnswers = userAnswersWithSchemeNamePstrQuarter
@@ -103,7 +103,7 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted member marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))
 

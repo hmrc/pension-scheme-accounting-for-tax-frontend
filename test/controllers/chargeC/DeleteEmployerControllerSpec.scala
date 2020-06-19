@@ -84,13 +84,13 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
   private val formProvider = new DeleteFormProvider()
   private val form: Form[Boolean] = formProvider(messages("deleteEmployer.chargeC.error.required", employerNameIndividual))
 
-  private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, startDate, 0).url
+  private def httpPathGET: String = routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, versionInt, 0).url
 
-  private def httpPathPOST: String = routes.DeleteEmployerController.onSubmit(srn, startDate, 0).url
+  private def httpPathPOST: String = routes.DeleteEmployerController.onSubmit(srn, startDate, accessType, versionInt, 0).url
 
   private val viewModel = GenericViewModel(
     submitUrl = httpPathPOST,
-    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate).url,
+    returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt).url,
     schemeName = schemeName)
 
   "DeleteEmployer Controller" must {
@@ -160,7 +160,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted individual marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersIndividual))
@@ -189,7 +189,7 @@ class DeleteEmployerControllerSpec extends ControllerSpecBase with MockitoSugar 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the deleted organisation marked as deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
-      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
+      when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(answersOrg))
