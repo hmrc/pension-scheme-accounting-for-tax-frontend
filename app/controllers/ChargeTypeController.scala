@@ -21,6 +21,7 @@ import java.time.LocalDate
 import audit.AuditService
 import audit.StartAFTAuditEvent
 import config.FrontendAppConfig
+import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
@@ -59,8 +60,6 @@ class ChargeTypeController @Inject()(
     renderer: Renderer,
     config: FrontendAppConfig,
     auditService: AuditService,
-    aftService: AFTService,
-    allowService: AllowAccessService,
     schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
