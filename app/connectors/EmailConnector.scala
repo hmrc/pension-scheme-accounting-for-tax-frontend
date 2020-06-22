@@ -61,7 +61,6 @@ class EmailConnector @Inject()(
 
     val jsonData = Json.toJson(sendEmailReq)
 
-    println("\n\n\n jsonData : "+jsonData)
     http.POST(emailServiceUrl, jsonData).map { response =>
       response.status match {
         case ACCEPTED =>
