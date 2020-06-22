@@ -40,9 +40,11 @@ class EmailConnector @Inject()(
     http: HttpClient,
     crypto: ApplicationCrypto
 ) {
-  private def callBackUrl(journeyType: String, psaId: PsaId): String = {
+  private def callBackUrl(journeyType: String, psaId: PsaId, email: String): String = {
     val encryptedPsaId = crypto.QueryParameterCrypto.encrypt(PlainText(psaId.value)).value
-    appConfig.aftEmailCallback(journeyType, encryptedPsaId)
+    val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
+
+    appConfig.aftEmailCallback(journeyType, encryptedEmail, encryptedPsaId)
   }
 
   def sendEmail(
@@ -54,10 +56,12 @@ class EmailConnector @Inject()(
   )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
-    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce, callBackUrl(journeyType, psaId))
+    val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce,
+      callBackUrl(journeyType, psaId, emailAddress))
 
     val jsonData = Json.toJson(sendEmailReq)
 
+    println("\n\n\n jsonData : "+jsonData)
     http.POST(emailServiceUrl, jsonData).map { response =>
       response.status match {
         case ACCEPTED =>
