@@ -25,7 +25,7 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{AccessMode, GenericViewModel, UserAnswers}
+import models.{AFTOverview, AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -41,7 +41,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTConstants.QUARTER_START_DATE
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
 
 import scala.concurrent.Future
 
@@ -93,6 +93,8 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(
+      Seq(AFTOverview(QUARTER_START_DATE, QUARTER_END_DATE, 2, true, true))))
   }
   mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData
   (sessionAccessData = sessionAccessData(versionNumber, AccessMode.PageAccessModeCompile)))
