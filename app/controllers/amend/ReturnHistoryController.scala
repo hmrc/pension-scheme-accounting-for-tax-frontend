@@ -86,9 +86,9 @@ class ReturnHistoryController @Inject()(
       val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-      def link(data: AFTVersion, linkText: String, accessType: AccessType)(implicit messages: Messages): Html = {
-        Html(s"<a id= report-version-${data.reportVersion} href=${url(accessType, data.reportVersion)}> ${messages(linkText)}" +
-          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", data.reportVersion.toString)}</span> </a>")
+      def link(version: Int, linkText: String, accessType: AccessType)(implicit messages: Messages): Html = {
+        Html(s"<a id= report-version-$version href=${url(accessType, version)}> ${messages(linkText)}" +
+          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", version.toString)}</span> </a>")
       }
 
       val head = Seq(
@@ -110,19 +110,19 @@ class ReturnHistoryController @Inject()(
           case "Compiled" => msg"returnHistory.compiledStatus"
           case _          => msg"returnHistory.submittedOn".withArgs(date)
         }
-
         Cell(status, classes = Seq("govuk-!-width-one-half"))
       }
 
       val tableRows = versions.zipWithIndex.map { data =>
         val (version, index) = data
-        val accessType = if (index == 0 && isCompileAvailable.contains(true)) Draft else Submission
+        val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version.reportVersion + 1 else version.reportVersion
+        val accessType = if (index == 0) Draft else Submission
 
         getLinkText(index, srn, version.date, version.reportStatus).map { linkText =>
           Seq(
             versionCell(version.reportVersion, version.reportStatus),
             statusCell(version.date.format(dateFormatter), version.reportStatus),
-            Cell(link(version, linkText, accessType), classes = Seq("govuk-!-width-one-quarter"))
+            Cell(link(updatedVersion, linkText, accessType), classes = Seq("govuk-!-width-one-quarter"))
           )
         }
       }

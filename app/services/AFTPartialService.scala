@@ -230,7 +230,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
           else {
             Some(msg"aftPartial.status.locked")
           },
-          Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageNoVersionUrl.format(srn, startDate, Draft, 1),
+          Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, 1),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate))
           )

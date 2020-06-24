@@ -95,7 +95,7 @@ class RequestCreationService @Inject()(
       request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, srn)
+      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, srn, accessType)
       savedUA <- save(updatedUA, sessionData)
     } yield {
       (schemeDetails, savedUA)
@@ -153,7 +153,7 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, srn: String)(
+  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, srn: String, accessType: AccessType)(
       implicit hc: HeaderCarrier,
       ec: ExecutionContext,
       request: OptionalDataRequest[_]): Future[(UserAnswers, SessionAccessData)] = {
@@ -189,8 +189,10 @@ class RequestCreationService @Inject()(
              .setOrException(PSTRQuery, schemeDetails.pstr),
            sessionData))
       } else {
+        val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable == true)
+        val updatedVersion = if(accessType == Draft && isCompilable.contains(false)) version - 1 else version
         aftConnector
-          .getAFTDetails(schemeDetails.pstr, startDate, version.toString)
+          .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
           .map(aftDetails => (UserAnswers(ua.data ++ aftDetails.as[JsObject]), sessionData))
       }
     }

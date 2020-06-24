@@ -28,7 +28,7 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
+import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTAmendmentPage
 import play.api.data.Form
@@ -93,38 +93,48 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         )
     }
 
-  private def populateView(srn: String, startDate: LocalDate, ua: UserAnswers, form: Form[Boolean],
-                           result: Results.Status, accessType: AccessType, version: Int)(
-      implicit request: DataRequest[AnyContent]): Future[Result] = {
+  private def populateView(srn: String,
+                           startDate: LocalDate,
+                           ua: UserAnswers,
+                           form: Form[Boolean],
+                           result: Results.Status,
+                           accessType: AccessType,
+                           version: Int)(implicit request: DataRequest[AnyContent]): Future[Result] = {
 
     DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
       val amendedVersion = request.aftVersion
       val previousVersion = amendedVersion - 1
-      aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousVersionJsValue =>
-        val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
-        val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-        val viewModel = GenericViewModel(
-          submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
-          returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-          schemeName = schemeName
-        )
+      aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate)).flatMap { seqOverview =>
+        val isCompilable = seqOverview.exists(_.compiledVersionAvailable == true)
 
-        val json = Json.obj(
-          fields = "srn" -> srn,
-          "startDate" -> Some(startDate),
-          "form" -> form,
-          "versionNumber" -> amendedVersion,
-          "viewModel" -> viewModel,
-          "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
-          "tableRowsNonUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountNonUK,
-                                                                   previousTotalAmountNonUK,
-                                                                   amendedVersion,
-                                                                   previousVersion),
-          "radios" -> Radios.yesNo(form("value"))
-        )
+        if (accessType == Draft && !isCompilable) {
+          Future.successful(Redirect(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))))
+        } else {
+          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousVersionJsValue =>
+            val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
+            val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-        renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+            val viewModel = GenericViewModel(
+              submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
+              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+              schemeName = schemeName
+            )
+
+            val json = Json.obj(
+              fields = "srn" -> srn,
+              "startDate" -> Some(startDate),
+              "form" -> form,
+              "versionNumber" -> amendedVersion,
+              "viewModel" -> viewModel,
+              "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
+              "tableRowsNonUK" -> amendmentHelper
+                .amendmentSummaryRows(currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion),
+              "radios" -> Radios.yesNo(form("value"))
+            )
+            renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+          }
+        }
       }
     }
   }

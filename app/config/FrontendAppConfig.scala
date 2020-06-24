@@ -102,7 +102,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   lazy val aftLoginUrl: String = s"${configuration.get[String](path = "urls.partials.aftLoginLink")}"
   lazy val aftSummaryPageUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageLink")}"
-  lazy val aftSummaryPageNoVersionUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageNoVersionLink")}"
   lazy val aftReturnHistoryUrl: String = s"${configuration.get[String](path = "urls.partials.aftReturnHistoryLink")}"
   lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
