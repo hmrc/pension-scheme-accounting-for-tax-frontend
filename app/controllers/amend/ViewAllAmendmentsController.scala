@@ -59,9 +59,8 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
-        val isPrecompile = request.sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
-        val updatedVersion = if(isPrecompile) version - 1 else version
-        val previousVersion = if(isPrecompile) version - 2 else version - 1
+        val updatedVersion = if(request.isPrecompile) version - 1 else version
+        val previousVersion = if(request.isPrecompile) version - 2 else version - 1
 
         aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousUaJsValue =>
           aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$updatedVersion").flatMap { currentUaJsValue =>

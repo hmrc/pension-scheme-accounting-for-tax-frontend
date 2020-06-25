@@ -86,8 +86,9 @@ class ReturnHistoryController @Inject()(
       val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-      def link(version: Int, linkText: String, accessType: AccessType)(implicit messages: Messages): Html = {
-        Html(s"<a id= report-version-$version href=${url(accessType, version)}> ${messages(linkText)}" +
+      def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
+        val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version + 1 else version
+        Html(s"<a id= report-version-$version href=${url(accessType, updatedVersion)}> ${messages(linkText)}" +
           s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", version.toString)}</span> </a>")
       }
 
@@ -115,14 +116,13 @@ class ReturnHistoryController @Inject()(
 
       val tableRows = versions.zipWithIndex.map { data =>
         val (version, index) = data
-        val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version.reportVersion + 1 else version.reportVersion
         val accessType = if (index == 0) Draft else Submission
 
         getLinkText(index, srn, version.date, version.reportStatus).map { linkText =>
           Seq(
             versionCell(version.reportVersion, version.reportStatus),
             statusCell(version.date.format(dateFormatter), version.reportStatus),
-            Cell(link(updatedVersion, linkText, accessType), classes = Seq("govuk-!-width-one-quarter"))
+            Cell(link(version.reportVersion, linkText, accessType, index), classes = Seq("govuk-!-width-one-quarter"))
           )
         }
       }
