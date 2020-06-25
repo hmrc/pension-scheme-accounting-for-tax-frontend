@@ -26,7 +26,7 @@ import helpers.AFTSummaryHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{AccessMode, AccessType, Draft, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
@@ -177,7 +177,7 @@ class AFTSummaryController @Inject()(
                       schemeName: String,
                       version: Int,
                       accessType: AccessType)(implicit request: DataRequest[AnyContent]): JsObject = {
-    val amendmentsLink = if (request.isAmendment) {
+    val amendmentsLink = if (request.isAmendment && (!request.isPrecompile || version > 2)) {
       val viewAllAmendmentsLink = aftSummaryHelper.viewAmendmentsLink(version, srn, startDate, accessType)
       Json.obj(
         "viewAllAmendmentsLink" -> viewAllAmendmentsLink.toString()
