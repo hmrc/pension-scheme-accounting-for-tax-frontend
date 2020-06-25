@@ -26,7 +26,7 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
+import models.{AccessMode, AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -59,10 +59,12 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
     (identify andThen getData(srn, startDate) andThen
       requireData andThen allowAccess(srn, startDate, Some(ViewOnlyAccessiblePage), version, accessType)).async { implicit request =>
       DataRetrievals.retrieveSchemeWithPSTR { (schemeName, pstr) =>
-        val previousVersion = version - 1
+        val isPrecompile = request.sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
+        val updatedVersion = if(isPrecompile) version - 1 else version
+        val previousVersion = if(isPrecompile) version - 2 else version - 1
 
         aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousUaJsValue =>
-          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$version").flatMap { currentUaJsValue =>
+          aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$updatedVersion").flatMap { currentUaJsValue =>
             val currentAnswers = UserAnswers(currentUaJsValue.as[JsObject])
             val previousAnswers = UserAnswers(previousUaJsValue.as[JsObject])
 
@@ -76,7 +78,7 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
               fields = "srn" -> srn,
               "startDate" -> Some(startDate),
               "viewModel" -> viewModel,
-              "versionNumber" -> version,
+              "versionNumber" -> updatedVersion,
               "isDraft" -> (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile),
               "addedTable" -> mapToTable(
                 caption = "added",
