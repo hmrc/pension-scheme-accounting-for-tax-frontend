@@ -132,7 +132,7 @@ class AmendQuartersControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
 
 
-      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
     }
 
     "redirect to session expired page when there quarters service returns an empty list for a POST" in {

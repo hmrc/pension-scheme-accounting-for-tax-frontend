@@ -18,37 +18,46 @@ package controllers.actions
 
 import controllers.base.ControllerSpecBase
 import data.SampleData
-import models.UserAnswers
+import handlers.ErrorHandler
+import models.{Quarter, UserAnswers}
 import models.requests.DataRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import pages.QuarterPage
 import play.api.mvc.Result
-import play.api.mvc.Results.NotFound
+import play.api.mvc.Results.{BadRequest, NotFound}
+import services.AFTService
 import uk.gov.hmrc.domain.PsaId
+import utils.AFTConstants._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures with BeforeAndAfterEach {
-  private val allowService = mock[AllowAccessService]
+
+  private val aftService: AFTService = mock[AFTService]
+  private val errorHandler: ErrorHandler = mock[ErrorHandler]
 
   override def beforeEach: Unit = {
-    reset(allowService)
+    reset(aftService)
+    when(errorHandler.onClientError(any(), any(), any())).thenReturn(Future.successful(BadRequest))
   }
 
-  class Harness(allowService: AllowAccessService) extends AllowSubmissionActionImpl(allowService) {
+  class Harness(aftService: AFTService, errorHandler: ErrorHandler) extends AllowSubmissionActionImpl(aftService, errorHandler) {
     def callTransform[A](request: DataRequest[A]): Future[Option[Result]] = filter(request)
   }
 
   "Allow Submission Action" when {
-    "submission is allowed" must {
+    "submission is allowed and Quarter is known" must {
       "return None" in {
-        when(allowService.allowSubmission(any())(any())) thenReturn Future(None)
-        val action = new Harness(allowService)
+        when(aftService.isSubmissionDisabled(any())).thenReturn(false)
+        val action = new Harness(aftService, errorHandler)
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
+        val ua: UserAnswers = UserAnswers().setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
+
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result mustBe None
@@ -56,10 +65,25 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
       }
     }
 
+    "submission is allowed and Quarter is unknown" must {
+      "return None" in {
+        when(aftService.isSubmissionDisabled(any())).thenReturn(false)
+        val action = new Harness(aftService, errorHandler)
+
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
+
+        whenReady(futureResult) { result =>
+          result.value mustBe BadRequest
+        }
+      }
+    }
+
     "submission is not allowed" must {
       "return the Result " in {
-        when(allowService.allowSubmission(any())(any())) thenReturn Future(Some(NotFound("Not Found")))
-        val action = new Harness(allowService)
+        when(aftService.isSubmissionDisabled(any())).thenReturn(true)
+        when(errorHandler.onClientError(any(), any(), any())).thenReturn(Future(NotFound("Not Found")))
+
+        val action = new Harness(aftService, errorHandler)
 
         val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
 

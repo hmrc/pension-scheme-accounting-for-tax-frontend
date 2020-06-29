@@ -58,10 +58,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
-  private val emptyUserAnswers = UserAnswers()
-
-  private val aftStatus = "Compiled"
-
   private val request: IdentifierRequest[AnyContentAsEmpty.type] =
     IdentifierRequest(fakeRequest, psaIdInstance)
 
@@ -73,9 +69,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
 
   private val email = "test@test.com"
-  private val psaName = "Pension Scheme Administrator"
-
-  private val seqAFTVersion = Seq(AFTVersion(1, LocalDate.of(2020, 4, 1), "submitted"))
 
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
@@ -86,21 +79,9 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-21")
-    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
+    when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
-  }
-
-  "createRequest" must {
-    "create a request with user answers and session data" in {
-      val result = Await.result(
-        requestCreationService.createRequest(psaIdInstance, srn, startDate)(request, implicitly, implicitly),
-        Duration.Inf
-      )
-
-      val expectedResult = OptionalDataRequest(request, internalId, psaIdInstance, Some(userAnswersWithSchemeName), Some(sd))
-      result mustBe expectedResult
-    }
   }
 
   "retrieveAndCreateRequest" when {
@@ -133,9 +114,9 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         )
 
         verify(mockUserAnswersCacheConnector, times(1))
-          .save(any(),
+          .saveAndLock(any(),
             any(),
-            Matchers.eq(Option(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true))),
+            Matchers.eq(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true)),
             Matchers.eq(false))(any(), any())
       }
     }
