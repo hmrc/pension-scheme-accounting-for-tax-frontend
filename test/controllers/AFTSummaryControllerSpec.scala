@@ -38,7 +38,7 @@ import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.MemberSearchService.MemberRow
-import services.{AFTService, AllowAccessService, MemberSearchService, SchemeService}
+import services.{AFTService, MemberSearchService, SchemeService}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}

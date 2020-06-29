@@ -17,19 +17,26 @@
 package controllers.actions
 
 import com.google.inject.Inject
+import handlers.ErrorHandler
+import models.LocalDateBinder._
 import models.requests.DataRequest
-import play.api.mvc.ActionFilter
-import play.api.mvc.Result
-import services.AllowAccessService
+import pages.QuarterPage
+import play.api.http.Status.NOT_FOUND
+import play.api.mvc.{ActionFilter, Result}
+import services.AFTService
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AllowSubmissionActionImpl @Inject()(allowAccessService: AllowAccessService)(implicit val executionContext: ExecutionContext)
+class AllowSubmissionActionImpl @Inject()(aftService: AFTService, errorHandler: ErrorHandler)(implicit val executionContext: ExecutionContext)
     extends AllowSubmissionAction {
 
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] =
-    allowAccessService.allowSubmission(request.userAnswers)(request)
+    request.userAnswers.get(QuarterPage) match {
+      case Some(quarter) if !aftService.isSubmissionDisabled(quarter.endDate) =>
+        Future.successful(None)
+      case _ =>
+        errorHandler.onClientError(request, NOT_FOUND).map(Some.apply)
+    }
 }
 
 trait AllowSubmissionAction extends ActionFilter[DataRequest]

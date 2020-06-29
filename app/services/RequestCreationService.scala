@@ -30,7 +30,6 @@ import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetai
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
 
@@ -38,69 +37,55 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RequestCreationService @Inject()(
-    aftConnector: AFTConnector,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    schemeService: SchemeService,
-    minimalPsaConnector: MinimalPsaConnector,
-    config: FrontendAppConfig
-) {
-  def createRequest[A](psaId: PsaId, srn: String, startDate: LocalDate)(implicit request: Request[A],
-                                                                        executionContext: ExecutionContext,
-                                                                        headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
-    val id = s"$srn$startDate"
-    for {
-      data <- userAnswersCacheConnector.fetch(id)
-      sessionData <- userAnswersCacheConnector.getSessionData(id)
-    } yield {
-      val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, psaId, optionUA, sessionData)
-    }
-  }
+                                        aftConnector: AFTConnector,
+                                        userAnswersCacheConnector: UserAnswersCacheConnector,
+                                        schemeService: SchemeService,
+                                        minimalPsaConnector: MinimalPsaConnector,
+                                        config: FrontendAppConfig
+                                      ) {
+
 
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
   def retrieveAndCreateRequest[A](srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page])(
-      implicit request: IdentifierRequest[A],
-      executionContext: ExecutionContext,
-      headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
+    implicit request: IdentifierRequest[A],
+    executionContext: ExecutionContext,
+    headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
 
     val id = s"$srn$startDate"
 
-    def optionalDataRequest(optionJsValue: Option[JsValue]): OptionalDataRequest[A] = {
-      val optionUA = optionJsValue.map { jsValue => UserAnswers(jsValue.as[JsObject])
-      }
-      OptionalDataRequest[A](request, id, request.psaId, optionUA, None)
-    }
+   def optionUA(optionJsValue: Option[JsValue]): Option[UserAnswers] = optionJsValue.map { jsValue => UserAnswers(jsValue.as[JsObject])}
+
 
     userAnswersCacheConnector.fetch(id).flatMap { data =>
       (data, version, accessType, optionCurrentPage, isPreviousPageWithinAFT) match {
         case (None, 1, Draft, Some(AFTSummaryPage), true) =>
-          Future.successful(optionalDataRequest(None))
+          Future.successful(OptionalDataRequest[A](request, id, request.psaId, None, None))
         case _ =>
-          val tuple = retrieveAFTRequiredDetails(srn, startDate, version, accessType)(implicitly, implicitly, optionalDataRequest(data))
-
-          tuple.flatMap {
-            case (_, ua) =>
-              userAnswersCacheConnector.getSessionData(id).map { sd => OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
-              }
+          val userAnswers = retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA(data), request.psaId.id)
+          userAnswers.flatMap { ua =>
+            userAnswersCacheConnector.getSessionData(id).map { sd => OptionalDataRequest[A](request, id, request.psaId, Some(ua), sd)
+            }
           }
       }
     }
   }
 
-  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Int, accessType: AccessType)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext,
-      request: OptionalDataRequest[_]): Future[(SchemeDetails, UserAnswers)] = {
+  private def retrieveAFTRequiredDetails(srn: String, startDate: LocalDate, optionVersion: Int,
+                                         accessType: AccessType,
+                                         ua: Option[UserAnswers], psaId: String)(
+                                        implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+    val id = s"$srn$startDate"
     for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
-      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, srn, accessType)
-      savedUA <- save(updatedUA, sessionData)
+      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn)
+      (updatedUA, sessionData) <- updateUserAnswersWithAFTDetails(optionVersion, schemeDetails, startDate, srn, accessType, psaId, ua)
+      json <- userAnswersCacheConnector.saveAndLock(id, updatedUA.data, sessionData, lockReturn = sessionData.accessMode != AccessMode.PageAccessModeViewOnly)
     } yield {
-      (schemeDetails, savedUA)
+        UserAnswers(json.as[JsObject]))
     }
   }
+
 
   private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], isLocked: Boolean, psaSuspended: Boolean): SessionAccessData = {
     val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
@@ -112,22 +97,15 @@ class RequestCreationService @Inject()(
 
     val (version, accessMode) =
       (viewOnly, anyVersions, isInCompile) match {
-        case (true, false, _)    => (1, AccessMode.PageAccessModeViewOnly)
-        case (true, true, _)     => (versionInt, AccessMode.PageAccessModeViewOnly)
+        case (true, _, _)     => (versionInt, AccessMode.PageAccessModeViewOnly)
         case (false, true, true) => (maxVersion, AccessMode.PageAccessModeCompile)
-        case _                   => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
+        case _ => (maxVersion + 1, AccessMode.PageAccessModePreCompile)
       }
 
     SessionAccessData(version, accessMode, areSubmittedVersionsAvailable)
   }
 
-  private def save(ua: UserAnswers,
-                   sad: SessionAccessData)(implicit request: OptionalDataRequest[_], hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
-    val savedJsValue = userAnswersCacheConnector.save(request.internalId, ua.data, optionSessionData = Some(sad),
-      lockReturn = sad.accessMode != AccessMode.PageAccessModeViewOnly)
 
-    savedJsValue.map(json => UserAnswers(json.as[JsObject]))
-  }
 
   private def isOverviewApiDisabled: Boolean =
     LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)
@@ -135,34 +113,27 @@ class RequestCreationService @Inject()(
   private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
 
     if (isOverviewApiDisabled) {
-      aftConnector
-        .getListOfVersions(pstr, startDate)
-        .map { aftVersion =>
-          aftVersion.map { _ =>
-            AFTOverview(
-              periodStartDate = startDate,
-              periodEndDate = Quarters.getQuarter(startDate).endDate,
-              numberOfVersions = 1,
-              submittedVersionAvailable = false,
-              compiledVersionAvailable = true
-            )
-          }
-        }
+      Future.successful(Seq(AFTOverview(
+        periodStartDate = startDate,
+        periodEndDate = Quarters.getQuarter(startDate).endDate,
+        numberOfVersions = 1,
+        submittedVersionAvailable = false,
+        compiledVersionAvailable = true
+      )))
     } else { // After 1st July
       aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
     }
   }
 
-  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, srn: String, accessType: AccessType)(
-      implicit hc: HeaderCarrier,
-      ec: ExecutionContext,
-      request: OptionalDataRequest[_]): Future[(UserAnswers, SessionAccessData)] = {
+  private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate, srn: String, accessType: AccessType, psaId: String, ua: Option[UserAnswers])(
+    implicit hc: HeaderCarrier,
+    ec: ExecutionContext): Future[(UserAnswers, SessionAccessData)] = {
 
     def updateMinimalPsaDetailsInUa(ua: UserAnswers): Future[UserAnswers] = {
       val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeDetails.schemeStatus))
       uaWithStatus.get(IsPsaSuspendedQuery) match {
         case None =>
-          minimalPsaConnector.getMinimalPsaDetails(request.psaId.id).map { psaDetails =>
+          minimalPsaConnector.getMinimalPsaDetails(psaId).map { psaDetails =>
             uaWithStatus
               .setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
               .setOrException(PSAEmailQuery, psaDetails.email)
@@ -177,20 +148,20 @@ class RequestCreationService @Inject()(
     val uaWithSessionData = for {
       optionLockedBy <- userAnswersCacheConnector.lockedBy(srn, startDate)
       seqAFTOverview <- getAftOverview(schemeDetails.pstr, startDate)
-      ua <- updateMinimalPsaDetailsInUa(request.userAnswers.getOrElse(UserAnswers()))
+      ua <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()))
     } yield {
       val sessionData = createSessionAccessData(version, seqAFTOverview, optionLockedBy.isDefined,
         ua.get(IsPsaSuspendedQuery).getOrElse(true))
       if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
         Future.successful(
           (ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
-             .setOrException(AFTStatusQuery, value = "Compiled")
-             .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-             .setOrException(PSTRQuery, schemeDetails.pstr),
-           sessionData))
+            .setOrException(AFTStatusQuery, value = "Compiled")
+            .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+            .setOrException(PSTRQuery, schemeDetails.pstr),
+            sessionData))
       } else {
         val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable == true)
-        val updatedVersion = if(accessType == Draft && isCompilable.contains(false)) version - 1 else version
+        val updatedVersion = if (accessType == Draft && isCompilable.contains(false)) version - 1 else version
         aftConnector
           .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
           .map(aftDetails => (UserAnswers(ua.data ++ aftDetails.as[JsObject]), sessionData))

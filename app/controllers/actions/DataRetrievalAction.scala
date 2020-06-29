@@ -19,13 +19,16 @@ package controllers.actions
 import java.time.LocalDate
 
 import com.google.inject.ImplementedBy
+import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.AccessType
+import models.{AccessType, UserAnswers}
 import models.requests.IdentifierRequest
 import models.requests.OptionalDataRequest
 import pages.Page
-import play.api.mvc.ActionTransformer
+import play.api.libs.json.JsObject
+import play.api.mvc.{ActionTransformer, Request}
 import services.RequestCreationService
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
@@ -35,22 +38,30 @@ import scala.concurrent.Future
 class DataRetrievalImpl(
     srn: String,
     startDate: LocalDate,
-    requestCreationService:RequestCreationService
+    userAnswersCacheConnector: UserAnswersCacheConnector
 )(implicit val executionContext: ExecutionContext)
     extends DataRetrieval {
   
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    requestCreationService.createRequest(request.psaId, srn, startDate)(request,implicitly, implicitly)
+    val id = s"$srn$startDate"
+    for {
+      data <- userAnswersCacheConnector.fetch(id)
+      sessionData <- userAnswersCacheConnector.getSessionData(id)
+    } yield {
+      val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
+      OptionalDataRequest[A](request, id, request.psaId, optionUA, sessionData)
+    }
   }
+
+
 }
 
-class DataRetrievalActionImpl @Inject()(
-                                         requestCreationService:RequestCreationService
-)(implicit val executionContext: ExecutionContext)
-    extends DataRetrievalAction {
+class DataRetrievalActionImpl @Inject()(userAnswersCacheConnector: UserAnswersCacheConnector
+                                        )(implicit val executionContext: ExecutionContext)
+                                        extends DataRetrievalAction {
   override def apply(srn: String, startDate: LocalDate): DataRetrieval =
-    new DataRetrievalImpl(srn, startDate, requestCreationService)
+    new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }
 
 @ImplementedBy(classOf[DataRetrievalImpl])
@@ -59,40 +70,4 @@ trait DataRetrieval extends ActionTransformer[IdentifierRequest, OptionalDataReq
 @ImplementedBy(classOf[DataRetrievalActionImpl])
 trait DataRetrievalAction {
   def apply(srn: String, startDate: LocalDate): DataRetrieval
-}
-
-
-
-
-
-class DataUpdateImpl(
-                         srn: String,
-                         startDate: LocalDate,
-                         version: Int,
-                         accessType: AccessType,
-                         optionCurrentPage: Option[Page],
-                         requestCreationService:RequestCreationService
-                       )(implicit val executionContext: ExecutionContext)
-  extends DataUpdate {
-
-  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
-    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-    requestCreationService.retrieveAndCreateRequest(srn, startDate, version, accessType, optionCurrentPage)(request,implicitly, implicitly)
-  }
-}
-
-class DataUpdateActionImpl @Inject()(
-                                         requestCreationService:RequestCreationService
-                                       )(implicit val executionContext: ExecutionContext)
-  extends DataUpdateAction {
-  override def apply(srn: String, startDate: LocalDate, optionVersion: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataUpdate =
-    new DataUpdateImpl(srn, startDate, optionVersion, accessType, optionCurrentPage, requestCreationService)
-}
-
-@ImplementedBy(classOf[DataUpdateImpl])
-trait DataUpdate extends ActionTransformer[IdentifierRequest, OptionalDataRequest]
-
-@ImplementedBy(classOf[DataUpdateActionImpl])
-trait DataUpdateAction {
-  def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page]): DataUpdate
 }

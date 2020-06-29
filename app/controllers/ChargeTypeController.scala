@@ -39,7 +39,6 @@ import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.SchemeService
 import services.AFTService
-import services.AllowAccessService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

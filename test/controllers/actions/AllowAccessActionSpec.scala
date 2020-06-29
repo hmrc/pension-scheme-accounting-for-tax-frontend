@@ -25,7 +25,6 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages.IsPsaSuspendedQuery
 import play.api.mvc.Result
-import services.AllowAccessService
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
