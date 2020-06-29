@@ -18,10 +18,8 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.AuditService
-import audit.StartAFTAuditEvent
+import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
@@ -30,20 +28,15 @@ import models.LocalDateBinder._
 import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
 import navigators.CompoundNavigator
 import pages._
-import play.api.i18n.I18nSupport
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
-import services.AFTService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -51,7 +44,7 @@ class ChargeTypeController @Inject()(
     navigator: CompoundNavigator,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
-    updateData: DataUpdateAction,
+    updateData: DataSetupAction,
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: ChargeTypeFormProvider,

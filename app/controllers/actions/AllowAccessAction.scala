@@ -102,7 +102,7 @@ class AllowAccessAction(srn: String,
         Future.successful(Option(Redirect(CannotChangeAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
       case (true, _, Some(ChargeTypePage), _, _) =>
         Future.successful(Option(Redirect(CannotStartAFTReturnController.onPageLoad(srn, startDate, accessType, version))))
-      case (false, true, None || Some(ChargeTypePage), _, _) =>
+      case (false, true, None | Some(ChargeTypePage), _, _) =>
         //todo redirect to new error page for form-pages in view-only returns once it is created
         Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
       case _ =>

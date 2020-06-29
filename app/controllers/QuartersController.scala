@@ -39,22 +39,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class QuartersController @Inject()(
                                     override val messagesApi: MessagesApi,
-                                    userAnswersCacheConnector: UserAnswersCacheConnector,
-                                    navigator: CompoundNavigator,
                                     identify: IdentifierAction,
-                                    getData: DataRetrievalAction,
-                                    allowAccess: AllowAccessActionProvider,
-                                    requireData: DataRequiredAction,
                                     formProvider: QuartersFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
                                     renderer: Renderer,
                                     config: FrontendAppConfig,
                                     schemeService: SchemeService,
                                     aftConnector: AFTConnector,
-                                    auditService: AuditService,
-                                    quartersService: QuartersService,
-
-                                    allowService: AllowAccessService
+                                    quartersService: QuartersService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport

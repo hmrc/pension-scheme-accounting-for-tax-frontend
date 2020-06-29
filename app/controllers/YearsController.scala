@@ -37,20 +37,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class YearsController @Inject()(
     override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
     identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
     formProvider: YearsFormProvider,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
-    schemeService: SchemeService,
-    auditService: AuditService,
-    aftService: AFTService,
-    allowService: AllowAccessService
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport

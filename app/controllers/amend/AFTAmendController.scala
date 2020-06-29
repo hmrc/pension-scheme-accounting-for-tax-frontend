@@ -35,13 +35,7 @@ class AFTAmendController @Inject()(
     aftConnector: AFTConnector,
     schemeService: SchemeService,
     identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    config: FrontendAppConfig,
-    aftService: AFTService,
-    allowService: AllowAccessService
+    val controllerComponents: MessagesControllerComponents
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
