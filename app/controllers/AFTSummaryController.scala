@@ -26,7 +26,7 @@ import helpers.AFTSummaryHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessMode, AccessType, Draft, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
+import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAnswers}
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
@@ -47,7 +47,7 @@ class AFTSummaryController @Inject()(
     navigator: CompoundNavigator,
     identify: IdentifierAction,
     getData: DataRetrievalAction,
-    updateData: DataUpdateAction,
+    updateData: DataSetupAction,
     allowAccess: AllowAccessActionProvider,
     requireData: DataRequiredAction,
     formProvider: AFTSummaryFormProvider,
@@ -56,8 +56,6 @@ class AFTSummaryController @Inject()(
     renderer: Renderer,
     config: FrontendAppConfig,
     aftSummaryHelper: AFTSummaryHelper,
-    aftService: AFTService,
-    allowService: AllowAccessService,
     schemeService: SchemeService,
     memberSearchService: MemberSearchService
 )(implicit ec: ExecutionContext)
@@ -118,7 +116,7 @@ class AFTSummaryController @Inject()(
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, quarter) =>
+      DataRetrievals.retrieveSchemeAndQuarter { (schemeName, _) =>
         form
           .bindFromRequest()
           .fold(

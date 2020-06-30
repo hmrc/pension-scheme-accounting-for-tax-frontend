@@ -31,7 +31,7 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AllowAccessService, QuartersService, SchemeService}
+import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -39,22 +39,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class QuartersController @Inject()(
                                     override val messagesApi: MessagesApi,
-                                    userAnswersCacheConnector: UserAnswersCacheConnector,
-                                    navigator: CompoundNavigator,
                                     identify: IdentifierAction,
-                                    getData: DataRetrievalAction,
-                                    allowAccess: AllowAccessActionProvider,
-                                    requireData: DataRequiredAction,
                                     formProvider: QuartersFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
                                     renderer: Renderer,
                                     config: FrontendAppConfig,
                                     schemeService: SchemeService,
                                     aftConnector: AFTConnector,
-                                    auditService: AuditService,
-                                    quartersService: QuartersService,
-
-                                    allowService: AllowAccessService
+                                    quartersService: QuartersService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport

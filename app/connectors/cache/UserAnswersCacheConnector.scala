@@ -41,16 +41,16 @@ class UserAnswersCacheConnectorImpl @Inject()(
     http: WSClient
 ) extends UserAnswersCacheConnector {
 
-  override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
-  override protected def sessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
-  override protected def lockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
+  override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+  override protected def saveSessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
+  override protected def saveSessionAndLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
   override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)(implicit
                                  ec: ExecutionContext,
                                  hc: HeaderCarrier): Future[Option[JsValue]] = {
     http
-      .url(url)
+      .url(saveUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap { response =>
@@ -65,32 +65,19 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
-  def save(
-      id: String,
-      value: JsValue,
-      optionSessionData: Option[SessionAccessData] = None,
-      lockReturn: Boolean = false
-  )(implicit
-    ec: ExecutionContext,
-    hc: HeaderCarrier): Future[JsValue] = {
-    val useURL = (optionSessionData, lockReturn) match {
-      case (_, true) => lockUrl
-      case (Some(_), false) => sessionUrl
-      case _ => url
-    }
+  def save(id: String, value: JsValue)
+          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
-    val sessionDataHeaders = optionSessionData match {
-      case Some(data) => Seq(
-        Tuple2("version", data.version.toString),
-        Tuple2("accessMode", data.accessMode.toString),
-        Tuple2("areSubmittedVersionsAvailable", data.areSubmittedVersionsAvailable.toString))
-      case None       => Nil
-    }
-    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
+    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json"))
 
+    savePost(allExtraHeaders, saveUrl, value)
+  }
+
+  private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]= {
     http
-      .url(useURL)
-      .withHttpHeaders(hc.withExtraHeaders(allExtraHeaders: _*).headers: _*)
+      .url(url)
+      .withHttpHeaders(hc.withExtraHeaders(headers: _*).headers: _*)
       .post(PlainText(Json.stringify(value)).value)
       .flatMap { response =>
         response.status match {
@@ -102,9 +89,29 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
   }
 
+  override def saveAndLock(
+    id: String,
+    value: JsValue,
+    sessionAccessData: SessionAccessData,
+  lockReturn: Boolean = false
+  )(implicit
+  ec: ExecutionContext,
+  hc: HeaderCarrier): Future[JsValue] = {
+
+    val useURL = if(lockReturn) saveSessionAndLockUrl else saveSessionUrl
+
+    val sessionDataHeaders = Seq(
+        Tuple2("version", sessionAccessData.version.toString),
+        Tuple2("accessMode", sessionAccessData.accessMode.toString),
+        Tuple2("areSubmittedVersionsAvailable", sessionAccessData.areSubmittedVersionsAvailable.toString))
+    val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
+
+    savePost(allExtraHeaders, useURL, value)
+  }
+
   override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http
-      .url(url)
+      .url(saveUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .delete()
       .map(_ => Ok)
@@ -114,7 +121,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
                                           ec: ExecutionContext,
                                           hc: HeaderCarrier): Future[Option[SessionData]] = {
     http
-      .url(sessionUrl)
+      .url(saveSessionUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .get()
       .flatMap { response =>
@@ -156,19 +163,15 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
 trait UserAnswersCacheConnector {
 
-  protected def url: String
-  protected def sessionUrl: String
-  protected def lockUrl: String
+  protected def saveUrl: String
+  protected def saveSessionUrl: String
+  protected def saveSessionAndLockUrl: String
   protected def lockedByUrl: String
 
   def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String,
-           value: JsValue,
-           optionSessionData: Option[SessionAccessData] = None,
-           lockReturn: Boolean = false
-          )(implicit ec: ExecutionContext,
-                                                                                           hc: HeaderCarrier): Future[JsValue]
+  def save(cacheId: String, value: JsValue
+          )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
   def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
@@ -180,5 +183,13 @@ trait UserAnswersCacheConnector {
                                                ec: ExecutionContext,
                                                hc: HeaderCarrier
   ): Future[Option[String]]
+
+  def saveAndLock(id: String,
+                  value: JsValue,
+                  sessionAccessData: SessionAccessData,
+                  lockReturn: Boolean = false
+                  )(implicit
+                    ec: ExecutionContext,
+                    hc: HeaderCarrier): Future[JsValue]
 
 }

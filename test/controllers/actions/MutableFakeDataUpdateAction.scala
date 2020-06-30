@@ -24,7 +24,7 @@ import pages.Page
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class MutableFakeDataUpdateAction extends DataUpdateAction {
+class MutableFakeDataSetupAction extends DataSetupAction {
   private var dataToReturn: Option[UserAnswers] = None
   private var storedSessionData: SessionData = SessionData(
     sessionId = "1",
@@ -48,12 +48,12 @@ class MutableFakeDataUpdateAction extends DataUpdateAction {
     )
   }
 
-  override def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionPage: Option[Page]): DataUpdate =
-    new MutableFakeDataUpdate(storedSessionData, dataToReturn)
+  override def apply(srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionPage: Option[Page]): DataSetup =
+    new MutableFakeDataSetup(storedSessionData, dataToReturn)
 }
 
-class MutableFakeDataUpdate(sessionData: SessionData = MutableFakeDataUpdate.sessionDataViewOnly, dataToReturn: Option[UserAnswers])
-    extends DataUpdate {
+class MutableFakeDataSetup(sessionData: SessionData = MutableFakeDataSetup.sessionDataViewOnly, dataToReturn: Option[UserAnswers])
+    extends DataSetup {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
     Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, dataToReturn, Some(sessionData)))
@@ -62,7 +62,7 @@ class MutableFakeDataUpdate(sessionData: SessionData = MutableFakeDataUpdate.ses
     scala.concurrent.ExecutionContext.Implicits.global
 }
 
-object MutableFakeDataUpdate {
+object MutableFakeDataSetup {
   private val sessionDataViewOnly: SessionData = SessionData(
     sessionId = "1",
     name = None,

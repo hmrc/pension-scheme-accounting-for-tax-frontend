@@ -29,7 +29,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, AllowAccessService, SchemeService}
+import services.{AFTService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -37,20 +37,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class YearsController @Inject()(
     override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
     identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
     formProvider: YearsFormProvider,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
-    schemeService: SchemeService,
-    auditService: AuditService,
-    aftService: AFTService,
-    allowService: AllowAccessService
+    schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport

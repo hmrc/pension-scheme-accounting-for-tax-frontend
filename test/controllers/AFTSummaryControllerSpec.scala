@@ -16,7 +16,7 @@
 
 package controllers
 
-import controllers.actions.{DataUpdateAction, MutableFakeDataRetrievalAction, MutableFakeDataUpdateAction}
+import controllers.actions.{DataSetupAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -38,7 +38,7 @@ import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.MemberSearchService.MemberRow
-import services.{AFTService, AllowAccessService, MemberSearchService, SchemeService}
+import services.{AFTService, MemberSearchService, SchemeService}
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
@@ -51,18 +51,16 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   import AFTSummaryControllerSpec._
 
-  private val mockAllowAccessService = mock[AllowAccessService]
   private val mockAFTService = mock[AFTService]
   private val mockSchemeService = mock[SchemeService]
   private val mockMemberSearchService = mock[MemberSearchService]
   private val mockAFTSummaryHelper = mock[AFTSummaryHelper]
-  private val fakeDataUpdateAction: MutableFakeDataUpdateAction = new MutableFakeDataUpdateAction()
+  private val fakeDataSetupAction: MutableFakeDataSetupAction = new MutableFakeDataSetupAction()
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
-      bind[AllowAccessService].toInstance(mockAllowAccessService),
       bind[AFTService].toInstance(mockAFTService),
-      bind[DataUpdateAction].toInstance(fakeDataUpdateAction),
+      bind[DataSetupAction].toInstance(fakeDataSetupAction),
       bind[SchemeService].toInstance(mockSchemeService),
       bind[MemberSearchService].toInstance(mockMemberSearchService),
       bind[AFTSummaryHelper].toInstance(mockAFTSummaryHelper)
@@ -76,10 +74,9 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   override def beforeEach: Unit = {
     super.beforeEach()
-    reset(mockAllowAccessService, mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
-    when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
+    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
+    when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAllowAccessService.filterForIllegalPageAccess(any(), any(), any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
@@ -119,8 +116,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "return OK and the correct view without view all amendments link when compiling initial draft and " +
         "there are no submitted versions available where no version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setSessionData(
+        fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataSetupAction.setSessionData(
           SampleData.sessionData(
             sessionAccessData = SampleData.sessionAccessData(
               version = 1,
@@ -145,8 +142,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "return OK and the correct view without view all amendments link when compiling initial draft and " +
         "there are no submitted versions available where a version is present in the request" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setSessionData(
+        fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataSetupAction.setSessionData(
           SampleData.sessionData(
             sessionAccessData = SampleData.sessionAccessData(
               version = 1,
@@ -169,8 +166,8 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "include the view all amendments link in json passed to page when there are submitted versions available" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
-        fakeDataUpdateAction.setSessionData(
+        fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
+        fakeDataSetupAction.setSessionData(
           SampleData.sessionData(
             sessionAccessData = SampleData.sessionAccessData(
               version = 2,
@@ -200,7 +197,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-        fakeDataUpdateAction.setDataToReturn(userAnswers)
+        fakeDataSetupAction.setDataToReturn(userAnswers)
 
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
@@ -217,7 +214,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
         when(mockCompoundNavigator.nextPage(Matchers.eq(AFTSummaryPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-        fakeDataUpdateAction.setDataToReturn(userAnswers)
+        fakeDataSetupAction.setDataToReturn(userAnswers)
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq("false")))).value
 
@@ -230,18 +227,18 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "return a BAD REQUEST when invalid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-        fakeDataUpdateAction.setDataToReturn(userAnswers)
+        fakeDataSetupAction.setDataToReturn(userAnswers)
 
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
         status(result) mustEqual BAD_REQUEST
 
-        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any(), any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
       }
 
       "redirect to Session Expired page for a POST when there is no data" in {
         mutableFakeDataRetrievalAction.setDataToReturn(None)
-        fakeDataUpdateAction.setDataToReturn(None)
+        fakeDataSetupAction.setDataToReturn(None)
 
         val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
@@ -259,7 +256,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
           .thenReturn(searchResult)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-        fakeDataUpdateAction.setDataToReturn(userAnswers)
+        fakeDataSetupAction.setDataToReturn(userAnswers)
 
         val fakeRequest = httpPOSTRequest("/", Map("searchText" -> Seq("Search")))
 

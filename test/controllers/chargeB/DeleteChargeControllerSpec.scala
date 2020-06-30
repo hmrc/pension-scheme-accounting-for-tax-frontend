@@ -97,7 +97,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
       when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswers))

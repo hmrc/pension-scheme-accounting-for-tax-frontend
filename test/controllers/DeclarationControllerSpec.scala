@@ -105,7 +105,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
@@ -114,7 +114,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       status(result) mustEqual SEE_OTHER
 
       verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
       verify(mockEmailConnector, times(1)).sendEmail(
         any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
@@ -129,7 +129,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 

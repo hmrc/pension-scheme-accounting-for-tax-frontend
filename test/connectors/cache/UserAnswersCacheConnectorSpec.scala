@@ -18,11 +18,12 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
+import models.{AccessMode, SessionAccessData}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,6 +39,9 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
   private val sessionUrl = "/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
 
   private val isLockedUrl = s"/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
+
+  private val sessionAccessData: SessionAccessData =
+    SessionAccessData(1, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
 
   ".fetch" must {
 
@@ -188,7 +192,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.save(cacheId = "testId", json, lockReturn = true) map {
+      connector.saveAndLock("testId", json, sessionAccessData, lockReturn = true) map {
         _ mustEqual json
       }
     }
