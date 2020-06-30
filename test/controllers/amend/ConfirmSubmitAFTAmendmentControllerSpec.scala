@@ -136,7 +136,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
     "redirect to the next page when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTAmendmentRoute)
@@ -146,7 +146,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
     }
 
     "remove the data and redirect to the pension scheme url when user submits with value false" in {
@@ -161,7 +161,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual dummyCall.url
       verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any(), any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
@@ -172,7 +172,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
       status(result) mustEqual BAD_REQUEST
 
       verify(mockRenderer, times(1)).render(any(), any())(any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any(), any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

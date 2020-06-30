@@ -64,20 +64,20 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
         verify(mockDeleteChargeHelper, times(1)).allChargesDeletedOrZeroed(any())
         verify(mockAFTService, times(1)).fileCompileReturn(any(), any())(any(), any(), any())
         verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
-        verify(mockUserAnswersCacheConnector, never()).save(any(), any(), any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, never()).save(any(), any())(any(), any())
       }
     }
 
     "file aft return and save if all charges have been deleted or zeroed out for an amendment" in {
       when(mockDeleteChargeHelper.allChargesDeletedOrZeroed(any())).thenReturn(true)
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, emptyUserAnswers)(implicitly, implicitly, dataRequest(emptyUserAnswers, 2))) { _ =>
         verify(mockDeleteChargeHelper, times(1)).allChargesDeletedOrZeroed(any())
         verify(mockAFTService, times(1)).fileCompileReturn(any(), any())(any(), any(), any())
         verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
-        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
+        verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
       }
     }
 
@@ -87,12 +87,12 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
           "chargeBDetails" -> Json.obj(fields = "totalAmount" -> 400.00)))
 
       when(mockDeleteChargeHelper.allChargesDeletedOrZeroed(any())).thenReturn(false)
-      when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
 
       whenReady(deleteChargeService.deleteAndFileAFTReturn(pstr, ua)(implicitly, implicitly, dataRequest(ua, 1))) {
         _ =>
           verify(mockAFTService, times(1)).fileCompileReturn(Matchers.eq(pstr), Matchers.eq(ua))(any(), any(), any())
-          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any(), any(), any())(any(), any())
+          verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
           verify(mockUserAnswersCacheConnector, never()).removeAll(any())(any(), any())
       }
     }
