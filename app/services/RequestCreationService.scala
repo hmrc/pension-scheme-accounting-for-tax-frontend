@@ -114,13 +114,19 @@ class RequestCreationService @Inject()(
   private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
 
     if (LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)) {
-      Future.successful(Seq(AFTOverview(
-        periodStartDate = startDate,
-        periodEndDate = Quarters.getQuarter(startDate).endDate,
-        numberOfVersions = 1,
-        submittedVersionAvailable = false,
-        compiledVersionAvailable = true
-      )))
+      aftConnector
+        .getListOfVersions(pstr, startDate)
+        .map { aftVersion =>
+          aftVersion.map { _ =>
+            AFTOverview(
+              periodStartDate = startDate,
+              periodEndDate = Quarters.getQuarter(startDate).endDate,
+              numberOfVersions = 1,
+              submittedVersionAvailable = false,
+              compiledVersionAvailable = true
+            )
+          }
+        }
     } else { // After 21st July
       aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
     }
@@ -151,10 +157,10 @@ class RequestCreationService @Inject()(
 
       if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
         Future.successful(
-          (ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
+          ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
             .setOrException(AFTStatusQuery, value = "Compiled")
             .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-            .setOrException(PSTRQuery, schemeDetails.pstr)))
+            .setOrException(PSTRQuery, schemeDetails.pstr))
       } else {
         val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 
@@ -165,7 +171,7 @@ class RequestCreationService @Inject()(
 
         aftConnector
           .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
-          .map(aftDetails => (UserAnswers(ua.data ++ aftDetails.as[JsObject])))
+          .map(aftDetails => UserAnswers(ua.data ++ aftDetails.as[JsObject]))
       }
   }
 }
