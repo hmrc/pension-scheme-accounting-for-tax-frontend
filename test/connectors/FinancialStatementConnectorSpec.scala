@@ -19,7 +19,7 @@ package connectors
 import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LLP, OTC_6_MONTH_LLP}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.financialStatement.{PsaFS, SchemeFS}
 import org.scalatest._
@@ -44,7 +44,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
   private val psaFSResponse: Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
-      chargeType = AFT_INITIAL_LLP,
+      chargeType = AFT_INITIAL_LFP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
@@ -55,7 +55,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
     ),
     PsaFS(
       chargeReference = "XY002610150184",
-      chargeType = OTC_6_MONTH_LLP,
+      chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
