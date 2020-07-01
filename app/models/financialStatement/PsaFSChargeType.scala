@@ -23,25 +23,25 @@ sealed trait PsaFSChargeType
 
 object PsaFSChargeType extends Enumerable.Implicits {
 
-  case object AFT_INITIAL_LLP extends WithName("AFT Initial LFP") with PsaFSChargeType
-  case object AFT_DAILY_LLP extends WithName("AFT Daily LFP") with PsaFSChargeType
-  case object AFT_30_DAY_LLP extends WithName("AFT 30 Day LPP") with PsaFSChargeType
-  case object AFT_6_MONTH_LLP extends WithName("AFT 6 Month LPP") with PsaFSChargeType
-  case object AFT_12_MONTH_LLP extends WithName("AFT 12 Month LPP") with PsaFSChargeType
-  case object OTC_30_DAY_LLP extends WithName("OTC 30 Day LPP") with PsaFSChargeType
-  case object OTC_6_MONTH_LLP extends WithName("OTC 6 Month LPP") with PsaFSChargeType
-  case object OTC_12_MONTH_LLP extends WithName("OTC 12 Month LPP") with PsaFSChargeType
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with PsaFSChargeType
+  case object AFT_INITIAL_LFP extends WithName("Accounting for Tax late filing penalty") with PsaFSChargeType
+  case object AFT_DAILY_LFP extends WithName("Accounting for Tax further late filing penalty") with PsaFSChargeType
+  case object AFT_30_DAY_LPP extends WithName("Accounting for Tax late payment penalty (30 days)") with PsaFSChargeType
+  case object AFT_6_MONTH_LPP extends WithName("Accounting for Tax late payment penalty (6 months)") with PsaFSChargeType
+  case object AFT_12_MONTH_LPP extends WithName("Accounting for Tax late payment penalty (12 months)") with PsaFSChargeType
+  case object OTC_30_DAY_LPP extends WithName("Overseas transfer charge late payment penalty (30 days)") with PsaFSChargeType
+  case object OTC_6_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (6 months)") with PsaFSChargeType
+  case object OTC_12_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (12 months)") with PsaFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
-    AFT_INITIAL_LLP,
-    AFT_DAILY_LLP,
-    AFT_30_DAY_LLP,
-    AFT_6_MONTH_LLP,
-    AFT_12_MONTH_LLP,
-    OTC_30_DAY_LLP,
-    OTC_6_MONTH_LLP,
-    OTC_12_MONTH_LLP,
+    AFT_INITIAL_LFP,
+    AFT_DAILY_LFP,
+    AFT_30_DAY_LPP,
+    AFT_6_MONTH_LPP,
+    AFT_12_MONTH_LPP,
+    OTC_30_DAY_LPP,
+    OTC_6_MONTH_LPP,
+    OTC_12_MONTH_LPP,
     PAYMENT_ON_ACCOUNT
   )
 

@@ -23,11 +23,11 @@ sealed trait SchemeFSChargeType
 
 object SchemeFSChargeType extends Enumerable.Implicits {
 
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on Account") with SchemeFSChargeType
-  case object PSS_AFT_RETURN extends WithName("PSS AFT Return") with SchemeFSChargeType
-  case object PSS_AFT_RETURN_INTEREST extends WithName("PSS AFT Return Interest") with SchemeFSChargeType
-  case object PSS_OTC_AFT_RETURN extends WithName("PSS OTC AFT Return") with SchemeFSChargeType
-  case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("PSS OTC AFT Return Interest") with SchemeFSChargeType
+  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
+  case object PSS_AFT_RETURN extends WithName("Accounting for Tax return") with SchemeFSChargeType
+  case object PSS_AFT_RETURN_INTEREST extends WithName("Interest on Accounting for Tax return") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN extends WithName("Overseas transfer charge") with SchemeFSChargeType
+  case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
     PAYMENT_ON_ACCOUNT,
