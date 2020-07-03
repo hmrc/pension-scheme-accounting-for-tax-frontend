@@ -55,13 +55,12 @@ class ChargeEService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  def getAllAnnualAllowanceAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
+  def getAllAnnualAllowanceAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     ua.getAllMembersInCharge[MemberDetails]("chargeEDetails")
       .zipWithIndex
       .flatMap { memberDetails =>
         val (member, index) = memberDetails
         ua.get(ChargeDetailsPage(index)).map { chargeDetails =>
-          val currentVersion = request.aftVersion
           val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
           if (memberVersion == currentVersion) {

@@ -89,7 +89,7 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
           Deleted
         )
       )
-      chargeEHelper.getAllAnnualAllowanceAmendments(allMembers) mustBe expectedRows
+      chargeEHelper.getAllAnnualAllowanceAmendments(allMembers, versionInt) mustBe expectedRows
     }
   }
 

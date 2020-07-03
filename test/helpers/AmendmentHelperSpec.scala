@@ -20,16 +20,15 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import models.AmendedChargeStatus
-import models.AmendedChargeStatus.{Updated, Deleted, Added}
-import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeShortService, ChargeTypeAuthSurplus, ChargeTypeAnnualAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeLifetimeAllowance}
+import models.AmendedChargeStatus.{Added, Deleted, Updated}
+import models.ChargeType.{ChargeTypeAnnualAllowance, ChargeTypeAuthSurplus, ChargeTypeDeRegistration, ChargeTypeLifetimeAllowance, ChargeTypeLumpSumDeath, ChargeTypeOverseasTransfer, ChargeTypeShortService}
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{chargeA, UserAnswers}
+import models.{AmendedChargeStatus, UserAnswers, chargeA}
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.when
@@ -37,21 +36,17 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
-import pages.chargeC.{ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, MemberStatusPage => MemberCStatusPage, MemberAFTVersionPage => MemberCAFTVersionPage}
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberStatusPage => MemberDStatusPage, MemberDetailsPage => MemberDDetailsPage, MemberAFTVersionPage => MemberDAFTVersionPage}
-import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberStatusPage => MemberEStatusPage, MemberDetailsPage => MemberEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage}
+import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, WhichTypeOfSponsoringEmployerPage, MemberAFTVersionPage => MemberCAFTVersionPage, MemberStatusPage => MemberCStatusPage}
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberAFTVersionPage => MemberDAFTVersionPage, MemberDetailsPage => MemberDDetailsPage, MemberStatusPage => MemberDStatusPage}
+import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage, MemberDetailsPage => MemberEDetailsPage, MemberStatusPage => MemberEStatusPage}
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
-import pages.chargeG.{ChargeAmountsPage, MemberStatusPage => MemberGStatusPage, MemberDetailsPage => MemberGDetailsPage, MemberAFTVersionPage => MemberGAFTVersionPage}
-import play.api.libs.json.Json
+import pages.chargeG.{ChargeAmountsPage, MemberAFTVersionPage => MemberGAFTVersionPage, MemberDetailsPage => MemberGDetailsPage, MemberStatusPage => MemberGStatusPage}
 import play.api.mvc.AnyContent
-import play.twirl.api.Html
-import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
+import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
 import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
-
-import scala.concurrent.Future
 
 class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -64,10 +59,10 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   override def beforeEach: Unit = {
     super.beforeEach
     Mockito.reset(chargeCHelper, chargeDHelper, chargeEHelper, chargeGHelper)
-    when(chargeCHelper.getAllAuthSurplusAmendments(any())(any())).thenReturn(Nil)
-    when(chargeDHelper.getAllLifetimeAllowanceAmendments(any())(any())).thenReturn(Nil)
-    when(chargeEHelper.getAllAnnualAllowanceAmendments(any())(any())).thenReturn(Nil)
-    when(chargeGHelper.getAllOverseasTransferAmendments(any())(any())).thenReturn(Nil)
+    when(chargeCHelper.getAllAuthSurplusAmendments(any(), any())).thenReturn(Nil)
+    when(chargeDHelper.getAllLifetimeAllowanceAmendments(any(), any())).thenReturn(Nil)
+    when(chargeEHelper.getAllAnnualAllowanceAmendments(any(), any())).thenReturn(Nil)
+    when(chargeGHelper.getAllOverseasTransferAmendments(any(), any())).thenReturn(Nil)
 
   }
 
@@ -136,7 +131,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Added))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the deleted amendments" in {
@@ -149,7 +144,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Deleted))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the updated amendments" in {
@@ -162,7 +157,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
                                Updated))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
     }
 
@@ -177,7 +172,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Added))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the deleted amendments" in {
@@ -190,7 +185,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Deleted))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the updated amendments" in {
@@ -203,7 +198,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
                                Updated))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
     }
 
@@ -218,7 +213,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Added))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the deleted amendments" in {
@@ -231,7 +226,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(300.00)),
                                Deleted))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
 
       "return all the updated amendments" in {
@@ -244,7 +239,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
                                FormatHelper.formatCurrencyAmountAsString(BigDecimal(400.00)),
                                Updated))
 
-        amendmentHelper.getAllAmendments(currentUa, previousUa) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, previousUa, version = 1) mustBe expectedRows
       }
     }
 
@@ -318,12 +313,12 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
           )
         )
 
-        when(chargeCHelper.getAllAuthSurplusAmendments(any())(any())).thenReturn(Seq(expectedRows(3)))
-        when(chargeDHelper.getAllLifetimeAllowanceAmendments(any())(any())).thenReturn(Seq(expectedRows(4)))
-        when(chargeEHelper.getAllAnnualAllowanceAmendments(any())(any())).thenReturn(Seq(expectedRows(5)))
-        when(chargeGHelper.getAllOverseasTransferAmendments(any())(any())).thenReturn(Seq(expectedRows(6)))
+        when(chargeCHelper.getAllAuthSurplusAmendments(any(), any())).thenReturn(Seq(expectedRows(3)))
+        when(chargeDHelper.getAllLifetimeAllowanceAmendments(any(), any())).thenReturn(Seq(expectedRows(4)))
+        when(chargeEHelper.getAllAnnualAllowanceAmendments(any(), any())).thenReturn(Seq(expectedRows(5)))
+        when(chargeGHelper.getAllOverseasTransferAmendments(any(), any())).thenReturn(Seq(expectedRows(6)))
 
-        amendmentHelper.getAllAmendments(currentUa, UserAnswers()) mustBe expectedRows
+        amendmentHelper.getAllAmendments(currentUa, UserAnswers(), version = 1) mustBe expectedRows
       }
     }
   }

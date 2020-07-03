@@ -81,13 +81,13 @@ class ViewAllAmendmentsController @Inject()(override val messagesApi: MessagesAp
               "isDraft" -> (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile),
               "addedTable" -> mapToTable(
                 caption = "added",
-                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers).filter(_.status == AmendedChargeStatus.Added)),
+                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers, updatedVersion).filter(_.status == AmendedChargeStatus.Added)),
               "deletedTable" -> mapToTable(
                 caption = "deleted",
-                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers).filter(_.status == AmendedChargeStatus.Deleted)),
+                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers, updatedVersion).filter(_.status == AmendedChargeStatus.Deleted)),
               "updatedTable" -> mapToTable(
                 caption = "updated",
-                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers).filter(_.status == AmendedChargeStatus.Updated))
+                amendmentHelper.getAllAmendments(currentAnswers, previousAnswers, updatedVersion).filter(_.status == AmendedChargeStatus.Updated))
             )
 
             renderer.render(template = "amend/viewAllAmendments.njk", json).map(Ok(_))

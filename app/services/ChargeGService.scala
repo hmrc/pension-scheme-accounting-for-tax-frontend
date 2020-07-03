@@ -55,13 +55,12 @@ class ChargeGService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  def getAllOverseasTransferAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
+  def getAllOverseasTransferAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     ua.getAllMembersInCharge[ChargeGMemberDetails](charge = "chargeGDetails")
       .zipWithIndex
       .flatMap { memberDetails =>
         val (member, index) = memberDetails
         ua.get(ChargeAmountsPage(index)).map { chargeAmounts =>
-          val currentVersion = request.aftVersion
           val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
           if (memberVersion == currentVersion) {

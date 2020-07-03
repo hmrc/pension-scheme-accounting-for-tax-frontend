@@ -93,7 +93,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
           Updated
         )
       )
-      chargeDHelper.getAllLifetimeAllowanceAmendments(allMembers) mustBe expectedRows
+      chargeDHelper.getAllLifetimeAllowanceAmendments(allMembers, versionInt) mustBe expectedRows
     }
   }
 

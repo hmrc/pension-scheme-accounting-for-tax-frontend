@@ -67,7 +67,7 @@ class ViewAllAmendmentsControllerSpec
     reset(mockAmendmentHelper, mockAFTConnector, mockRenderer)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    when(mockAmendmentHelper.getAllAmendments(any(), any())(any(), any())).thenReturn(allAmendments)
+    when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any(), any())).thenReturn(allAmendments)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
