@@ -71,11 +71,10 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
     }
   }
 
-  def getAllAuthSurplusAmendments(ua: UserAnswers)(implicit request: DataRequest[AnyContent]): Seq[ViewAmendmentDetails] = {
+  def getAllAuthSurplusAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       getEmployerDetails(ua, index).flatMap { name =>
           ua.get(ChargeCDetailsPage(index)).map { chargeAmounts =>
-            val currentVersion = request.aftVersion
             val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
             if (memberVersion == currentVersion) {

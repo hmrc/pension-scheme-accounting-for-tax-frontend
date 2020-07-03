@@ -124,7 +124,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
           Updated
         )
       )
-      chargeCHelper.getAllAuthSurplusAmendments(allEmployers) mustBe expectedAmendments
+      chargeCHelper.getAllAuthSurplusAmendments(allEmployers, versionInt) mustBe expectedAmendments
     }
   }
 

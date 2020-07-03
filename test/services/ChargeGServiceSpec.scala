@@ -94,7 +94,7 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
           Updated
         )
       )
-      chargeGHelper.getAllOverseasTransferAmendments(allMembers) mustBe expectedRows
+      chargeGHelper.getAllOverseasTransferAmendments(allMembers, versionInt) mustBe expectedRows
     }
   }
 

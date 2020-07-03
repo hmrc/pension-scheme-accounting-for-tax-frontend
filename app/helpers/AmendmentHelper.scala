@@ -87,7 +87,7 @@ class AmendmentHelper @Inject()(
     }
   }
 
-  def getAllAmendments(currentUa: UserAnswers, previousUa: UserAnswers)(implicit request: DataRequest[AnyContent],
+  def getAllAmendments(currentUa: UserAnswers, previousUa: UserAnswers, version: Int)(implicit request: DataRequest[AnyContent],
                                                                         messages: Messages): Seq[ViewAmendmentDetails] = {
 
     val allAmendmentsChargeA =
@@ -102,10 +102,10 @@ class AmendmentHelper @Inject()(
     val allAmendmentsForSchemeLevelCharges = Seq(allAmendmentsChargeA, allAmendmentsChargeB, allAmendmentsChargeF).flatten
 
     val allAmendmentsForMemberLevelCharges =
-      chargeCService.getAllAuthSurplusAmendments(currentUa) ++
-        chargeDService.getAllLifetimeAllowanceAmendments(currentUa) ++
-        chargeEService.getAllAnnualAllowanceAmendments(currentUa) ++
-        chargeGService.getAllOverseasTransferAmendments(currentUa)
+      chargeCService.getAllAuthSurplusAmendments(currentUa, version) ++
+        chargeDService.getAllLifetimeAllowanceAmendments(currentUa, version) ++
+        chargeEService.getAllAnnualAllowanceAmendments(currentUa, version) ++
+        chargeGService.getAllOverseasTransferAmendments(currentUa, version)
 
     allAmendmentsForSchemeLevelCharges ++ allAmendmentsForMemberLevelCharges
   }
