@@ -17,7 +17,6 @@
 package models
 
 import models.chargeC.SponsoringEmployerAddress
-import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -72,7 +71,6 @@ object TolerantAddress {
     val addressLines: (Option[String], Option[String], Option[String], Option[String]) = {
       lines.size match {
         case 0 =>
-          Logger.warn(s"[NoAddressLinesFoundException]-$postCode,$countryCode")
           (None, None, None, None)
         case 1 =>
           val townOrCounty = getTownOrCounty(town, county, lines)
