@@ -33,6 +33,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
 
@@ -84,8 +85,11 @@ class DeclarationController @Inject()(
       }
     }
 
-  private def sendEmail(email: String, quarter: Quarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(implicit request: DataRequest[_],
-                                                                                           messages: Messages): Future[EmailStatus] = {
+  private def sendEmail(email: String, quarter: Quarter, schemeName: String, isAmendment: Boolean, amendedVersion: Int)(
+      implicit request: DataRequest[_],
+      hc: HeaderCarrier,
+      messages: Messages): Future[EmailStatus] = {
+    val requestId = hc.requestId.map(_.value).getOrElse(request.headers.get("X-Session-ID").getOrElse(""))
     val psaName = request.userAnswers.getOrException(PSANameQuery)
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
@@ -101,7 +105,7 @@ class DeclarationController @Inject()(
       "dateSubmitted" -> submittedDate,
       "hmrcEmail" -> sendToEmailId,
       "psaName" -> psaName
-    ) ++ (if(isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
+    ) ++ (if (isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val (journeyType, templateId) = if (isAmendment) {
       ("AFTAmendmentSubmitted", config.amendAftReturnTemplateIdId)
@@ -109,6 +113,6 @@ class DeclarationController @Inject()(
       ("AFTReturnSubmitted", config.fileAFTReturnTemplateId)
     }
 
-    emailConnector.sendEmail(request.psaId, journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(requestId, request.psaId, journeyType, email, templateId, templateParams)
   }
 }
