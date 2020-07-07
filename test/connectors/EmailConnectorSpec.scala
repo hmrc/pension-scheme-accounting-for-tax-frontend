@@ -29,6 +29,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
   private val url: String = "/hmrc/email"
   private implicit val hc: HeaderCarrier = HeaderCarrier()
   private val testPsaId = PsaId("A1234567")
+  private val requestId = "test-Request-Id"
 
   private val testEmailAddress = "test@test.com"
   private val testTemplate = "testTemplate"
@@ -46,7 +47,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
+        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
         }
       }
     }
@@ -60,7 +61,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
 
@@ -71,7 +72,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }
