@@ -245,3 +245,7 @@ POST        /:srn/new-return/:year/select-quarter                               
 
 
 GET         /:srn/aft-partial                                                                                            controllers.PartialController.aftPartial(srn: String)
+GET         /penalties-partial                                                                                           controllers.financialStatement.PenaltiesPartialController.penaltiesPartial
+
+GET         /PSA-financial-information/financial-information                                                             controllers.financialStatement.PenaltiesController.onPageLoad(year: String = "2020", srn: String = "123")
+GET         /PSA-financial-information/:srn/:startDate/:chargeType/charge-details                                        controllers.financialStatement.ChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeType: PsaFSChargeType)
