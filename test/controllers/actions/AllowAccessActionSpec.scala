@@ -76,10 +76,9 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   }
 
   "Allow Access Action" must {
-    "respond with None (i.e. allow access) when the PSA is not suspended, there is an association and " +
+    "respond with None (i.e. allow access) when there is an association and " +
       "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Open)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
@@ -94,7 +93,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with call to error page for redirecting form pages in view-only returns " +
       "the scheme status is Open/Wound-up/Deregistered for a option page is None" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Open)
 
       val expectedResult: Result =
@@ -116,7 +114,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended " +
       "but the scheme status is Rejected" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, Rejected)
 
       val errorResult = Ok("error")
@@ -129,10 +126,9 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       }
     }
 
-    "respond with a call to the error handler for 404 (i.e. don't allow access) when the PSA is not suspended, " +
+    "respond with a call to the error handler for 404 (i.e. don't allow access) when " +
       "the scheme status is Wound-up but there is no association" in {
       val ua = userAnswersWithSchemeName
-        .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(false))
@@ -149,7 +145,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
     "respond with a redirect to the AFT summary page when the PSA is not suspended and current page is charge type page and view only" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = false)
         .setOrException(SchemeStatusQuery, WoundUp)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
@@ -160,35 +155,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       whenReady(testHarness.test(dataRequest(ua, viewOnly = true))) { result =>
         result mustBe Some(expectedResult)
-      }
-    }
-
-    "respond with None (i.e. allow access) when the PSA is suspended, there is an association and " +
-      "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
-      val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = true)
-        .setOrException(SchemeStatusQuery, Open)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(true))
-
-      val testHarness = new TestHarness(page = Some(ViewOnlyAccessiblePage))
-
-      whenReady(testHarness.test(dataRequest(ua))) {
-        _ mustBe None
-      }
-    }
-
-    "respond with a None (i.e. allow access) when the PSA is suspended and current page is AFT summary page and referer is an AFT URL" in {
-      val ua = userAnswersWithSchemeNamePstrQuarter
-        .setOrException(IsPsaSuspendedQuery, value = true)
-        .setOrException(SchemeStatusQuery, WoundUp)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(true))
-
-      val testHarness = new TestHarness(page = Some(AFTSummaryPage))
-
-      whenReady(testHarness.test(dataRequest(ua, viewOnly = true, headers = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")))) { result =>
-        result mustBe None
       }
     }
 
@@ -207,26 +173,12 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
     "respond with a redirect to the session expired page (i.e. don't allow access) when" +
       "there is PSA suspeneded flag but no scheme status is found in user answers" in {
-      val ua = userAnswersWithSchemeName.set(IsPsaSuspendedQuery, value = false).toOption.get
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
       val testHarness = new TestHarness("")
 
-      whenReady(testHarness.test(dataRequest(ua))) { result =>
-        result mustBe Some(expectedResult)
-      }
-    }
-
-    "respond with a redirect to the session expired page (i.e. don't allow access) when" +
-      "there is scheme status but no PSA suspeneded flag is found in user answers" in {
-      val ua = userAnswersWithSchemeName.set(SchemeStatusQuery, Open).toOption.get
-
-      val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
-
-      val testHarness = new TestHarness("")
-
-      whenReady(testHarness.test(dataRequest(ua))) { result =>
+      whenReady(testHarness.test(dataRequest(userAnswersWithSchemeName))) { result =>
         result mustBe Some(expectedResult)
       }
     }
