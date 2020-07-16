@@ -25,18 +25,24 @@ import javax.inject.Inject
 import models.financialStatement.PsaFSChargeType
 import play.api.i18n.{I18nSupport, MessagesApi}
 import models.LocalDateBinder._
+import models.Quarters.getQuarter
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,
                                          override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents,
                                          fsConnector: FinancialStatementConnector,
+                                         penaltiesService: PenaltiesService,
+                                         schemeService: SchemeService,
                                          renderer: Renderer,
                                          config: FrontendAppConfig
                                        )(implicit ec: ExecutionContext)
@@ -44,8 +50,28 @@ class ChargeDetailsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, chargeType: PsaFSChargeType): Action[AnyContent] = identify { implicit request =>
-    Ok
+  def onPageLoad(srn: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] = identify { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
+        val filteredPsaFS = psaFS.filter(_.chargeReference == chargeReference)
+
+        if(filteredPsaFS.nonEmpty) {
+
+        val json = Json.obj(
+          "heading" -> heading(filteredPsaFS.head.chargeType.toString),
+          "schemeName" -> schemeDetails.schemeName,
+          "isOverdue" -> penaltiesService.isPaymentOverdue(filteredPsaFS.head),
+        "period" -> messages("penalties.period", startDate.format(dateFormatterStartDate),
+                    getQuarter(startDate).endDate.format(dateFormatterDMY)))
+        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+
+      } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
+      }
+    }
   }
+
+  def heading(s: String): String = s.substring(0, s.indexOf('('))
 
 }

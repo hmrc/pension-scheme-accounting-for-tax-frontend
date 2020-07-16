@@ -17,7 +17,6 @@
 package models.financialStatement
 
 import models.{Enumerable, WithName}
-import play.api.mvc.PathBindable
 
 sealed trait PsaFSChargeType
 
@@ -47,29 +46,4 @@ object PsaFSChargeType extends Enumerable.Implicits {
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =
   Enumerable(values.map(v => v.toString -> v): _*)
-
-  implicit def chargeTypePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[PsaFSChargeType] =
-    new PathBindable[PsaFSChargeType] {
-
-    override def bind(key: String, value: String): Either[String, PsaFSChargeType] =
-      stringBinder.bind(key, value) match {
-        case Right("AFT_INITIAL_LFP") => Right(AFT_INITIAL_LFP)
-        case Right("AFT_DAILY_LFP") => Right(AFT_DAILY_LFP)
-        case Right("AFT_30_DAY_LPP") => Right(AFT_30_DAY_LPP)
-        case Right("AFT_6_MONTH_LPP") => Right(AFT_6_MONTH_LPP)
-        case Right("AFT_12_MONTH_LPP") => Right(AFT_12_MONTH_LPP)
-        case Right("OTC_30_DAY_LPP") => Right(OTC_30_DAY_LPP)
-        case Right("OTC_6_MONTH_LPP") => Right(OTC_6_MONTH_LPP)
-        case Right("OTC_12_MONTH_LPP") => Right(OTC_12_MONTH_LPP)
-        case Right("PAYMENT_ON_ACCOUNT") => Right(PAYMENT_ON_ACCOUNT)
-        case _ => Left("AccessType binding failed")
-      }
-
-    override def unbind(key: String, value: PsaFSChargeType): String = {
-      val chargeTypeValue = values.find(_ == value).map(_.toString).getOrElse(throw UnknownChargeTypeException())
-      stringBinder.unbind(key, chargeTypeValue)
-    }
-  }
-
-  case class UnknownChargeTypeException() extends Exception
 }

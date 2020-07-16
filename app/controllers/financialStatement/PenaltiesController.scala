@@ -24,7 +24,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.PenaltiesService
+import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -36,6 +36,7 @@ class PenaltiesController @Inject()(
                                                 val controllerComponents: MessagesControllerComponents,
                                                 fsConnector: FinancialStatementConnector,
                                                 penaltiesService: PenaltiesService,
+                                                schemeService: SchemeService,
                                                 renderer: Renderer
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -43,12 +44,17 @@ class PenaltiesController @Inject()(
     with NunjucksSupport {
 
   def onPageLoad(year: String, srn: String): Action[AnyContent] = identify.async { implicit request =>
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
+        val filteredPsaFS = psaFS.filter(_.pstr == schemeDetails.pstr)
+        val penaltyTables: Seq[JsObject] =
+          penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt).filter(_ != Json.obj())
+        val json = Json.obj("year" -> year,
+          "schemeName" -> schemeDetails.schemeName,
+          "tables" -> Json.toJson(penaltyTables))
+        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
 
-    fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
-      val penaltyTables: Seq[JsObject] = penaltiesService.getPsaFsJson(psaFS, srn, year.toInt)
-        renderer.render(template = "financialStatement/penalties.njk",
-          Json.obj("tables" -> Json.toJson(penaltyTables))).map(Ok(_))
-
+      }
     }
   }
 

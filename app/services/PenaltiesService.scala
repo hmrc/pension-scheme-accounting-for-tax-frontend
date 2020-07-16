@@ -28,6 +28,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
@@ -37,45 +38,58 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
                           (implicit messages: Messages): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
-      singlePeriodFSMapping(srn, startDate, psaFS.filter(_.periodStartDate == startDate))
+      val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
+
+      if(filteredPsaFS.nonEmpty) {
+        singlePeriodFSMapping(srn, startDate, filteredPsaFS)
+      } else {
+        Json.obj()
+      }
     }
 
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                                    (implicit messages: Messages): JsObject = {
 
     val head = Seq(
-      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
     )
 
     val rows = filteredPsaFS.map { data =>
       Seq(
-        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-half")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.outstandingAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         statusCell(data)
       )
     }
 
-    Json.obj(
-      "header" -> messages("penalties.period", startDate, getQuarter(startDate).endDate),
-      "table" -> Table(head = head, rows = rows)
-    )
+        Json.obj(
+          "header" -> messages(
+            "penalties.period",
+            startDate.format(dateFormatterStartDate),
+            getQuarter(startDate).endDate.format(dateFormatterDMY)),
+          "penaltyTable" -> Table(head = head, rows = rows)
+        )
   }
 
-  def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
+  private def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
     Html(
-      s"<a id=${data.chargeReference}" +
-        s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, data.chargeType)}>" +
+      s"<a id=${data.chargeReference} href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, data.chargeReference)}>" +
         s"${messages(data.chargeType.toString)} </a>")
 
-  def statusCell(data: PsaFS): Cell =
-    if(data.outstandingAmount > BigDecimal(0.00)) {
+  private def statusCell(data: PsaFS): Cell = {
+
+    if(isPaymentOverdue(data)) {
       Cell(msg"penalties.status.paymentOverdue", classes = Seq("govuk-tag govuk-tag--red"))
     } else {
       Cell(msg"")
     }
+  }
+
+  val isPaymentOverdue: PsaFS => Boolean = data => data.outstandingAmount > BigDecimal(0.00) &&
+    (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
 
 }
