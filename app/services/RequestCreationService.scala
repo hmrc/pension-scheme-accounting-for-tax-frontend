@@ -89,14 +89,11 @@ class RequestCreationService @Inject()(
 
   private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], ua: UserAnswers, srn: String, startDate: LocalDate)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[SessionAccessData] = {
-    val psaSuspended = ua.get(IsPsaSuspendedQuery).getOrElse(true)
-
     userAnswersCacheConnector.lockedBy(srn, startDate).map { lockedBy =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
-      val viewOnly = lockedBy.isDefined || psaSuspended || versionInt < maxVersion
+      val viewOnly = lockedBy.isDefined || versionInt < maxVersion
       val anyVersions = seqAFTOverview.nonEmpty
       val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
-
 
       val areSubmittedVersionsAvailable = seqAFTOverview.headOption.exists(_.submittedVersionAvailable)
 
@@ -135,17 +132,15 @@ class RequestCreationService @Inject()(
   private def updateMinimalPsaDetailsInUa(ua: UserAnswers, schemeStatus: String, psaId: String)
                                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
     val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
-    uaWithStatus.get(IsPsaSuspendedQuery) match {
-      case None =>
+    (uaWithStatus.get(PSAEmailQuery), uaWithStatus.get(PSANameQuery)) match {
+      case (Some(_), Some(_)) =>
+        Future.successful(uaWithStatus)
+      case _ =>
         minimalPsaConnector.getMinimalPsaDetails(psaId).map { psaDetails =>
           uaWithStatus
-            .setOrException(IsPsaSuspendedQuery, psaDetails.isPsaSuspended)
             .setOrException(PSAEmailQuery, psaDetails.email)
             .setOrException(PSANameQuery, psaDetails.name)
-
         }
-      case Some(_) =>
-        Future.successful(uaWithStatus)
     }
   }
 
@@ -155,7 +150,7 @@ class RequestCreationService @Inject()(
     implicit hc: HeaderCarrier,
     ec: ExecutionContext): Future[UserAnswers] = {
 
-      if (ua.get(IsPsaSuspendedQuery).contains(true) | seqAFTOverview.isEmpty) {
+      if (seqAFTOverview.isEmpty) {
         Future.successful(
           ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
             .setOrException(AFTStatusQuery, value = "Compiled")

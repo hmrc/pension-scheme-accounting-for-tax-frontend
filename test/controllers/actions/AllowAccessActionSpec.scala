@@ -16,27 +16,38 @@
 
 package controllers.actions
 
-import connectors.{AFTConnector, SchemeDetailsConnector}
+import connectors.AFTConnector
+import connectors.SchemeDetailsConnector
 import controllers.base.ControllerSpecBase
-import data.SampleData.{accessType, versionInt, _}
+import data.SampleData.accessType
+import data.SampleData.versionInt
+import data.SampleData._
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{Open, Rejected, WoundUp}
+import models.SchemeStatus.Open
+import models.SchemeStatus.Rejected
+import models.SchemeStatus.WoundUp
 import models.requests.DataRequest
-import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.AccessMode
+import models.SessionAccessData
+import models.SessionData
+import models.UserAnswers
 import org.mockito.Matchers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{AnyContent, Result}
+import play.api.mvc.AnyContent
+import play.api.mvc.Result
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
@@ -152,55 +163,18 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       }
     }
 
-    "respond with a redirect to the cannot start AFT return page when the PSA is suspended and current page is charge type page" in {
-      val ua = userAnswersWithSchemeName
+    "respond with None (i.e. allow access) when the PSA is suspended, there is an association and " +
+      "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(IsPsaSuspendedQuery, value = true)
-        .setOrException(SchemeStatusQuery, WoundUp)
+        .setOrException(SchemeStatusQuery, Open)
       when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(true))
 
-      val expectedResult = Redirect(controllers.routes.CannotStartAFTReturnController.onPageLoad(
-        srn, QUARTER_START_DATE, accessType, versionInt))
+      val testHarness = new TestHarness(page = Some(ViewOnlyAccessiblePage))
 
-      val testHarness = new TestHarness(page = Some(ChargeTypePage))
-
-      whenReady(testHarness.test(dataRequest(ua))) { result =>
-        result mustBe Some(expectedResult)
-      }
-    }
-
-    "respond with a redirect to the cannot change AFT return page when the PSA is suspended and" +
-      "current page is AFT summary page and referer is NOT present in request" in {
-      val ua = userAnswersWithSchemeName
-        .setOrException(IsPsaSuspendedQuery, value = true)
-        .setOrException(SchemeStatusQuery, WoundUp)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(true))
-
-      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(srn, QUARTER_START_DATE,
-        accessType, versionInt))
-
-      val testHarness = new TestHarness(page = Some(AFTSummaryPage))
-
-      whenReady(testHarness.test(dataRequest(ua))) { result =>
-        result mustBe Some(expectedResult)
-      }
-    }
-
-    "respond with a redirect to the cannot change AFT return page when the PSA is suspended and" +
-      "current page is AFT summary page and referer is NOT an AFT URL" in {
-      val ua = userAnswersWithSchemeName
-        .setOrException(IsPsaSuspendedQuery, value = true)
-        .setOrException(SchemeStatusQuery, WoundUp)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(true))
-
-      val expectedResult = Redirect(controllers.routes.CannotChangeAFTReturnController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
-
-      val testHarness = new TestHarness(page = Some(AFTSummaryPage))
-
-      whenReady(testHarness.test(dataRequest(ua, viewOnly = true, headers = Seq("Referer" -> "manage-pension-schemes")))) { result =>
-        result mustBe Some(expectedResult)
+      whenReady(testHarness.test(dataRequest(ua))) {
+        _ mustBe None
       }
     }
 
