@@ -30,8 +30,6 @@ import models.SchemeStatus.Open
 import models.SchemeStatus.WoundUp
 import models.requests.DataRequest
 import models.AccessType
-import models.SchemeStatus
-import models.UserAnswers
 import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
@@ -60,49 +58,41 @@ class AllowAccessAction(srn: String,
 
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
-    retrieveSchemeStatus(request.userAnswers) {
-      case _ if isInvalidDate =>
-        //todo redirect to new error page for invalid dates once it is created
-        Future.successful(Option(Redirect(SessionExpiredController.onPageLoad())))
-      case schemeStatus if !validStatuses.contains(schemeStatus) =>
-        errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
-      case _ =>
-        schemeDetailsConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
-          case true => associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
-          case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
-        }
-    }
-  }
-
-  private def retrieveSchemeStatus(ua: UserAnswers)(
-    block: SchemeStatus => Future[Option[Result]]): Future[Option[Result]] = {
-    ua.get(SchemeStatusQuery) match {
-      case Some(schemeStatus) =>
-        block(schemeStatus)
-      case _ =>
-        Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+    if (isInvalidDate) {
+      //todo redirect to new error page for invalid dates once it is created
+      Future.successful(Option(Redirect(SessionExpiredController.onPageLoad())))
+    } else {
+      request.userAnswers.get(SchemeStatusQuery) match {
+        case Some(schemeStatus) =>
+          if (!validStatuses.contains(schemeStatus)) {
+            errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
+          } else {
+            schemeDetailsConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
+              case true => associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
+              case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
+            }
+          }
+        case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+      }
     }
   }
 
   private val validStatuses = Seq(Open, WoundUp, Deregistered)
-
-  private def isPreviousPageWithinAFT(implicit request: DataRequest[_]): Boolean =
-    request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
   private def associatedPsaRedirection(srn: String,
                                        startDate: String,
                                        optPage: Option[Page],
                                        version: Int,
                                        accessType: AccessType)
-                                      (implicit request: DataRequest[_]): Future[Option[Result]] =
-    (request.isViewOnly, optPage, version, isPreviousPageWithinAFT) match {
-        //todo check if isPreviousPageWithinAFT parameter needs to be taken into consideration
-      case (true, None | Some(ChargeTypePage), _, _) =>
+                                      (implicit request: DataRequest[_]): Future[Option[Result]] = {
+    (request.isViewOnly, optPage) match {
+      case (true, None | Some(ChargeTypePage)) =>
         //todo redirect to new error page for form-pages in view-only returns once it is created
         Future.successful(Option(Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version))))
       case _ =>
         Future.successful(None)
     }
+  }
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
