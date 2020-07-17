@@ -51,16 +51,16 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                                    (implicit messages: Messages): JsObject = {
 
-    val head = Seq(
+    val head: Seq[Cell] = Seq(
       Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
     )
 
-    val rows = filteredPsaFS.map { data =>
+    val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
         Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-half")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.outstandingAmount)}"),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         statusCell(data)
       )
@@ -89,7 +89,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
     }
   }
 
-  val isPaymentOverdue: PsaFS => Boolean = data => data.outstandingAmount > BigDecimal(0.00) &&
+  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
     (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
   def chargeDetailsRows(data: PsaFS): Seq[SummaryList.Row] =

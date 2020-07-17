@@ -146,7 +146,7 @@ object FinancialStatementConnectorSpec {
     PsaFS(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
+      dueDate = Some(LocalDate.parse("2020-07-15")),
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
@@ -163,8 +163,8 @@ object FinancialStatementConnectorSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30"),
+      periodStartDate =  LocalDate.parse("2020-07-01"),
+      periodEndDate =  LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
     )
   )

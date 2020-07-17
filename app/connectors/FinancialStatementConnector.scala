@@ -35,6 +35,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
+
       response.json.as[Seq[PsaFS]]
     }
   }
