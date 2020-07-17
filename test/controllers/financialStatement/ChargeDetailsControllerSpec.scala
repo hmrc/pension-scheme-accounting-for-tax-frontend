@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package models.financialStatement
+package controllers.financialStatement
 
-import java.time.LocalDate
+import org.scalatest.FunSuite
 
-import models.WithName
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads}
+class ChargeDetailsControllerSpec extends FunSuite {
 
-case class PsaFS(chargeReference: String, chargeType: PsaFSChargeType, dueDate: Option[LocalDate],
-                 totalAmount: BigDecimal, amountDue: BigDecimal, outstandingAmount: BigDecimal,
-                 stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate, pstr: String)
-
-object PsaFS {
-  implicit val formats: Format[PsaFS] = Json.format[PsaFS]
 }

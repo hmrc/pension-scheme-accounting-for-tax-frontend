@@ -45,8 +45,9 @@ class PenaltiesPartialController @Inject()(
   def penaltiesPartial: Action[AnyContent] = identify.async { implicit request =>
 
     fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
-      renderer.render(template = "partials/penalties.njk",
-        Json.obj("displayLink" -> Json.toJson(psaFS.nonEmpty))).map(Ok(_))
+      val json = Json.obj("displayLink" -> Json.toJson(psaFS.nonEmpty),
+      "viewPenaltiesUrl" -> config.viewPenaltiesUrl)
+      renderer.render(template = "partials/penalties.njk", json).map(Ok(_))
     }
 
   }

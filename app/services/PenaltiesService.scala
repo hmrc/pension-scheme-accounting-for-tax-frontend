@@ -26,6 +26,7 @@ import models.Quarters._
 import models.financialStatement.PsaFS
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
@@ -90,6 +91,57 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.outstandingAmount > BigDecimal(0.00) &&
     (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
+
+  def chargeDetailsRows(data: PsaFS): Seq[SummaryList.Row] =
+    Seq(
+      Row(
+        key = Key(Literal(data.chargeType.toString), classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )
+    ) ++ paymentRow(data) ++ amountUnderReviewRow(data) ++ totalDueRow(data)
+
+  private def paymentRow(data: PsaFS): Seq[SummaryList.Row] = {
+    val paymentAmount: BigDecimal = data.totalAmount - data.outstandingAmount
+    if (paymentAmount != BigDecimal(0.00)) {
+      Seq(Row(
+        key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.outstandingAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )) }
+    else {
+      Nil
+    }
+  }
+
+  private def amountUnderReviewRow(data: PsaFS): Seq[SummaryList.Row] = {
+    if (data.stoodOverAmount != BigDecimal(0.00)) {
+      Seq(Row(
+        key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )) }
+    else {
+      Nil
+    }
+  }
+
+  private def totalDueRow(data: PsaFS): Seq[SummaryList.Row] = {
+    if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
+      val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
+      Seq(Row(
+        key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      )) }
+    else {
+      Seq(Row(
+        key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+      ))
+    }
+  }
 
 
 }

@@ -1031,8 +1031,10 @@ penalties.12months = Accounting for Tax late payment penalty (12 months)
 penalties.6months = Accounting for Tax late payment penalty (6 months)
 penalties.30days = Accounting for Tax late payment penalty (30 days)
 penalties.period = {0} to {1}
+
 penalties.chargeDetails.payments = Payments
 penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)
 penalties.chargeDetails.totalDueBy = Total due by {0}
 penalties.chargeDetails.totalDue = Total due
+penalties.chargeReference = Charge reference: {0}
 
