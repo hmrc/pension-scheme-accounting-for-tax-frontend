@@ -11,37 +11,37 @@
 
 
 {% block pageTitle %}
-  {{ title(heading, form.errors) }}
+    {{ title(heading, form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
 
-  <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
 
-      <h1 class="govuk-heading-xl">
-        <span class="govuk-caption-xl">{{ schemeName }}</span>
-        {{ heading }}
-      </h1>
+            <h1 class="govuk-heading-xl">
+                <span class="govuk-caption-xl">{{ schemeName }}</span>
+                {{ heading }}
+            </h1>
 
-      {% if isOverdue %}
-        <div class="govuk-tag govuk-tag--red">
-            {{ messages("penalties.status.paymentOverdue") }}
+            {% if isOverdue %}
+                <div class="govuk-tag govuk-tag--red">
+                    {{ messages("penalties.status.paymentOverdue") }}
+                </div>
+            {% endif %}
+
+            <h2 class="govuk-heading-m">{{ period }}</h2>
+
+
+            <p class="govuk-body">
+                {{ messages("penalties.chargeReference", chargeReference) }}
+                {{ govukSummaryList({
+                    rows: list
+                }) }}
+            </p>
+
         </div>
-      {% endif %}
-
-      <h2 class="govuk-heading-m">{{ period }}</h2>
-
-      {{ messages("penalties.chargeReference", chargeReference) }}
-
-        <p class="govuk-body">
-             {{ govukSummaryList({
-                   rows: list
-             }) }}
-         </p>
-
     </div>
-  </div>
 
 
 {% endblock %}
