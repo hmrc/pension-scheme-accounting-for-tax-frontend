@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package models.financialStatement
+package models.viewModels.paymentsAndCharges
+import models.{Enumerable, WithName}
 
-import java.time.LocalDate
+sealed trait PaymentAndChargeStatus
 
-import play.api.libs.json.{Format, Json}
-
-case class SchemeFS(chargeReference: String, chargeType: SchemeFSChargeType, dueDate: Option[LocalDate],
-                    totalAmount: BigDecimal, amountDue: BigDecimal, accruedInterestTotal: BigDecimal, outstandingAmount: BigDecimal,
-                    stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate)
-
-object SchemeFS {
-  implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
+object PaymentAndChargeStatus extends Enumerable.Implicits {
+  case object PaymentOverdue extends WithName("PAYMENT OVERDUE") with PaymentAndChargeStatus
+  case object InterestIsAccruing extends WithName("INTEREST ACCRUING") with PaymentAndChargeStatus
+  case object NoStatus extends WithName("") with PaymentAndChargeStatus
 }
+
+
+

@@ -17,9 +17,9 @@
 package models.financialStatement
 
 import models.{Enumerable, WithName}
+import play.api.mvc.PathBindable
 
 sealed trait SchemeFSChargeType
-
 
 object SchemeFSChargeType extends Enumerable.Implicits {
 
@@ -30,7 +30,6 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
-    PAYMENT_ON_ACCOUNT,
     PSS_AFT_RETURN,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,
@@ -39,4 +38,24 @@ object SchemeFSChargeType extends Enumerable.Implicits {
 
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
     Enumerable(values.map(v => v.toString -> v): _*)
+
+  case class UnknownChargeTypeException() extends Exception
+  implicit def chargeTypePathBindable(implicit stringBinder: PathBindable[String]): PathBindable[SchemeFSChargeType] =
+    new PathBindable[SchemeFSChargeType] {
+
+      override def bind(key: String, value: String): Either[String, SchemeFSChargeType] = {
+        stringBinder.bind(key, value) match {
+          case Right("accounting-for-tax-return")             => Right(PSS_AFT_RETURN)
+          case Right("interest-on-accounting-for-tax-return") => Right(PSS_AFT_RETURN_INTEREST)
+          case Right("overseas-transfer-charge")              => Right(PSS_OTC_AFT_RETURN)
+          case Right("interest-on-overseas-transfer-charge")  => Right(PSS_OTC_AFT_RETURN_INTEREST)
+          case _                                              => Left("ChargeType binding failed")
+        }
+      }
+
+      override def unbind(key: String, value: SchemeFSChargeType): String = {
+        val chargeTypeValue = values.find(_ == value).map(_.toString.replaceAll(" ", "-").toLowerCase()).getOrElse(throw UnknownChargeTypeException())
+        stringBinder.unbind(key, chargeTypeValue)
+      }
+    }
 }

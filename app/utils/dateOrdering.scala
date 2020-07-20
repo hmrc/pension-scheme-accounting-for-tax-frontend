@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package models.financialStatement
-
 import java.time.LocalDate
+package object dateOrdering {
 
-import play.api.libs.json.{Format, Json}
+  implicit val orderingLocalDate: Ordering[LocalDate] = Ordering.by(d => (d.getYear, d.getDayOfYear))
 
-case class SchemeFS(chargeReference: String, chargeType: SchemeFSChargeType, dueDate: Option[LocalDate],
-                    totalAmount: BigDecimal, amountDue: BigDecimal, accruedInterestTotal: BigDecimal, outstandingAmount: BigDecimal,
-                    stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate)
-
-object SchemeFS {
-  implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
+  implicit class LocalDateOps(private val localDate: LocalDate) extends AnyVal with Ordered[LocalDate] {
+    override def compare(that: LocalDate): Int = Ordering[LocalDate].compare(localDate, that)
+  }
 }

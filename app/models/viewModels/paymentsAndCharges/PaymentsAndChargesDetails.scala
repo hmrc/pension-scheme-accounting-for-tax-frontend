@@ -14,16 +14,8 @@
  * limitations under the License.
  */
 
-package models.financialStatement
-
+package models.viewModels.paymentsAndCharges
 import java.time.LocalDate
 
-import play.api.libs.json.{Format, Json}
-
-case class SchemeFS(chargeReference: String, chargeType: SchemeFSChargeType, dueDate: Option[LocalDate],
-                    totalAmount: BigDecimal, amountDue: BigDecimal, accruedInterestTotal: BigDecimal, outstandingAmount: BigDecimal,
-                    stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate)
-
-object SchemeFS {
-  implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
-}
+case class PaymentsAndChargesDetails(startDate: LocalDate, endDate: LocalDate,
+                                     chargeType: String, chargeReference: String, amountDue: String, status: PaymentAndChargeStatus, redirectUrl: String)

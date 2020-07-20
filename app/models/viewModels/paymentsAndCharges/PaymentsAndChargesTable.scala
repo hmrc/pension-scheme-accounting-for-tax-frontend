@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package models.financialStatement
+package models.viewModels.paymentsAndCharges
+import play.api.i18n.Messages
+import play.api.libs.json._
+import viewmodels.Table
+import play.api.libs.functional.syntax._
 
-import java.time.LocalDate
+case class PaymentsAndChargesTable(caption: String, table: Table)
 
-import play.api.libs.json.{Format, Json}
-
-case class SchemeFS(chargeReference: String, chargeType: SchemeFSChargeType, dueDate: Option[LocalDate],
-                    totalAmount: BigDecimal, amountDue: BigDecimal, accruedInterestTotal: BigDecimal, outstandingAmount: BigDecimal,
-                    stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate)
-
-object SchemeFS {
-  implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]
+object PaymentsAndChargesTable {
+  implicit def writes(implicit messages: Messages): Writes[PaymentsAndChargesTable] =
+    ((JsPath \ "caption").write[String] and
+      (JsPath \ "table").write[Table](Table.writes))(sd => (sd.caption, sd.table))
 }
