@@ -52,16 +52,18 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
                                    (implicit messages: Messages): JsObject = {
 
     val head: Seq[Cell] = Seq(
-      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
+      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
     )
 
     val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
-        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-half")),
+        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+          classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
         statusCell(data)
       )
     }
@@ -90,7 +92,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
   }
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
-    (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
+      (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
   def chargeDetailsRows(data: PsaFS): Seq[SummaryList.Row] =
     Seq(

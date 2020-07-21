@@ -1026,6 +1026,7 @@ penalties.title = Penalties for {0}
 
 penalties.column.penalty = Penalty
 penalties.column.amount = Amount outstanding
+penalties.column.chargeReference = Charge reference
 penalties.status.paymentOverdue = PAYMENT OVERDUE
 penalties.12months = Accounting for Tax late payment penalty (12 months)
 penalties.6months = Accounting for Tax late payment penalty (6 months)
