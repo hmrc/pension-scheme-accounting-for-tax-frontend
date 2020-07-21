@@ -20,10 +20,9 @@ import java.time.LocalDate
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import helpers.FormatHelper
 import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -33,6 +32,7 @@ import play.api.mvc.Results
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 import viewmodels.Table
 import viewmodels.Table.Cell
@@ -58,6 +58,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAppConfig.minimumYear).thenReturn(year)
+    DateHelper.setDate(Some(dateNow))
   }
 
   "getPsaFsJson" must {
@@ -114,6 +115,33 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 }
 
 object PenaltiesServiceSpec {
+
+  val psaFSResponse: Seq[PsaFS] = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LFP,
+      dueDate = Some(LocalDate.parse("2020-07-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      periodStartDate =  LocalDate.parse("2020-07-01"),
+      periodEndDate =  LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN"
+    )
+  )
 
   def psaFS(amountDue: BigDecimal = BigDecimal(1029.05), dueDate: Option[LocalDate] = Some(dateNow), totalAmount: BigDecimal = BigDecimal(80000.00),
             outStandingAmount: BigDecimal = BigDecimal(56049.08), stoodOverAmount: BigDecimal = BigDecimal(25089.08)): PsaFS =
