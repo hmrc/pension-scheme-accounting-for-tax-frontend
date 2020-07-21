@@ -51,7 +51,7 @@ class PaymentsAndChargesControllerSpec
     with Results
     with ScalaFutures {
 
-  private def httpPathGET: String = controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn).url
+  private def httpPathGET: String = controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year = 2020).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
@@ -69,6 +69,7 @@ class PaymentsAndChargesControllerSpec
       chargeReference = "XY002610150184",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
@@ -80,6 +81,7 @@ class PaymentsAndChargesControllerSpec
       chargeReference = "XY002610150184",
       chargeType = PSS_OTC_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
@@ -91,6 +93,7 @@ class PaymentsAndChargesControllerSpec
       chargeReference = "XY002610150184",
       chargeType = PSS_OTC_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,

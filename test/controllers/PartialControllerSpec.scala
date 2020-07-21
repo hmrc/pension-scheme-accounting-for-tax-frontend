@@ -16,7 +16,6 @@
 
 package controllers
 
-import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -27,37 +26,43 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTPartialService
-import play.api.inject.bind
 import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class PartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class PartialControllerSpec
+    extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   private def httpPathGET: String = controllers.routes.PartialController.aftPartial(srn).url
-
-
-  val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
-
+  private def httpPathPaymentsAndCharges: String = controllers.routes.PartialController.paymentsAndChargesPartial(srn).url
+  private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[AFTPartialService].toInstance(mockAftPartialService)
     )
-
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-
-
   private val templateToBeRendered = "partials/overview.njk"
+  private val templateToBeRenderedForPaymentsAndCharges = "partials/paymentsAndCharges.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
+  private val jsonToPassToTemplatePaymentsAndCharges: JsObject =
+    Json.obj("redirectUrl" -> frontendAppConfig.paymentsAndChargesUrl.format(srn, "2020"))
+  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+  private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -65,16 +70,12 @@ class PartialControllerSpec extends ControllerSpecBase with NunjucksSupport with
     when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
       .thenReturn(Future.successful(allTypesMultipleReturnsModel))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-
   }
 
   "Partial Controller" when {
     "on a GET" must {
 
       "return the html with information received from overview api" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         val result = route(application, httpGETRequest(httpPathGET)).value
@@ -87,7 +88,21 @@ class PartialControllerSpec extends ControllerSpecBase with NunjucksSupport with
 
         jsonCaptor.getValue must containJson(jsonToPassToTemplate)
       }
+    }
 
+    "paymentsAndChargesPartial" must {
+
+      "return the html with the information from payments and charges partial" in {
+        val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual templateToBeRenderedForPaymentsAndCharges
+
+        jsonCaptor.getValue must containJson(jsonToPassToTemplatePaymentsAndCharges)
+      }
     }
 
   }
