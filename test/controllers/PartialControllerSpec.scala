@@ -60,7 +60,7 @@ class PartialControllerSpec
   private val templateToBeRenderedForPaymentsAndCharges = "partials/paymentsAndCharges.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
   private val jsonToPassToTemplatePaymentsAndCharges: JsObject =
-    Json.obj("redirectUrl" -> frontendAppConfig.paymentsAndChargesUrl.format(srn, "2020"))
+    Json.obj("redirectUrl" -> dummyCall.url)
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -70,6 +70,7 @@ class PartialControllerSpec
     when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
       .thenReturn(Future.successful(allTypesMultipleReturnsModel))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
   }
 
   "Partial Controller" when {

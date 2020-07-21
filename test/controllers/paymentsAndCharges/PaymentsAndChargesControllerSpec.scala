@@ -18,109 +18,126 @@ package controllers.paymentsAndCharges
 
 import java.time.LocalDate
 
+import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{Enumerable, SchemeDetails}
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.when
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import org.mockito.Matchers.any
-import org.mockito.Mockito._
+import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.{route, _}
+import play.twirl.api.Html
 import services.SchemeService
+import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class PaymentsAndChargesControllerSpec
-    extends ControllerSpecBase
-    with NunjucksSupport
-    with JsonMatchers
-    with BeforeAndAfterEach
-    with Enumerable.Implicits
-    with Results
-    with ScalaFutures {
+class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
-  private def httpPathGET: String = controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year = 2020).url
+  import PaymentsAndChargesControllerSpec._
 
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private def httpPathGET(year: Int = year): String = controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
 
-  private val mockPaymentAndChargesConnector = mock[FinancialStatementConnector]
-  private val schemeService = mock[SchemeService]
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
+  private val application: Application = new GuiceApplicationBuilder()
+    .overrides(
+      Seq[GuiceableModule](
+        bind[IdentifierAction].to[FakeIdentifierAction],
+        bind[NunjucksRenderer].toInstance(mockRenderer),
+        bind[FrontendAppConfig].toInstance(mockAppConfig),
+        bind[SchemeService].toInstance(mockSchemeService),
+        bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+      ): _*
+    )
+    .build()
 
-  val application: Application =
-    applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, Seq(
-      bind[FinancialStatementConnector].toInstance(mockPaymentAndChargesConnector),
-      bind[SchemeService].toInstance(schemeService)
-    )).build()
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService)
+    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
+    when(mockPaymentsAndChargesService.getPaymentsAndChargesSeqOfTables(Matchers.eq(filteredSchemeFS), Matchers.eq(srn))(any())).thenReturn(Nil)
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+  }
 
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+  private def expectedJson: JsObject = Json.obj(
+    fields = "seqPaymentsAndChargesTable" -> Nil,
+    "schemeName" -> schemeDetails.schemeName,
+    "returnUrl" -> dummyCall.url
+  )
+
+  "PaymentsAndChargesController" must {
+
+    "return OK and the correct view with filtered payments and charges information for a GET" in {
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val result = route(application, httpGETRequest(httpPathGET())).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndCharges.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "redirect to Session Expired page when there is no data for the selected year for a GET" in {
+      val result = route(application, httpGETRequest(httpPathGET(year = 2022))).value
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+  }
+}
+
+object PaymentsAndChargesControllerSpec {
+  private val year = 2020
+  private val srn = "test-srn"
+  private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
     SchemeFS(
-      chargeReference = "XY002610150184",
+      chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
       totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
-      accruedInterestTotal = 23000.55,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
-    ),
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_OTC_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
-    ),
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_OTC_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate =  LocalDate.parse("2020-07-01"),
-      periodEndDate =  LocalDate.parse("2020-09-30")
+      accruedInterestTotal = 0.00,
+      periodStartDate = LocalDate.parse(startDate),
+      periodEndDate = LocalDate.parse(endDate)
     )
+  }
+  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
+    createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")
   )
 
-  private def expectedJson: JsObject = Json.obj(
-    fields = "srn" -> srn)
-
-  "PaymentsAndCharges Controller" when {
-
-    "on a GET and overviewApi is disabled i.e before 21st July 2020" must {
-
-      "return to ChargeType page in every case" in {
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-        when(schemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(SchemeDetails("", "", "")))
-        when(mockPaymentAndChargesConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        templateCaptor.getValue mustEqual "amend/viewAllAmendments.njk"
-        jsonCaptor.getValue must containJson(expectedJson)
-      }
-    }
-
-  }
+  private val filteredSchemeFS: Seq[(LocalDate, Seq[SchemeFS])] = Seq(
+    (
+      LocalDate.parse("2020-01-01"),
+      Seq(
+        createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632")
+      )
+    ),
+    (
+      LocalDate.parse("2020-04-01"),
+      Seq(
+        createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184")
+      )
+    )
+  )
 }

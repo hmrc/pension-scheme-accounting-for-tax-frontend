@@ -48,6 +48,7 @@ class PartialController @Inject()(
   }
 
   def paymentsAndChargesPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" -> config.paymentsAndChargesUrl.format(srn, "2020"))).map(Ok(_))
+    renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
+      config.paymentsAndChargesUrl.format(srn, "2020"))).map(Ok(_))
   }
 }

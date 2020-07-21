@@ -26,6 +26,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -37,13 +38,10 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesInterestController @Inject()(override val messagesApi: MessagesApi,
                                                      identify: IdentifierAction,
-                                                     getData: DataRetrievalAction,
-                                                     allowAccess: AllowAccessActionProvider,
-                                                     requireData: DataRequiredAction,
                                                      val controllerComponents: MessagesControllerComponents,
                                                      config: FrontendAppConfig,
                                                      schemeService: SchemeService,
@@ -53,22 +51,26 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, chargeType: SchemeFSChargeType, chargeReference: String): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] =
     identify.async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
-          val filteredSchemeFs = schemeFs.find(_.chargeReference == chargeReference)
-
-          renderer
-            .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                    summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName, chargeType))
-            .map(Ok(_))
+        financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
+          val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeReference)
+          filteredSchemeFs match {
+            case Some(schemeFs) =>
+              renderer
+                .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                        summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName))
+                .map(Ok(_))
+            case _ =>
+              Logger.warn(s"No Payments and Charge details found for the selected charge reference $chargeReference")
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
         }
       }
     }
 
-  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, chargeType: SchemeFSChargeType)(
-      implicit messages: Messages): JsObject = {
+  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String)(implicit messages: Messages): JsObject = {
     filteredSchemeFs match {
       case Some(schemeFS) =>
         Json.obj(
@@ -78,9 +80,9 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
                                     schemeFS.periodEndDate.format(dateFormatterDMY)),
           "schemeName" -> schemeName,
           "accruedInterest" -> schemeFS.accruedInterestTotal,
-          "chargeType" -> (if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString),
+          "chargeType" -> (if (schemeFS.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString),
           "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-            .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeType, schemeFS.chargeReference)
+            .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
             .url,
           "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
         )

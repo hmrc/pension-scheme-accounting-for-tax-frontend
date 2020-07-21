@@ -22,35 +22,28 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import dateOrdering._
-import helpers.FormatHelper
 import javax.inject.Inject
-import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.viewModels.paymentsAndCharges.{PaymentsAndChargesDetails, PaymentsAndChargesTable}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
+import play.api.Logger
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
-import viewmodels.Table.Cell
+import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesApi,
                                              identify: IdentifierAction,
-                                             allowAccess: AllowAccessActionProvider,
-                                             requireData: DataRequiredAction,
                                              val controllerComponents: MessagesControllerComponents,
                                              config: FrontendAppConfig,
                                              schemeService: SchemeService,
                                              financialStatementConnector: FinancialStatementConnector,
+                                             paymentsAndChargesService: PaymentsAndChargesService,
                                              renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -60,132 +53,27 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
     identify.async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
-          val schemeFSForSelectedYear = schemeFs.filter(_.periodStartDate.getYear == year)
+          val schemePaymentsAndChargesForSelectedYear = schemeFs.filter(_.periodStartDate.getYear == year)
 
-          val SchemeFSMapWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
-            schemeFSForSelectedYear.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
+          if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
+            val schemePaymentsAndChargesGroupedWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
+              schemePaymentsAndChargesForSelectedYear.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
 
-          val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] = getSeqOfPaymentsAndCharges(SchemeFSMapWithPeriodStartDate, srn)
+            val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
+              paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(schemePaymentsAndChargesGroupedWithPeriodStartDate, srn)
 
-          val json = Json.obj(
-            fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
-            "schemeName" -> schemeDetails.schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-          )
-          renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+            val json = Json.obj(
+              fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
+              "schemeName" -> schemeDetails.schemeName,
+              "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+            )
+
+            renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+          } else {
+            Logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
         }
       }
     }
-
-  private def getSeqOfPaymentsAndCharges(paymentsAndChargesForAGivenPeriod: Seq[(LocalDate, Seq[SchemeFS])], srn: String)(
-      implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
-
-    paymentsAndChargesForAGivenPeriod.map { paymentsAndCharges =>
-      val seqPaymentsAndCharges = paymentsAndCharges._2
-
-      val seqPayments = seqPaymentsAndCharges.flatMap { details =>
-        val validChargeTypes = details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
-        val redirectChargeDetailsUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, details.periodStartDate, details.chargeType, details.chargeReference)
-          .url
-
-        (validChargeTypes, details.amountDue > 0) match {
-
-          case (true, true) if details.accruedInterestTotal > 0 =>
-            createPaymentAndChargesWithInterest(details, srn)
-
-          case (true, _) if details.totalAmount < 0 =>
-            Seq(
-              PaymentsAndChargesDetails(
-                details.chargeType.toString,
-                messages("paymentsAndCharges.chargeReference.None"),
-                messages("paymentsAndCharges.amountDue.in.credit"),
-                NoStatus,
-                redirectChargeDetailsUrl
-              ))
-
-          case _ =>
-            Seq(
-              PaymentsAndChargesDetails(
-                details.chargeType.toString,
-                details.chargeReference,
-                s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
-                NoStatus,
-                redirectChargeDetailsUrl
-              ))
-        }
-      }
-
-      val startDate = seqPaymentsAndCharges.headOption.map(_.periodStartDate.format(dateFormatterStartDate)).getOrElse("")
-      val endDate = seqPaymentsAndCharges.headOption.map(_.periodEndDate.format(dateFormatterDMY)).getOrElse("")
-
-      mapToTable(startDate, endDate, seqPayments, srn)
-    }
-  }
-
-  private def createPaymentAndChargesWithInterest(details: SchemeFS, srn: String)(implicit messages: Messages): Seq[PaymentsAndChargesDetails] = {
-    val interestChargeType = if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-    val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, details.periodStartDate, details.chargeType, details.chargeReference)
-      .url
-    Seq(
-      PaymentsAndChargesDetails(
-        details.chargeType.toString,
-        details.chargeReference,
-        s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
-        PaymentOverdue,
-        redirectUrl
-      ),
-      PaymentsAndChargesDetails(
-        interestChargeType.toString,
-        messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-        s"${FormatHelper.formatCurrencyAmountAsString(details.accruedInterestTotal)}",
-        InterestIsAccruing,
-        redirectUrl
-      )
-    )
-  }
-
-  private def mapToTable(startDate: String, endDate: String, allPayments: Seq[PaymentsAndChargesDetails], srn: String)(
-      implicit messages: Messages): PaymentsAndChargesTable = {
-
-    val caption = messages("paymentsAndCharges.caption", startDate, endDate)
-
-    val head = Seq(
-      Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
-      Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
-      Cell(msg"", classes = Seq("govuk-!-font-weight-bold"))
-    )
-
-    val rows = allPayments.map { data =>
-      val htmlStatus = data.status match {
-        case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${data.status.toString}</span>")
-        case PaymentOverdue     => Html(s"<span class='govuk-tag govuk-tag--red'>${data.status.toString}</span>")
-        case _                  => Html("")
-      }
-
-      val htmlChargeType = Html(
-        s"<a id=linkId class=govuk-link href=" +
-          s"${data.redirectUrl}>" +
-          s"${data.chargeType}" +
-          s"<span class=govuk-visually-hidden>${messages(s"paymentsAndCharges.visuallyHiddenText", data.chargeReference)}</span> </a>")
-
-      Seq(
-        Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(htmlStatus, classes = Nil)
-      )
-    }
-
-    PaymentsAndChargesTable(
-      caption,
-      Table(
-        head = head,
-        rows = rows,
-        attributes = Map("role" -> "grid", "aria-describedby" -> caption)
-      )
-    )
-  }
 }
