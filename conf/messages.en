@@ -1022,6 +1022,9 @@ aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 
+paymentsAndCharges.partial.h1 = Payments and charges
+paymentsAndCharges.partial.view.link = View payments and charges for 2020
+
 paymentsAndCharges.reflect.charge.text = Payments can take up to 3 days to show in your account.
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}

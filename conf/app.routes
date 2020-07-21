@@ -246,6 +246,8 @@ POST        /:srn/new-return/:year/select-quarter                               
 
 GET         /:srn/aft-partial                                                                                            controllers.PartialController.aftPartial(srn: String)
 
+GET         /:srn/payments-and-charges-partial                                                                           controllers.PartialController.paymentsAndChargesPartial(srn: String)
+
 GET         /:srn/:year/payments-and-charges                                                                            controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
 GET         /:srn/:startDate/:chargeType/:chargeReference/charge-details                                                controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeType: SchemeFSChargeType, chargeReference: String)
 GET         /:srn/:startDate/:chargeType/:chargeReference/interest/charge-details                                       controllers.paymentsAndCharges.PaymentsAndChargesInterestController.onPageLoad(srn: String, startDate: String, chargeType: SchemeFSChargeType, chargeReference: String)

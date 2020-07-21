@@ -105,6 +105,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val aftReturnHistoryUrl: String = s"${configuration.get[String](path = "urls.partials.aftReturnHistoryLink")}"
   lazy val aftContinueReturnUrl: String = s"${configuration.get[String](path = "urls.partials.aftContinueReturn")}"
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
+  lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLink")}"
 
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
