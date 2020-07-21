@@ -209,11 +209,6 @@ GET        /:srn/:startDate/:accessType/:version/declaration/on-submit-declarati
 GET        /:srn/:startDate/:accessType/:version/confirmation                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 
-GET         /:srn/:startDate/:accessType/:version/cannot-start-aft-return                                                                     controllers.CannotStartAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
-
-GET         /:srn/:startDate/:accessType/:version/cannot-change-aft-return                                                                    controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
-GET         /:srn/:startDate/:accessType/:version/cannot-change-aft-return/version                                                            controllers.CannotChangeAFTReturnController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
-
 GET         /:srn/:startDate/:accessType/:version/changes-made-in-submission                                                      controllers.amend.ViewAllAmendmentsController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /unauthorised                                                                                                       controllers.UnauthorisedController.onPageLoad

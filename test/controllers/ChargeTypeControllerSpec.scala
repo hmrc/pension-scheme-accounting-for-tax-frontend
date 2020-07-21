@@ -16,8 +16,11 @@
 
 package controllers
 
-import audit.{AuditService, StartAFTAuditEvent}
-import controllers.actions.{DataSetupAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
+import audit.AuditService
+import audit.StartAFTAuditEvent
+import controllers.actions.DataSetupAction
+import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.MutableFakeDataSetupAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -25,22 +28,30 @@ import forms.ChargeTypeFormProvider
 import matchers.JsonMatchers
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.{ChargeType, Enumerable, GenericViewModel, UserAnswers}
+import models.ChargeType
+import models.Enumerable
+import models.GenericViewModel
+import models.UserAnswers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import pages.{ChargeTypePage, IsPsaSuspendedQuery}
+import pages.ChargeTypePage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Results
-import play.api.test.Helpers.{route, status, _}
+import play.api.test.Helpers.route
+import play.api.test.Helpers.status
+import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{AFTService, SchemeService}
+import services.AFTService
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 
