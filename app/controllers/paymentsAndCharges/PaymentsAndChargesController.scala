@@ -68,7 +68,7 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
           val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] = getSeqOfPaymentsAndCharges(SchemeFSMapWithPeriodStartDate, srn)
 
           val json = Json.obj(
-            "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
+            fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
             "schemeName" -> schemeDetails.schemeName,
             "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
           )
@@ -88,25 +88,25 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
         val redirectChargeDetailsUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
           .onPageLoad(srn, details.periodStartDate, details.chargeType, details.chargeReference)
           .url
+
         (validChargeTypes, details.amountDue > 0) match {
+
           case (true, true) if details.accruedInterestTotal > 0 =>
             createPaymentAndChargesWithInterest(details, srn)
+
           case (true, _) if details.totalAmount < 0 =>
             Seq(
               PaymentsAndChargesDetails(
-                details.periodStartDate,
-                details.periodEndDate,
                 details.chargeType.toString,
                 messages("paymentsAndCharges.chargeReference.None"),
                 messages("paymentsAndCharges.amountDue.in.credit"),
                 NoStatus,
                 redirectChargeDetailsUrl
               ))
+
           case _ =>
             Seq(
               PaymentsAndChargesDetails(
-                details.periodStartDate,
-                details.periodEndDate,
                 details.chargeType.toString,
                 details.chargeReference,
                 s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
@@ -116,8 +116,8 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
         }
       }
 
-      val startDate = seqPayments.headOption.map(_.startDate.format(dateFormatterStartDate)).getOrElse("")
-      val endDate = seqPayments.headOption.map(_.endDate.format(dateFormatterDMY)).getOrElse("")
+      val startDate = seqPaymentsAndCharges.headOption.map(_.periodStartDate.format(dateFormatterStartDate)).getOrElse("")
+      val endDate = seqPaymentsAndCharges.headOption.map(_.periodEndDate.format(dateFormatterDMY)).getOrElse("")
 
       mapToTable(startDate, endDate, seqPayments, srn)
     }
@@ -130,8 +130,6 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
       .url
     Seq(
       PaymentsAndChargesDetails(
-        details.periodStartDate,
-        details.periodEndDate,
         details.chargeType.toString,
         details.chargeReference,
         s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
@@ -139,8 +137,6 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
         redirectUrl
       ),
       PaymentsAndChargesDetails(
-        details.periodStartDate,
-        details.periodEndDate,
         interestChargeType.toString,
         messages("paymentsAndCharges.chargeReference.toBeAssigned"),
         s"${FormatHelper.formatCurrencyAmountAsString(details.accruedInterestTotal)}",
