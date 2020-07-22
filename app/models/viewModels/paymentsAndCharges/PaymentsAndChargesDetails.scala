@@ -15,6 +15,10 @@
  */
 
 package models.viewModels.paymentsAndCharges
-import java.time.LocalDate
 
-case class PaymentsAndChargesDetails(chargeType: String, chargeReference: String, amountDue: String, status: PaymentAndChargeStatus, redirectUrl: String)
+case class PaymentsAndChargesDetails(chargeType: String,
+                                     chargeReference: String,
+                                     amountDue: String,
+                                     status: PaymentAndChargeStatus,
+                                     redirectUrl: String,
+                                     visuallyHiddenText: String)

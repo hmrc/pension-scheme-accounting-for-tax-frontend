@@ -60,7 +60,8 @@ class PaymentsAndChargesService {
                 messages("paymentsAndCharges.chargeReference.None"),
                 messages("paymentsAndCharges.amountDue.in.credit"),
                 NoStatus,
-                redirectChargeDetailsUrl
+                redirectChargeDetailsUrl,
+                messages(s"paymentsAndCharges.credit.visuallyHiddenText")
               ))
 
           case _ =>
@@ -70,7 +71,8 @@ class PaymentsAndChargesService {
                 details.chargeReference,
                 s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
                 NoStatus,
-                redirectChargeDetailsUrl
+                redirectChargeDetailsUrl,
+                messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
               ))
         }
       }
@@ -85,24 +87,26 @@ class PaymentsAndChargesService {
   private def createPaymentAndChargesIfInterestAccrued(details: SchemeFS, srn: String)(
       implicit messages: Messages): Seq[PaymentsAndChargesDetails] = {
     val interestChargeType = if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-    val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, details.periodStartDate, details.chargeReference)
-      .url
-
     Seq(
       PaymentsAndChargesDetails(
         details.chargeType.toString,
         details.chargeReference,
         s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
         PaymentOverdue,
-        redirectUrl
+        controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+          .onPageLoad(srn, details.periodStartDate, details.chargeReference)
+          .url,
+        messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
       ),
       PaymentsAndChargesDetails(
         interestChargeType.toString,
         messages("paymentsAndCharges.chargeReference.toBeAssigned"),
         s"${FormatHelper.formatCurrencyAmountAsString(details.accruedInterestTotal)}",
         InterestIsAccruing,
-        redirectUrl
+        controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+          .onPageLoad(srn, details.periodStartDate, details.chargeReference)
+          .url,
+        messages(s"paymentsAndCharges.interest.visuallyHiddenText")
       )
     )
   }
@@ -129,8 +133,8 @@ class PaymentsAndChargesService {
       val htmlChargeType = Html(
         s"<a id=linkId class=govuk-link href=" +
           s"${data.redirectUrl}>" +
-          s"${data.chargeType}" +
-          s"<span class=govuk-visually-hidden>${messages(s"paymentsAndCharges.visuallyHiddenText", data.chargeReference)}</span> </a>")
+          s"${data.chargeType} " +
+          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
         Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
@@ -207,7 +211,7 @@ class PaymentsAndChargesService {
   private def totalAmountDueChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
     val amountDueKey: Content = (schemeFS.dueDate, schemeFS.amountDue > 0) match {
       case (Some(date), true) => msg"paymentsAndCharges.chargeDetails.amountDue".withArgs(date.format(dateFormatterDMY))
-      case _                  => msg"paymentsAndCharges.chargeDetails.noAmountDue"
+      case _                  => msg"paymentsAndCharges.chargeDetails.noAmountDueDate"
     }
     if (schemeFS.totalAmount > 0) {
       Seq(

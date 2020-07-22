@@ -38,12 +38,12 @@ import viewmodels.Table.Cell
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
   import PaymentsAndChargesServiceSpec._
 
-  private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String) =
+  private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String, visuallyHiddenText: String) =
     Html(
       s"<a id=linkId class=govuk-link href=" +
         s"$redirectUrl>" +
-        s"$chargeType" +
-        s"<span class=govuk-visually-hidden>${messages(s"paymentsAndCharges.visuallyHiddenText", chargeReference)}</span> </a>")
+        s"$chargeType " +
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
 
   private val tableHead = Seq(
     Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
@@ -63,8 +63,13 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     )
   }
 
-  private def row(chargeType: String, chargeReference: String, amountDue: String, status: Html, redirectUrl: String): Seq[Table.Cell] = Seq(
-    Cell(htmlChargeType(chargeType, chargeReference, redirectUrl), classes = Seq("govuk-!-width-two-thirds-quarter")),
+  private def row(chargeType: String,
+                  chargeReference: String,
+                  amountDue: String,
+                  status: Html,
+                  redirectUrl: String,
+                  visuallyHiddenText: String): Seq[Table.Cell] = Seq(
+    Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(status, classes = Nil)
@@ -76,9 +81,6 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     Seq(PSS_AFT_RETURN, PSS_OTC_AFT_RETURN).foreach { chargeType =>
       s"return payments and charges table with two rows for the charge and interest accrued for $chargeType" in {
-        val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-          .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
-          .url
         val expectedTable = Seq(
           paymentTable(Seq(
             row(
@@ -86,14 +88,20 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               "AYU3494534632",
               FormatHelper.formatCurrencyAmountAsString(1029.05),
               Html(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
-              redirectUrl
+              controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
+                .url,
+              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
             ),
             row(
               if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
               messages("paymentsAndCharges.chargeReference.toBeAssigned"),
               FormatHelper.formatCurrencyAmountAsString(153.00),
               Html(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
-              redirectUrl
+              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
+                .url,
+              messages(s"paymentsAndCharges.interest.visuallyHiddenText")
             )
           )))
 
@@ -116,7 +124,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               chargeReference = messages("paymentsAndCharges.chargeReference.None"),
               amountDue = messages("paymentsAndCharges.amountDue.in.credit"),
               Html(""),
-              redirectUrl
+              redirectUrl,
+              messages(s"paymentsAndCharges.credit.visuallyHiddenText")
             )
           )))
 
@@ -129,7 +138,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "return payments and charges table with row where there is no amount due" in {
       val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-        .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
+        .onPageLoad(srn, QUARTER_START_DATE.toString, chargeReference = "AYU3494534632")
         .url
       val expectedTable = Seq(
         paymentTable(
@@ -139,7 +148,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               chargeReference = "AYU3494534632",
               amountDue = FormatHelper.formatCurrencyAmountAsString(0.00),
               Html(""),
-              redirectUrl
+              redirectUrl,
+              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
             )
           )))
 
@@ -152,8 +162,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
   "getChargeDetailsForSelectedCharge" must {
     "return the row for original charge amount, payments and credits, stood over amount and total amount due" in {
-      val result = paymentsAndChargesService.getChargeDetailsForSelectedCharge(
-        createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+      val result =
+        paymentsAndChargesService.getChargeDetailsForSelectedCharge(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
 
       result mustBe originalAmountRow ++ paymentsAndCreditsRow ++ stoodOverAmountRow ++ totalAmountDueRow
     }
