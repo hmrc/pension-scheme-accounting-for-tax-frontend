@@ -108,7 +108,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
     if (paymentAmount != BigDecimal(0.00)) {
       Seq(Row(
         key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
-        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.outstandingAmount)}"),
+        value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.amountDue - data.stoodOverAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
       )) }
     else {

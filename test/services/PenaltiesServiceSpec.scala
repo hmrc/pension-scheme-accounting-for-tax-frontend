@@ -98,7 +98,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
 
     "return the correct rows when amountUnderReview row need not be displayed" in {
-      val rows = Seq(totalAmount(), paymentAmount(), totalDueAmount())
+      val rows = Seq(totalAmount(), paymentAmount(BigDecimal(78970.95)), totalDueAmount())
       val psaData = psaFS(stoodOverAmount = BigDecimal(0.00))
       penaltiesService.chargeDetailsRows(psaData) mustBe rows
     }
@@ -182,7 +182,7 @@ object PenaltiesServiceSpec {
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     )
 
-    def paymentAmount(amount: BigDecimal = BigDecimal(23950.92)): Row = Row(
+    def paymentAmount(amount: BigDecimal = BigDecimal(53881.87)): Row = Row(
       key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     )
