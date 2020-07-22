@@ -156,13 +156,17 @@ class PaymentsAndChargesService {
   }
 
   private def originalAmountChargeDetailsRow(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
-    val credit = if (schemeFS.totalAmount < 0) messages("paymentsAndCharges.credit") else ""
+    val value = if (schemeFS.totalAmount < 0) {
+      s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)} ${messages("paymentsAndCharges.credit")}"
+    } else {
+      s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount)}"
+    }
     Seq(
       Row(
         key = Key(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
         value = Value(
-          Literal(s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)} $credit"),
-          classes = Seq(if (schemeFS.totalAmount < 0) "" else "govuk-!-width-one-quarter", "govuk-table__cell--numeric")
+          Literal(value),
+          classes = if (schemeFS.totalAmount < 0) Nil else Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")
         ),
         actions = Nil
       ))
