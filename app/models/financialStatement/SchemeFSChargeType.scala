@@ -20,7 +20,6 @@ import models.{Enumerable, WithName}
 
 sealed trait SchemeFSChargeType
 
-
 object SchemeFSChargeType extends Enumerable.Implicits {
 
   case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with SchemeFSChargeType
@@ -30,7 +29,6 @@ object SchemeFSChargeType extends Enumerable.Implicits {
   case object PSS_OTC_AFT_RETURN_INTEREST extends WithName("Interest on overseas transfer charge") with SchemeFSChargeType
 
   val values: Seq[SchemeFSChargeType] = Seq(
-    PAYMENT_ON_ACCOUNT,
     PSS_AFT_RETURN,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,

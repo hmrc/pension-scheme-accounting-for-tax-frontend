@@ -18,7 +18,7 @@ package viewmodels
 
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{Json, _}
 import uk.gov.hmrc.viewmodels.{Content, Html, Text, WithContent}
 import viewmodels.Table.Cell
 
@@ -69,4 +69,5 @@ object Table {
 
   private def classes(classes: Seq[String]): Option[String] =
     if (classes.isEmpty) None else Some(classes.mkString(" "))
+
 }
