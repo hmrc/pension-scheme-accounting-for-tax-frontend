@@ -51,7 +51,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                                    (implicit messages: Messages): JsObject = {
 
-    val caption = messages(
+    val caption: String = messages(
       "penalties.period",
       startDate.format(dateFormatterStartDate),
       getQuarter(startDate).endDate.format(dateFormatterDMY))
@@ -73,11 +73,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
     }
 
         Json.obj(
-          "header" -> messages(
-            "penalties.period",
-            startDate.format(dateFormatterStartDate),
-            getQuarter(startDate).endDate.format(dateFormatterDMY)),
-          "penaltyTable" -> Table(head = head, rows = rows)
+          "header" -> caption,
+          "penaltyTable" -> Table( caption = Some(caption),captionClasses= Seq("govuk-visually-hidden"), head = head, rows = rows)
         )
   }
 
@@ -87,12 +84,11 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
         s"${messages(data.chargeType.toString)}" +
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
-  private def statusCell(data: PsaFS): Cell = {
-
+  private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     if(isPaymentOverdue(data)) {
-      Cell(msg"penalties.status.paymentOverdue", classes = Seq("govuk-tag govuk-tag--red"))
+      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
     } else {
-      Cell(msg"")
+      Cell(Html(""))
     }
   }
 

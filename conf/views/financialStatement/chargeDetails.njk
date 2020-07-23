@@ -25,9 +25,9 @@
             </h1>
 
             {% if isOverdue %}
-                <div class="govuk-tag govuk-tag--red">
+                <p class="govuk-body govuk-tag govuk-tag--red">
                     {{ messages("penalties.status.paymentOverdue") }}
-                </div>
+                </p>
             {% endif %}
 
             <h2 class="govuk-heading-m">{{ period }}</h2>
