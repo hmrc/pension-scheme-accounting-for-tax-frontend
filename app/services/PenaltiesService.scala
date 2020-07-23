@@ -51,8 +51,12 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                                    (implicit messages: Messages): JsObject = {
 
+    val caption = messages(
+      "penalties.period",
+      startDate.format(dateFormatterStartDate),
+      getQuarter(startDate).endDate.format(dateFormatterDMY))
     val head: Seq[Cell] = Seq(
-      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"")
@@ -60,7 +64,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
     val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
-        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
@@ -80,7 +84,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
   private def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
     Html(
       s"<a id=${data.chargeReference} href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, data.chargeReference)}>" +
-        s"${messages(data.chargeType.toString)} </a>")
+        s"${messages(data.chargeType.toString)}" +
+        s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
   private def statusCell(data: PsaFS): Cell = {
 
