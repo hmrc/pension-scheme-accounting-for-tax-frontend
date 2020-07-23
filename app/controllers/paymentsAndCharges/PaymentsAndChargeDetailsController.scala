@@ -102,7 +102,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
                                        } else {
                                          messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
                                        }),
-      "isPaymentOverdue" -> (schemeFS.amountDue > 0 && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
+      "isPaymentOverdue" -> (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
+        && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
       "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
