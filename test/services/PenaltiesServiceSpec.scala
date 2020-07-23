@@ -27,15 +27,13 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-import viewmodels.Table
-import viewmodels.Table.Cell
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -44,15 +42,11 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val penaltiesService = new PenaltiesService(mockAppConfig)
 
-  val penaltyTables: Seq[JsObject] = Seq(
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01")))
-    ),
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01")))
-    )
+  def penaltyTables: Seq[Table] = Seq(
+    Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
+        head = head, rows = rows(aftLink("2020-04-01"))),
+    Table(caption = Some(msg"penalties.period".withArgs("1 July", "30 September 2020")), captionClasses= Seq("govuk-heading-m"),
+      head = head, rows = rows(otcLink("2020-07-01")))
   )
 
   override def beforeEach: Unit = {
@@ -155,26 +149,26 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   val head = Seq(
-    Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-quarter")),
+    Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"")
   )
 
   def rows(link: Html) = Seq(Seq(
-    Cell(link, classes = Seq("govuk-!-width-one-quarter")),
+    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal("£1,029.05"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(msg"penalties.status.paymentOverdue", classes = Seq("govuk-tag govuk-tag--red"))
+    Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${msg"penalties.status.paymentOverdue"}</span>"))
   ))
 
   def aftLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
-      s"Accounting for Tax late filing penalty </a>")
+      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
   def otcLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
-      s"Overseas transfer charge late payment penalty (6 months) </a>")
+      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
 
     def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(

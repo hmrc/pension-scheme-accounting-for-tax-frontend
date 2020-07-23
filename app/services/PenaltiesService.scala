@@ -25,36 +25,32 @@ import models.LocalDateBinder._
 import models.Quarters._
 import models.financialStatement.PsaFS
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.Table
-import viewmodels.Table.Cell
 
 class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
   def getPsaFsJson(psaFS: Seq[PsaFS], srn: String, year: Int)
-                          (implicit messages: Messages): Seq[JsObject] =
-    availableQuarters(year)(config).map { quarter =>
+                          (implicit messages: Messages): Seq[Table] =
+    availableQuarters(year)(config).flatMap { quarter =>
       val startDate = getStartDate(quarter, year)
       val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
 
       if(filteredPsaFS.nonEmpty) {
-        singlePeriodFSMapping(srn, startDate, filteredPsaFS)
+        Seq(singlePeriodFSMapping(srn, startDate, filteredPsaFS))
       } else {
-        Json.obj()
+        Nil
       }
     }
 
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                                   (implicit messages: Messages): JsObject = {
+                                   (implicit messages: Messages): Table = {
 
-    val caption: String = messages(
-      "penalties.period",
-      startDate.format(dateFormatterStartDate),
-      getQuarter(startDate).endDate.format(dateFormatterDMY))
+    val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
+
     val head: Seq[Cell] = Seq(
       Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
@@ -72,10 +68,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
       )
     }
 
-        Json.obj(
-          "header" -> caption,
-          "penaltyTable" -> Table( caption = Some(caption),captionClasses= Seq("govuk-visually-hidden"), head = head, rows = rows)
-        )
+    Table(caption = Some(caption), captionClasses= Seq("govuk-heading-m"), head = head, rows = rows)
+
   }
 
   private def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
@@ -86,7 +80,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     if(isPaymentOverdue(data)) {
-      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
+      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${msg"penalties.status.paymentOverdue"}</span>"))
     } else {
       Cell(Html(""))
     }

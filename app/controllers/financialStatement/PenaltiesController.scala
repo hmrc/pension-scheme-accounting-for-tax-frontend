@@ -26,7 +26,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Table}
 
 import scala.concurrent.ExecutionContext
 
@@ -47,8 +47,7 @@ class PenaltiesController @Inject()(
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
         val filteredPsaFS = psaFS.filter(_.pstr == schemeDetails.pstr)
-        val penaltyTables: Seq[JsObject] =
-          penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt).filter(_ != Json.obj())
+        val penaltyTables: Seq[Table] = penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt)
         val json = Json.obj("year" -> year,
           "schemeName" -> schemeDetails.schemeName,
           "tables" -> Json.toJson(penaltyTables))

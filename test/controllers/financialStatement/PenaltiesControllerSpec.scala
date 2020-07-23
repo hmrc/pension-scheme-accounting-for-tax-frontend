@@ -34,10 +34,9 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import services.{PenaltiesService, SchemeService}
+import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, _}
-import viewmodels.Table
-import viewmodels.Table.Cell
 
 import scala.concurrent.Future
 
@@ -48,15 +47,11 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesController.onPageLoad().url
 
-  val penaltyTables: Seq[JsObject] = Seq(
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows("2020-04-01"))
-    ),
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows("2020-07-01"))
-    )
+  val penaltyTables: Seq[Table] = Seq(
+    Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
+      head = head, rows = rows("2020-04-01")),
+    Table(caption = Some(msg"penalties.period".withArgs("1 July", "30 September 2020")), captionClasses= Seq("govuk-heading-m"),
+      head = head, rows = rows("2020-07-01"))
   )
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
