@@ -20,9 +20,16 @@ import java.time.LocalDate
 
 import play.api.libs.json.{Format, Json}
 
-case class SchemeFS(chargeReference: String, chargeType: SchemeFSChargeType, dueDate: Option[LocalDate],
-                    amountDue: BigDecimal, accruedInterestTotal: BigDecimal, outstandingAmount: BigDecimal,
-                    stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate)
+case class SchemeFS(chargeReference: String,
+                    chargeType: SchemeFSChargeType,
+                    dueDate: Option[LocalDate],
+                    totalAmount: BigDecimal,
+                    amountDue: BigDecimal,
+                    accruedInterestTotal: BigDecimal,
+                    outstandingAmount: BigDecimal,
+                    stoodOverAmount: BigDecimal,
+                    periodStartDate: LocalDate,
+                    periodEndDate: LocalDate)
 
 object SchemeFS {
   implicit val formats: Format[SchemeFS] = Json.format[SchemeFS]

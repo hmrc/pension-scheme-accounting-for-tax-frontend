@@ -244,3 +244,9 @@ GET         /penalties-partial                                                  
 
 GET         /penalties                                                                                        controllers.financialStatement.PenaltiesController.onPageLoad(year: String = "2020", srn: String = "S2400000041")
 GET         /penalties/:srn/:startDate/:chargeReference/charge-details                                        controllers.financialStatement.ChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeReference: String)
+
+GET         /:srn/payments-and-charges-partial                                                                           controllers.PartialController.paymentsAndChargesPartial(srn: String)
+
+GET         /:srn/:year/payments-and-charges                                                                            controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
+GET         /:srn/payments-and-charges/:startDate/:chargeReference/charge-details                                       controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeReference: String)
+GET         /:srn/payments-and-charges/:startDate/:chargeReference/interest/charge-details                              controllers.paymentsAndCharges.PaymentsAndChargesInterestController.onPageLoad(srn: String, startDate: String, chargeReference: String)

@@ -169,11 +169,12 @@ object FinancialStatementConnectorSpec {
     )
   )
 
-  val schemeFSResponse: Seq[SchemeFS] = Seq(
+  private val schemeFSResponse: Seq[SchemeFS] = Seq(
     SchemeFS(
       chargeReference = "XY002610150184",
       chargeType = PSS_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 12345.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
@@ -185,6 +186,7 @@ object FinancialStatementConnectorSpec {
       chargeReference = "XY002610150184",
       chargeType = PSS_OTC_AFT_RETURN,
       dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
