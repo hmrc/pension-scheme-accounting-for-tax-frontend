@@ -42,7 +42,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     val linkId =
       chargeReference match {
         case "To be assigned" => "to-be-assigned"
-        case "None" => "id-none"
+        case "None" => "none"
         case _ => chargeReference
       }
     Html(
