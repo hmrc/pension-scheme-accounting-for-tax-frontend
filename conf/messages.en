@@ -1006,8 +1006,6 @@ return.to.submission = Return to total return for submission {0}
 allAmendments.view.changes.draft.link = View changes made in this draft
 allAmendments.view.changes.submission.link = View changes made in this submission
 
-
-
 aftPartial.h1 = Accounting for Tax (AFT) returns
 aftPartial.startLink.forPeriod= Start the AFT return for {0} to {1}
 aftPartial.start.link = Start a new AFT return
@@ -1021,6 +1019,28 @@ aftPartial.status.locked = Locked
 aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
+
+penaltiesPartial.linkText = View your penalties for 2020
+
+penalties.title = Penalties for {0}
+
+penalties.column.penalty = Penalty
+penalties.column.amount = Amount outstanding
+penalties.column.chargeReference = Charge reference
+penalties.status.paymentOverdue = PAYMENT OVERDUE
+penalties.12months = Accounting for Tax late payment penalty (12 months)
+penalties.6months = Accounting for Tax late payment penalty (6 months)
+penalties.30days = Accounting for Tax late payment penalty (30 days)
+penalties.period = {0} to {1}
+
+penalties.chargeDetails.payments = Payments
+penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)
+penalties.chargeDetails.totalDueBy = Total due by {0}
+penalties.chargeDetails.totalDue = Total due
+penalties.chargeReference = Charge reference: {0}
+penalties.visuallyHiddenText = for charge reference {0}
+
+
 
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020

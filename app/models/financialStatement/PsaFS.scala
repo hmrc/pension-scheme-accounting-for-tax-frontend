@@ -23,8 +23,8 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Format, JsPath, Json, Reads}
 
 case class PsaFS(chargeReference: String, chargeType: PsaFSChargeType, dueDate: Option[LocalDate],
-                 amountDue: BigDecimal, outstandingAmount: BigDecimal, stoodOverAmount: BigDecimal,
-                 periodStartDate: LocalDate, periodEndDate: LocalDate, pstr: String)
+                 totalAmount: BigDecimal, amountDue: BigDecimal, outstandingAmount: BigDecimal,
+                 stoodOverAmount: BigDecimal, periodStartDate: LocalDate, periodEndDate: LocalDate, pstr: String)
 
 object PsaFS {
   implicit val formats: Format[PsaFS] = Json.format[PsaFS]

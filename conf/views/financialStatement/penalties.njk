@@ -1,0 +1,42 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/table/macro.njk"         import govukTable %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
+
+{% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+
+
+{% block pageTitle %}
+  {{ title(messages("penalties.title", year), form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">
+        <span class="govuk-caption-xl">{{ schemeName }}</span>
+        {{ messages("penalties.title", year) }}
+      </h1>
+
+                    <p class="govuk-body">
+                         {% for table in tables %}
+
+                              {{ govukTable(table) }}
+
+                         {% endfor %}
+                     </p>
+
+
+
+
+    </div>
+  </div>
+
+
+{% endblock %}

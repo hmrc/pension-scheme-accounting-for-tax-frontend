@@ -32,6 +32,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
+  import FinancialStatementConnectorSpec._
+
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def portConfigKey: String = "microservice.services.pension-scheme-accounting-for-tax.port"
@@ -40,58 +42,6 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
   private val pstr = "test-pstr"
   private val psaFSUrl = "/pension-scheme-accounting-for-tax/psa-financial-statement"
   private val schemeFSUrl = "/pension-scheme-accounting-for-tax/scheme-financial-statement"
-
-  private val psaFSResponse: Seq[PsaFS] = Seq(
-    PsaFS(
-      chargeReference = "XY002610150184",
-      chargeType = AFT_INITIAL_LFP,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
-    ),
-    PsaFS(
-      chargeReference = "XY002610150184",
-      chargeType = OTC_6_MONTH_LPP,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30"),
-      pstr = "24000041IN"
-    )
-  )
-
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 12345.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 23000.55,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
-    ),
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_OTC_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
-    )
-  )
 
   "getPsaFS" must {
 
@@ -187,5 +137,63 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
       )
     )
   }
+
+}
+
+object FinancialStatementConnectorSpec {
+
+  val psaFSResponse: Seq[PsaFS] = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LFP,
+      dueDate = Some(LocalDate.parse("2020-07-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      periodStartDate =  LocalDate.parse("2020-07-01"),
+      periodEndDate =  LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN"
+    )
+  )
+
+  private val schemeFSResponse: Seq[SchemeFS] = Seq(
+    SchemeFS(
+      chargeReference = "XY002610150184",
+      chargeType = PSS_AFT_RETURN,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 12345.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 23000.55,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30")
+    ),
+    SchemeFS(
+      chargeReference = "XY002610150184",
+      chargeType = PSS_OTC_AFT_RETURN,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 24000.41,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30")
+    )
+  )
 
 }

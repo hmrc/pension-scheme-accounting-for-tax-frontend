@@ -1,0 +1,47 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
+{% from "govuk/components/fieldset/macro.njk"      import govukFieldset %}
+
+{% from 'macros/inputSearch.njk'               import hmrcInputSearch with context %}
+
+
+{% block pageTitle %}
+    {{ title(heading, form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+
+            <h1 class="govuk-heading-xl">
+                <span class="govuk-caption-xl">{{ schemeName }}</span>
+                {{ heading }}
+            </h1>
+
+            {% if isOverdue %}
+                <p class="govuk-body govuk-tag govuk-tag--red">
+                    {{ messages("penalties.status.paymentOverdue") }}
+                </p>
+            {% endif %}
+
+            <h2 class="govuk-heading-m">{{ period }}</h2>
+
+
+            <p class="govuk-body">
+                {{ messages("penalties.chargeReference", chargeReference) }}
+                {{ govukSummaryList({
+                    rows: list
+                }) }}
+            </p>
+
+        </div>
+    </div>
+
+
+{% endblock %}

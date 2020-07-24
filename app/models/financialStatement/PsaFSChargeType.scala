@@ -20,7 +20,6 @@ import models.{Enumerable, WithName}
 
 sealed trait PsaFSChargeType
 
-
 object PsaFSChargeType extends Enumerable.Implicits {
 
   case object AFT_INITIAL_LFP extends WithName("Accounting for Tax late filing penalty") with PsaFSChargeType
