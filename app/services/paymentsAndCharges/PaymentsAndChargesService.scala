@@ -132,7 +132,7 @@ class PaymentsAndChargesService {
 
       val linkId =
         data.chargeReference match {
-          case "To be assigned" => "id-to-be-assigned"
+          case "To be assigned" => "to-be-assigned"
           case "None" => "id-none"
           case _ => data.chargeReference
         }

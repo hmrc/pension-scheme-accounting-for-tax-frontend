@@ -41,7 +41,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String, visuallyHiddenText: String) = {
     val linkId =
       chargeReference match {
-        case "To be assigned" => "id-to-be-assigned"
+        case "To be assigned" => "to-be-assigned"
         case "None" => "id-none"
         case _ => chargeReference
       }
