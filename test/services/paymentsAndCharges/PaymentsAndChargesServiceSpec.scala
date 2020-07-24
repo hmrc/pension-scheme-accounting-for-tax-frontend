@@ -38,12 +38,19 @@ import viewmodels.Table.Cell
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
   import PaymentsAndChargesServiceSpec._
 
-  private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String, visuallyHiddenText: String) =
+  private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String, visuallyHiddenText: String) = {
+    val linkId =
+      chargeReference match {
+        case "To be assigned" => "id-to-be-assigned"
+        case "None" => "id-none"
+        case _ => chargeReference
+      }
     Html(
-      s"<a id=linkId class=govuk-link href=" +
+      s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
         s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
+  }
 
   private val tableHead = Seq(
     Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
