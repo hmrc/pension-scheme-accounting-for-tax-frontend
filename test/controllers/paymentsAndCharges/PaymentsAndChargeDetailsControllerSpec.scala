@@ -84,7 +84,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate",
                                          schemeFS.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}" +
-        s"<span class=govuk-!-display-block><a class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+        s"<span class=govuk-!-display-block><a id='breakdown' class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
           .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
           .url}>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"

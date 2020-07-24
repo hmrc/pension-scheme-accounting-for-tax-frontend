@@ -130,8 +130,15 @@ class PaymentsAndChargesService {
         case _                  => Html("")
       }
 
+      val linkId =
+        data.chargeReference match {
+          case "To be assigned" => "to-be-assigned"
+          case "None" => "none"
+          case _ => data.chargeReference
+        }
+
       val htmlChargeType = Html(
-        s"<a id=linkId class=govuk-link href=" +
+        s"<a id=$linkId class=govuk-link href=" +
           s"${data.redirectUrl}>" +
           s"${data.chargeType} " +
           s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
