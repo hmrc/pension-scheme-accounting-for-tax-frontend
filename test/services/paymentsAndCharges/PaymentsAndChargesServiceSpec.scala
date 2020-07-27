@@ -60,12 +60,14 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   )
 
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): PaymentsAndChargesTable = {
+   val caption:String = messages("paymentsAndCharges.caption", startDate, endDate)
     PaymentsAndChargesTable(
       caption = messages("paymentsAndCharges.caption", startDate, endDate),
       table = Table(
+        caption = Some(caption),
+        captionClasses= Seq("govuk-heading-m"),
         head = tableHead,
-        rows = rows,
-        attributes = Map("role" -> "grid", "aria-describedby" -> messages("paymentsAndCharges.caption", startDate, endDate))
+        rows = rows
       )
     )
   }
