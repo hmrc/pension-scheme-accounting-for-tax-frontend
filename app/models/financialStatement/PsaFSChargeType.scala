@@ -40,8 +40,7 @@ object PsaFSChargeType extends Enumerable.Implicits {
     AFT_12_MONTH_LPP,
     OTC_30_DAY_LPP,
     OTC_6_MONTH_LPP,
-    OTC_12_MONTH_LPP,
-    PAYMENT_ON_ACCOUNT
+    OTC_12_MONTH_LPP
   )
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =
