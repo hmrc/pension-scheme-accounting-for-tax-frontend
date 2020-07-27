@@ -21,7 +21,7 @@ import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -45,7 +45,7 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
 
   "getPsaFS" must {
 
-    "return the PSA financial statement for a valid request/response with psa id" in {
+    "return the PSA financial statement without PAYMENT ON ACCOUNT for a valid request/response with psa id" in {
 
       server.stubFor(
         get(urlEqualTo(psaFSUrl))
@@ -54,15 +54,13 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(psaFSResponse).toString)
+              .withBody(Json.toJson(psaFSResponse ++ psaPaymentOnAccount).toString)
           )
       )
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getPsaFS(psaId).map(fs =>
-        fs mustBe psaFSResponse
-      )
+      connector.getPsaFS(psaId).map(fs => fs mustBe psaFSResponse)
 
     }
 
@@ -97,15 +95,13 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(schemeFSResponse).toString)
+              .withBody(Json.toJson(schemeFSResponse ++ schemePaymentOnAccount).toString)
           )
       )
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(fs =>
-        fs mustBe schemeFSResponse
-      )
+      connector.getSchemeFS(pstr).map(fs => fs mustBe schemeFSResponse)
 
     }
 
@@ -142,6 +138,21 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
 
 object FinancialStatementConnectorSpec {
 
+  val psaPaymentOnAccount = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = PsaFSChargeType.PAYMENT_ON_ACCOUNT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
+      pstr = "24000042IN"
+    )
+  )
+
   val psaFSResponse: Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
@@ -151,8 +162,8 @@ object FinancialStatementConnectorSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30"),
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000040IN"
     ),
     PsaFS(
@@ -163,9 +174,24 @@ object FinancialStatementConnectorSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
-      periodStartDate =  LocalDate.parse("2020-07-01"),
-      periodEndDate =  LocalDate.parse("2020-09-30"),
+      periodStartDate = LocalDate.parse("2020-07-01"),
+      periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
+    )
+  )
+
+  private def schemePaymentOnAccount = Seq(
+    SchemeFS(
+      chargeReference = "XY002610150188",
+      chargeType = SchemeFSChargeType.PAYMENT_ON_ACCOUNT,
+      dueDate = Some(LocalDate.parse("2020-02-15")),
+      totalAmount = 56432.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 24000.41,
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30")
     )
   )
 
@@ -179,8 +205,8 @@ object FinancialStatementConnectorSpec {
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
       accruedInterestTotal = 23000.55,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30")
     ),
     SchemeFS(
       chargeReference = "XY002610150184",
@@ -191,8 +217,8 @@ object FinancialStatementConnectorSpec {
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
       accruedInterestTotal = 24000.41,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30")
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30")
     )
   )
 

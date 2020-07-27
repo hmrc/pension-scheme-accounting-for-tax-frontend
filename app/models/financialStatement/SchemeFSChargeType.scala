@@ -32,7 +32,8 @@ object SchemeFSChargeType extends Enumerable.Implicits {
     PSS_AFT_RETURN,
     PSS_AFT_RETURN_INTEREST,
     PSS_OTC_AFT_RETURN,
-    PSS_OTC_AFT_RETURN_INTEREST
+    PSS_OTC_AFT_RETURN_INTEREST,
+    PAYMENT_ON_ACCOUNT
   )
 
   implicit val enumerable: Enumerable[SchemeFSChargeType] =
