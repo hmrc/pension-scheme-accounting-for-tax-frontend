@@ -74,7 +74,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
   private def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
     Html(
-      s"<a id=${data.chargeReference} href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, data.chargeReference)}>" +
+      s"<a id=${data.chargeReference} class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, data.chargeReference)}>" +
         s"${messages(data.chargeType.toString)}" +
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
