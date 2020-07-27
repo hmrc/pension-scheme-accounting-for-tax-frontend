@@ -154,9 +154,10 @@ class PaymentsAndChargesService {
     PaymentsAndChargesTable(
       caption,
       Table(
+        caption = Some(caption),
+        captionClasses= Seq("govuk-heading-m"),
         head = head,
-        rows = rows,
-        attributes = Map("role" -> "grid", "aria-describedby" -> caption)
+        rows = rows
       )
     )
   }
