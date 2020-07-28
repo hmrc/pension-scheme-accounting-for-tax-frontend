@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
 import play.api.http.Status
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -36,7 +36,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
 
-      response.json.as[Seq[PsaFS]]
+      response.json.as[Seq[PsaFS]].filter(_.chargeType != PsaFSChargeType.PAYMENT_ON_ACCOUNT)
     }
   }
 
@@ -47,7 +47,7 @@ class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAp
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       require(response.status == Status.OK)
-      response.json.as[Seq[SchemeFS]]
+      response.json.as[Seq[SchemeFS]].filter(_.chargeType != SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
     }
   }
 
