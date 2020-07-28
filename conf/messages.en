@@ -1045,7 +1045,7 @@ penalties.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.partial.h1 = Payments and charges
 paymentsAndCharges.partial.view.link = View payments and charges for 2020
 
-paymentsAndCharges.reflect.charge.text = Payments can take up to 3 days to show in your account.
+paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments made in the last 3 days.
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
