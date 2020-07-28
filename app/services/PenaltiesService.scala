@@ -80,7 +80,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     if(isPaymentOverdue(data)) {
-      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${msg"penalties.status.paymentOverdue"}</span>"))
+      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
     } else {
       Cell(Html(""))
     }
