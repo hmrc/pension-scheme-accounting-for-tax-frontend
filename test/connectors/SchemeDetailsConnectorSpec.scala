@@ -128,7 +128,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      recoverToSucceededIf[Upstream5xxResponse] {
+      recoverToSucceededIf[UpstreamErrorResponse] {
         connector.checkForAssociation(psaId, srn)
       }
     }

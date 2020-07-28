@@ -21,24 +21,44 @@ import config.FrontendAppConfig
 import play.api.libs.json._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import utils.HttpResponseHelper
+import play.api.http.Status._
 import scala.concurrent.{ExecutionContext, Future}
 
-class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
+class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+  extends HttpResponseHelper {
+
   import MinimalPsaConnector._
-  def getMinimalPsaDetails(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
+
+  def getMinimalPsaDetails(psaId: String)
+                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
+
     val psaHc = hc.withExtraHeaders("psaId" -> psaId)
 
-    http.GET[MinimalPSA](config.minimalPsaDetailsUrl)(implicitly, psaHc, implicitly)
+    val url = config.minimalPsaDetailsUrl
+
+    http.GET[HttpResponse](url)(implicitly, psaHc, implicitly) map {
+      response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[MinimalPSA] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case _ =>
+            handleErrorResponse("GET", url)(response)
+        }
+    }
   }
 }
+
 object MinimalPsaConnector {
-  case class MinimalPSA(
-      email: String,
-      isPsaSuspended: Boolean,
-      organisationName: Option[String],
-      individualDetails: Option[IndividualDetails]
-  ) {
+
+  case class MinimalPSA(email: String,
+                        isPsaSuspended: Boolean,
+                        organisationName: Option[String],
+                        individualDetails: Option[IndividualDetails]) {
 
     def name: String = {
       individualDetails
@@ -52,16 +72,16 @@ object MinimalPsaConnector {
     implicit val format: Format[MinimalPSA] = Json.format[MinimalPSA]
   }
 
-  case class IndividualDetails(
-      firstName: String,
-      middleName: Option[String],
-      lastName: String
-  ) {
+  case class IndividualDetails(firstName: String,
+                               middleName: Option[String],
+                               lastName: String) {
+
     def fullName: String = middleName match {
       case Some(middle) => s"$firstName $middle $lastName"
-      case _            => s"$firstName $lastName"
+      case _ => s"$firstName $lastName"
     }
   }
+
   object IndividualDetails {
     implicit val format: Format[IndividualDetails] = Json.format[IndividualDetails]
   }

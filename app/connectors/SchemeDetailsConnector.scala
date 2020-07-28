@@ -24,38 +24,61 @@ import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
+import play.api.http.Status._
+import utils.HttpResponseHelper
 
-class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
+class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+  extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String,
-                    schemeIdType: String,
-                    idNumber: String)(implicit hc: HeaderCarrier,
-                                      ec: ExecutionContext): Future[SchemeDetails] = {
+  def getSchemeDetails(psaId: String, schemeIdType: String, idNumber: String)
+                      (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.schemeDetailsUrl
-    val schemeHc = hc.withExtraHeaders(headers = "schemeIdType" -> schemeIdType, "idNumber" -> idNumber, "PSAId" -> psaId)
-    http.GET[SchemeDetails](url)(implicitly, schemeHc, implicitly)
-  }
 
-  def checkForAssociation(psaId: String, srn: String)(implicit
-                                                      headerCarrier: HeaderCarrier,
-                                                      ec: ExecutionContext,
-                                                      request: RequestHeader): Future[Boolean] = {
-    val headers: Seq[(String, String)] = Seq(("psaId", psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
+    val headers: Seq[(String, String)] =
+      Seq(("schemeIdType", schemeIdType), ("idNumber", idNumber), ("PSAId", psaId))
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
-    http.GET[HttpResponse](config.checkAssociationUrl)(implicitly, hc, implicitly).map { response =>
-      require(response.status == Status.OK)
+    http.GET[HttpResponse](url)(implicitly, hc, implicitly) map {
+      response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[SchemeDetails] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case _ =>
+            handleErrorResponse("GET", url)(response)
+        }
+    }
+  }
 
-      val json = Json.parse(response.body)
+  def checkForAssociation(psaId: String, srn: String)
+                         (implicit headerCarrier: HeaderCarrier,
+                          ec: ExecutionContext, request: RequestHeader): Future[Boolean] = {
 
-      json.validate[Boolean] match {
-        case JsSuccess(value, _) => value
-        case JsError(errors) => throw JsResultException(errors)
-      }
+    val url = config.checkAssociationUrl
+
+    val headers: Seq[(String, String)] =
+      Seq(("psaId", psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
+
+    implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
+
+    http.GET[HttpResponse](url)(implicitly, hc, implicitly).map {
+      response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[Boolean] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case _ =>
+            handleErrorResponse("GET", url)(response)
+        }
     }
   }
 }

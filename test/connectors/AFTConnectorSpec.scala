@@ -139,8 +139,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
-        _.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
+      recoverToExceptionIf[UpstreamErrorResponse](connector.fileAFTReturn(pstr, UserAnswers(data), JourneyType.AFT_SUBMIT_RETURN)) map {
+        _.statusCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
   }
@@ -214,8 +214,8 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
           )
       )
 
-      recoverToExceptionIf[Upstream5xxResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
-        response.upstreamResponseCode mustBe Status.INTERNAL_SERVER_ERROR
+      recoverToExceptionIf[UpstreamErrorResponse](connector.getAFTDetails(pstr, startDate, aftVersion)) map { response =>
+        response.statusCode mustBe Status.INTERNAL_SERVER_ERROR
       }
     }
   }
