@@ -45,6 +45,8 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           case OK => ()
           case _ => handleErrorResponse("POST", url)(response)
         }
+    } andThen {
+      case Failure(t: Throwable) => Logger.warn("Unable to post aft return", t)
     }
   }
 
@@ -57,6 +59,8 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
         case OK => Json.parse(response.body)
         case _ => handleErrorResponse("GET", url)(response)
       }
+    } andThen {
+      case Failure(t: Throwable) => Logger.warn("Unable to get aft details", t)
     }
   }
 
@@ -78,9 +82,15 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
-        case OK => response.json.as[Seq[AFTVersion]]
+        case OK =>
+          Json.parse(response.body).validate[Seq[AFTVersion]] match {
+            case JsSuccess(value, _) => value
+            case JsError(errors) => throw JsResultException(errors)
+          }
         case _ => handleErrorResponse("GET", url)(response)
       }
+    } andThen {
+      case Failure(t: Throwable) => Logger.warn("Unable to get list of versions", t)
     }
   }
 
@@ -110,15 +120,11 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
   def aftOverviewEndDate: LocalDate = Quarters.getQuarter(DateHelper.today).endDate
 
-  def aftOverviewStartDate: LocalDate =  {
+  def aftOverviewStartDate: LocalDate = {
     val earliestStartDate = LocalDate.parse(config.earliestStartDate)
     val calculatedStartYear = aftOverviewEndDate.minusYears(config.aftNoOfYearsDisplayed).getYear
     val calculatedStartDate = LocalDate.of(calculatedStartYear, 1, 1)
 
-    if(calculatedStartDate.isAfter(earliestStartDate)) {
-      calculatedStartDate
-    } else {
-      earliestStartDate
-    }
+    if (calculatedStartDate.isAfter(earliestStartDate)) calculatedStartDate else earliestStartDate
   }
 }
