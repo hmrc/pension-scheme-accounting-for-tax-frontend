@@ -22,7 +22,6 @@
 
         {% for paymentAndChargesTable in seqPaymentsAndChargesTable %}
             {% if paymentAndChargesTable.table.rows.length > 0 %}
-             <h3 id ="paymentAndChargesTable" class="govuk-heading-m">{{paymentAndChargesTable.caption}}</h3>
                 {{ govukTable(paymentAndChargesTable.table) }}
             {% endif %}
         {% endfor %}

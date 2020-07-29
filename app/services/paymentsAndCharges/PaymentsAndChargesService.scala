@@ -120,15 +120,20 @@ class PaymentsAndChargesService {
       Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
       Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
-      Cell(msg"", classes = Seq("govuk-!-font-weight-bold"))
+      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
     )
 
     val rows = allPayments.map { data =>
       val htmlStatus = data.status match {
         case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${data.status.toString}</span>")
         case PaymentOverdue     => Html(s"<span class='govuk-tag govuk-tag--red'>${data.status.toString}</span>")
-        case _                  => Html("")
-      }
+        case _                  =>
+          if(data.amountDue == "£0.00") {
+            Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+            } else{
+            Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+            }
+          }
 
       val linkId =
         data.chargeReference match {

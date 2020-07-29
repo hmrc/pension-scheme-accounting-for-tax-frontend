@@ -1064,7 +1064,11 @@ paymentsAndCharges.chargeDetails.originalChargeAmount = Original charge amount
 paymentsAndCharges.chargeDetails.payments = Payments and account credits
 paymentsAndCharges.chargeDetails.stoodOverAmount = Amount under review (includes appeals)
 paymentsAndCharges.chargeDetails.amountDue = Amount due by {0}
+paymentsAndCharges.chargeDetails.paymentStatus = Payment status
 paymentsAndCharges.chargeDetails.noAmountDueDate = Amount due
+paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue = No payment due
+paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue = Payment is due
+
 paymentsAndCharges.chargeDetails.chargeReference = Charge reference: {0}
 paymentsAndCharges.chargeDetails.interestAccruing = Interest is accruing on this charge
 paymentsAndCharges.chargeDetails.interestAccrued = Interest accrued on this charge
