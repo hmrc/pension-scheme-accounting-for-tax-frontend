@@ -24,19 +24,15 @@
         {{ messages("penalties.title", year) }}
       </h1>
 
-                    <p class="govuk-body">
-                         {% for table in tables %}
+      <p class="govuk-body">{{ messages("penalties.p1") }}</p>
 
-                              {{ govukTable(table) }}
-
-                         {% endfor %}
-                     </p>
-
-
-
+      <p class="govuk-body">
+         {% for table in tables %}
+            {{ govukTable(table) }}
+         {% endfor %}
+      </p>
 
     </div>
   </div>
-
 
 {% endblock %}
