@@ -81,9 +81,9 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
     if(isPaymentOverdue(data)) {
       Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
     } else if(data.amountDue == BigDecimal(0.00)) {
-      Cell(Html(s"<span class=govuk-visually-hidden>${messages("penalties.status.visuallyHiddenText.noPaymentDue")}</span>"))
+      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.status.visuallyHiddenText.noPaymentDue")}</span>"))
     } else{
-      Cell(Html(s"<span class=govuk-visually-hidden>${messages("penalties.status.visuallyHiddenText.paymentIsDue")}</span>"))
+      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.status.visuallyHiddenText.paymentIsDue")}</span>"))
     }
 
   }
