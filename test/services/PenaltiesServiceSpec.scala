@@ -57,7 +57,10 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   }
 
   "getPsaFsJson" must {
-    "return the penalty tables based on API response" in {
+    "return the penalty tables based on API response for paymentOverdue" in {
+      penaltiesService.getPsaFsJson(psaFSResponse, srn, year) mustBe penaltyTables
+    }
+    "return the penalty tables based on API response for noPaymentDue" in {
       penaltiesService.getPsaFsJson(psaFSResponse, srn, year) mustBe penaltyTables
     }
   }
@@ -149,14 +152,14 @@ object PenaltiesServiceSpec {
   val dateNow: LocalDate = LocalDate.now()
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
-  val head = Seq(
+  private def head (implicit messages: Messages) = Seq(
     Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
-    Cell(msg"")
+    Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
 
-  def rows(link: Html)(implicit messages: Messages) = Seq(Seq(
+  private def rows(link: Html)(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal("£1,029.05"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
