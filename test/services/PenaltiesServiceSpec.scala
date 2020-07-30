@@ -20,9 +20,13 @@ import java.time.LocalDate
 
 import base.SpecBase
 import config.FrontendAppConfig
+import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import controllers.financialStatement.routes.ChargeDetailsController
 import helpers.FormatHelper
 import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.{ListOfSchemes, PenaltySchemes, SchemeDetail}
+import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -36,12 +40,17 @@ import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
   import PenaltiesServiceSpec._
 
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
-  private val penaltiesService = new PenaltiesService(mockAppConfig)
+  private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
+  private val penaltiesService = new PenaltiesService(mockAppConfig, mockFSConnector, mockListOfSchemesConn)
 
   def penaltyTables: Seq[Table] = Seq(
     Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
@@ -105,7 +114,16 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
   }
 
+  "penaltySchemes" must {
+    "return a combination of all associated and unassociated schemes returned in correct format" in {
+      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+      when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
 
+      whenReady(penaltiesService.penaltySchemes("2020", "PsaID")(implicitly, implicitly)) {
+        _ mustBe penaltySchemes
+      }
+    }
+  }
 
 }
 
@@ -164,11 +182,11 @@ object PenaltiesServiceSpec {
   ))
 
   def aftLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+    s"<a id=XY002610150184 class=govuk-link href=${ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
   def otcLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+    s"<a id=XY002610150184 class=govuk-link href=${ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
 
@@ -197,4 +215,12 @@ object PenaltiesServiceSpec {
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
         classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
     )
+
+  val penaltySchemes: Seq[PenaltySchemes] = Seq(
+    PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some("SRN123")),
+    PenaltySchemes(None, "24000041IN", None))
+
+  val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
+    SchemeDetail("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
+
 }

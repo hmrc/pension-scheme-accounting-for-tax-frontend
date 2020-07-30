@@ -1080,3 +1080,7 @@ paymentsAndCharges.interest.chargeReference = Charge reference: To be assigned
 paymentsAndCharges.interest.chargeReference.text1 = The charge reference for the interest due will show once you have paid
 paymentsAndCharges.interest.chargeReference.linkText = original amount due
 paymentsAndCharges.interest.chargeReference.text2 = in full.
+
+selectScheme.title = Select a pension scheme
+selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
+selectScheme.error = Select a pension scheme

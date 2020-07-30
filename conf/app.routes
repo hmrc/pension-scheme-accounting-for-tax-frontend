@@ -242,8 +242,11 @@ POST        /:srn/new-return/:year/select-quarter                               
 GET         /:srn/aft-partial                                                                                            controllers.PartialController.aftPartial(srn: String)
 GET         /penalties-partial                                                                                           controllers.financialStatement.PenaltiesPartialController.penaltiesPartial
 
-GET         /penalties                                                                                        controllers.financialStatement.PenaltiesController.onPageLoad(year: String = "2020", srn: String = "S2400000041")
-GET         /penalties/:srn/:startDate/:chargeReference/charge-details                                        controllers.financialStatement.ChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeReference: String)
+GET         /select-a-scheme                                                                                        controllers.financialStatement.SelectSchemeController.onPageLoad(year: String = "2020")
+POST        /select-a-scheme                                                                                        controllers.financialStatement.SelectSchemeController.onSubmit(year: String)
+
+GET         /:year/:srn/penalties                                                                                        controllers.financialStatement.PenaltiesController.onPageLoad(year: String, srn: String)
+GET         /:srn/penalties/:startDate/:chargeReference/charge-details                                             controllers.financialStatement.ChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeReference: String)
 
 GET         /:srn/payments-and-charges-partial                                                                           controllers.PartialController.paymentsAndChargesPartial(srn: String)
 
