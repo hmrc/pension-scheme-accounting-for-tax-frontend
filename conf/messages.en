@@ -1023,9 +1023,9 @@ aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 penaltiesPartial.linkText = View your penalties for 2020
 
 penalties.title = Penalties for {0}
-
+penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
 penalties.column.penalty = Penalty
-penalties.column.amount = Amount outstanding
+penalties.column.amount = Amount due
 penalties.column.chargeReference = Charge reference
 penalties.column.paymentStatus = Payment status
 penalties.status.paymentOverdue = PAYMENT OVERDUE
@@ -1038,8 +1038,8 @@ penalties.period = {0} to {1}
 
 penalties.chargeDetails.payments = Payments
 penalties.chargeDetails.amountUnderReview = Amount under review (includes appeals)
-penalties.chargeDetails.totalDueBy = Total due by {0}
-penalties.chargeDetails.totalDue = Total due
+penalties.chargeDetails.totalDueBy = Amount due by {0}
+penalties.chargeDetails.totalDue = Amount due
 penalties.chargeReference = Charge reference: {0}
 penalties.visuallyHiddenText = for charge reference {0}
 
