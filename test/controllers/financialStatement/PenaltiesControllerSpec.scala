@@ -69,6 +69,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private val templateToBeRendered = "financialStatement/penalties.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj("year" -> "2020",
+    "pstr" -> pstr,
     "schemeName" -> schemeDetails.schemeName,
     "tables" -> Json.toJson(penaltyTables))
 

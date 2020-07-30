@@ -1023,6 +1023,7 @@ aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 penaltiesPartial.linkText = View your penalties for 2020
 
 penalties.title = Penalties for {0}
+penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
 penalties.column.penalty = Penalty
 penalties.column.amount = Amount due

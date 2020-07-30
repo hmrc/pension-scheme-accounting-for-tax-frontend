@@ -134,7 +134,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
 
       whenReady(penaltiesService.penaltySchemes("2020", "PsaID")(implicitly, implicitly)) {
@@ -147,7 +147,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
 object PenaltiesServiceSpec {
 
-  def psaFSResponse(amountDue: BigDecimal, dueDate: LocalDate): Seq[PsaFS] = Seq(
+  def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,

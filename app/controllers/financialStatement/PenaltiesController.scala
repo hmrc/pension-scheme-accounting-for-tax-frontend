@@ -49,6 +49,7 @@ class PenaltiesController @Inject()(
         val filteredPsaFS = psaFS.filter(_.pstr == schemeDetails.pstr)
         val penaltyTables: Seq[Table] = penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt)
         val json = Json.obj("year" -> year,
+          "pstr" -> schemeDetails.pstr,
           "schemeName" -> schemeDetails.schemeName,
           "tables" -> Json.toJson(penaltyTables))
         renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
