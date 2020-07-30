@@ -78,14 +78,13 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
-    if(isPaymentOverdue(data)) {
-      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
-    } else if(data.amountDue == BigDecimal(0.00)) {
-      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.status.visuallyHiddenText.noPaymentDue")}</span>"))
-    } else{
-      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.status.visuallyHiddenText.paymentIsDue")}</span>"))
+    val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
+      case (true, _) => ("govuk-tag govuk-tag--red", messages("penalties.status.paymentOverdue"))
+      case (_, amount) if amount == BigDecimal(0.00) =>
+        ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.noPaymentDue"))
+      case _ => ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.paymentIsDue"))
     }
-
+    Cell(Html(s"<span class='$classes'>$content</span>"))
   }
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&

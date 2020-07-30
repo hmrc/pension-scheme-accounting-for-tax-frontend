@@ -111,9 +111,19 @@ class PaymentsAndChargesService {
     )
   }
 
-  private def mapToTable(startDate: String, endDate: String, allPayments: Seq[PaymentsAndChargesDetails], srn: String)(
-      implicit messages: Messages): PaymentsAndChargesTable = {
+  private def htmlStatus(data: PaymentsAndChargesDetails)(implicit messages: Messages):Html = {
+    val (classes, content) = (data.status, data.amountDue) match {
+      case (InterestIsAccruing, _) => ("govuk-tag govuk-tag--blue", data.status.toString)
+      case (PaymentOverdue, _) => ("govuk-tag govuk-tag--red", data.status.toString)
+      case (_, "£0.00") =>
+        ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue"))
+      case _ => ("govuk-visually-hidden", messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue"))
+    }
+    Html(s"<span class='$classes'>$content</span>")
+  }
 
+  private def mapToTable(startDate: String, endDate: String, allPayments: Seq[PaymentsAndChargesDetails], srn: String)(
+    implicit messages: Messages): PaymentsAndChargesTable = {
     val caption = messages("paymentsAndCharges.caption", startDate, endDate)
 
     val head = Seq(
@@ -124,17 +134,6 @@ class PaymentsAndChargesService {
     )
 
     val rows = allPayments.map { data =>
-      val htmlStatus = data.status match {
-        case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${data.status.toString}</span>")
-        case PaymentOverdue     => Html(s"<span class='govuk-tag govuk-tag--red'>${data.status.toString}</span>")
-        case _                  =>
-          if(data.amountDue == "£0.00") {
-            Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
-            } else{
-            Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
-            }
-          }
-
       val linkId =
         data.chargeReference match {
           case "To be assigned" => "to-be-assigned"
@@ -152,7 +151,7 @@ class PaymentsAndChargesService {
         Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
         Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(htmlStatus, classes = Nil)
+        Cell(htmlStatus(data), classes = Nil)
       )
     }
 
