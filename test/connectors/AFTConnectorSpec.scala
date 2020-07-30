@@ -324,7 +324,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
     }
 
-    "return the AFTOverview for a valid request/response but no aft data returned" in {
+    "return Seq.empty for NOT_FOUND response" in {
       server.stubFor(
         get(urlEqualTo(aftOverview))
           .withHeader("pstr", equalTo(pstr))
