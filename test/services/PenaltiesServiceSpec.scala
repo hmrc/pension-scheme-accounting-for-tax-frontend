@@ -27,6 +27,7 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
+import play.api.i18n.Messages
 import play.api.mvc.Results
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
@@ -152,7 +153,7 @@ class PenaltiesServiceSpec
     Cell(msg"")
   )
 
-  def rows(link: Html) = Seq(Seq(
+  def rows(link: Html)(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal("£1,029.05"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
