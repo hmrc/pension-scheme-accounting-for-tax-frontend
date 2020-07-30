@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{AFTOverview, AFTVersion, JourneyType, Quarters, UserAnswers}
 import play.api.Logger
-import play.api.http.Status.OK
+import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -110,6 +110,8 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
             case JsSuccess(value, _) => value
             case JsError(errors) => throw JsResultException(errors)
           }
+        case NOT_FOUND =>
+          Seq.empty
         case _ =>
           handleErrorResponse("GET", url)(response)
       }

@@ -35,13 +35,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
                                   schemeService: SchemeService,
-                                 aftConnector: AFTConnector,
-                                 aftCacheConnector: UserAnswersCacheConnector
-                                )(implicit ec: ExecutionContext) {
+                                  aftConnector: AFTConnector,
+                                  aftCacheConnector: UserAnswersCacheConnector
+                                 )(implicit ec: ExecutionContext) {
 
-  def retrieveOptionAFTViewModel(srn: String, psaId: String)(implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
+  def retrieveOptionAFTViewModel(srn: String, psaId: String)
+                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
     schemeService.retrieveSchemeDetails(psaId, srn).flatMap { schemeDetails =>
-      
+
       if (isOverviewApiDisabled) { //TODO This case to be deleted after 1 July 2020 and only the else section for this if to remain
         for {
           versions <- aftConnector.getListOfVersions(schemeDetails.pstr, appConfig.earliestStartDate)
@@ -59,8 +60,9 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
     LocalDate.parse(appConfig.overviewApiEnablementDate).isAfter(DateHelper.today)
 
 
-  private def createAFTOverviewModel(pstrId: String, srn: String)(
-    implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
+  private def createAFTOverviewModel(pstrId: String, srn: String)
+                                    (implicit hc: HeaderCarrier,
+                                     messages: Messages): Future[Seq[AFTViewModel]] = {
     for {
       overview <- aftConnector.getAftOverview(pstrId)
       inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, pstrId)
@@ -76,8 +78,8 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
       2. Any of the returns in their first compile have been zeroed out due to deletion of all charges
    */
 
-  private def getStartReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String
-                                  )(implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def getStartReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String)
+                                  (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
 
     val startLink: Option[AFTViewModel] = Some(AFTViewModel(None, None,
       Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
@@ -137,11 +139,11 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
                                        (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
-    if(inProgressReturns.size == 1){
+    if (inProgressReturns.size == 1) {
       val startDate: LocalDate = inProgressReturns.head.periodStartDate
       val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
 
-      if(inProgressReturns.head.numberOfVersions == 1) {
+      if (inProgressReturns.head.numberOfVersions == 1) {
         aftConnector.getIsAftNonZero(pstr, startDate.toString, "1").flatMap {
           case true => modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head)
           case _ => Future.successful(None)
@@ -150,16 +152,15 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
         modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head)
       }
 
-    } else if(inProgressReturns.nonEmpty) {
+    } else if (inProgressReturns.nonEmpty) {
       modelForMultipleInProgressReturns(srn, pstr, inProgressReturns)
-    }
-    else {
+    } else {
       Future.successful(None)
     }
   }
 
-  private def modelForSingleInProgressReturn(srn: String, startDate: LocalDate, endDate: LocalDate, overview: AFTOverview
-                                            )(implicit  hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def modelForSingleInProgressReturn(srn: String, startDate: LocalDate, endDate: LocalDate, overview: AFTOverview)
+                                            (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockedBy(srn, startDate.toString).map {
       case Some(lockedBy) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
@@ -182,18 +183,18 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
           linkText = msg"aftPartial.view.link",
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
-      )))
+        )))
     }
   }
 
-  private def modelForMultipleInProgressReturns(srn: String, pstr: String, inProgressReturns: Seq[AFTOverview]
-                                               )(implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def modelForMultipleInProgressReturns(srn: String, pstr: String, inProgressReturns: Seq[AFTOverview])
+                                               (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
 
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
 
-      val countInProgress:Int = inProgressReturns.size - zeroedReturns.size
+      val countInProgress: Int = inProgressReturns.size - zeroedReturns.size
 
-      if(countInProgress > 0) {
+      if (countInProgress > 0) {
         Some(AFTViewModel(
           Some(msg"aftPartial.multipleInProgress.text"),
           Some(msg"aftPartial.multipleInProgress.count".withArgs(countInProgress)),
@@ -211,7 +212,8 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
   }
 
   private def createAFTViewModel(versions: Seq[AFTVersion], optLockedBy: Option[String],
-                                 srn: String, startDate: String, endDate: String)(implicit messages: Messages): Seq[AFTViewModel] = {
+                                 srn: String, startDate: String, endDate: String)
+                                (implicit messages: Messages): Seq[AFTViewModel] = {
     val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val formattedStartDate: String = LocalDate.parse(startDate, dateFormatterYMD).format(dateFormatterStartDate)
     val formattedEndDate: String = LocalDate.parse(endDate, dateFormatterYMD).format(dateFormatterDMY)
@@ -234,8 +236,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate))
           )
-        )
-        )
+        ))
       case Some(name) =>
         Seq(AFTViewModel(
           Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
@@ -249,9 +250,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
             url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
-        )
-        )
-
+        ))
       case _ =>
         Seq(AFTViewModel(
           Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
@@ -261,8 +260,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
             url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
             linkText = msg"aftPartial.view.link",
             hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
-        )
-        )
+        ))
     }
   }
 }

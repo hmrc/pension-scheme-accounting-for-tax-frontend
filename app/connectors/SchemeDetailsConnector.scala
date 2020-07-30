@@ -19,16 +19,15 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SchemeDetails
-import play.api.http.Status
+import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import play.api.mvc.RequestHeader
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
-import play.api.http.Status._
-import utils.HttpResponseHelper
 
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
