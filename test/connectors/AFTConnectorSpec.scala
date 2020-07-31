@@ -279,6 +279,24 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       }
     }
 
+    "return Seq.empty for NOT_FOUND response" in {
+      server.stubFor(
+        get(urlEqualTo(aftListOfVersionsUrl))
+          .withHeader("pstr", equalTo(pstr))
+          .withHeader("startDate", equalTo(SampleData.startDate))
+          .willReturn(
+            aResponse()
+              .withStatus(Status.NOT_FOUND)
+              .withHeader("Content-Type", "application/json")
+              .withBody(Json.arr().toString())
+          )
+      )
+
+      connector.getListOfVersions(pstr, SampleData.startDate) map { result =>
+        result mustBe Seq.empty
+      }
+    }
+
     "throw exception when the backend has returned something other than OK" in {
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))

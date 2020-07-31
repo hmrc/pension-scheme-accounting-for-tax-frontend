@@ -87,7 +87,10 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
             case JsSuccess(value, _) => value
             case JsError(errors) => throw JsResultException(errors)
           }
-        case _ => handleErrorResponse("GET", url)(response)
+        case NOT_FOUND =>
+          Seq.empty
+        case _ =>
+          handleErrorResponse("GET", url)(response)
       }
     } andThen {
       case Failure(t: Throwable) => Logger.warn("Unable to get list of versions", t)
