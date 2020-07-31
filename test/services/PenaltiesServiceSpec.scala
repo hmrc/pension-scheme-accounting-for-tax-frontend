@@ -36,12 +36,45 @@ import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 
-class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
-
-  import PenaltiesServiceSpec._
+class PenaltiesServiceSpec
+  extends SpecBase
+    with ScalaFutures
+    with BeforeAndAfterEach
+    with MockitoSugar
+    with Results {
 
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val penaltiesService = new PenaltiesService(mockAppConfig)
+
+  def psaFSResponse(amountDue: Double, dueDate: LocalDate): Seq[PsaFS] = Seq(
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = AFT_INITIAL_LFP,
+      dueDate = Some(dueDate),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = amountDue,
+      periodStartDate =  LocalDate.parse("2020-04-01"),
+      periodEndDate =  LocalDate.parse("2020-06-30"),
+      pstr = "24000040IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(dueDate),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = amountDue,
+      periodStartDate =  LocalDate.parse("2020-07-01"),
+      periodEndDate =  LocalDate.parse("2020-09-30"),
+      pstr = "24000041IN"
+    )
+  )
+  val year: Int = 2020
+  val srn: String = "S2400000041"
+  val dateNow: LocalDate = LocalDate.now()
 
   def penaltyTables(statusClass:String, statusMessageKey: String, amountDue: String): Seq[Table] = Seq(
     Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
@@ -123,48 +156,12 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
   }
 
-
-
-}
-
-object PenaltiesServiceSpec {
-
-  def psaFSResponse(amountDue: BigDecimal, dueDate: LocalDate): Seq[PsaFS] = Seq(
-    PsaFS(
-      chargeReference = "XY002610150184",
-      chargeType = AFT_INITIAL_LFP,
-      dueDate = Some(dueDate),
-      totalAmount = 80000.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = amountDue,
-      periodStartDate =  LocalDate.parse("2020-04-01"),
-      periodEndDate =  LocalDate.parse("2020-06-30"),
-      pstr = "24000040IN"
-    ),
-    PsaFS(
-      chargeReference = "XY002610150184",
-      chargeType = OTC_6_MONTH_LPP,
-      dueDate = Some(dueDate),
-      totalAmount = 80000.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = amountDue,
-      periodStartDate =  LocalDate.parse("2020-07-01"),
-      periodEndDate =  LocalDate.parse("2020-09-30"),
-      pstr = "24000041IN"
-    )
-  )
-
   def psaFS(amountDue: BigDecimal = BigDecimal(1029.05), dueDate: Option[LocalDate] = Some(dateNow), totalAmount: BigDecimal = BigDecimal(80000.00),
             outStandingAmount: BigDecimal = BigDecimal(56049.08), stoodOverAmount: BigDecimal = BigDecimal(25089.08)): PsaFS =
     PsaFS("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount, dateNow, dateNow, pstr)
 
-  val year: Int = 2020
-  val srn: String = "S2400000041"
   val pstr: String = "24000040IN"
   val zeroAmount: BigDecimal = BigDecimal(0.00)
-  val dateNow: LocalDate = LocalDate.now()
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def head (implicit messages: Messages) = Seq(

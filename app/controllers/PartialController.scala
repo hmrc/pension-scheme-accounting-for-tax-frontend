@@ -43,7 +43,10 @@ class PartialController @Inject()(
 
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
     aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftPartial =>
-      renderer.render(template = "partials/overview.njk", Json.obj("aftModels" -> Json.toJson(aftPartial))).map(Ok(_))
+      renderer.render(
+        template = "partials/overview.njk",
+        ctx = Json.obj("aftModels" -> Json.toJson(aftPartial))).map(Ok(_)
+      )
     }
   }
 
