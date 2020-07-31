@@ -76,11 +76,11 @@ class PenaltiesServiceSpec
   val srn: String = "S2400000041"
   val dateNow: LocalDate = LocalDate.now()
 
-  def penaltyTables: Seq[Table] = Seq(
+  def penaltyTables(statusClass:String, statusMessageKey: String, amountDue: String): Seq[Table] = Seq(
     Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
-        head = head, rows = rows(aftLink("2020-04-01"))),
+        head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue)),
     Table(caption = Some(msg"penalties.period".withArgs("1 July", "30 September 2020")), captionClasses= Seq("govuk-heading-m"),
-      head = head, rows = rows(otcLink("2020-07-01")))
+      head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue))
   )
 
   override def beforeEach: Unit = {
@@ -90,8 +90,26 @@ class PenaltiesServiceSpec
   }
 
   "getPsaFsJson" must {
-    "return the penalty tables based on API response" in {
-      penaltiesService.getPsaFsJson(psaFSResponse, srn, year) mustBe penaltyTables
+    "return the penalty tables based on API response for paymentOverdue" in {
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, year) mustBe penaltyTables(
+        statusClass = "govuk-tag govuk-tag--red",
+        statusMessageKey = "penalties.status.paymentOverdue",
+        amountDue = "1,029.05"
+      )
+    }
+    "return the penalty tables based on API response for noPaymentDue" in {
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, year) mustBe penaltyTables(
+        statusClass = "govuk-visually-hidden",
+        statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
+        amountDue = "0.00"
+      )
+    }
+    "return the penalty tables based on API response for paymentIsDue" in {
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, year) mustBe penaltyTables(
+        statusClass = "govuk-visually-hidden",
+        statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
+        amountDue = "5.00"
+      )
     }
   }
 
@@ -116,7 +134,7 @@ class PenaltiesServiceSpec
   "chargeDetailsRows" must {
     "return the correct rows when all rows need to be displayed" in {
       val rows = Seq(totalAmount(), paymentAmount(), reviewAmount(), totalDueAmount(date = "15 July 2020"))
-      penaltiesService.chargeDetailsRows(psaFSResponse.head) mustBe rows
+      penaltiesService.chargeDetailsRows(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")).head) mustBe rows
     }
 
     "return the correct rows when payment row need not be displayed" in {
@@ -146,18 +164,22 @@ class PenaltiesServiceSpec
   val zeroAmount: BigDecimal = BigDecimal(0.00)
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
-  val head = Seq(
+  private def head (implicit messages: Messages) = Seq(
     Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
-    Cell(msg"")
+    Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
 
-  def rows(link: Html)(implicit messages: Messages) = Seq(Seq(
+  private def rows(link: Html,
+    statusClass:String,
+    statusMessageKey: String,
+    amountDue: String
+  )(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(Literal("£1,029.05"), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
+    Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
   ))
 
   def aftLink(startDate: String): Html = Html(

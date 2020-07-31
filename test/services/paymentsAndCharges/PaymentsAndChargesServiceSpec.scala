@@ -21,18 +21,22 @@ import java.time.LocalDate
 import base.SpecBase
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
-import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
+import models.financialStatement.SchemeFSChargeType.{PSS_OTC_AFT_RETURN_INTEREST, PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
+import models.financialStatement.{SchemeFSChargeType, SchemeFS}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.InterestIsAccruing
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.NoStatus
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.PaymentOverdue
+import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentAndChargeStatus}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
+import viewmodels.Table.Cell
 import viewmodels.Table.Cell
 
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -56,7 +60,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
     Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
-    Cell(msg"", classes = Seq("govuk-!-font-weight-bold"))
+    Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
 
   private def paymentTable(rows: Seq[Seq[Table.Cell]]): PaymentsAndChargesTable = {
@@ -77,12 +81,26 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                   amountDue: String,
                   status: Html,
                   redirectUrl: String,
-                  visuallyHiddenText: String): Seq[Table.Cell] = Seq(
-    Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
-    Cell(status, classes = Nil)
-  )
+                  visuallyHiddenText: String,
+                  paymentAndChargeStatus: PaymentAndChargeStatus = NoStatus
+  ): Seq[Table.Cell] = {
+    val statusHtml =   paymentAndChargeStatus match {
+      case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${paymentAndChargeStatus.toString}</span>")
+      case PaymentOverdue     => Html(s"<span class='govuk-tag govuk-tag--red'>${paymentAndChargeStatus.toString}</span>")
+      case _ => if(amountDue == "£0.00") {
+        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
+      } else{
+        Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
+      }
+    }
+
+    Seq(
+      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(statusHtml)
+    )
+  }
 
   private val paymentsAndChargesService = new PaymentsAndChargesService
 
@@ -100,7 +118,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                 .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
                 .url,
-              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
+              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
+              PaymentAndChargeStatus.PaymentOverdue
             ),
             row(
               if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
@@ -110,7 +129,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
                 .url,
-              messages(s"paymentsAndCharges.interest.visuallyHiddenText")
+              messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
+              PaymentAndChargeStatus.InterestIsAccruing
             )
           )))
 

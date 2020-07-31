@@ -55,9 +55,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
       Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
       Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"")
+      Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
-
     val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
         Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
@@ -79,11 +78,13 @@ class PenaltiesService @Inject()(config: FrontendAppConfig) {
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
-    if(isPaymentOverdue(data)) {
-      Cell(Html(s"<span class='govuk-tag govuk-tag--red'>${messages("penalties.status.paymentOverdue")}</span>"))
-    } else {
-      Cell(Html(""))
+    val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
+      case (true, _) => ("govuk-tag govuk-tag--red", messages("penalties.status.paymentOverdue"))
+      case (_, amount) if amount == BigDecimal(0.00) =>
+        ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.noPaymentDue"))
+      case _ => ("govuk-visually-hidden", messages("penalties.status.visuallyHiddenText.paymentIsDue"))
     }
+    Cell(Html(s"<span class='$classes'>$content</span>"))
   }
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
