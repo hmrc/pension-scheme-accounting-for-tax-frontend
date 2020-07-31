@@ -46,15 +46,15 @@ class PenaltiesServiceSpec
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
   private val penaltiesService = new PenaltiesService(mockAppConfig)
 
-  val psaFSResponse: Seq[PsaFS] = Seq(
+  def psaFSResponse(amountDue: Double, dueDate: LocalDate): Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
       chargeType = AFT_INITIAL_LFP,
-      dueDate = Some(LocalDate.parse("2020-07-15")),
+      dueDate = Some(dueDate),
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
+      amountDue = amountDue,
       periodStartDate =  LocalDate.parse("2020-04-01"),
       periodEndDate =  LocalDate.parse("2020-06-30"),
       pstr = "24000040IN"
@@ -62,11 +62,11 @@ class PenaltiesServiceSpec
     PsaFS(
       chargeReference = "XY002610150184",
       chargeType = OTC_6_MONTH_LPP,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
+      dueDate = Some(dueDate),
       totalAmount = 80000.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
+      amountDue = amountDue,
       periodStartDate =  LocalDate.parse("2020-07-01"),
       periodEndDate =  LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
