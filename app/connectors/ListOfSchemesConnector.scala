@@ -54,17 +54,4 @@ class ListOfSchemesConnectorImpl @Inject()(http: HttpClient, config: FrontendApp
       }
     }
   }
-
-
-
 }
-
-sealed trait ListOfSchemesException extends Exception
-
-case class InvalidPayloadException() extends ListOfSchemesException
-
-case class InvalidCorrelationIdException() extends ListOfSchemesException
-
-case class InternalServerErrorException() extends ListOfSchemesException
-
-case class ServiceUnavailableException() extends ListOfSchemesException
