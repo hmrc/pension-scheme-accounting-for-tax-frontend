@@ -45,7 +45,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   import PenaltiesControllerSpec._
 
-  private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesController.onPageLoad().url
+  private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
 
   val penaltyTables: Seq[Table] = Seq(
     Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
@@ -69,6 +69,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private val templateToBeRendered = "financialStatement/penalties.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj("year" -> "2020",
+    "pstr" -> pstr,
     "schemeName" -> schemeDetails.schemeName,
     "tables" -> Json.toJson(penaltyTables))
 
@@ -107,6 +108,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 }
 
 object PenaltiesControllerSpec {
+  val year = "2020"
   val srn = "S2400000041"
   val pstr = "24000040IN"
 

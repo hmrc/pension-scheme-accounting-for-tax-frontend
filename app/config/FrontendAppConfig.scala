@@ -108,6 +108,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLink")}"
 
+  lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
+
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
       configuration.get[String]("earliestDateOfNotice"),
