@@ -1,34 +1,32 @@
-
- <h2 class="govuk-heading-m">{{ messages("aftPartial.h1") }}</h2>
-    {% for aftViewModel in aftModels %}
-            {% if aftViewModel.period %}
-
-                <div id="aft-list">
-                         <div class="row-group grid-row">
-                             <div id="aftPeriod" class="column-one-half table-column">
-                                 {{aftViewModel.period}}
-                             </div>
-                             <div id="aftStatus" class="column-one-third table-column">
-                                 {{aftViewModel.status}}
-                             </div>
-                             <div class="column-one-sixth table-column">
-                                 <a id= "{{aftViewModel.link.id}}" href="{{aftViewModel.link.url}}">
-                                  {{ aftViewModel.link.linkText }}
-                                  {% if aftViewModel.link.hiddenText %}
-                                    <span class= "visually-hidden">{{aftViewModel.link.hiddenText}}</span>
-                                  {% endif %}
-                                 </a>
-                             </div>
-                         </div>
+<h2 class="govuk-heading-m">{{ messages("aftPartial.h1") }}</h2>
+{% for aftViewModel in aftModels %}
+    {% if aftViewModel.period %}
+        <div id="aft-list">
+            <div class="row-group grid-row">
+                <div id="aftPeriod" class="column-one-half table-column">
+                    {{ aftViewModel.period }}
                 </div>
+                <div id="aftStatus" class="column-one-third table-column">
+                    {{ aftViewModel.status }}
+                </div>
+                <div class="column-one-sixth table-column">
+                    <a id="{{ aftViewModel.link.id }}" href="{{ aftViewModel.link.url }}">
+                        {{ aftViewModel.link.linkText }}
+                        {% if aftViewModel.link.hiddenText %}
+                            <span class="visually-hidden">{{ aftViewModel.link.hiddenText }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
 
-            {% else %}
+        <br/>
+        <p>
+            <a id="{{ aftViewModel.link.id }}" href="{{ aftViewModel.link.url }}">
+                {{ aftViewModel.link.linkText }}
+            </a>
+        </p>
+    {% endif %}
 
-                    <br/>
-                    <p><a id="{{aftViewModel.link.id}}" href="{{aftViewModel.link.url}}">
-                        {{aftViewModel.link.linkText}}
-                    </a></p>
-
-            {% endif %}
-
-    {% endfor %}
+{% endfor %}

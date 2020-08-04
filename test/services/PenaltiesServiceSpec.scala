@@ -147,6 +147,10 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
 object PenaltiesServiceSpec {
 
+  val year: Int = 2020
+  val srn: String = "S2400000041"
+  val dateNow: LocalDate = LocalDate.now()
+
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(
       chargeReference = "XY002610150184",
@@ -178,11 +182,8 @@ object PenaltiesServiceSpec {
             outStandingAmount: BigDecimal = BigDecimal(56049.08), stoodOverAmount: BigDecimal = BigDecimal(25089.08)): PsaFS =
     PsaFS("XY002610150184", AFT_INITIAL_LFP, dueDate, totalAmount, amountDue, outStandingAmount, stoodOverAmount, dateNow, dateNow, pstr)
 
-  val year: Int = 2020
-  val srn: String = "S2400000041"
   val pstr: String = "24000040IN"
   val zeroAmount: BigDecimal = BigDecimal(0.00)
-  val dateNow: LocalDate = LocalDate.now()
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def head (implicit messages: Messages) = Seq(

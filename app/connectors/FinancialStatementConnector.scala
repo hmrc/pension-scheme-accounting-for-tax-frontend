@@ -19,36 +19,46 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
-import play.api.http.Status
+import play.api.http.Status._
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.HttpResponseHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
+class FinancialStatementConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+  extends HttpResponseHelper {
 
-  def getPsaFS(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
+  def getPsaFS(psaId: String)
+              (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[PsaFS]] = {
 
     val url = config.psaFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      require(response.status == Status.OK)
-
-      response.json.as[Seq[PsaFS]].filter(_.chargeType != PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+      response.status match {
+        case OK =>
+          response.json.as[Seq[PsaFS]].filter(_.chargeType != PsaFSChargeType.PAYMENT_ON_ACCOUNT)
+        case _ =>
+          handleErrorResponse("GET", url)(response)
+      }
     }
   }
 
-  def getSchemeFS(pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFS]] = {
+  def getSchemeFS(pstr: String)
+                 (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[SchemeFS]] = {
 
     val url = config.schemeFinancialStatementUrl
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr)
 
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      require(response.status == Status.OK)
-      response.json.as[Seq[SchemeFS]].filter(_.chargeType != SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+      response.status match {
+        case OK =>
+          response.json.as[Seq[SchemeFS]].filter(_.chargeType != SchemeFSChargeType.PAYMENT_ON_ACCOUNT)
+        case _ =>
+          handleErrorResponse("GET", url)(response)
+      }
     }
   }
-
 }

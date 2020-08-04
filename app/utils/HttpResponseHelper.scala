@@ -28,9 +28,9 @@ trait HttpResponseHelper extends HttpErrorFunctions {
       case NOT_FOUND =>
         throw new NotFoundException(notFoundMessage(httpMethod, url, response.body))
       case status if is4xx(status) =>
-        throw Upstream4xxResponse(upstreamResponseMessage(httpMethod, url, status, response.body), status, status, response.allHeaders)
+        throw UpstreamErrorResponse(upstreamResponseMessage(httpMethod, url, status, response.body), status, status, response.headers)
       case status if is5xx(status) =>
-        throw Upstream5xxResponse(upstreamResponseMessage(httpMethod, url, status, response.body), status, BAD_GATEWAY)
+        throw UpstreamErrorResponse(upstreamResponseMessage(httpMethod, url, status, response.body), status, BAD_GATEWAY)
       case _ =>
         throw new UnrecognisedHttpResponseException(httpMethod, url, response)
     }
