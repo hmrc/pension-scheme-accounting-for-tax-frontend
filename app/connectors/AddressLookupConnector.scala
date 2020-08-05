@@ -22,7 +22,7 @@ import uk.gov.hmrc.http.HttpException
 import uk.gov.hmrc.http.HttpResponse
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.Logger
+import utils.Logger._
 import play.api.http.Status._
 import play.api.libs.json.Reads
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -50,9 +50,8 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
   }
 
   private def logExceptions: PartialFunction[Throwable, Future[Seq[TolerantAddress]]] = {
-    case (t: Throwable) => {
+    case t: Throwable =>
       Logger.error("Exception in AddressLookup", t)
       Future.failed(t)
-    }
   }
 }

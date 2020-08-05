@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import models.requests.DataRequest
 import models.{AccessType, Mode, UserAnswers}
 import pages.Page
-import play.api.Logger
+import utils.Logger._
 import play.api.mvc.{AnyContent, Call}
 
 import scala.collection.JavaConverters._
@@ -34,7 +34,7 @@ trait CompoundNavigator {
 
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
   private def defaultPage(id: Page, mode: Mode): Call = {
-    Logger.warn(message = s"No navigation defined for id $id in mode $mode")
+    Logger.warn(s"No navigation defined for id $id in mode $mode")
     controllers.routes.IndexController.onPageLoad()
   }
 

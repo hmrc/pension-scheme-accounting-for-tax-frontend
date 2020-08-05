@@ -6,7 +6,7 @@ object AppDependencies {
   val compile = Seq(
     play.sbt.PlayImport.ws,
     "uk.gov.hmrc"                   %%  "play-health"                    % "3.15.0-play-26",
-    "uk.gov.hmrc"                   %%  "play-conditional-form-mapping"  % "1.2.0-play-26",
+    "uk.gov.hmrc"                   %%  "play-conditional-form-mapping"  % "1.3.0-play-26",
     "uk.gov.hmrc"                   %%  "bootstrap-play-26"              % "1.14.0",
     "uk.gov.hmrc"                   %%  "play-whitelist-filter"          % "3.4.0-play-26",
     "uk.gov.hmrc"                   %%  "play-nunjucks"                  % "0.23.0-play-26",
@@ -14,7 +14,8 @@ object AppDependencies {
     "org.webjars.npm"               %   "govuk-frontend"                 % "3.5.0",
     "org.webjars.npm"               %   "hmrc-frontend"                  % "1.5.0",
     "com.google.inject.extensions"  %   "guice-multibindings"            % "4.2.2",
-    "uk.gov.hmrc"                   %%  "domain"                         % "5.9.0-play-26"
+    "uk.gov.hmrc"                   %%  "domain"                         % "5.9.0-play-26",
+    "org.slf4j"                     %   "slf4j-api"                      % "1.7.5"
   )
 
   val test = Seq(

@@ -26,7 +26,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import play.api.Logger
+import utils.Logger._
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._

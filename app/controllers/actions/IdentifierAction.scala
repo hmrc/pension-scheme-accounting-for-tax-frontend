@@ -20,15 +20,14 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.routes
 import models.requests.IdentifierRequest
-import play.api.Logger
 import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import utils.Logger._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,7 +49,7 @@ class AuthenticatedIdentifierAction @Inject()(
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
       case e: AuthorisationException =>
-        Logger.warn(message = s"Authorization Failed with error $e")
+        Logger.warn(s"Authorization Failed with error $e")
         Redirect(routes.UnauthorisedController.onPageLoad())
     }
   }

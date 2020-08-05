@@ -19,7 +19,7 @@ package connectors
 import com.google.inject.{ImplementedBy, Inject, Singleton}
 import config.FrontendAppConfig
 import models.ListOfSchemes
-import play.api.Logger
+import utils.Logger._
 import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import uk.gov.hmrc.http.HttpReads.Implicits._

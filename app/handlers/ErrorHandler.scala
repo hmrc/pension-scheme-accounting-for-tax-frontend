@@ -25,7 +25,8 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result, Results}
-import play.api.{Logger, PlayException}
+import play.api.PlayException
+import utils.Logger._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.http.ApplicationException
 

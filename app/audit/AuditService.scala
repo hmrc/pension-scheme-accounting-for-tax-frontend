@@ -18,7 +18,7 @@ package audit
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import play.api.Logger
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -41,8 +41,8 @@ class AuditService @Inject()(
     auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
 
     val details = rh.toAuditDetails() ++ event.details
-
-    Logger.debug(message = s"[AuditService][sendEvent] sending ${event.auditType}")
+    val logger: Logger = LoggerFactory.getLogger(getClass)
+    logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
 
     val result: Future[AuditResult] = connector.sendEvent(
       DataEvent(
@@ -58,12 +58,12 @@ class AuditService @Inject()(
 
     result.onSuccess {
       case _ =>
-        Logger.debug(message = s"[AuditService][sendEvent] successfully sent ${event.auditType}")
+        logger.debug(s"[AuditService][sendEvent] successfully sent ${event.auditType}")
     }
 
     result.onFailure {
       case e =>
-        Logger.error(message = s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
+        logger.error(s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
     }
   }
 }

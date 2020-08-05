@@ -19,7 +19,7 @@ package connectors
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SendEmailRequest
-import play.api.Logger
+import utils.Logger._
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
