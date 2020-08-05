@@ -16,7 +16,7 @@
 
 package controllers.financialStatement
 
-import controllers.actions.{DataSetupAction, MutableFakeDataRetrievalAction, MutableFakeDataSetupAction}
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.SelectSchemeFormProvider
@@ -126,7 +126,7 @@ object SelectSchemeControllerSpec {
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
 
   private def form = new SelectSchemeFormProvider()(penaltySchemes)
-  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad().url
+  private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(year).url
 
   private def httpPathPOST: String = routes.SelectSchemeController.onSubmit(year).url
 }
