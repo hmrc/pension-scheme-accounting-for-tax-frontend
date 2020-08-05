@@ -47,13 +47,17 @@ class SelectSchemeController @Inject()(
 
   def onPageLoad(year: String): Action[AnyContent] = identify.async { implicit request =>
       penaltiesService.penaltySchemes(year, request.psaId.id).flatMap { penaltySchemes =>
-
+        if(penaltySchemes.nonEmpty) {
         val json = Json.obj(
           "form" -> form(penaltySchemes),
+
           "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
           "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
 
         renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
+      } else {
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
       }
     }
 
