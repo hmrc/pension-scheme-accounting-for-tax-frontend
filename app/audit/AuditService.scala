@@ -18,15 +18,15 @@ package audit
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import org.slf4j.{Logger, LoggerFactory}
+import play.api.Logger
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.DataEvent
-import uk.gov.hmrc.play.audit.AuditExtensions._
-import scala.language.implicitConversions
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.language.implicitConversions
 
 class AuditService @Inject()(
                               config: FrontendAppConfig,
@@ -41,8 +41,7 @@ class AuditService @Inject()(
     auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
 
     val details = rh.toAuditDetails() ++ event.details
-    val logger: Logger = LoggerFactory.getLogger(getClass)
-    logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
+    Logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
 
     val result: Future[AuditResult] = connector.sendEvent(
       DataEvent(
@@ -58,12 +57,12 @@ class AuditService @Inject()(
 
     result.onSuccess {
       case _ =>
-        logger.debug(s"[AuditService][sendEvent] successfully sent ${event.auditType}")
+        Logger.debug(s"[AuditService][sendEvent] successfully sent ${event.auditType}")
     }
 
     result.onFailure {
       case e =>
-        logger.error(s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
+        Logger.error(s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
     }
   }
 }
