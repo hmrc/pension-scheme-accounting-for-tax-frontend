@@ -16,19 +16,17 @@
 
 package connectors
 
-import models.TolerantAddress
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpException
-import uk.gov.hmrc.http.HttpResponse
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.TolerantAddress
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Reads
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import uk.gov.hmrc.http.{HeaderCarrier, HttpException, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConfig){
   def addressLookupByPostCode(postCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TolerantAddress]] = {
@@ -50,9 +48,8 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
   }
 
   private def logExceptions: PartialFunction[Throwable, Future[Seq[TolerantAddress]]] = {
-    case (t: Throwable) => {
+    case t: Throwable =>
       Logger.error("Exception in AddressLookup", t)
       Future.failed(t)
-    }
   }
 }

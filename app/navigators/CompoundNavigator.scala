@@ -34,7 +34,7 @@ trait CompoundNavigator {
 
 class CompoundNavigatorImpl @Inject()(navigators: java.util.Set[Navigator]) extends CompoundNavigator {
   private def defaultPage(id: Page, mode: Mode): Call = {
-    Logger.warn(message = s"No navigation defined for id $id in mode $mode")
+    Logger.warn(s"No navigation defined for id $id in mode $mode")
     controllers.routes.IndexController.onPageLoad()
   }
 

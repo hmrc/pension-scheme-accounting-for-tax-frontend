@@ -18,16 +18,13 @@ package base
 
 import config.FrontendAppConfig
 import data.SampleData
-import data.SampleData.sessionAccessDataCompile
-import models.SessionAccessData
-import models.SessionData
-import models.UserAnswers
+import models.{SessionAccessData, UserAnswers}
 import models.requests.DataRequest
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
-import play.api.mvc.{AnyContent, AnyContentAsEmpty}
+import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier

@@ -24,8 +24,8 @@ import controllers.actions._
 import helpers.FormatHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
