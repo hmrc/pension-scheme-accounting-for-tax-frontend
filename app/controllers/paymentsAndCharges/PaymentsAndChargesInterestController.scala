@@ -26,6 +26,7 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
+import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
@@ -36,7 +37,6 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import utils.Logger._
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -22,7 +22,7 @@ import com.google.inject.Inject
 import models.requests.DataRequest
 import models.{AccessType, Mode, UserAnswers}
 import pages.Page
-import utils.Logger._
+import play.api.Logger
 import play.api.mvc.{AnyContent, Call}
 
 import scala.collection.JavaConverters._

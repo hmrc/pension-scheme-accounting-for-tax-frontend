@@ -25,6 +25,7 @@ import dateOrdering._
 import javax.inject.Inject
 import models.financialStatement.SchemeFS
 import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -33,7 +34,6 @@ import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.Logger._
 
 import scala.concurrent.{ExecutionContext, Future}
 

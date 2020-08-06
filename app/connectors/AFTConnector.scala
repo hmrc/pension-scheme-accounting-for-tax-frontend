@@ -21,7 +21,7 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{AFTOverview, AFTVersion, JourneyType, Quarters, UserAnswers}
-import utils.Logger._
+import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
