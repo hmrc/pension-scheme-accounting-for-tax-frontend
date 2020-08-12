@@ -342,27 +342,6 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
 
     }
 
-    "return Seq.empty for NOT_FOUND response" in {
-      server.stubFor(
-        get(urlEqualTo(aftOverview))
-          .withHeader("pstr", equalTo(pstr))
-          .withHeader("startDate", equalTo("2022-01-01"))
-          .withHeader("endDate", equalTo("2028-06-30"))
-          .willReturn(
-            aResponse()
-              .withStatus(Status.NOT_FOUND)
-              .withHeader("Content-Type", "application/json")
-              .withBody(Json.arr().toString())
-          )
-      )
-
-      val connector = injector.instanceOf[AFTConnector]
-
-      connector.getAftOverview(pstr).map(aftOverview =>
-        aftOverview mustBe Seq.empty
-      )
-    }
-
     "throw BadRequestException for a 400 INVALID_PSTR response" in {
 
       server.stubFor(
