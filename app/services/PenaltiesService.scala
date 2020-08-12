@@ -34,6 +34,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import controllers.financialStatement.routes.ChargeDetailsController
+import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,20 +47,20 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   //PENALTIES
   def getPsaFsJson(psaFS: Seq[PsaFS], srn: String, year: Int)
-                          (implicit messages: Messages): Seq[Table] =
-    availableQuarters(year)(config).flatMap { quarter =>
+                          (implicit messages: Messages): Seq[JsObject] =
+    availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
       val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
 
       if(filteredPsaFS.nonEmpty) {
-        Seq(singlePeriodFSMapping(srn, startDate, filteredPsaFS))
+        singlePeriodFSMapping(srn, startDate, filteredPsaFS)
       } else {
-        Nil
+        Json.obj()
       }
     }
 
   private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                                   (implicit messages: Messages): Table = {
+                                   (implicit messages: Messages): JsObject = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -79,7 +80,10 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       )
     }
 
-    Table(caption = Some(caption), captionClasses= Seq("govuk-heading-m"), head = head, rows = rows)
+    Json.obj(
+      "header" -> caption,
+      "penaltyTable" -> Table(head = head, rows = rows)
+    )
 
   }
 

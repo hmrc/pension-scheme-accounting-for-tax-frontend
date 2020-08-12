@@ -21,22 +21,19 @@ import java.time.LocalDate
 import base.SpecBase
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
-import models.financialStatement.SchemeFSChargeType.{PSS_OTC_AFT_RETURN_INTEREST, PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{SchemeFSChargeType, SchemeFS}
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.InterestIsAccruing
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.NoStatus
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.PaymentOverdue
-import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentAndChargeStatus}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
+import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
-import viewmodels.Table.Cell
 import viewmodels.Table.Cell
 
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
@@ -63,18 +60,14 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
 
-  private def paymentTable(rows: Seq[Seq[Table.Cell]]): PaymentsAndChargesTable = {
-   val caption:String = messages("paymentsAndCharges.caption", startDate, endDate)
+  private def paymentTable(rows: Seq[Seq[Table.Cell]]): PaymentsAndChargesTable =
     PaymentsAndChargesTable(
       caption = messages("paymentsAndCharges.caption", startDate, endDate),
       table = Table(
-        caption = Some(caption),
-        captionClasses= Seq("govuk-heading-m"),
         head = tableHead,
         rows = rows
       )
     )
-  }
 
   private def row(chargeType: String,
                   chargeReference: String,
