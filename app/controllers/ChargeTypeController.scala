@@ -18,25 +18,31 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.{AuditService, StartNewAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.AccessType
+import models.ChargeType
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -78,11 +84,13 @@ class ChargeTypeController @Inject()(
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
+      println("\n>>LL")
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
           .bindFromRequest()
           .fold(
             formWithErrors => {
+              println( "\n><>>>>>>b")
               val json = Json.obj(
                 fields = "srn" -> srn,
                 "startDate" -> Some(startDate),
@@ -92,11 +100,13 @@ class ChargeTypeController @Inject()(
               )
               renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
             },
-            value =>
+            value => {
+              println( "\n><>>>>>>a")
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+            }
           )
       }
   }
