@@ -84,13 +84,11 @@ class ChargeTypeController @Inject()(
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-      println("\n>>LL")
       DataRetrievals.retrieveSchemeName { schemeName =>
         form
           .bindFromRequest()
           .fold(
             formWithErrors => {
-              println( "\n><>>>>>>b")
               val json = Json.obj(
                 fields = "srn" -> srn,
                 "startDate" -> Some(startDate),
@@ -100,13 +98,12 @@ class ChargeTypeController @Inject()(
               )
               renderer.render(template = "chargeType.njk", json).map(BadRequest(_))
             },
-            value => {
-              println( "\n><>>>>>>a")
+            value =>
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
-            }
+
           )
       }
   }

@@ -16,12 +16,13 @@
 
 package controllers.amend
 
+import audit.AuditService
 import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{Enumerable, SchemeDetails, SchemeStatus}
+import models.{SchemeDetails, SchemeStatus, Enumerable}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
@@ -45,6 +46,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
+  private val mockAuditService = mock[AuditService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
