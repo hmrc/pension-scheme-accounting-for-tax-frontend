@@ -16,7 +16,7 @@
 
 package controllers.chargeC
 
-import audit.{AddressLookupAuditEvent, AuditService, StartAFTAuditEvent}
+import audit.{AddressLookupAuditEvent, AuditService, StartNewAFTAuditEvent}
 import connectors.AddressLookupConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -151,7 +151,7 @@ class SponsoringEmployerAddressSearchControllerSpec
     }
 
     "Save data to user answers and redirect to next page when valid data is submitted and send audit event" in {
-      val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
+      val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
       val expectedJson = Json.obj(
         "chargeCDetails" -> Json.obj(
           "employers" -> Json.arr(

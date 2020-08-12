@@ -16,7 +16,7 @@
 
 package audit
 
-case class StartAFTAuditEvent(
+case class StartAmendAFTAuditEvent(
                                psaIdentifier: String,
                                pstr: String
                              ) extends AuditEvent {

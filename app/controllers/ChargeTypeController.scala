@@ -18,7 +18,7 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.{AuditService, StartAFTAuditEvent}
+import audit.{AuditService, StartNewAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
@@ -51,7 +51,6 @@ class ChargeTypeController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
-    auditService: AuditService,
     schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -64,7 +63,6 @@ class ChargeTypeController @Inject()(
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
         val json = Json.obj(
           fields = "srn" -> srn,

@@ -17,7 +17,7 @@
 package controllers
 
 import audit.AuditService
-import audit.StartAFTAuditEvent
+import audit.StartNewAFTAuditEvent
 import controllers.actions.DataSetupAction
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.actions.MutableFakeDataSetupAction
@@ -134,7 +134,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "send the AFTStart Audit Event" in {
         reset(mockAuditService)
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeName))
 
@@ -143,7 +143,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         status(result) mustEqual OK
 
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
+        eventCaptor.getValue mustEqual StartNewAFTAuditEvent(SampleData.psaId, SampleData.pstr)
       }
     }
 

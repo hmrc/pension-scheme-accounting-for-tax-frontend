@@ -16,23 +16,29 @@
 
 package controllers.amend
 
-import config.FrontendAppConfig
+import audit.AuditService
+import audit.StartAmendAFTAuditEvent
 import connectors.AFTConnector
 import controllers.actions._
 import javax.inject.Inject
 import models.Quarters
 import models.LocalDateBinder._
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.{AFTService, SchemeService}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class AFTAmendController @Inject()(
     override val messagesApi: MessagesApi,
     aftConnector: AFTConnector,
+    auditService: AuditService,
     schemeService: SchemeService,
     identify: IdentifierAction,
     val controllerComponents: MessagesControllerComponents
@@ -44,7 +50,7 @@ class AFTAmendController @Inject()(
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-        if (aftOverview.nonEmpty) {
+        val futureResult = if (aftOverview.nonEmpty) {
           val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
 
           if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
@@ -66,8 +72,12 @@ class AFTAmendController @Inject()(
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
+
+        futureResult.map { result =>
+          auditService.sendEvent(StartAmendAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+          result
+        }
       }
     }
   }
-
 }
