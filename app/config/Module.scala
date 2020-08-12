@@ -18,7 +18,7 @@ package config
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
-import connectors.cache.{UserAnswersCacheConnector, UserAnswersCacheConnectorImpl}
+import connectors.cache.{CacheConnector, FinancialInfoCacheConnector, UserAnswersCacheConnector, UserAnswersCacheConnectorImpl}
 import controllers.actions._
 import navigators._
 
@@ -46,5 +46,6 @@ class Module extends AbstractModule {
     bind(classOf[IdentifierAction]).to(classOf[AuthenticatedIdentifierAction]).asEagerSingleton()
 
     bind(classOf[UserAnswersCacheConnector]).to(classOf[UserAnswersCacheConnectorImpl]).asEagerSingleton()
+    bind(classOf[CacheConnector]).to(classOf[FinancialInfoCacheConnector]).asEagerSingleton()
   }
 }
