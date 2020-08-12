@@ -16,13 +16,15 @@
 
 package controllers.amend
 
-import audit.AuditService
+import audit.{AuditService, StartAmendAFTAuditEvent}
 import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
+import org.mockito.ArgumentCaptor
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{SchemeDetails, SchemeStatus, Enumerable}
+import models.{Enumerable, SchemeDetails, SchemeStatus}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach
@@ -43,6 +45,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private def httpPathGET: String = controllers.amend.routes.AFTAmendController.onPageLoad(srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private val expectedAuditEvent = StartAmendAFTAuditEvent(SampleData.psaId, SampleData.pstr)
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockAFTConnector: AFTConnector = mock[AFTConnector]
@@ -50,14 +53,15 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
+    bind[AFTConnector].toInstance(mockAFTConnector),
+    bind[AuditService].toInstance(mockAuditService)
   )
 
   def application: Application = applicationBuilder(extraModules = extraModules).build()
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockRenderer, mockAppConfig)
+    reset(mockSchemeService, mockRenderer, mockAppConfig, mockAuditService)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
@@ -70,35 +74,47 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       "return to AmendYears page if more than 1 years are available to choose from" in {
        when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
         val result = route(application, httpGETRequest(httpPathGET)).value
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.amend.routes.AmendYearsController.onPageLoad(srn).url)
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
 
       "return to Quarters page if 1 year and more than 1 quarters are available to choose from" in {
         when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1, overview2)))
         val result = route(application, httpGETRequest(httpPathGET)).value
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.amend.routes.AmendQuartersController.onPageLoad(srn, "2020").url)
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
 
       "return to ReturnHistory page if exactly 1 year and 1 quarter are available to choose from" in {
         when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Seq(overview1)))
 
         val result = route(application, httpGETRequest(httpPathGET)).value
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, "2020-04-01").url)
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
 
       "redirect to Session Expired page if there is no data returned from overview" in {
         when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
 
         val result = route(application, httpGETRequest(httpPathGET)).value
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAmendAFTAuditEvent])
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad().url)
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
     }
 

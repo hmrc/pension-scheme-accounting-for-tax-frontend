@@ -52,6 +52,8 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   private def httpPathGET: String = controllers.routes.AFTLoginController.onPageLoad(srn).url
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
+  private val expectedAuditEvent = StartNewAFTAuditEvent(SampleData.psaId, SampleData.pstr)
+
 
   private val mockSchemeService = mock[SchemeService]
   private val mockAuditService = mock[AuditService]
@@ -81,11 +83,13 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
       "return to ChargeType page in every case" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 20)))
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-
+        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
+        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
     }
     "on a GET and overviewApi is enabled i.e after 21st July 2020" must {
@@ -100,6 +104,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.routes.YearsController.onPageLoad(srn).url)
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
 
       "return to Quarters page if 1 year and more than 1 quarters are available to choose from and send audit event" in {
@@ -112,6 +117,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.routes.QuartersController.onPageLoad(srn, "2020").url)
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
 
       "return to ChargeType page if exactly 1 year and 1 quarter are available to choose from and send audit event" in {
@@ -123,6 +129,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
+        eventCaptor.getValue mustBe expectedAuditEvent
       }
     }
 
