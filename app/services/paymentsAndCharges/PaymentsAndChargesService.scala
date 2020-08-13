@@ -52,18 +52,7 @@ class PaymentsAndChargesService {
 
           case (true, true) if details.accruedInterestTotal > 0 =>
             createPaymentAndChargesIfInterestAccrued(details, srn)
-
-          case (true, _) if details.totalAmount < 0 =>
-            Seq(
-              PaymentsAndChargesDetails(
-                details.chargeType.toString,
-                messages("paymentsAndCharges.chargeReference.None"),
-                messages("paymentsAndCharges.amountDue.in.credit"),
-                NoStatus,
-                redirectChargeDetailsUrl,
-                messages(s"paymentsAndCharges.credit.visuallyHiddenText")
-              ))
-
+          case (true, _) if details.totalAmount < 0 => Seq.empty
           case _ =>
             Seq(
               PaymentsAndChargesDetails(
