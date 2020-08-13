@@ -113,8 +113,6 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
             case JsSuccess(value, _) => value
             case JsError(errors) => throw JsResultException(errors)
           }
-        case NOT_FOUND =>
-          Seq.empty
         case _ =>
           handleErrorResponse("GET", url)(response)
       }
