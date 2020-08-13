@@ -18,23 +18,28 @@ package controllers
 
 import java.time.LocalDate
 
+import audit.AuditService
+import audit.StartNewAFTAuditEvent
 import config.FrontendAppConfig
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{Draft, Quarters, StartYears}
+import models.{Draft, StartYears, Quarters}
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTLoginController @Inject()(
     override val messagesApi: MessagesApi,
     identify: IdentifierAction,
     val controllerComponents: MessagesControllerComponents,
+    auditService: AuditService,
+    schemeService: SchemeService,
     config: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -43,7 +48,7 @@ class AFTLoginController @Inject()(
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     val defaultYear = StartYears.minYear(config)
-    if (!LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)) {
+    val futureResult = if (!LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)) {
       (StartYears.values(config).size, Quarters.availableQuarters(defaultYear)(config).size) match {
         case (years, _) if years > 1 =>
           Future.successful(Redirect(controllers.routes.YearsController.onPageLoad(srn)))
@@ -60,6 +65,12 @@ class AFTLoginController @Inject()(
       val defaultQuarter = Quarters.availableQuarters(defaultYear)(config).headOption.getOrElse(throw NoQuartersAvailableException)
       Future.successful(
         Redirect(controllers.routes.ChargeTypeController.onPageLoad(srn, Quarters.getStartDate(defaultQuarter, defaultYear), Draft, version = 1)))
+    }
+    futureResult.flatMap { result =>
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).map { schemeDetails =>
+        auditService.sendEvent(StartNewAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+        result
+      }
     }
   }
 

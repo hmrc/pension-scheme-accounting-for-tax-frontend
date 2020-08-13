@@ -18,25 +18,31 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.{AuditService, StartAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ChargeTypeFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, ChargeType, GenericViewModel, NormalMode}
+import models.AccessType
+import models.ChargeType
+import models.GenericViewModel
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages._
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class ChargeTypeController @Inject()(
     override val messagesApi: MessagesApi,
@@ -51,7 +57,6 @@ class ChargeTypeController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
     config: FrontendAppConfig,
-    auditService: AuditService,
     schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -64,7 +69,6 @@ class ChargeTypeController @Inject()(
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        auditService.sendEvent(StartAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
         val json = Json.obj(
           fields = "srn" -> srn,
@@ -99,6 +103,7 @@ class ChargeTypeController @Inject()(
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(ChargeTypePage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(ChargeTypePage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+
           )
       }
   }

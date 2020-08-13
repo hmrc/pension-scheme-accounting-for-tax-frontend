@@ -16,8 +16,6 @@
 
 package controllers
 
-import audit.AuditService
-import audit.StartAFTAuditEvent
 import controllers.actions.DataSetupAction
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.actions.MutableFakeDataSetupAction
@@ -62,14 +60,12 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   import ChargeTypeControllerSpec._
 
-  private val mockAuditService = mock[AuditService]
   private val mockAFTService = mock[AFTService]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
   private val fakeDataSetupAction: MutableFakeDataSetupAction = new MutableFakeDataSetupAction
   private val mockSchemeService = mock[SchemeService]
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AuditService].toInstance(mockAuditService),
     bind[AFTService].toInstance(mockAFTService),
     bind[DataSetupAction].toInstance(fakeDataSetupAction),
     bind[SchemeService].toInstance(mockSchemeService)
@@ -132,24 +128,11 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(ChargeTypeAnnualAllowance)))
       }
 
-      "send the AFTStart Audit Event" in {
-        reset(mockAuditService)
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartAFTAuditEvent])
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeName))
-
-        val result = route(application, httpGETRequest(httpPathGETVersion)).value
-
-        status(result) mustEqual OK
-
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustEqual StartAFTAuditEvent(SampleData.psaId, SampleData.pstr)
-      }
     }
 
     "on a POST" must {
       "Save data to user answers and redirect to next page when valid data is submitted" in {
-
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
 
         when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)

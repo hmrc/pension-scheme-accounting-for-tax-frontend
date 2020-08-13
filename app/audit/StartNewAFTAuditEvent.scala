@@ -16,11 +16,11 @@
 
 package audit
 
-case class StartAFTAuditEvent(
+case class StartNewAFTAuditEvent(
                                psaIdentifier: String,
                                pstr: String
                              ) extends AuditEvent {
-  override def auditType: String = "AftStart"
+  override def auditType: String = "AftStartNew"
 
   override def details: Map[String, String] = {
     Map(

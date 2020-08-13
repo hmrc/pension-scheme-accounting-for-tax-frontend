@@ -48,7 +48,7 @@ class AuditServiceSpec extends WordSpec with MustMatchers with MockitoSugar with
 
   "AuditService" must {
     "sent audit event" in {
-      val aftAuditEvent = StartAFTAuditEvent("test-psa", "test-pstr")
+      val aftAuditEvent = StartNewAFTAuditEvent("test-psa", "test-pstr")
       val templateCaptor = ArgumentCaptor.forClass(classOf[DataEvent])
 
       implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
@@ -61,7 +61,7 @@ class AuditServiceSpec extends WordSpec with MustMatchers with MockitoSugar with
       inside(templateCaptor.getValue) {
         case DataEvent(auditSource, auditType, _, _, detail, _) =>
           auditSource mustBe config.appName
-          auditType mustBe "AftStart"
+          auditType mustBe "AftStartNew"
           detail mustBe Map("psaIdentifier" -> "test-psa", "pstr" -> "test-pstr")
       }
       app.stop()
