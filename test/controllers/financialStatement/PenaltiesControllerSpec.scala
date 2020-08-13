@@ -47,11 +47,15 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
 
-  val penaltyTables: Seq[Table] = Seq(
-    Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
-      head = head, rows = rows("2020-04-01")),
-    Table(caption = Some(msg"penalties.period".withArgs("1 July", "30 September 2020")), captionClasses= Seq("govuk-heading-m"),
-      head = head, rows = rows("2020-07-01"))
+  val penaltyTables: Seq[JsObject] = Seq(
+    Json.obj(
+      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
+      "penaltyTable" -> Table(head = head, rows = rows("2020-04-01"))
+    ),
+    Json.obj(
+      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
+      "penaltyTable" -> Table(head = head, rows = rows("2020-07-01"))
+    )
   )
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
@@ -71,7 +75,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   private val jsonToPassToTemplate: JsObject = Json.obj("year" -> "2020",
     "pstr" -> pstr,
     "schemeName" -> schemeDetails.schemeName,
-    "tables" -> Json.toJson(penaltyTables))
+    "tables" -> penaltyTables)
 
   override def beforeEach: Unit = {
     super.beforeEach
