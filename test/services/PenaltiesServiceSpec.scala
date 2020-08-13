@@ -32,6 +32,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
@@ -52,11 +53,15 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
   private val penaltiesService = new PenaltiesService(mockAppConfig, mockFSConnector, mockListOfSchemesConn)
 
-  def penaltyTables(statusClass:String, statusMessageKey: String, amountDue: String): Seq[Table] = Seq(
-    Table(caption = Some(msg"penalties.period".withArgs("1 April", "30 June 2020")), captionClasses= Seq("govuk-heading-m"),
-        head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue)),
-    Table(caption = Some(msg"penalties.period".withArgs("1 July", "30 September 2020")), captionClasses= Seq("govuk-heading-m"),
-      head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue))
+  def penaltyTables(statusClass:String, statusMessageKey: String, amountDue: String): Seq[JsObject] = Seq(
+    Json.obj(
+      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
+      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue))
+    ),
+    Json.obj(
+      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
+      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue))
+    )
   )
 
   override def beforeEach: Unit = {

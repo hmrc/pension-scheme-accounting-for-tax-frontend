@@ -29,7 +29,8 @@
 
       <p class="govuk-body">
          {% for table in tables %}
-            {{ govukTable(table) }}
+             <h2 class="govuk-heading-m">{{ table.header }}</h2>
+             {{ govukTable(table.penaltyTable) }}
          {% endfor %}
       </p>
 
