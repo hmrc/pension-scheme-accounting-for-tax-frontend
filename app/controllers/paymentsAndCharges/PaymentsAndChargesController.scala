@@ -53,7 +53,7 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
     identify.async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
-          val schemePaymentsAndChargesForSelectedYear = schemeFs.filter(sfs => sfs.periodStartDate.getYear == year)
+          val schemePaymentsAndChargesForSelectedYear = schemeFs.filter(_.periodStartDate.getYear == year)
 
           if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
             val schemePaymentsAndChargesGroupedWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
