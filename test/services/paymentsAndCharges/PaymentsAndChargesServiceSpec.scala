@@ -133,23 +133,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       }
     }
 
-    "return payments and charges table with row for credit" in {
+    "return payments and charges table with no rows for credit" in {
       val totalAmount = -56432.00
-      val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-        .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
-        .url
-      val expectedTable = Seq(
-        paymentTable(
-          Seq(
-            row(
-              PSS_OTC_AFT_RETURN.toString,
-              chargeReference = messages("paymentsAndCharges.chargeReference.None"),
-              amountDue = messages("paymentsAndCharges.amountDue.in.credit"),
-              Html(""),
-              redirectUrl,
-              messages(s"paymentsAndCharges.credit.visuallyHiddenText")
-            )
-          )))
+      val expectedTable = Seq(paymentTable(Seq.empty))
 
       val result = paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00),
