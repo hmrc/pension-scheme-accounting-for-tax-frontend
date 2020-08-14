@@ -78,7 +78,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
-    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-21")
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))

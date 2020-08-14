@@ -18,9 +18,7 @@ package controllers
 
 import java.time.LocalDate
 
-import audit.AuditService
-import audit.StartNewAFTAuditEvent
-import controllers.ChargeTypeControllerSpec.httpPathGETVersion
+import audit.{AuditService, StartNewAFTAuditEvent}
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -34,12 +32,10 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
+import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.Json
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
-import play.api.inject.bind
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper
@@ -70,29 +66,12 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     super.beforeEach
     reset(mockAppConfig, mockAuditService, mockSchemeService)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockAppConfig.overviewApiEnablementDate).thenReturn("2020-07-21")
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
     when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
-  "AFTLogin Controller" when {
-
-    "on a GET and overviewApi is disabled i.e before 21st July 2020" must {
-
-      "return to ChargeType page in every case" in {
-        DateHelper.setDate(Some(LocalDate.of(2020, 7, 20)))
-        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        val eventCaptor = ArgumentCaptor.forClass(classOf[StartNewAFTAuditEvent])
-        val result = route(application, httpGETRequest(httpPathGET)).value
-
-        status(result) mustEqual SEE_OTHER
-        redirectLocation(result) mustBe Some(controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, versionInt).url)
-        verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
-        eventCaptor.getValue mustBe expectedAuditEvent
-      }
-    }
-    "on a GET and overviewApi is enabled i.e after 21st July 2020" must {
+  "AFTLogin Controller on a GET" must {
 
       "return to Years page if more than 1 years are available to choose from and send audit event" in {
         DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
@@ -131,7 +110,6 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
         verify(mockAuditService, times(1)).sendEvent(eventCaptor.capture())(any(), any())
         eventCaptor.getValue mustBe expectedAuditEvent
       }
-    }
 
   }
 }
