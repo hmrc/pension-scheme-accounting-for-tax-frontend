@@ -20,47 +20,48 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
 import helpers.FormatHelper
 import models.LocalDateBinder._
-import models.{PenaltySchemes, SchemeDetail}
 import models.Quarters._
 import models.financialStatement.PsaFS
+import models.{PenaltySchemes, SchemeDetail}
 import play.api.i18n.Messages
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import controllers.financialStatement.routes.ChargeDetailsController
-import play.api.libs.json.{JsObject, Json}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesService @Inject()(config: FrontendAppConfig,
-                                fsConnector: FinancialStatementConnector,
-                                listOfSchemesConnector: ListOfSchemesConnector) {
+                                 fsConnector: FinancialStatementConnector,
+                                 fiCacheConnector: FinancialInfoCacheConnector,
+                                 listOfSchemesConnector: ListOfSchemesConnector) {
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
     (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(psaFS: Seq[PsaFS], srn: String, year: Int)
-                          (implicit messages: Messages): Seq[JsObject] =
+  def getPsaFsJson(psaFS: Seq[PsaFS], srnOrPstr: String, year: Int)
+                  (implicit messages: Messages): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
       val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
 
-      if(filteredPsaFS.nonEmpty) {
-        singlePeriodFSMapping(srn, startDate, filteredPsaFS)
+      if (filteredPsaFS.nonEmpty) {
+        singlePeriodFSMapping(srnOrPstr, startDate, filteredPsaFS)
       } else {
         Json.obj()
       }
     }
 
-  private def singlePeriodFSMapping(srn: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                                   (implicit messages: Messages): JsObject = {
+  def singlePeriodFSMapping(srnOrPstr: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
+                           (implicit messages: Messages): JsObject = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -72,7 +73,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     )
     val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
-        Cell(chargeTypeLink(srn, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(chargeTypeLink(srnOrPstr, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
@@ -87,11 +88,14 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   }
 
-  private def chargeTypeLink(srn: String, data: PsaFS, startDate: LocalDate)(implicit messages: Messages): Html =
+  private def chargeTypeLink(srnOrPstr: String, data: PsaFS, startDate: LocalDate)
+                            (implicit messages: Messages): Html = {
     Html(
-      s"<a id=${data.chargeReference} class=govuk-link href=${ChargeDetailsController.onPageLoad(srn, startDate, data.chargeReference)}>" +
+      s"<a id=${data.chargeReference} " +
+        s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srnOrPstr, startDate, data.chargeReference)}>" +
         s"${messages(data.chargeType.toString)}" +
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
+  }
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
     val (classes, content) = (isPaymentOverdue(data), data.amountDue) match {
@@ -120,7 +124,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
         key = Key(msg"penalties.chargeDetails.payments", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.totalAmount - data.amountDue - data.stoodOverAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      )) }
+      ))
+    }
     else {
       Nil
     }
@@ -132,7 +137,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
         key = Key(msg"penalties.chargeDetails.amountUnderReview", classes = Seq("govuk-!-width-three-quarters")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.stoodOverAmount)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      )) }
+      ))
+    }
     else {
       Nil
     }
@@ -142,13 +148,14 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     if (data.amountDue > BigDecimal(0.00) && data.dueDate.isDefined) {
       val dueDate: String = data.dueDate.get.format(dateFormatterDMY)
       Seq(Row(
-        key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+        key = Key(msg"penalties.chargeDetails.totalDueBy".withArgs(dueDate), classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
-      )) }
+      ))
+    }
     else {
       Seq(Row(
-        key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric","govuk-!-padding-right-0")),
+        key = Key(msg"penalties.chargeDetails.totalDue", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
       ))
@@ -157,9 +164,10 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   //SELECT SCHEME
   def penaltySchemes(year: String, psaId: String)
-                            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
+                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
+      _ <- fiCacheConnector.save(Json.obj("pstrs" -> penalties.map(_.pstr)))
       listOfSchemes <- getListOfSchemes(psaId)
     } yield {
 

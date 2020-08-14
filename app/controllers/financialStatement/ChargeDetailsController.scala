@@ -32,6 +32,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
 
 class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,
@@ -48,30 +49,45 @@ class ChargeDetailsController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
-          val filteredPsaFS = psaFS.filter(_.chargeReference == chargeReference)
+      val srnRegex: Regex = "^S[0-9]{10}$".r
 
-          if (filteredPsaFS.nonEmpty) {
+      fsConnector.getPsaFS(request.psaId.id).flatMap {
+        psaFS =>
+          val commonJson = Json.obj(
+            "heading" -> heading(psaFS.filter(_.chargeReference == chargeReference).head.chargeType.toString),
+            "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeReference).head),
+            "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
+              getQuarter(startDate).endDate.format(dateFormatterDMY)),
+            "chargeReference" -> psaFS.filter(_.chargeReference == chargeReference).head.chargeReference,
+            "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeReference).head)
+          )
 
-            val json = Json.obj(
-              "heading" -> heading(filteredPsaFS.head.chargeType.toString),
-              "schemeName" -> schemeDetails.schemeName,
-              "isOverdue" -> penaltiesService.isPaymentOverdue(filteredPsaFS.head),
-              "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
-                getQuarter(startDate).endDate.format(dateFormatterDMY)),
-              "chargeReference" -> filteredPsaFS.head.chargeReference,
-              "list" -> penaltiesService.chargeDetailsRows(filteredPsaFS.head))
+          if (psaFS.exists(_.chargeReference == chargeReference)) {
+            srn match {
+              case srnRegex(_*) =>
+                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+                  schemeDetails =>
+                    val json = Json.obj(
+                      "schemeAssociated" -> true,
+                      "schemeName" -> schemeDetails.schemeName
+                    ) ++ commonJson
 
-            renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                    renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                }
 
+              case _ =>
+                val json = Json.obj(
+                  "schemeAssociated" -> false
+                ) ++ commonJson
+
+                renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+            }
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
-        }
       }
   }
 
-  val heading: String => String = s => if(s.contains('(')) s.substring(0, s.indexOf('(')) else s
+  val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s
 
 }

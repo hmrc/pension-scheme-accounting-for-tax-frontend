@@ -17,6 +17,7 @@
 package controllers.financialStatement
 
 import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -27,35 +28,67 @@ import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
 
 class PenaltiesController @Inject()(
-                                                identify: IdentifierAction,
-                                                override val messagesApi: MessagesApi,
-                                                val controllerComponents: MessagesControllerComponents,
-                                                fsConnector: FinancialStatementConnector,
-                                                penaltiesService: PenaltiesService,
-                                                schemeService: SchemeService,
-                                                renderer: Renderer
-                                 )(implicit ec: ExecutionContext)
+                                     identify: IdentifierAction,
+                                     override val messagesApi: MessagesApi,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     fsConnector: FinancialStatementConnector,
+                                     fiCacheConnector: FinancialInfoCacheConnector,
+                                     penaltiesService: PenaltiesService,
+                                     schemeService: SchemeService,
+                                     renderer: Renderer
+                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(year: String, srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-      fsConnector.getPsaFS(request.psaId.id).flatMap { psaFS =>
-        val filteredPsaFS = psaFS.filter(_.pstr == schemeDetails.pstr)
-        val penaltyTables: Seq[JsObject] = penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt).filter(_ != Json.obj())
-        val json = Json.obj("year" -> year,
-          "pstr" -> schemeDetails.pstr,
-          "schemeName" -> schemeDetails.schemeName,
-          "tables" -> penaltyTables)
-        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+  def onPageLoad(year: String, srn: String): Action[AnyContent] = identify.async {
+    implicit request =>
 
+      val srnRegex: Regex = "^S[0-9]{10}$".r
+
+      def viewModel(pstr: String, schemeAssociated: Boolean, tables: Seq[JsObject], args: String*): JsObject =
+        Json.obj(
+          "year" -> year,
+          "pstr" -> pstr,
+          "schemeAssociated" -> schemeAssociated,
+          "tables" -> tables,
+          "schemeName" -> args
+        )
+
+      fsConnector.getPsaFS(request.psaId.id).flatMap {
+        psaFS =>
+          srn match {
+            case srnRegex(_*) =>
+              schemeService.retrieveSchemeDetails(request.psaId.id, srn) flatMap {
+                schemeDetails =>
+                  val filteredPsaFS =
+                    psaFS.filter(_.pstr == schemeDetails.pstr)
+
+                  val penaltyTables: Seq[JsObject] =
+                    penaltiesService.getPsaFsJson(filteredPsaFS, srn, year.toInt).filter(_ != Json.obj())
+
+                  val json = viewModel(schemeDetails.pstr, true, penaltyTables, schemeDetails.schemeName)
+                  renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+              }
+            case _ =>
+              fiCacheConnector.fetch flatMap {
+                case Some(jsValue) =>
+                  val pstrs: Seq[String] =
+                    (jsValue \ "pstrs").as[Seq[String]]
+
+                  val penaltyTables: Seq[JsObject] =
+                    penaltiesService.getPsaFsJson(psaFS, srn, year.toInt).filter(_ != Json.obj())
+
+                  val json = viewModel(pstrs(srn.toInt), false, penaltyTables)
+                  renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+              }
+          }
       }
-    }
   }
-
-
 }
