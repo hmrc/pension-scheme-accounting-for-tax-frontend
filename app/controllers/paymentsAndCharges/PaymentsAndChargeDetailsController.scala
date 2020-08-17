@@ -25,7 +25,7 @@ import helpers.FormatHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -89,6 +89,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         Html("")
     }
 
+    val optHintText = if(schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
+     Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
     Json.obj(
       fields = "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
       "tableHeader" -> messages("paymentsAndCharges.caption",
@@ -107,7 +109,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
       "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-    )
+    ) ++ optHintText
+
   }
 
 }
