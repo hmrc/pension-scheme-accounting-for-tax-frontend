@@ -103,25 +103,31 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
                            insetText: uk.gov.hmrc.viewmodels.Html,
                            isPaymentOverdue: Boolean = false,
                            isInCredit: Boolean = false,
-                           optHint: Option[String] = None): JsObject = Json.obj(
+                           optHint: Option[String] = None): JsObject = {
+        val commonJson = Json.obj(
 
-    fields = "chargeDetailsList" -> Nil,
-    "tableHeader" -> messages("paymentsAndCharges.caption",
-                              schemeFS.periodStartDate.format(dateFormatterStartDate),
-                              schemeFS.periodEndDate.format(dateFormatterDMY)),
-    "schemeName" -> schemeName,
-    "chargeType" -> schemeFS.chargeType.toString,
-    "chargeReferenceTextMessage" -> (if (isInCredit) {
-      messages("paymentsAndCharges.credit.information", s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
+        fields = "chargeDetailsList" -> Nil,
+        "tableHeader" -> messages("paymentsAndCharges.caption",
+                                  schemeFS.periodStartDate.format(dateFormatterStartDate),
+                                  schemeFS.periodEndDate.format(dateFormatterDMY)),
+        "schemeName" -> schemeName,
+        "chargeType" -> schemeFS.chargeType.toString,
+        "chargeReferenceTextMessage" -> (if (isInCredit) {
+          messages("paymentsAndCharges.credit.information", s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
+        }
+        else {
+         messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
+        }),
+        "isPaymentOverdue" -> isPaymentOverdue,
+        "insetText" -> insetText,
+        "interest" -> schemeFS.accruedInterestTotal,
+        "returnUrl" -> dummyCall.url
+      )
+      optHint match {
+        case Some(h) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+        case _ => commonJson
+      }
     }
-    else {
-     messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
-    }),
-    "isPaymentOverdue" -> isPaymentOverdue,
-    "insetText" -> insetText,
-    "interest" -> schemeFS.accruedInterestTotal,
-    "returnUrl" -> dummyCall.url
-  )
 
   "PaymentsAndChargesController" must {
 
@@ -139,17 +145,23 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
-      val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150184", amountDue = 0.00)
+      val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150184"))).value
+      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150188"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true,
-      optHint = Some(messages("paymentsAndCharges.interest.hint"))))
+      val exp = expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true,
+        optHint = Some(messages("paymentsAndCharges.interest.hint")))
+
+
+      println( "\nACT=" + jsonCaptor.getValue)
+      println( "\nEXP=" + exp)
+
+      jsonCaptor.getValue must containJson(exp)
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
@@ -249,6 +261,7 @@ object PaymentsAndChargeDetailsControllerSpec {
     createChargeWithDeltaCredit(chargeReference = "XY002610150185"),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186"),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00),
-    createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
+    createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00),
+    createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188")
   )
 }
