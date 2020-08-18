@@ -121,6 +121,4 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
-
-  lazy val srnRegex: String = "^S[0-9]{10}$"
 }

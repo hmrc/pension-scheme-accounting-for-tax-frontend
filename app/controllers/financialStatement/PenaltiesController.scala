@@ -16,7 +16,6 @@
 
 package controllers.financialStatement
 
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
@@ -28,11 +27,10 @@ import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
+import config.Constants._
 import scala.concurrent.{ExecutionContext, Future}
 
-class PenaltiesController @Inject()(appConfig: FrontendAppConfig,
-                                    identify: IdentifierAction,
+class PenaltiesController @Inject()(identify: IdentifierAction,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
                                     fsConnector: FinancialStatementConnector,
@@ -59,7 +57,7 @@ class PenaltiesController @Inject()(appConfig: FrontendAppConfig,
 
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
-          if (identifier.matches(appConfig.srnRegex)) {
+          if (identifier.matches(srnRegex)) {
             schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier) flatMap {
               schemeDetails =>
                 val filteredPsaFS =

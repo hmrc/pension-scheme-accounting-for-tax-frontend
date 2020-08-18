@@ -18,7 +18,6 @@ package controllers.financialStatement
 
 import java.time.LocalDate
 
-import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
@@ -31,11 +30,10 @@ import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-
+import config.Constants._
 import scala.concurrent.{ExecutionContext, Future}
 
-class ChargeDetailsController @Inject()(appConfig: FrontendAppConfig,
-                                        identify: IdentifierAction,
+class ChargeDetailsController @Inject()(identify: IdentifierAction,
                                         override val messagesApi: MessagesApi,
                                         val controllerComponents: MessagesControllerComponents,
                                         fsConnector: FinancialStatementConnector,
@@ -63,7 +61,7 @@ class ChargeDetailsController @Inject()(appConfig: FrontendAppConfig,
           )
 
           if (filteredPsaFS.nonEmpty) {
-            if (identifier.matches(appConfig.srnRegex)) {
+            if (identifier.matches(srnRegex)) {
               schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
                 schemeDetails =>
                   val json = Json.obj(
