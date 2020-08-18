@@ -47,20 +47,20 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(psaFS: Seq[PsaFS], srnOrPstr: String, year: Int)
+  def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int)
                   (implicit messages: Messages): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
       val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
 
       if (filteredPsaFS.nonEmpty) {
-        singlePeriodFSMapping(srnOrPstr, startDate, filteredPsaFS)
+        singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
       } else {
         Json.obj()
       }
     }
 
-  def singlePeriodFSMapping(srnOrPstr: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
+  def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                            (implicit messages: Messages): JsObject = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
@@ -73,7 +73,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     )
     val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
       Seq(
-        Cell(chargeTypeLink(srnOrPstr, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(chargeTypeLink(identifier, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
           classes = Seq("govuk-!-width-one-quarter")),
         Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
@@ -88,11 +88,11 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   }
 
-  private def chargeTypeLink(srnOrPstr: String, data: PsaFS, startDate: LocalDate)
+  private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
                             (implicit messages: Messages): Html = {
     Html(
       s"<a id=${data.chargeReference} " +
-        s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srnOrPstr, startDate, data.chargeReference)}>" +
+        s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, data.chargeReference)}>" +
         s"${messages(data.chargeType.toString)}" +
         s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
   }
@@ -185,7 +185,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       associatedSchemes ++ unassociatedSchemes
     }
 
-  private def getListOfSchemes(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[SchemeDetail]] = {
+  private def getListOfSchemes(psaId: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[SchemeDetail]] = {
     listOfSchemesConnector.getListOfSchemes(psaId).map {
       case Right(list) => list.schemeDetail.getOrElse(Nil)
       case _ => Seq.empty[SchemeDetail]

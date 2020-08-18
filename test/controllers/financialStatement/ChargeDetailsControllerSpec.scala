@@ -16,8 +16,6 @@
 
 package controllers.financialStatement
 
-import java.time.LocalDate
-
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
@@ -43,12 +41,19 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
 
 import scala.concurrent.Future
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class ChargeDetailsControllerSpec
+  extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   import ChargeDetailsControllerSpec._
 
-  private def httpPathGET: String = controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, "2020-04-01", chargeRef).url
+  private def httpPathGET: String =
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, "2020-04-01", chargeRef).url
 
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
@@ -64,7 +69,6 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateToBeRendered = "financialStatement/chargeDetails.njk"
   private val jsonToPassToTemplate: JsObject = Json.obj(
     "heading" -> "Accounting for Tax late filing penalty",
     "schemeName" -> schemeDetails.schemeName,
@@ -84,6 +88,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
+    when(mockAppConfig.srnRegex).thenReturn("^S[0-9]{10}$")
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
 
   }
@@ -101,7 +106,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        templateCaptor.getValue mustEqual templateToBeRendered
+        templateCaptor.getValue mustEqual "financialStatement/chargeDetails.njk"
 
         jsonCaptor.getValue must containJson(jsonToPassToTemplate)
       }

@@ -18,6 +18,7 @@ package controllers.financialStatement
 
 import java.time.LocalDate
 
+import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
@@ -32,25 +33,22 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.matching.Regex
 
-class ChargeDetailsController @Inject()(
-                                         identify: IdentifierAction,
-                                         override val messagesApi: MessagesApi,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         fsConnector: FinancialStatementConnector,
-                                         penaltiesService: PenaltiesService,
-                                         schemeService: SchemeService,
-                                         renderer: Renderer
+class ChargeDetailsController @Inject()(appConfig: FrontendAppConfig,
+                                        identify: IdentifierAction,
+                                        override val messagesApi: MessagesApi,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        fsConnector: FinancialStatementConnector,
+                                        penaltiesService: PenaltiesService,
+                                        schemeService: SchemeService,
+                                        renderer: Renderer
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] = identify.async {
+  def onPageLoad(identifier: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] = identify.async {
     implicit request =>
-      val srnRegex: Regex = "^S[0-9]{10}$".r
-
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
           val commonJson = Json.obj(
@@ -63,24 +61,22 @@ class ChargeDetailsController @Inject()(
           )
 
           if (psaFS.exists(_.chargeReference == chargeReference)) {
-            srn match {
-              case srnRegex(_*) =>
-                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
-                  schemeDetails =>
-                    val json = Json.obj(
-                      "schemeAssociated" -> true,
-                      "schemeName" -> schemeDetails.schemeName
-                    ) ++ commonJson
+            if (identifier.matches(appConfig.srnRegex)) {
+              schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
+                schemeDetails =>
+                  val json = Json.obj(
+                    "schemeAssociated" -> true,
+                    "schemeName" -> schemeDetails.schemeName
+                  ) ++ commonJson
 
-                    renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
-                }
+                  renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+              }
+            } else {
+              val json = Json.obj(
+                "schemeAssociated" -> false
+              ) ++ commonJson
 
-              case _ =>
-                val json = Json.obj(
-                  "schemeAssociated" -> false
-                ) ++ commonJson
-
-                renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+              renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
             }
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
