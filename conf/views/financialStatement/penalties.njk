@@ -20,7 +20,9 @@
     <div class="govuk-grid-column-two-thirds">
 
       <h1 class="govuk-heading-xl">
-        <span class="govuk-caption-xl">{{ schemeName }}</span>
+        {% if schemeAssociated %}
+          <span class="govuk-caption-xl">{{ schemeName }}</span>
+        {% endif %}
         {{ messages("penalties.title", year) }}
       </h1>
 
