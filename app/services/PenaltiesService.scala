@@ -167,7 +167,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
-      _ <- fiCacheConnector.save(Json.obj("pstrs" -> penalties.map(_.pstr)))
+      _ <- fiCacheConnector.save(Json.obj("pstrs" -> penalties.map(_.pstr).distinct))
       listOfSchemes <- getListOfSchemes(psaId)
     } yield {
 

@@ -51,6 +51,8 @@ class ChargeDetailsController @Inject()(appConfig: FrontendAppConfig,
     implicit request =>
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
+          val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
+
           val commonJson = Json.obj(
             "heading" -> heading(psaFS.filter(_.chargeReference == chargeReference).head.chargeType.toString),
             "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeReference).head),
@@ -60,7 +62,7 @@ class ChargeDetailsController @Inject()(appConfig: FrontendAppConfig,
             "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeReference).head)
           )
 
-          if (psaFS.exists(_.chargeReference == chargeReference)) {
+          if (filteredPsaFS.nonEmpty) {
             if (identifier.matches(appConfig.srnRegex)) {
               schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
                 schemeDetails =>
