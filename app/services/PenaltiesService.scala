@@ -167,21 +167,19 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
+      penaltyPstrs = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
       listOfSchemes <- getListOfSchemes(psaId)
+      schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
+      unassociatedSchemes = penaltyPstrs
+                              .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get)
+                              .contains(penaltyPstr))
+                              .map(x => PenaltySchemes(None, x, None))
+      _ <- fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
     } yield {
-
-      val penaltyPstrs: Seq[String] = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
-      val schemesWithPstr: Seq[SchemeDetail] = listOfSchemes.filter(_.pstr.isDefined)
 
       val associatedSchemes: Seq[PenaltySchemes] = schemesWithPstr
         .filter(scheme => penaltyPstrs.contains(scheme.pstr.get))
         .map(x => PenaltySchemes(Some(x.name), x.pstr.get, Some(x.referenceNumber)))
-
-      val unassociatedSchemes: Seq[PenaltySchemes] = penaltyPstrs
-        .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get).contains(penaltyPstr))
-        .map(x => PenaltySchemes(None, x, None))
-
-      fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
 
       associatedSchemes ++ unassociatedSchemes
     }
