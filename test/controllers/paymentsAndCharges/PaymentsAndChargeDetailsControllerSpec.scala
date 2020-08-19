@@ -118,7 +118,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     "isPaymentOverdue" -> isPaymentOverdue,
     "insetText" -> insetText,
     "interest" -> schemeFS.accruedInterestTotal,
-    "returnUrl" -> dummyCall.url
+    "returnUrl" -> dummyCall.url,
+    "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
   )
 
   "PaymentsAndChargesController" must {
