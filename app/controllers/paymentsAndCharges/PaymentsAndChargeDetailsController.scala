@@ -55,11 +55,12 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
     identify.async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
+
           val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeReference)
           filteredSchemeFs match {
             case Some(schemeFs) =>
               renderer
-                .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, schemeFs, schemeDetails.schemeName))
+                .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName))
                 .map(Ok(_))
             case _ =>
               Logger.warn(s"No Payments and Charge details found for the selected charge reference $chargeReference")
@@ -69,7 +70,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       }
     }
 
-  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String)(implicit messages: Messages): JsObject = {
+  def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String)(implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(date), true, true) =>
         Html(
@@ -106,7 +107,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
   }
 
