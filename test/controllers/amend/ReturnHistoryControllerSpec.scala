@@ -18,7 +18,7 @@ package controllers.amend
 
 import java.time.LocalDate
 
-import connectors.{AFTConnector, FinancialStatementConnector}
+import connectors.{FinancialStatementConnector, AFTConnector}
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import play.api.mvc.Result
@@ -26,8 +26,10 @@ import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
+import models.{AFTOverview, AFTVersion, Submission, AccessType, Draft}
 import models.LocalDateBinder._
+import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.times
@@ -174,6 +176,44 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
         )
       )
 
+    }
+
+    "return OK and the correct view with payment and charges URL for a GET where there scheme fin info" in {
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val schemeFS = SchemeFS(
+        chargeReference = "XY002610150184",
+        chargeType = PSS_AFT_RETURN,
+        dueDate = Some(LocalDate.parse("2020-02-15")),
+        totalAmount = 12345.00,
+        outstandingAmount = 56049.08,
+        stoodOverAmount = 25089.08,
+        amountDue = 1029.05,
+        accruedInterestTotal = 23000.55,
+        periodStartDate = LocalDate.parse("2020-04-01"),
+        periodEndDate = LocalDate.parse("2020-06-30")
+      )
+
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(Seq(schemeFS)))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      val actual = jsonCaptor.getValue
+
+      val expectedJson =
+        Json.obj("paymentAndChargesUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
+
+      actual must containJson(expectedJson)
     }
   }
 }
