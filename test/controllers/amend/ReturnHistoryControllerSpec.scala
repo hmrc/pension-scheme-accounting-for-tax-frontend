@@ -18,7 +18,7 @@ package controllers.amend
 
 import java.time.LocalDate
 
-import connectors.AFTConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
 import connectors.cache.UserAnswersCacheConnector
 import controllers.base.ControllerSpecBase
 import play.api.mvc.Result
@@ -53,6 +53,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val templateToBeRendered = "amend/returnHistory.njk"
   private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+  private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private val cssHalfWidth = "govuk-!-width-one-half"
@@ -103,7 +104,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
+    bind[AFTConnector].toInstance(mockAFTConnector),
+    bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
@@ -116,6 +118,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
