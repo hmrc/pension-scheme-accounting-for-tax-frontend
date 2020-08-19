@@ -18,6 +18,7 @@ package controllers.financialStatement
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -45,7 +46,10 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
   import PenaltiesControllerSpec._
 
-  private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
+  private def httpPathGETAssociated: String =
+    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
+  private def httpPathGETUnassociated(identifier: String): String =
+    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, identifier).url
 
   val penaltyTables: Seq[JsObject] = Seq(
     Json.obj(
@@ -61,20 +65,31 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PenaltiesService].toInstance(mockPenaltiesService),
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFSConnector)
+      bind[FinancialStatementConnector].toInstance(mockFSConnector),
+      bind[FinancialInfoCacheConnector].toInstance(mockFIConnector)
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val templateToBeRendered = "financialStatement/penalties.njk"
-  private val jsonToPassToTemplate: JsObject = Json.obj("year" -> "2020",
+  private val jsonToPassToTemplateAssociatedScheme: JsObject = Json.obj(
+    "year" -> "2020",
     "pstr" -> pstr,
-    "schemeName" -> schemeDetails.schemeName,
+    "schemeAssociated" -> true,
+    "schemeName" -> Json.arr(schemeDetails.schemeName),
+    "tables" -> penaltyTables)
+
+  private val jsonToPassToTemplateUnassociatedScheme: JsObject = Json.obj(
+    "year" -> "2020",
+    "pstr" -> pstr,
+    "schemeAssociated" -> false,
+    "schemeName" -> Json.arr(),
     "tables" -> penaltyTables)
 
   override def beforeEach: Unit = {
@@ -85,17 +100,16 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
-
   }
 
   "Penalties Controller" when {
     "on a GET" must {
 
-      "render the correct view with penalty tables" in {
+      "render the correct view with penalty tables for associated" in {
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-        val result = route(application, httpGETRequest(httpPathGET)).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated)).value
 
         status(result) mustEqual OK
 
@@ -103,7 +117,24 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
         templateCaptor.getValue mustEqual templateToBeRendered
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+        jsonCaptor.getValue must containJson(jsonToPassToTemplateAssociatedScheme)
+      }
+
+      "render the correct view with penalty tables for unassociated" in {
+        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(pstrs)))
+
+        val pstrIndex: String = (pstrs \ "pstrs").as[Seq[String]].indexOf(pstr).toString
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+        val result = route(application, httpGETRequest(httpPathGETUnassociated(pstrIndex))).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual templateToBeRendered
+
+        jsonCaptor.getValue must containJson(jsonToPassToTemplateUnassociatedScheme)
       }
 
     }
@@ -115,6 +146,7 @@ object PenaltiesControllerSpec {
   val year = "2020"
   val srn = "S2400000041"
   val pstr = "24000040IN"
+  val pstrs: JsObject = Json.obj("pstrs" -> Json.arr("24000040IN", "24000040IN"))
 
   val head = Seq(
     Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
