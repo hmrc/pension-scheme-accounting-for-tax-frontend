@@ -58,13 +58,17 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
           if (identifier.matches(srnRegex)) {
-            schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier) flatMap {
+            schemeService.retrieveSchemeDetails(request.psaId.id, identifier) flatMap {
               schemeDetails =>
                 val filteredPsaFS =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
 
+                println(s"\n\nPenaltiesController filteredPsaFS Size:\t${filteredPsaFS.size}\n\n")
+
                 val penaltyTables: Seq[JsObject] =
                   penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
+
+                println(s"\n\nPenaltiesController penaltyTables Size:\t${penaltyTables.size}\n\n")
 
                 val json = viewModel(
                   pstr = schemeDetails.pstr,
@@ -81,8 +85,11 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                 val pstrs: Seq[String] =
                   (jsValue \ "pstrs").as[Seq[String]]
 
+                val filteredPsaFS =
+                  psaFS.filter(_.pstr == pstrs(identifier.toInt))
+
                 val penaltyTables: Seq[JsObject] =
-                  penaltiesService.getPsaFsJson(psaFS, identifier, year.toInt).filter(_ != Json.obj())
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
 
                 val json = viewModel(
                   pstr = pstrs(identifier.toInt),

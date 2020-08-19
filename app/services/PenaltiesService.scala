@@ -28,7 +28,7 @@ import models.Quarters._
 import models.financialStatement.PsaFS
 import models.{PenaltySchemes, SchemeDetail}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
@@ -51,8 +51,9 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
                   (implicit messages: Messages): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
+      println(s"\n\nPenaltiesService psaFS Size:\t${psaFS.size}\n\n")
       val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
-
+      println(s"\n\nPenaltiesService filteredPsaFS Size:\t${filteredPsaFS.size}\n\n")
       if (filteredPsaFS.nonEmpty) {
         singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
       } else {
@@ -194,16 +195,22 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   //SAVE CHARGE REFS
   def chargeReferences(pstr: String, psaId: String)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier) = {
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
 
     fsConnector.getPsaFS(psaId).flatMap {
       psaFs =>
-        val chargeRefs: Seq[String] = psaFs.filter(_.pstr == pstr).map(_.chargeReference)
+        val chargeRefs: Seq[String] =
+          psaFs.filter(_.pstr == pstr).map(_.chargeReference)
+
         fiCacheConnector.fetch.flatMap {
           case Some(jsValue) =>
             val pstrs: Seq[String] = (jsValue \ "pstrs").as[Seq[String]]
-            fiCacheConnector.save(Json.obj("chargeRefs" -> chargeRefs, "pstrs" -> pstrs)).map(x => x)
-          case _ => ???
+
+            fiCacheConnector.save(Json.obj(
+              "chargeRefs" -> chargeRefs,
+              "pstrs" -> pstrs)).map(_ => ())
+          case _ =>
+            Future.successful(())
         }
     }
   }
