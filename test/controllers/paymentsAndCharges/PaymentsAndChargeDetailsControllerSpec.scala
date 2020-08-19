@@ -30,19 +30,20 @@ import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, reset, when, verify}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
+import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import scala.concurrent.Future
 
@@ -145,7 +146,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
-      val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188")
+      val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = BigDecimal(0.00))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150188"))).value
@@ -154,14 +155,9 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
-      val exp = expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true,
-        optHint = Some(messages("paymentsAndCharges.interest.hint")))
-
-
-      println( "\nACT=" + jsonCaptor.getValue)
-      println( "\nEXP=" + exp)
-
-      jsonCaptor.getValue must containJson(exp)
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
+      )
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
@@ -262,6 +258,6 @@ object PaymentsAndChargeDetailsControllerSpec {
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186"),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00),
     createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00),
-    createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188")
+    createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = 0.00)
   )
 }
