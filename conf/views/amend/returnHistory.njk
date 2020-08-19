@@ -22,6 +22,12 @@
       </div>
     </div>
 
-   <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+    {% if paymentAndChargesUrl %}
+          <p class="govuk-body"><a href="{{ paymentAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
+    {% endif %}
+
+
+
+   <p class="govuk-body"><a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a></p>
 
 {% endblock %}
