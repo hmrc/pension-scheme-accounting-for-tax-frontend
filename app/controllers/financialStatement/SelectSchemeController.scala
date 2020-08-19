@@ -80,7 +80,8 @@ class SelectSchemeController @Inject()(
 
               renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
             },
-            value =>
+            value => {
+              penaltiesService.chargeReferences(value.pstr, request.psaId.id)
               value.srn match {
                 case Some(srn) =>
                   Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
@@ -93,6 +94,7 @@ class SelectSchemeController @Inject()(
                       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
                   }
               }
+            }
           )
       }
   }

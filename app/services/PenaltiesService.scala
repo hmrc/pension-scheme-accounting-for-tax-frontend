@@ -51,7 +51,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
                   (implicit messages: Messages): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
-      val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
+      val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
 
       if (filteredPsaFS.nonEmpty) {
         singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
@@ -189,6 +189,22 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     listOfSchemesConnector.getListOfSchemes(psaId).map {
       case Right(list) => list.schemeDetail.getOrElse(Nil)
       case _ => Seq.empty[SchemeDetail]
+    }
+  }
+
+  //SAVE CHARGE REFS
+  def chargeReferences(pstr: String, psaId: String)
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier) = {
+
+    fsConnector.getPsaFS(psaId).flatMap {
+      psaFs =>
+        val chargeRefs: Seq[String] = psaFs.filter(_.pstr == pstr).map(_.chargeReference)
+        fiCacheConnector.fetch.flatMap {
+          case Some(jsValue) =>
+            val pstrs: Seq[String] = (jsValue \ "pstrs").as[Seq[String]]
+            fiCacheConnector.save(Json.obj("chargeRefs" -> chargeRefs, "pstrs" -> pstrs)).map(x => x)
+          case _ => ???
+        }
     }
   }
 

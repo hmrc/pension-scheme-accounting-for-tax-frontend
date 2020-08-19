@@ -18,8 +18,10 @@ package services.paymentsAndCharges
 
 import java.time.LocalDate
 
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
+import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
@@ -33,7 +35,7 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-class PaymentsAndChargesService {
+class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheConnector) {
 
   def getPaymentsAndChargesSeqOfTables(paymentsAndChargesForAGivenPeriod: Seq[(LocalDate, Seq[SchemeFS])], srn: String)(
       implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
@@ -78,24 +80,24 @@ class PaymentsAndChargesService {
     val interestChargeType = if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
     Seq(
       PaymentsAndChargesDetails(
-        details.chargeType.toString,
-        details.chargeReference,
-        s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
-        PaymentOverdue,
-        controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+        chargeType = details.chargeType.toString,
+        chargeReference = details.chargeReference,
+        amountDue = s"${FormatHelper.formatCurrencyAmountAsString(details.amountDue)}",
+        status = PaymentOverdue,
+        redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
           .onPageLoad(srn, details.periodStartDate, details.chargeReference)
           .url,
-        messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+        visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
       ),
       PaymentsAndChargesDetails(
-        interestChargeType.toString,
-        messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-        s"${FormatHelper.formatCurrencyAmountAsString(details.accruedInterestTotal)}",
-        InterestIsAccruing,
-        controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+        chargeType = interestChargeType.toString,
+        chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+        amountDue = s"${FormatHelper.formatCurrencyAmountAsString(details.accruedInterestTotal)}",
+        status = InterestIsAccruing,
+        redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
           .onPageLoad(srn, details.periodStartDate, details.chargeReference)
           .url,
-        messages(s"paymentsAndCharges.interest.visuallyHiddenText")
+        visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
       )
     )
   }
