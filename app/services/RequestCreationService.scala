@@ -31,7 +31,6 @@ import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -74,12 +73,12 @@ class RequestCreationService @Inject()(
     val psaId = request.psaId.id
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn)
-      seqAFTOverview <- getAftOverview(schemeDetails.pstr, startDate)
+      seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus, psaId)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
-      sessionAccessData <- createSessionAccessData(version, seqAFTOverview, updatedUA, srn, startDate)
+      sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(id, updatedUA.data, sessionAccessData,
-        lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
+      lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       OptionalDataRequest[A](request, id, request.psaId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)
@@ -87,7 +86,7 @@ class RequestCreationService @Inject()(
   }
 
 
-  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], ua: UserAnswers, srn: String, startDate: LocalDate)
+  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], srn: String, startDate: LocalDate)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[SessionAccessData] = {
     userAnswersCacheConnector.lockedBy(srn, startDate).map { lockedBy =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
@@ -105,27 +104,6 @@ class RequestCreationService @Inject()(
         }
 
       SessionAccessData(version, accessMode, areSubmittedVersionsAvailable)
-    }
-  }
-
-  private def getAftOverview(pstr: String, startDate: LocalDate)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTOverview]] = {
-
-    if (LocalDate.parse(config.overviewApiEnablementDate).isAfter(DateHelper.today)) {
-      aftConnector
-        .getListOfVersions(pstr, startDate)
-        .map { aftVersion =>
-          aftVersion.map { _ =>
-            AFTOverview(
-              periodStartDate = startDate,
-              periodEndDate = Quarters.getQuarter(startDate).endDate,
-              numberOfVersions = 1,
-              submittedVersionAvailable = false,
-              compiledVersionAvailable = true
-            )
-          }
-        }
-    } else { // After 21st July
-      aftConnector.getAftOverview(pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
     }
   }
 
