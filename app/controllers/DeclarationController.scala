@@ -16,28 +16,29 @@
 
 package controllers
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.ZoneId
+import java.time.{LocalDateTime, LocalDate}
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailConnector, EmailStatus}
+import connectors.{EmailStatus, EmailConnector}
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Declaration, GenericViewModel, NormalMode, Quarter}
+import models.{GenericViewModel, AccessType, Quarter, NormalMode, Declaration}
 import navigators.CompoundNavigator
 import pages.{DeclarationPage, PSANameQuery}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
+import utils.DateHelper.{dateFormatterSubmittedDate, dateFormatterStartDate, dateFormatterDMY}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DeclarationController @Inject()(
     override val messagesApi: MessagesApi,
@@ -94,7 +95,7 @@ class DeclarationController @Inject()(
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
-    val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
+    val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now().atZone(ZoneId.of("Europe/London")))
 
     val sendToEmailId = messages("confirmation.whatNext.send.to.email.id")
     val accountingPeriod = messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)
