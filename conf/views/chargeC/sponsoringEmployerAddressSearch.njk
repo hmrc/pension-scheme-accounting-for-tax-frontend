@@ -24,7 +24,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeC.employerAddressSearch.heading', sponsorName)}}</h1>
 
-        <form action="{{ submitUrl }}" method="post">
+        <form action="{{ submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
@@ -38,7 +38,6 @@
             name: "value",
             value: form.value.value,
             classes: "govuk-input--width-10",
-            attributes: {autocomplete: "none"},
             errorMessage: form.value.error
           }) }}
 

@@ -16,6 +16,7 @@
 
 package controllers.financialStatement
 
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import forms.SelectSchemeFormProvider
 import javax.inject.Inject
@@ -32,51 +33,67 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class SelectSchemeController @Inject()(
-                                     identify: IdentifierAction,
-                                     override val messagesApi: MessagesApi,
-                                     val controllerComponents: MessagesControllerComponents,
-                                     formProvider: SelectSchemeFormProvider,
-                                     penaltiesService: PenaltiesService,
-                                     renderer: Renderer
-                                   )(implicit ec: ExecutionContext)
+                                        identify: IdentifierAction,
+                                        override val messagesApi: MessagesApi,
+                                        val controllerComponents: MessagesControllerComponents,
+                                        formProvider: SelectSchemeFormProvider,
+                                        penaltiesService: PenaltiesService,
+                                        fiCacheConnector: FinancialInfoCacheConnector,
+                                        renderer: Renderer
+                                      )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(schemes: Seq[PenaltySchemes])(implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes)
+  private def form(schemes: Seq[PenaltySchemes])
+                  (implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes)
 
-  def onPageLoad(year: String): Action[AnyContent] = identify.async { implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaId.id).flatMap { penaltySchemes =>
-        if(penaltySchemes.nonEmpty) {
-        val json = Json.obj(
-          "form" -> form(penaltySchemes),
+  def onPageLoad(year: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      penaltiesService.penaltySchemes(year, request.psaId.id).flatMap {
+        penaltySchemes =>
+          if (penaltySchemes.nonEmpty) {
 
-          "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
-          "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+            val json = Json.obj(
+              "form" -> form(penaltySchemes),
+              "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
+              "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
 
-        renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
-      } else {
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
+            renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
+          } else {
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
       }
-    }
-
-  def onSubmit(year: String): Action[AnyContent] = identify.async { implicit request =>
-    penaltiesService.penaltySchemes(year, request.psaId.id).flatMap { penaltySchemes =>
-        form(penaltySchemes).bindFromRequest().fold( formWithErrors => {
-
-          val json = Json.obj(
-            "form" -> formWithErrors,
-            "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
-            "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
-                renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
-            },
-            value => value.srn match {
-              case Some(srn) => Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
-              case _ =>  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              }
-        )
-    }
   }
 
+  def onSubmit(year: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      penaltiesService.penaltySchemes(year, request.psaId.id).flatMap {
+        penaltySchemes =>
+          form(penaltySchemes).bindFromRequest().fold(
+            formWithErrors => {
+
+              val json = Json.obj(
+                "form" -> formWithErrors,
+                "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
+                "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+
+              renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
+            },
+            value =>
+              value.srn match {
+                case Some(srn) =>
+                  Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
+                case _ =>
+                  fiCacheConnector.fetch flatMap {
+                    case Some(jsValue) =>
+                      val pstrIndex: String = (jsValue \ "pstrs").as[Seq[String]].indexOf(value.pstr).toString
+                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
+                    case _ =>
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+              }
+          )
+      }
+  }
 }

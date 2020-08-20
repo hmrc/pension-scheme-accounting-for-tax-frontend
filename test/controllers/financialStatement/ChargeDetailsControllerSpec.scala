@@ -16,8 +16,6 @@
 
 package controllers.financialStatement
 
-import java.time.LocalDate
-
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
@@ -43,13 +41,22 @@ import uk.gov.hmrc.viewmodels.{NunjucksSupport, _}
 
 import scala.concurrent.Future
 
-class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-  with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class ChargeDetailsControllerSpec
+  extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   import ChargeDetailsControllerSpec._
 
-  private def httpPathGET: String = controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, "2020-04-01", chargeRef).url
+  private def httpPathGETAssociated: String =
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, "2020-04-01", chargeRef).url
 
+  private def httpPathGETUnassociated: String =
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad("0", "2020-04-01", chargeRef).url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
@@ -63,11 +70,9 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-
   private val templateToBeRendered = "financialStatement/chargeDetails.njk"
-  private val jsonToPassToTemplate: JsObject = Json.obj(
+  private val commonJson: JsObject = Json.obj(
     "heading" -> "Accounting for Tax late filing penalty",
-    "schemeName" -> schemeDetails.schemeName,
     "isOverdue" -> true,
     "period" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
     "chargeReference" -> chargeRef,
@@ -91,11 +96,15 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
   "ChargeDetails Controller" when {
     "on a GET" must {
 
-      "render the correct view with penalty tables" in {
+      "render the correct view with penalty tables for associated" in {
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-        val result = route(application, httpGETRequest(httpPathGET)).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated)).value
+        val json = Json.obj(
+          "schemeAssociated" -> true,
+          "schemeName" -> schemeDetails.schemeName
+        )
 
         status(result) mustEqual OK
 
@@ -103,7 +112,25 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
         templateCaptor.getValue mustEqual templateToBeRendered
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+        jsonCaptor.getValue must containJson(commonJson ++ json)
+      }
+
+      "render the correct view with penalty tables for unassociated" in {
+
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+        val result = route(application, httpGETRequest(httpPathGETUnassociated)).value
+        val json = Json.obj(
+          "schemeAssociated" -> false
+        )
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual templateToBeRendered
+
+        jsonCaptor.getValue must containJson(commonJson ++ json)
       }
 
     }
