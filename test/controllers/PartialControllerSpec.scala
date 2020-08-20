@@ -30,7 +30,7 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -38,7 +38,9 @@ import services.{AFTPartialService, SchemeService}
 import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 
 class PartialControllerSpec
     extends ControllerSpecBase
@@ -106,6 +108,10 @@ class PartialControllerSpec
 
         status(result) mustEqual OK
 
+        val xx = Await.result(result, Duration.Inf)
+
+        //println( "\n>>>" + xx.body.as("String"))
+
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRenderedForPaymentsAndCharges
@@ -118,12 +124,8 @@ class PartialControllerSpec
         val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
 
         status(result) mustEqual OK
-        result.foreach{
-          x => x.
-        }
-
+        contentAsString(result) mustEqual ""
         verify(mockRenderer, times(0)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
       }
     }
 
