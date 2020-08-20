@@ -28,6 +28,8 @@ import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import config.Constants._
+import models.financialStatement.PsaFS
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
@@ -60,15 +62,11 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
           if (identifier.matches(srnRegex)) {
             schemeService.retrieveSchemeDetails(request.psaId.id, identifier) flatMap {
               schemeDetails =>
-                val filteredPsaFS =
+                val filteredPsaFS: Seq[PsaFS] =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
-
-                println(s"\n\nPenaltiesController filteredPsaFS Size:\t${filteredPsaFS.size}\n\n")
 
                 val penaltyTables: Seq[JsObject] =
                   penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
-
-                println(s"\n\nPenaltiesController penaltyTables Size:\t${penaltyTables.size}\n\n")
 
                 val json = viewModel(
                   pstr = schemeDetails.pstr,

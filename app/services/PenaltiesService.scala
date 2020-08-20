@@ -28,7 +28,7 @@ import models.Quarters._
 import models.financialStatement.PsaFS
 import models.{PenaltySchemes, SchemeDetail}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
@@ -48,12 +48,12 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   //PENALTIES
   def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int)
-                  (implicit messages: Messages): Seq[JsObject] =
+                  (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[JsObject] =
     availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
-      println(s"\n\nPenaltiesService psaFS Size:\t${psaFS.size}\n\n")
+
       val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
-      println(s"\n\nPenaltiesService filteredPsaFS Size:\t${filteredPsaFS.size}\n\n")
+
       if (filteredPsaFS.nonEmpty) {
         singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
       } else {
@@ -62,7 +62,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     }
 
   def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                           (implicit messages: Messages): JsObject = {
+                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): JsObject = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -90,12 +90,21 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
-                            (implicit messages: Messages): Html = {
-    Html(
-      s"<a id=${data.chargeReference} " +
-        s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, data.chargeReference)}>" +
-        s"${messages(data.chargeType.toString)}" +
-        s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
+                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Html] = {
+    fiCacheConnector.fetch flatMap {
+      case Some(jsValue) =>
+        val chargeRefsIndex: String =
+          (jsValue \ "chargeRefs").as[Seq[String]].indexOf(data.chargeReference).toString
+
+        Future.successful(Html(
+          s"<a id=$chargeRefsIndex " +
+            s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
+            s"${messages(data.chargeType.toString)}" +
+            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"))
+      case _ =>
+        Future.successful(Html(""))
+    }
+
   }
 
   private def statusCell(data: PsaFS)(implicit messages: Messages): Cell = {
@@ -167,15 +176,14 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   def penaltySchemes(year: String, psaId: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
-      penalties <- fsConnector.getPsaFS(psaId)
-      penaltyPstrs = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
-      listOfSchemes <- getListOfSchemes(psaId)
-      schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
-      unassociatedSchemes = penaltyPstrs
-                              .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get)
-                              .contains(penaltyPstr))
-                              .map(x => PenaltySchemes(None, x, None))
-      _ <- fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
+      penalties             <- fsConnector.getPsaFS(psaId)
+      penaltyPstrs          = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
+      listOfSchemes         <- getListOfSchemes(psaId)
+      schemesWithPstr       = listOfSchemes.filter(_.pstr.isDefined)
+      unassociatedSchemes   = penaltyPstrs
+                                .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get).contains(penaltyPstr))
+                                .map(x => PenaltySchemes(None, x, None))
+      _                     <- fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
     } yield {
 
       val associatedSchemes: Seq[PenaltySchemes] = schemesWithPstr
@@ -194,26 +202,36 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   }
 
   //SAVE CHARGE REFS
-  def chargeReferences(pstr: String, psaId: String)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+  def saveChargeRefs(pstr: String, psaId: String, year: String)
+                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
 
-    fsConnector.getPsaFS(psaId).flatMap {
-      psaFs =>
-        val chargeRefs: Seq[String] =
-          psaFs.filter(_.pstr == pstr).map(_.chargeReference)
+    (for {
+      psaFs <- fsConnector.getPsaFS(psaId)
+      optJsValue <- fiCacheConnector.fetch
+      quarters <- Future.successful(availableQuarters(year.toInt)(config))
+    } yield {
+      optJsValue match {
+        case Some(jsValue) =>
+          val pstrs: Seq[String] = (jsValue \ "pstrs").as[Seq[String]]
 
-        fiCacheConnector.fetch.flatMap {
-          case Some(jsValue) =>
-            val pstrs: Seq[String] = (jsValue \ "pstrs").as[Seq[String]]
+          val chargeRefs: Seq[String] = quarters.flatMap {
+            quarter =>
+              psaFs
+                .filter(_.pstr == pstr)
+                .filter(_.periodStartDate == getStartDate(quarter, year.toInt))
+                .map(_.chargeReference)
+          }
 
-            fiCacheConnector.save(Json.obj(
-              "chargeRefs" -> chargeRefs,
-              "pstrs" -> pstrs)).map(_ => ())
-          case _ =>
-            Future.successful(())
-        }
+          Tuple2(pstrs, chargeRefs)
+        case _ =>
+          Tuple2(Seq.empty, Seq.empty)
+      }
+    }) flatMap {
+      pstrsAndChargeRefs =>
+        fiCacheConnector.save(Json.obj(
+          "pstrs" -> pstrsAndChargeRefs._1,
+          "chargeRefs" -> pstrsAndChargeRefs._2
+        )).map(_ => ())
     }
   }
-
 }
-
