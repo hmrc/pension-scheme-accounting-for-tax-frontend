@@ -48,8 +48,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
   //PENALTIES
   def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int)
-                  (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[JsObject] =
-    availableQuarters(year)(config).map { quarter =>
+                  (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[JsObject]] =
+    Future.sequence(availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
 
       val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
@@ -57,12 +57,12 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       if (filteredPsaFS.nonEmpty) {
         singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
       } else {
-        Json.obj()
+        Future.successful(Json.obj())
       }
-    }
+    })
 
-  def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): JsObject = {
+  private def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
+                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -72,21 +72,26 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
       Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
-    val rows: Seq[Seq[Cell]] = filteredPsaFS.map { data =>
-      Seq(
-        Cell(chargeTypeLink(identifier, data, startDate), classes = Seq("govuk-!-width-two-thirds-quarter")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-          classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
-        statusCell(data)
-      )
+
+    Future.sequence(filteredPsaFS.map {
+      data =>
+        chargeTypeLink(identifier, data, startDate).map {
+          content =>
+            Seq(
+              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+                classes = Seq("govuk-!-width-one-quarter")),
+              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+              statusCell(data)
+            )
+        }
+    }) map {
+      rows =>
+        Json.obj(
+          "header" -> caption,
+          "penaltyTable" -> Table(head = head, rows = rows)
+        )
     }
-
-    Json.obj(
-      "header" -> caption,
-      "penaltyTable" -> Table(head = head, rows = rows)
-    )
-
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
@@ -100,7 +105,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
           s"<a id=$chargeRefsIndex " +
             s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
-            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"))
+            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", chargeRefsIndex)}</span> </a>"))
       case _ =>
         Future.successful(Html(""))
     }
@@ -176,14 +181,14 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   def penaltySchemes(year: String, psaId: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
-      penalties             <- fsConnector.getPsaFS(psaId)
-      penaltyPstrs          = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
-      listOfSchemes         <- getListOfSchemes(psaId)
-      schemesWithPstr       = listOfSchemes.filter(_.pstr.isDefined)
-      unassociatedSchemes   = penaltyPstrs
-                                .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get).contains(penaltyPstr))
-                                .map(x => PenaltySchemes(None, x, None))
-      _                     <- fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
+      penalties <- fsConnector.getPsaFS(psaId)
+      penaltyPstrs = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.pstr)
+      listOfSchemes <- getListOfSchemes(psaId)
+      schemesWithPstr = listOfSchemes.filter(_.pstr.isDefined)
+      unassociatedSchemes = penaltyPstrs
+        .filter(penaltyPstr => !schemesWithPstr.map(_.pstr.get).contains(penaltyPstr))
+        .map(x => PenaltySchemes(None, x, None))
+      _ <- fiCacheConnector.save(Json.obj("pstrs" -> unassociatedSchemes.map(_.pstr)))
     } yield {
 
       val associatedSchemes: Seq[PenaltySchemes] = schemesWithPstr

@@ -65,17 +65,22 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                 val filteredPsaFS: Seq[PsaFS] =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
 
-                val penaltyTables: Seq[JsObject] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
+                val penaltyTables: Future[Seq[JsObject]] =
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                    _.filter(_ != Json.obj())
+                  }
 
-                val json = viewModel(
-                  pstr = schemeDetails.pstr,
-                  schemeAssociated = true,
-                  tables = penaltyTables,
-                  args = schemeDetails.schemeName
-                )
+                penaltyTables flatMap {
+                  tables =>
+                    val json = viewModel(
+                      pstr = schemeDetails.pstr,
+                      schemeAssociated = true,
+                      tables = tables,
+                      args = schemeDetails.schemeName
+                    )
+                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                }
 
-                renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
             }
           } else {
             fiCacheConnector.fetch flatMap {
@@ -86,16 +91,22 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                 val filteredPsaFS =
                   psaFS.filter(_.pstr == pstrs(identifier.toInt))
 
-                val penaltyTables: Seq[JsObject] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
+                val penaltyTables: Future[Seq[JsObject]] =
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                    _.filter(_ != Json.obj())
+                  }
 
-                val json = viewModel(
-                  pstr = pstrs(identifier.toInt),
-                  schemeAssociated = false,
-                  tables = penaltyTables
-                )
+                penaltyTables flatMap {
+                  tables =>
+                    val json = viewModel(
+                      pstr = pstrs(identifier.toInt),
+                      schemeAssociated = false,
+                      tables = tables
+                    )
 
-                renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                }
+
               case _ =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }
