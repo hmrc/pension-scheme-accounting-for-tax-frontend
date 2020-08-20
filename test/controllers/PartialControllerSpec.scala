@@ -108,10 +108,6 @@ class PartialControllerSpec
 
         status(result) mustEqual OK
 
-        val xx = Await.result(result, Duration.Inf)
-
-        //println( "\n>>>" + xx.body.as("String"))
-
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRenderedForPaymentsAndCharges
@@ -119,12 +115,11 @@ class PartialControllerSpec
         jsonCaptor.getValue must containJson(jsonToPassToTemplatePaymentsAndCharges)
       }
 
-      "return the empty html when there no information from payments and charges partial" in {
+      "not render the fin info section when there are no payments or charges" in {
         when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
         val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
 
         status(result) mustEqual OK
-        contentAsString(result) mustEqual ""
         verify(mockRenderer, times(0)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       }
     }
