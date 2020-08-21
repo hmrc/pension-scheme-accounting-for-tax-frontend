@@ -95,7 +95,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     )
   }
 
-  private val paymentsAndChargesService = new PaymentsAndChargesService
+  private val paymentsAndChargesService = new PaymentsAndChargesService()
 
   "getPaymentsAndChargesSeqOfTables" must {
 
@@ -127,7 +127,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
             )
           )))
 
-        val result = paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(paymentsAndChargesForAGivenPeriod(chargeType), srn)
+        val result = paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(chargeType), srn)
 
         result mustBe expectedTable
       }
@@ -137,7 +137,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val totalAmount = -56432.00
       val expectedTable = Seq(paymentTable(Seq.empty))
 
-      val result = paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(
+      val result = paymentsAndChargesService.getPaymentsAndCharges(
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00),
         srn)
 
@@ -162,7 +162,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           )))
 
       val result =
-        paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
+        paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
 
       result mustBe expectedTable
     }

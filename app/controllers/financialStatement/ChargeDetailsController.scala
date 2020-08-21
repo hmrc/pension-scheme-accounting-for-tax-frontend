@@ -31,12 +31,15 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import config.Constants._
+import connectors.cache.FinancialInfoCacheConnector
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(identify: IdentifierAction,
                                         override val messagesApi: MessagesApi,
                                         val controllerComponents: MessagesControllerComponents,
                                         fsConnector: FinancialStatementConnector,
+                                        fiCacheConnector: FinancialInfoCacheConnector,
                                         penaltiesService: PenaltiesService,
                                         schemeService: SchemeService,
                                         renderer: Renderer
@@ -45,42 +48,49 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(identifier: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] = identify.async {
+  def onPageLoad(identifier: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
           val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
+          fiCacheConnector.fetch flatMap {
+            case Some(jsValue) =>
+              val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
 
-          val commonJson = Json.obj(
-            "heading" -> heading(psaFS.filter(_.chargeReference == chargeReference).head.chargeType.toString),
-            "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeReference).head),
-            "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
-              getQuarter(startDate).endDate.format(dateFormatterDMY)),
-            "chargeReference" -> psaFS.filter(_.chargeReference == chargeReference).head.chargeReference,
-            "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeReference).head)
-          )
+              val commonJson = Json.obj(
+                "heading" -> heading(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head.chargeType.toString),
+                "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head),
+                "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
+                  getQuarter(startDate).endDate.format(dateFormatterDMY)),
+                "chargeReference" -> psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head.chargeReference,
+                "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head)
+              )
 
-          if (filteredPsaFS.nonEmpty) {
-            if (identifier.matches(srnRegex)) {
-              schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
-                schemeDetails =>
+              if (filteredPsaFS.nonEmpty) {
+                if (identifier.matches(srnRegex)) {
+                  schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
+                    schemeDetails =>
+                      val json = Json.obj(
+                        "schemeAssociated" -> true,
+                        "schemeName" -> schemeDetails.schemeName
+                      ) ++ commonJson
+
+                      renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                  }
+                } else {
                   val json = Json.obj(
-                    "schemeAssociated" -> true,
-                    "schemeName" -> schemeDetails.schemeName
+                    "schemeAssociated" -> false
                   ) ++ commonJson
 
                   renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                }
+              } else {
+                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
-            } else {
-              val json = Json.obj(
-                "schemeAssociated" -> false
-              ) ++ commonJson
-
-              renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
-            }
-          } else {
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+            case _ =>
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
+
       }
   }
 

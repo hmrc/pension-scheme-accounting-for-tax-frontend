@@ -71,7 +71,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
-    when(mockPaymentsAndChargesService.getPaymentsAndChargesSeqOfTables(Matchers.eq(filteredSchemeFS), Matchers.eq(srn))(any())).thenReturn(Nil)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(filteredSchemeFS), Matchers.eq(srn))(any(), any(), any()))
+      .thenReturn(Future.successful(Nil))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 

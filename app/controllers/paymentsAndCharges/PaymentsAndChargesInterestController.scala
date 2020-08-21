@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import helpers.FormatHelper
 import javax.inject.Inject
@@ -45,42 +46,59 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
                                                      val controllerComponents: MessagesControllerComponents,
                                                      config: FrontendAppConfig,
                                                      schemeService: SchemeService,
-                                                     financialStatementConnector: FinancialStatementConnector,
-                                                     renderer: Renderer)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                                     fsConnector: FinancialStatementConnector,
+                                                     fiCacheConnector: FinancialInfoCacheConnector,
+                                                     renderer: Renderer
+                                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, startDate: LocalDate, chargeReference: String): Action[AnyContent] =
-    identify.async { implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-        financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
-          val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeReference)
-          filteredSchemeFs match {
-            case Some(schemeFs) =>
-              renderer
-                .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                        summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName))
-                .map(Ok(_))
-            case _ =>
-              Logger.warn(s"No Payments and Charge details found for the selected charge reference $chargeReference")
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+  def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      fiCacheConnector.fetch flatMap {
+        case Some(jsValue) =>
+          val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
+          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+            schemeDetails =>
+              fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+                seqSchemeFS =>
+                  val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt))
+                  filteredSchemeFs match {
+                    case Some(_) =>
+                      renderer
+                        .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                          summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName))
+                        .map(Ok(_))
+                    case _ =>
+                      Logger.warn(s"No Payments and Charge details " +
+                        s"found for the selected charge reference ${chargeRefs(index.toInt)}")
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+              }
           }
-        }
+        case _ =>
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
-    }
+  }
 
-  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String)(implicit messages: Messages): JsObject = {
+  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String)
+                     (implicit messages: Messages): JsObject = {
     filteredSchemeFs match {
       case Some(schemeFS) =>
         Json.obj(
           fields = "chargeDetailsList" -> getSummaryListRows(schemeFS),
           "tableHeader" -> messages("paymentsAndCharges.caption",
-                                    schemeFS.periodStartDate.format(dateFormatterStartDate),
-                                    schemeFS.periodEndDate.format(dateFormatterDMY)),
+            schemeFS.periodStartDate.format(dateFormatterStartDate),
+            schemeFS.periodEndDate.format(dateFormatterDMY)),
           "schemeName" -> schemeName,
           "accruedInterest" -> schemeFS.accruedInterestTotal,
-          "chargeType" -> (if (schemeFS.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString),
+          "chargeType" -> (
+              if (schemeFS.chargeType == PSS_AFT_RETURN)
+                PSS_AFT_RETURN_INTEREST.toString
+              else
+                PSS_OTC_AFT_RETURN_INTEREST.toString
+            ),
           "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
             .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
             .url,
