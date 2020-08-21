@@ -68,6 +68,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAppConfig.minimumYear).thenReturn(year)
+    when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
     DateHelper.setDate(Some(dateNow))
   }
 
@@ -217,13 +218,13 @@ object PenaltiesServiceSpec {
   ))
 
   def aftLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+    s"<a id=0 class=govuk-link " +
+      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
   def otcLink(startDate: String): Html = Html(
-    s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+    s"<a id=0 class=govuk-link " +
+      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
 

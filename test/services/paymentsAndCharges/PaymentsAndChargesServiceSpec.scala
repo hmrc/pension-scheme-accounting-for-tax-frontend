@@ -19,6 +19,7 @@ package services.paymentsAndCharges
 import java.time.LocalDate
 
 import base.SpecBase
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
@@ -35,6 +36,7 @@ import utils.AFTConstants._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
   import PaymentsAndChargesServiceSpec._
@@ -94,8 +96,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       Cell(statusHtml)
     )
   }
-
-  private val paymentsAndChargesService = new PaymentsAndChargesService()
+  private val mockFiCacheConnector = mock[FinancialInfoCacheConnector]
+  private val paymentsAndChargesService = new PaymentsAndChargesService(mockFiCacheConnector)
 
   "getPaymentsAndChargesSeqOfTables" must {
 
@@ -146,7 +148,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "return payments and charges table with row where there is no amount due" in {
       val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-        .onPageLoad(srn, QUARTER_START_DATE.toString, chargeReference = "AYU3494534632")
+        .onPageLoad(srn, QUARTER_START_DATE.toString, index = "AYU3494534632")
         .url
       val expectedTable = Seq(
         paymentTable(
