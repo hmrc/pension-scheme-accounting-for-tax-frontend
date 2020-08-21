@@ -45,7 +45,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
                                                    val controllerComponents: MessagesControllerComponents,
                                                    config: FrontendAppConfig,
                                                    schemeService: SchemeService,
-                                                   financialStatementConnector: FinancialStatementConnector,
+                                                   fsConnector: FinancialStatementConnector,
                                                    fiCacheConnector: FinancialInfoCacheConnector,
                                                    paymentsAndChargesService: PaymentsAndChargesService,
                                                    renderer: Renderer
@@ -61,7 +61,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
           val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
 
           schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-            financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
+            fsConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
               val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt))
               filteredSchemeFs match {
                 case Some(schemeFs) =>

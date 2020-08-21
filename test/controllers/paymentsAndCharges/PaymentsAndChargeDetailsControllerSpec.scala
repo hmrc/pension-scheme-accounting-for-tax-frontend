@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -50,11 +51,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
   import PaymentsAndChargeDetailsControllerSpec._
 
-  private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, chargeReference: String): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, chargeReference).url
+  private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
+    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFICacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -63,7 +65,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[SchemeService].toInstance(mockSchemeService),
-        bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
+        bind[FinancialStatementConnector].toInstance(mockFSConnector),
+        bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
       ): _*
     )
@@ -71,10 +74,10 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService)
+    reset(mockSchemeService, mockFSConnector, mockRenderer, mockPaymentsAndChargesService, mockFICacheConnector)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
+    when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any())).thenReturn(Nil)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
@@ -84,7 +87,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate",
                                          schemeFS.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}" +
-        s"<span class=govuk-!-display-block><a id='breakdown' class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+        s"<span class=govuk-!-display-block>" +
+        s"<a id='breakdown' class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
           .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
           .url}>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"
@@ -124,10 +128,13 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
+      when(mockFICacheConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
+
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150184"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
@@ -137,10 +144,13 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
+      when(mockFICacheConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150186")))))
+
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150186"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
@@ -150,10 +160,13 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
+      when(mockFICacheConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150187")))))
+
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150187"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
@@ -163,10 +176,13 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
+      when(mockFICacheConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150185")))))
+
       val schemeFS = createChargeWithDeltaCredit(chargeReference = "XY002610150185")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "XY002610150185"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
@@ -176,7 +192,10 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET(chargeReference = "dummy-charge"))).value
+      when(mockFICacheConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(None))
+
+      val result = route(application, httpGETRequest(httpPathGET(index = "-1"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
