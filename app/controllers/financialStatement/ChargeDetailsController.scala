@@ -84,6 +84,5 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
       }
   }
 
-  val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s
-
+  private val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s
 }
