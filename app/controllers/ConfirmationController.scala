@@ -27,6 +27,9 @@ import javax.inject.Inject
 import models.AccessType
 import models.GenericViewModel
 import models.LocalDateBinder._
+import models.ValueChangeType.ChangeTypeDecrease
+import models.requests.DataRequest
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
@@ -47,7 +50,7 @@ import utils.DateHelper.dateFormatterDMY
 import utils.DateHelper.dateFormatterStartDate
 import utils.DateHelper.dateFormatterSubmittedDate
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -76,11 +79,10 @@ class ConfirmationController @Inject()(
           val listSchemesUrl = config.yourPensionSchemesUrl
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
-val xsxsx = if(normal) confirmation.whatNext.li.item1 else
+
           val json = Json.obj(
             fields = "srn" -> srn,
             "panelHtml" -> confirmationPanelText.toString(),
-            ""
             "email" -> email,
             "isAmendment" -> isAmendment,
             "list" -> rows,
@@ -89,12 +91,13 @@ val xsxsx = if(normal) confirmation.whatNext.li.item1 else
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
-            )
+            ),
+            "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url
           )
-          renderer.render("confirmation.njk", json).flatMap { viewHtml =>
-            userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-              Ok(viewHtml)
-            }
+          renderer.render(getView, json).flatMap { viewHtml =>
+          //  userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+              Future.successful(Ok(viewHtml))
+          //  }
           }
         }
     }
@@ -130,4 +133,12 @@ val xsxsx = if(normal) confirmation.whatNext.li.item1 else
   private def confirmationPanelText(implicit messages: Messages): Html = {
     Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString()}")
   }
+
+  private def getView(implicit request: DataRequest[AnyContent]): String ={
+    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
+      case (true,Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
+      case _ => "confirmation.njk"
+    }
+  }
+
 }
