@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
@@ -45,6 +45,7 @@ class ReturnHistoryController @Inject()(
     schemeService: SchemeService,
     aftConnector: AFTConnector,
     userAnswersCacheConnector: UserAnswersCacheConnector,
+    financialStatementConnector: FinancialStatementConnector,
     override val messagesApi: MessagesApi,
     identify: IdentifierAction,
     val controllerComponents: MessagesControllerComponents,
@@ -61,11 +62,15 @@ class ReturnHistoryController @Inject()(
 
     val json = for {
       schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+      schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
       versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
       _ <- userAnswersCacheConnector.removeAll(internalId)
       table <- tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {
+      val paymentJson = if(schemeFs.isEmpty) Json.obj()
+      else
+        Json.obj("paymentsAndChargesUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
       Json.obj(
         fields = "srn" -> srn,
         "startDate" -> Some(startDate),
@@ -73,7 +78,7 @@ class ReturnHistoryController @Inject()(
         "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
         "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
         "schemeName" -> schemeDetails.schemeName
-      ) ++ table
+      ) ++ table ++ paymentJson
     }
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }

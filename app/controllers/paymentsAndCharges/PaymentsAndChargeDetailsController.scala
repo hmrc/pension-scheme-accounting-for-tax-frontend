@@ -25,7 +25,7 @@ import helpers.FormatHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -55,11 +55,12 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
     identify.async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
+
           val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeReference)
           filteredSchemeFs match {
             case Some(schemeFs) =>
               renderer
-                .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, schemeFs, schemeDetails.schemeName))
+                .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName))
                 .map(Ok(_))
             case _ =>
               Logger.warn(s"No Payments and Charge details found for the selected charge reference $chargeReference")
@@ -69,13 +70,14 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       }
     }
 
-  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String)(implicit messages: Messages): JsObject = {
+  def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String)(implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(date), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate", date.format(dateFormatterDMY))}" +
-            s"<span class=govuk-!-display-block><a id='breakdown' class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+            s"<span class=govuk-!-display-block><a id='breakdown' " +
+            s"class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
               .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
               .url}>" +
             s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"
@@ -89,6 +91,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         Html("")
     }
 
+    val optHintText = if(schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
+     Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
     Json.obj(
       fields = "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
       "tableHeader" -> messages("paymentsAndCharges.caption",
@@ -106,8 +110,10 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-    )
+      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+    ) ++ optHintText
+
   }
 
 }

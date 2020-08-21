@@ -18,10 +18,13 @@
         <h1 class="govuk-heading-xl">{{messages("returnHistory.title", quarterStart, quarterEnd)}}</h1>
         {{ govukTable(versions) }}
 
-
       </div>
     </div>
 
-   <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+    {% if paymentsAndChargesUrl %}
+          <p class="govuk-body"><a id="payments-charges" href="{{ paymentsAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
+    {% endif %}
+
+    <p class="govuk-body"><a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a></p>
 
 {% endblock %}

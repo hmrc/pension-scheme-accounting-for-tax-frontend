@@ -19,14 +19,17 @@ package controllers.amend
 import java.time.LocalDate
 
 import connectors.AFTConnector
-import connectors.cache.UserAnswersCacheConnector
+import connectors.FinancialStatementConnector
 import controllers.base.ControllerSpecBase
-import play.api.mvc.Result
 import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
+import models.AFTOverview
+import models.AFTVersion
+import models.AccessType
+import models.Draft
+import models.Submission
 import models.LocalDateBinder._
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -53,6 +56,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val templateToBeRendered = "amend/returnHistory.njk"
   private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+  private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
 
   private val cssQuarterWidth = "govuk-!-width-one-quarter"
   private val cssHalfWidth = "govuk-!-width-one-half"
@@ -103,7 +107,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[SchemeService].toInstance(mockSchemeService),
-    bind[AFTConnector].toInstance(mockAFTConnector)
+    bind[AFTConnector].toInstance(mockAFTConnector),
+    bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
 
   private val application: Application = applicationBuilder(extraModules = extraModules).build()
@@ -116,6 +121,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
   }
 
@@ -171,6 +177,31 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
         )
       )
 
+    }
+
+    "return OK and the correct view with payment and charges URL for a GET where there is scheme fin info" in {
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(SampleData.schemeFSResponseAftAndOTC))
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+
+      val actual = jsonCaptor.getValue
+
+      val expectedJson =
+        Json.obj("paymentsAndChargesUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
+
+      actual must containJson(expectedJson)
     }
   }
 }

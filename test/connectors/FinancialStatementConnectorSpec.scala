@@ -19,9 +19,10 @@ package connectors
 import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import data.SampleData
+import models.financialStatement.PsaFSChargeType.{OTC_6_MONTH_LPP, AFT_INITIAL_LFP}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
+import models.financialStatement.{PsaFS, SchemeFSChargeType, PsaFSChargeType, SchemeFS}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
@@ -95,13 +96,13 @@ class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers wi
             aResponse()
               .withStatus(Status.OK)
               .withHeader("Content-Type", "application/json")
-              .withBody(Json.toJson(schemeFSResponse ++ schemePaymentOnAccount).toString)
+              .withBody(Json.toJson(SampleData.schemeFSResponseAftAndOTC ++ schemePaymentOnAccount).toString)
           )
       )
 
       val connector = injector.instanceOf[FinancialStatementConnector]
 
-      connector.getSchemeFS(pstr).map(fs => fs mustBe schemeFSResponse)
+      connector.getSchemeFS(pstr).map(fs => fs mustBe SampleData.schemeFSResponseAftAndOTC)
 
     }
 
@@ -194,32 +195,4 @@ object FinancialStatementConnectorSpec {
       periodEndDate = LocalDate.parse("2020-06-30")
     )
   )
-
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 12345.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 23000.55,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30")
-    ),
-    SchemeFS(
-      chargeReference = "XY002610150184",
-      chargeType = PSS_OTC_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
-      totalAmount = 56432.00,
-      outstandingAmount = 56049.08,
-      stoodOverAmount = 25089.08,
-      amountDue = 1029.05,
-      accruedInterestTotal = 24000.41,
-      periodStartDate = LocalDate.parse("2020-04-01"),
-      periodEndDate = LocalDate.parse("2020-06-30")
-    )
-  )
-
 }
