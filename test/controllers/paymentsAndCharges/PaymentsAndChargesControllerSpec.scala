@@ -20,6 +20,7 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -47,10 +48,12 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
   import PaymentsAndChargesControllerSpec._
 
-  private def httpPathGET(year: Int = year): String = controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+  private def httpPathGET(year: Int = year): String =
+    controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  private val mockFICacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -60,6 +63,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[SchemeService].toInstance(mockSchemeService),
         bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
+        bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
       ): _*
     )
@@ -67,13 +71,14 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService)
+    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService, mockFICacheConnector)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(filteredSchemeFS), Matchers.eq(srn))(any(), any(), any()))
       .thenReturn(Future.successful(Nil))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockFICacheConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
   }
 
   private def expectedJson: JsObject = Json.obj(

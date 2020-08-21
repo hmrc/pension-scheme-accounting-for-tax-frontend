@@ -129,12 +129,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
+        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150183", "XY002610150184")))))
 
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
