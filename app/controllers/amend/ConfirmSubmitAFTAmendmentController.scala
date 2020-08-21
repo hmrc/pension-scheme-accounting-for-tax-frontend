@@ -27,25 +27,19 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.ValueChangeType
-import models.ValueChangeType.ChangeTypeDecrease
-import models.ValueChangeType.ChangeTypeIncrease
-import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
-import models.{Quarters, GenericViewModel, UserAnswers, AccessType, NormalMode, Draft}
+import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
 import navigators.CompoundNavigator
-import pages.ConfirmSubmitAFTAmendmentChangeTypePage
-import pages.ConfirmSubmitAFTAmendmentPage
-import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
+import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -121,13 +115,12 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-            userAnswersCacheConnector.save(
-                ConfirmSubmitAFTAmendmentValueChangeTypePage,
-                ValueChangeType.valueChangeType(
-                  currentTotalAmountNonUK + currentTotalAmountUK,
-                  previousTotalAmountNonUK + previousTotalAmountUK
-                )
-              ).flatMap{ _ =>
+           val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage,ValueChangeType.valueChangeType(
+              currentTotalAmountNonUK + currentTotalAmountUK,
+              previousTotalAmountNonUK + previousTotalAmountUK
+            ))
+            userAnswersCacheConnector.save(request.internalId, updatedUA.data).
+            flatMap{ _ =>
               val viewModel = GenericViewModel(
                 submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
                 returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),

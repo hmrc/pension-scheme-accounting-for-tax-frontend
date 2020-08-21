@@ -76,10 +76,11 @@ class ConfirmationController @Inject()(
           val listSchemesUrl = config.yourPensionSchemesUrl
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
-
+val xsxsx = if(normal) confirmation.whatNext.li.item1 else
           val json = Json.obj(
             fields = "srn" -> srn,
             "panelHtml" -> confirmationPanelText.toString(),
+            ""
             "email" -> email,
             "isAmendment" -> isAmendment,
             "list" -> rows,

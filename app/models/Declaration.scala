@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Declaration(submittedBy: String, submittedID: String, hasAgreed: Boolean, valueIncrease: Option[Boolean])
+case class Declaration(submittedBy: String, submittedID: String, hasAgreed: Boolean)
 
 object Declaration {
   implicit val format: OFormat[Declaration] = Json.format[Declaration]
