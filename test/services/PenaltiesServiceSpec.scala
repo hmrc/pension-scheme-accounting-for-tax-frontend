@@ -68,31 +68,43 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAppConfig.minimumYear).thenReturn(year)
-    when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
+    when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
     DateHelper.setDate(Some(dateNow))
   }
 
   "getPsaFsJson" must {
     "return the penalty tables based on API response for paymentOverdue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, year) mustBe penaltyTables(
-        statusClass = "govuk-tag govuk-tag--red",
-        statusMessageKey = "penalties.status.paymentOverdue",
-        amountDue = "1,029.05"
-      )
+      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, year)) {
+        _.mustBe(
+          penaltyTables(
+            statusClass = "govuk-tag govuk-tag--red",
+            statusMessageKey = "penalties.status.paymentOverdue",
+            amountDue = "1,029.05"
+          )
+        )
+      }
     }
     "return the penalty tables based on API response for noPaymentDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, year) mustBe penaltyTables(
-        statusClass = "govuk-visually-hidden",
-        statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
-        amountDue = "0.00"
-      )
+      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, year)) {
+        _.mustBe(
+          penaltyTables(
+            statusClass = "govuk-visually-hidden",
+            statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
+            amountDue = "0.00"
+          )
+        )
+      }
     }
     "return the penalty tables based on API response for paymentIsDue" in {
-      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, year) mustBe penaltyTables(
-        statusClass = "govuk-visually-hidden",
-        statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-        amountDue = "5.00"
-      )
+      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, year)) {
+        _.mustBe(
+          penaltyTables(
+            statusClass = "govuk-visually-hidden",
+            statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
+            amountDue = "5.00"
+          )
+        )
+      }
     }
   }
 
