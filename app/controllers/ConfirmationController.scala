@@ -16,8 +16,8 @@
 
 package controllers
 
-import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.ZoneId
 import java.time.LocalDate
 
 import config.FrontendAppConfig
@@ -73,7 +73,6 @@ class ConfirmationController @Inject()(
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
 
           val submittedDate = dateFormatterSubmittedDate.format(ZonedDateTime.now(ZoneId.of("Europe/London")))
-          //Logger.info
           val listSchemesUrl = config.yourPensionSchemesUrl
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
