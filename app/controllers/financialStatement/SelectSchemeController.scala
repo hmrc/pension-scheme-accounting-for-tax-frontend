@@ -81,7 +81,7 @@ class SelectSchemeController @Inject()(
               renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
             },
             value => {
-              penaltiesService.saveChargeRefs(value.pstr, request.psaId.id, year) flatMap {
+              penaltiesService.fetchPstrsAndSaveWithChargeRefs(value.pstr, request.psaId.id, year) flatMap {
                 _ =>
                   value.srn match {
                     case Some(srn) =>

@@ -62,7 +62,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     })
 
   private def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
-                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
+                                   (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
@@ -207,8 +207,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   }
 
   //SAVE CHARGE REFS
-  def saveChargeRefs(pstr: String, psaId: String, year: String)
-                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+  def fetchPstrsAndSaveWithChargeRefs(pstr: String, psaId: String, year: String)
+                                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
 
     (for {
       psaFs <- fsConnector.getPsaFS(psaId)
