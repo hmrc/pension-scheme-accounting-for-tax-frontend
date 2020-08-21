@@ -16,24 +16,25 @@
 
 package controllers
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.ZoneId
+import java.time.{LocalDateTime, LocalDate}
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{AccessType, GenericViewModel}
+import models.{GenericViewModel, AccessType}
 import models.LocalDateBinder._
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
+import utils.DateHelper.{dateFormatterSubmittedDate, dateFormatterStartDate, dateFormatterDMY}
 
 import scala.concurrent.ExecutionContext
 
@@ -53,12 +54,13 @@ class ConfirmationController @Inject()(
     with I18nSupport {
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
-    (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
+    (identify andThen getData(srn, startDate) andThen requireData andThen
+      allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
         DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
-          val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
+          val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now().atZone(ZoneId.of("Europe/London")))
           val listSchemesUrl = config.yourPensionSchemesUrl
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
