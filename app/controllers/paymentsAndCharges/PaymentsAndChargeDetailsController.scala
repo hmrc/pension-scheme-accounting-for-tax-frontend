@@ -66,7 +66,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
               filteredSchemeFs match {
                 case Some(schemeFs) =>
                   renderer
-                    .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, schemeFs, schemeDetails.schemeName))
+                    .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, schemeFs, schemeDetails.schemeName, index))
                     .map(Ok(_))
                 case _ =>
                   Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
@@ -79,7 +79,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       }
   }
 
-  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String)
+  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String, index: String)
                      (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(date), true, true) =>
@@ -88,7 +88,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate", date.format(dateFormatterDMY))}" +
             s"<span class=govuk-!-display-block><a id='breakdown' class=govuk-link href=${
               controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
+                .onPageLoad(srn, schemeFS.periodStartDate, index)
                 .url
             }>" +
             s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"

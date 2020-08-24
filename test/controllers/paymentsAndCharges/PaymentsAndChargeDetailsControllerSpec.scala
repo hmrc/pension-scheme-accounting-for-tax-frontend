@@ -82,14 +82,14 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def insetTextWithAmountDueAndInterest(schemeFS: SchemeFS): uk.gov.hmrc.viewmodels.Html = {
+  private def insetTextWithAmountDueAndInterest(schemeFS: SchemeFS, index: String): uk.gov.hmrc.viewmodels.Html = {
     uk.gov.hmrc.viewmodels.Html(
       s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
         s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate",
                                          schemeFS.dueDate.getOrElse(LocalDate.now()).format(dateFormatterDMY))}" +
         s"<span class=govuk-!-display-block>" +
         s"<a id='breakdown' class=govuk-link href=${controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-          .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
+          .onPageLoad(srn, schemeFS.periodStartDate, index)
           .url}>" +
         s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"
     )
@@ -140,7 +140,9 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS), isPaymentOverdue = true))
+      jsonCaptor.getValue must containJson(
+        expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS, "1"), isPaymentOverdue = true)
+      )
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {

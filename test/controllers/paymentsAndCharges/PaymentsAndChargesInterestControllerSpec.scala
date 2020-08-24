@@ -80,7 +80,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
-  private def expectedJson(schemeFS: SchemeFS, chargeType: String): JsObject = Json.obj(
+  private def expectedJson(schemeFS: SchemeFS, chargeType: String, index: String): JsObject = Json.obj(
     fields = "chargeDetailsList" -> Seq(
       Row(
         key = Key(msg"paymentsAndCharges.interest", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),
@@ -109,7 +109,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     "accruedInterest" -> schemeFS.accruedInterestTotal,
     "chargeType" -> chargeType,
     "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-      .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
+      .onPageLoad(srn, schemeFS.periodStartDate, index)
       .url,
     "returnUrl" -> dummyCall.url
   )
@@ -129,7 +129,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_AFT_RETURN_INTEREST.toString))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_AFT_RETURN_INTEREST.toString, "0"))
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
@@ -145,7 +145,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeInterest.njk"
-      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_OTC_AFT_RETURN_INTEREST.toString))
+      jsonCaptor.getValue must containJson(expectedJson(schemeFS, PSS_OTC_AFT_RETURN_INTEREST.toString, "1"))
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {

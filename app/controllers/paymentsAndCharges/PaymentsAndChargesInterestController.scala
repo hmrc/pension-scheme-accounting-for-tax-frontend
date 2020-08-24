@@ -68,7 +68,7 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
                     case Some(_) =>
                       renderer
                         .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                          summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName))
+                          summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName, index))
                         .map(Ok(_))
                     case _ =>
                       Logger.warn(s"No Payments and Charge details " +
@@ -82,7 +82,7 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
       }
   }
 
-  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String)
+  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String)
                      (implicit messages: Messages): JsObject = {
     filteredSchemeFs match {
       case Some(schemeFS) =>
@@ -100,7 +100,7 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
                 PSS_OTC_AFT_RETURN_INTEREST.toString
             ),
           "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-            .onPageLoad(srn, schemeFS.periodStartDate, schemeFS.chargeReference)
+            .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url,
           "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
         )

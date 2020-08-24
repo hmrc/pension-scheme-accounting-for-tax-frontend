@@ -102,7 +102,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
           (jsValue \ "chargeRefs").as[Seq[String]].indexOf(data.chargeReference).toString
 
         Future.successful(Html(
-          s"<a id=$chargeRefsIndex " +
+          s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"))

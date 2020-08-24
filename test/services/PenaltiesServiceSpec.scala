@@ -230,12 +230,12 @@ object PenaltiesServiceSpec {
   ))
 
   def aftLink(startDate: String): Html = Html(
-    s"<a id=0 class=govuk-link " +
+    s"<a id=XY002610150184 class=govuk-link " +
       s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
   def otcLink(startDate: String): Html = Html(
-    s"<a id=0 class=govuk-link " +
+    s"<a id=XY002610150184 class=govuk-link " +
       s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
