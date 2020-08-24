@@ -127,54 +127,6 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
 
   }
 
-  "retrieveOptionAFTViewModel before overviewApiEnablement" must {
-    "return the correct model when return is locked by another credentials" in {
-      DateHelper.setDate(Some(LocalDate.of(2020,4,1)))
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Seq(version1)))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Some(name)))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe lockedAftModel
-      }
-    }
-
-    "return the correct model when return is not locked but versions is empty" in {
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Nil))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(None))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe unlockedEmptyAftModel
-      }
-    }
-
-    "return the correct model when return is locked but versions is empty" in {
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Nil))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Some(name)))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe lockedAftModelWithNoVersion
-      }
-    }
-
-    "return the correct model when return is in progress but not locked" in {
-      when(aftConnector.getListOfVersions(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Seq(version1)))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(None))
-
-      whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
-        _ mustBe inProgressUnlockedAftModel
-      }
-    }
-
-  }
-
 }
 
 object AFTPartialServiceSpec {

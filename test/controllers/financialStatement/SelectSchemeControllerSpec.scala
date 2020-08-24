@@ -16,6 +16,7 @@
 
 package controllers.financialStatement
 
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -46,9 +47,13 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
   import SelectSchemeControllerSpec._
 
   private val mockPenaltyService = mock[PenaltiesService]
+  private val mockFinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
 
-  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](bind[PenaltiesService].toInstance(mockPenaltyService))
+  val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[PenaltiesService].toInstance(mockPenaltyService),
+    bind[FinancialInfoCacheConnector].toInstance(mockFinancialInfoCacheConnector)
+  )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
@@ -96,7 +101,26 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
       }
 
-      "redirect to sessionExpired page when valid data with unassociated scheme is submitted" in {
+      "redirect to penalties page when valid data with unassociated scheme is submitted" in {
+
+        when(mockFinancialInfoCacheConnector.fetch(any(), any()))
+          .thenReturn(Future.successful(Some(pstrs)))
+
+        val pstrIndex: String = (pstrs \ "pstrs").as[Seq[String]].indexOf(ps2.pstr).toString
+
+        val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad(year, pstrIndex).url)
+
+      }
+
+      "redirect to sessionExpired page when valid data with unassociated scheme is submitted " +
+        "but no pstrs return from fiCacheConnector" in {
+
+        when(mockFinancialInfoCacheConnector.fetch(any(), any()))
+          .thenReturn(Future.successful(None))
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
 
@@ -120,10 +144,11 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 object SelectSchemeControllerSpec {
   private val template = "financialStatement/selectScheme.njk"
   private val year = "2020"
-  private val ps1 = PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some(srn))
-  private val ps2 = PenaltySchemes(None, "24000041IN", None)
+  private val ps1 = PenaltySchemes(name = Some("Assoc scheme"), pstr = "24000040IN", srn = Some(srn))
+  private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
 
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
+  val pstrs: JsObject = Json.obj("pstrs" -> Json.arr("24000041IN", "24000041IN"))
 
   private def form = new SelectSchemeFormProvider()(penaltySchemes)
   private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(year).url
