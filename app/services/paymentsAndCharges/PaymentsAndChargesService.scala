@@ -167,12 +167,14 @@ class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheCo
     )
   }
 
-  def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
+  def getChargeDetailsForSelectedCharge(schemeFS: SchemeFS)
+                                       (implicit messages: Messages): Seq[SummaryList.Row] = {
     originalAmountChargeDetailsRow(schemeFS) ++ paymentsAndCreditsChargeDetailsRow(schemeFS) ++
       stoodOverAmountChargeDetailsRow(schemeFS) ++ totalAmountDueChargeDetailsRow(schemeFS)
   }
 
-  private def originalAmountChargeDetailsRow(schemeFS: SchemeFS)(implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def originalAmountChargeDetailsRow(schemeFS: SchemeFS)
+                                            (implicit messages: Messages): Seq[SummaryList.Row] = {
     val value = if (schemeFS.totalAmount < 0) {
       s"${formatCurrencyAmountAsString(schemeFS.totalAmount.abs)} ${messages("paymentsAndCharges.credit")}"
     } else {
