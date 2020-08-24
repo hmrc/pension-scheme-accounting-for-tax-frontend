@@ -32,6 +32,10 @@ import models.chargeG.{MemberDetails => MemberDetailsG}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSChargeType.PSS_OTC_AFT_RETURN
+import models.{DisplayQuarter, InProgressHint, AFTOverview, SessionAccessData, SchemeStatus, UserAnswers, Quarter, Draft, SessionData, SubmittedHint, SchemeDetails, MemberDetails, AccessMode, LockedHint}
 import pages.chargeC.ChargeCDetailsPage
 import pages.chargeC.SponsoringIndividualDetailsPage
 import pages.chargeC.SponsoringOrganisationDetailsPage
@@ -200,6 +204,7 @@ object SampleData {
     AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
   val aftOverviewQ12021: AFTOverview =
     AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+
   val schemeFSResponseAftAndOTC: Seq[SchemeFS] = Seq(
     SchemeFS(
       chargeReference = "XY002610150184",
@@ -226,4 +231,5 @@ object SampleData {
       periodEndDate = LocalDate.parse("2020-06-30")
     )
   )
+
 }
