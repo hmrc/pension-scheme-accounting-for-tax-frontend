@@ -47,7 +47,6 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
   def onPageLoad(year: String, identifier: String): Action[AnyContent] = identify.async {
     implicit request =>
-
       def viewModel(pstr: String, schemeAssociated: Boolean, tables: Seq[JsObject], args: String*): JsObject =
         Json.obj(
           "year" -> year,

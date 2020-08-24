@@ -16,7 +16,9 @@
 
 package controllers
 
+import connectors.FinancialStatementConnector
 import controllers.base.ControllerSpecBase
+import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
@@ -28,15 +30,17 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.AFTPartialService
+import services.{AFTPartialService, SchemeService}
 import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import scala.concurrent.Await
 import scala.concurrent.Future
+import scala.concurrent.duration.Duration
 
 class PartialControllerSpec
     extends ControllerSpecBase
@@ -50,9 +54,13 @@ class PartialControllerSpec
   private def httpPathGET: String = controllers.routes.PartialController.aftPartial(srn).url
   private def httpPathPaymentsAndCharges: String = controllers.routes.PartialController.paymentsAndChargesPartial(srn).url
   private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
+  private val mockSchemeService: SchemeService = mock[SchemeService]
+  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
-      bind[AFTPartialService].toInstance(mockAftPartialService)
+      bind[AFTPartialService].toInstance(mockAftPartialService),
+      bind[SchemeService].toInstance(mockSchemeService),
+      bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
@@ -71,6 +79,8 @@ class PartialControllerSpec
       .thenReturn(Future.successful(allTypesMultipleReturnsModel))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
   "Partial Controller" when {
@@ -103,6 +113,14 @@ class PartialControllerSpec
         templateCaptor.getValue mustEqual templateToBeRenderedForPaymentsAndCharges
 
         jsonCaptor.getValue must containJson(jsonToPassToTemplatePaymentsAndCharges)
+      }
+
+      "not render the fin info section when there are no payments or charges" in {
+        when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
+        val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
+
+        status(result) mustEqual OK
+        verify(mockRenderer, times(0)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       }
     }
 

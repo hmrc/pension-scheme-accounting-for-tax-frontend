@@ -17,22 +17,26 @@
 package controllers
 
 import config.FrontendAppConfig
+import connectors.{FinancialStatementConnector, SchemeDetailsConnector}
 import controllers.actions._
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
-import services.AFTPartialService
+import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PartialController @Inject()(
                                     identify: IdentifierAction,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
+                                    schemeService: SchemeService,
+                                    financialStatementConnector: FinancialStatementConnector,
                                     aftPartialService: AFTPartialService,
                                     renderer: Renderer,
                                     config: FrontendAppConfig
@@ -51,7 +55,18 @@ class PartialController @Inject()(
   }
 
   def paymentsAndChargesPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
-      config.paymentsAndChargesUrl.format(srn, "2020"))).map(Ok(_))
+    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
+        val futureHtml =  if(schemeFs.isEmpty){
+           Future.successful(Html(""))
+        }
+        else {
+          renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
+            config.paymentsAndChargesUrl.format(srn, "2020"))
+         )
+        }
+        futureHtml.map(Ok(_))
+      }
+    }
   }
 }
