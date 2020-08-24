@@ -27,19 +27,25 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.ValueChangeType
+import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
-import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers}
+import models.{Quarters, GenericViewModel, UserAnswers, AccessType, NormalMode, Draft}
 import navigators.CompoundNavigator
+import pages.ConfirmSubmitAFTAmendmentChangeTypePage
 import pages.ConfirmSubmitAFTAmendmentPage
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -115,24 +121,32 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName
-            )
+            userAnswersCacheConnector.save(
+                ConfirmSubmitAFTAmendmentValueChangeTypePage,
+                ValueChangeType.valueChangeType(
+                  currentTotalAmountNonUK + currentTotalAmountUK,
+                  previousTotalAmountNonUK + previousTotalAmountUK
+                )
+              ).flatMap{ _ =>
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
 
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "form" -> form,
-              "versionNumber" -> amendedVersion,
-              "viewModel" -> viewModel,
-              "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
-              "tableRowsNonUK" -> amendmentHelper
-                .amendmentSummaryRows(currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion),
-              "radios" -> Radios.yesNo(form("value"))
-            )
-            renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+              val json = Json.obj(
+                fields = "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> form,
+                "versionNumber" -> amendedVersion,
+                "viewModel" -> viewModel,
+                "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
+                "tableRowsNonUK" -> amendmentHelper
+                  .amendmentSummaryRows(currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion),
+                "radios" -> Radios.yesNo(form("value"))
+              )
+              renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+            }
           }
         }
       }

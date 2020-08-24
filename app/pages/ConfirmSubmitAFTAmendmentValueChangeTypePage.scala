@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.json.{Json, OFormat}
+import models.ValueChangeType
+import play.api.libs.json.JsPath
 
-case class Declaration(submittedBy: String, submittedID: String, hasAgreed: Boolean, valueIncrease: Option[Boolean])
+case object ConfirmSubmitAFTAmendmentValueChangeTypePage extends QuestionPage[ValueChangeType] {
 
-object Declaration {
-  implicit val format: OFormat[Declaration] = Json.format[Declaration]
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "valueChangeType"
 }
-
-
