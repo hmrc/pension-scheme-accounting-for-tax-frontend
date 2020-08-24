@@ -63,45 +63,7 @@ class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheCo
                       .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                       .url
 
-                  (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
-
-                    case (true, true) if details.accruedInterestTotal > 0 =>
-                      val interestChargeType =
-                        if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
-                      Seq(
-                        PaymentsAndChargesDetails(
-                          chargeType = details.chargeType.toString,
-                          chargeReference = details.chargeReference,
-                          amountDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
-                          status = PaymentOverdue,
-                          redirectUrl = redirectChargeDetailsUrl,
-                          visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
-                        ),
-                        PaymentsAndChargesDetails(
-                          chargeType = interestChargeType.toString,
-                          chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-                          amountDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
-                          status = InterestIsAccruing,
-                          redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                            .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
-                            .url,
-                          visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
-                        )
-                      )
-                    case (true, _) if details.totalAmount < 0 =>
-                      Seq.empty
-                    case _ =>
-                      Seq(
-                        PaymentsAndChargesDetails(
-                          chargeType = details.chargeType.toString,
-                          chargeReference = details.chargeReference,
-                          amountDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
-                          status = NoStatus,
-                          redirectUrl = redirectChargeDetailsUrl,
-                          visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
-                        )
-                      )
-                  }
+                  paymentsAndChargesDetails(onlyAFTAndOTCChargeTypes, details, srn, chargeRefs, redirectChargeDetailsUrl)
               }
 
             val startDate = seqPaymentsAndCharges.headOption.map(_.periodStartDate.format(dateFormatterStartDate)).getOrElse("")
@@ -110,6 +72,54 @@ class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheCo
         }
       case _ =>
         Seq.empty[PaymentsAndChargesTable]
+    }
+  }
+
+  private def paymentsAndChargesDetails(
+                                         onlyAFTAndOTCChargeTypes: Boolean,
+                                         details: SchemeFS,
+                                         srn: String,
+                                         chargeRefs: Seq[String],
+                                         redirectChargeDetailsUrl: String
+                                       )(implicit messages: Messages): Seq[PaymentsAndChargesDetails] = {
+    (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
+
+      case (true, true) if details.accruedInterestTotal > 0 =>
+        val interestChargeType =
+          if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+        Seq(
+          PaymentsAndChargesDetails(
+            chargeType = details.chargeType.toString,
+            chargeReference = details.chargeReference,
+            amountDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
+            status = PaymentOverdue,
+            redirectUrl = redirectChargeDetailsUrl,
+            visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+          ),
+          PaymentsAndChargesDetails(
+            chargeType = interestChargeType.toString,
+            chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+            amountDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
+            status = InterestIsAccruing,
+            redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+              .url,
+            visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText")
+          )
+        )
+      case (true, _) if details.totalAmount < 0 =>
+        Seq.empty
+      case _ =>
+        Seq(
+          PaymentsAndChargesDetails(
+            chargeType = details.chargeType.toString,
+            chargeReference = details.chargeReference,
+            amountDue = s"${formatCurrencyAmountAsString(details.amountDue)}",
+            status = NoStatus,
+            redirectUrl = redirectChargeDetailsUrl,
+            visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", details.chargeReference)
+          )
+        )
     }
   }
 

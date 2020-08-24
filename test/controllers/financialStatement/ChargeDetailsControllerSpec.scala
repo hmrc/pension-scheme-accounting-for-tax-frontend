@@ -54,10 +54,10 @@ class ChargeDetailsControllerSpec
   import ChargeDetailsControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = srn, startDate = "2020-04-01", index = "0").url
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = "0").url
 
   private def httpPathGETUnassociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = "0", startDate = "2020-04-01", index = "0").url
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0").url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]

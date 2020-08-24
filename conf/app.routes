@@ -243,7 +243,7 @@ GET         /:year/select-a-scheme                                              
 POST        /:year/select-a-scheme                                                                                                                   controllers.financialStatement.SelectSchemeController.onSubmit(year: String)
 
 GET         /:year/:identifier/penalties                                                                                                             controllers.financialStatement.PenaltiesController.onPageLoad(year: String, identifier: String)
-GET         /:identifier/penalties/:startDate/:index/charge-details                                                                                  controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, index: String)
+GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                                  controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
 
 GET         /:srn/payments-and-charges-partial                                                                                                       controllers.PartialController.paymentsAndChargesPartial(srn: String)
 

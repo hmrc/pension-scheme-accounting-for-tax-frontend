@@ -48,7 +48,7 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(identifier: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
@@ -57,35 +57,40 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
             case Some(jsValue) =>
               val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
 
-              val commonJson = Json.obj(
-                "heading" -> heading(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head.chargeType.toString),
-                "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head),
-                "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
-                  getQuarter(startDate).endDate.format(dateFormatterDMY)),
-                "chargeReference" -> psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head.chargeReference,
-                "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(index.toInt)).head)
-              )
+              psaFS.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)) match {
+                case Some(fs) =>
+                  val commonJson = Json.obj(
+                    "heading" -> heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
+                    "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+                    "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
+                      getQuarter(startDate).endDate.format(dateFormatterDMY)),
+                    "chargeReference" -> fs.chargeReference,
+                    "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
+                  )
 
-              if (filteredPsaFS.nonEmpty) {
-                if (identifier.matches(srnRegex)) {
-                  schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
-                    schemeDetails =>
+                  if (filteredPsaFS.nonEmpty) {
+                    if (identifier.matches(srnRegex)) {
+                      schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
+                        schemeDetails =>
+                          val json = Json.obj(
+                            "schemeAssociated" -> true,
+                            "schemeName" -> schemeDetails.schemeName
+                          ) ++ commonJson
+
+                          renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                      }
+                    } else {
                       val json = Json.obj(
-                        "schemeAssociated" -> true,
-                        "schemeName" -> schemeDetails.schemeName
+                        "schemeAssociated" -> false
                       ) ++ commonJson
 
                       renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                    }
+                  } else {
+                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
                   }
-                } else {
-                  val json = Json.obj(
-                    "schemeAssociated" -> false
-                  ) ++ commonJson
-
-                  renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
-                }
-              } else {
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
             case _ =>
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
