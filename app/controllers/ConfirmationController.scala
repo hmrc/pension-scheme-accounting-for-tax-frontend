@@ -95,9 +95,9 @@ class ConfirmationController @Inject()(
             "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url
           )
           renderer.render(getView, json).flatMap { viewHtml =>
-          //  userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-              Future.successful(Ok(viewHtml))
-          //  }
+            userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+              Ok(viewHtml)
+            }
           }
         }
     }
