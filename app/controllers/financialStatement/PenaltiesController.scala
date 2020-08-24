@@ -45,7 +45,6 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
 
   def onPageLoad(year: String, identifier: String): Action[AnyContent] = identify.async {
     implicit request =>
-
       def viewModel(pstr: String, schemeAssociated: Boolean, tables: Seq[JsObject], args: String*): JsObject =
         Json.obj(
           "year" -> year,
@@ -62,17 +61,14 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               schemeDetails =>
                 val filteredPsaFS =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
-
                 val penaltyTables: Seq[JsObject] =
                   penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
-
                 val json = viewModel(
                   pstr = schemeDetails.pstr,
                   schemeAssociated = true,
                   tables = penaltyTables,
                   args = schemeDetails.schemeName
                 )
-
                 renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
             }
           } else {
@@ -80,16 +76,13 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
               case Some(jsValue) =>
                 val pstrs: Seq[String] =
                   (jsValue \ "pstrs").as[Seq[String]]
-
                 val penaltyTables: Seq[JsObject] =
                   penaltiesService.getPsaFsJson(psaFS, identifier, year.toInt).filter(_ != Json.obj())
-
                 val json = viewModel(
                   pstr = pstrs(identifier.toInt),
                   schemeAssociated = false,
                   tables = penaltyTables
                 )
-
                 renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
               case _ =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

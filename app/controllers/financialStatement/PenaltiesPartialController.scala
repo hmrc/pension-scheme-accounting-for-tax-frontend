@@ -20,11 +20,13 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import javax.inject.Inject
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.I18nSupport
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -49,6 +51,5 @@ class PenaltiesPartialController @Inject()(
       "viewPenaltiesUrl" -> config.viewPenaltiesUrl)
       renderer.render(template = "partials/penalties.njk", json).map(Ok(_))
     }
-
   }
 }
