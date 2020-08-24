@@ -27,7 +27,6 @@ import models.{AFTOverview, AFTVersion, Draft, Quarters}
 import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
-import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.{AFTViewModel, Link}
 
@@ -42,33 +41,13 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
   def retrieveOptionAFTViewModel(srn: String, psaId: String)
                                 (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
     schemeService.retrieveSchemeDetails(psaId, srn).flatMap { schemeDetails =>
-
-      if (isOverviewApiDisabled) { //TODO This case to be deleted after 1 July 2020 and only the else section for this if to remain
-        for {
-          versions <- aftConnector.getListOfVersions(schemeDetails.pstr, appConfig.earliestStartDate)
-          optLockedBy <- aftCacheConnector.lockedBy(srn, appConfig.earliestStartDate)
-        } yield {
-          createAFTViewModel(versions, optLockedBy, srn, appConfig.earliestStartDate, appConfig.earliestEndDate)
-        }
-      } else {
-        createAFTOverviewModel(schemeDetails.pstr, srn)
+      for {
+        overview <- aftConnector.getAftOverview(schemeDetails.pstr)
+        inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)
+        startReturnsOpt <- getStartReturnsModel(overview, srn, schemeDetails.pstr)
+      } yield {
+        Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModel(overview, srn)).flatten
       }
-    }
-  }
-
-  private def isOverviewApiDisabled: Boolean =
-    LocalDate.parse(appConfig.overviewApiEnablementDate).isAfter(DateHelper.today)
-
-
-  private def createAFTOverviewModel(pstrId: String, srn: String)
-                                    (implicit hc: HeaderCarrier,
-                                     messages: Messages): Future[Seq[AFTViewModel]] = {
-    for {
-      overview <- aftConnector.getAftOverview(pstrId)
-      inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, pstrId)
-      startReturnsOpt <- getStartReturnsModel(overview, srn, pstrId)
-    } yield {
-      Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModel(overview, srn)).flatten
     }
   }
 
@@ -208,59 +187,6 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
       } else {
         None
       }
-    }
-  }
-
-  private def createAFTViewModel(versions: Seq[AFTVersion], optLockedBy: Option[String],
-                                 srn: String, startDate: String, endDate: String)
-                                (implicit messages: Messages): Seq[AFTViewModel] = {
-    val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    val formattedStartDate: String = LocalDate.parse(startDate, dateFormatterYMD).format(dateFormatterStartDate)
-    val formattedEndDate: String = LocalDate.parse(endDate, dateFormatterYMD).format(dateFormatterDMY)
-    optLockedBy match {
-      case None if versions.isEmpty =>
-        Seq(AFTViewModel(None, None,
-          Link(id = "aftChargeTypePageLink", url = appConfig.aftLoginUrl.format(srn),
-            linkText = msg"aftPartial.startLink.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
-        )
-      case Some(name) if versions.isEmpty =>
-        Seq(AFTViewModel(
-          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
-          if (name.nonEmpty) {
-            Some(msg"aftPartial.status.lockedBy".withArgs(name))
-          }
-          else {
-            Some(msg"aftPartial.status.locked")
-          },
-          Link(id = "aftSummaryPageLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, 1),
-            linkText = msg"aftPartial.view.link",
-            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate))
-          )
-        ))
-      case Some(name) =>
-        Seq(AFTViewModel(
-          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
-          if (name.nonEmpty) {
-            Some(msg"aftPartial.status.lockedBy".withArgs(name))
-          }
-          else {
-            Some(msg"aftPartial.status.locked")
-          },
-          Link(id = "aftSummaryPageLink",
-            url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
-            linkText = msg"aftPartial.view.link",
-            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
-        ))
-      case _ =>
-        Seq(AFTViewModel(
-          Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
-          Some(msg"aftPartial.status.inProgress"),
-          Link(
-            id = "aftSummaryPageLink",
-            url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, versions.head.reportVersion),
-            linkText = msg"aftPartial.view.link",
-            hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
-        ))
     }
   }
 }

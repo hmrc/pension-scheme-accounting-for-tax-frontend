@@ -1007,7 +1007,6 @@ allAmendments.view.changes.draft.link = View changes made in this draft
 allAmendments.view.changes.submission.link = View changes made in this submission
 
 aftPartial.h1 = Accounting for Tax (AFT) returns
-aftPartial.startLink.forPeriod= Start the AFT return for {0} to {1}
 aftPartial.start.link = Start a new AFT return
 aftPartial.multipleInProgress.text = AFT returns
 aftPartial.multipleInProgress.count = {0} in progress

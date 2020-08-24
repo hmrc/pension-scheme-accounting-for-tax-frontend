@@ -16,28 +16,43 @@
 
 package controllers
 
-import java.time.{LocalDate, LocalDateTime}
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailConnector, EmailStatus}
+import connectors.EmailConnector
+import connectors.EmailStatus
 import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Declaration, GenericViewModel, NormalMode, Quarter}
+import models.AccessType
+import models.Declaration
+import models.GenericViewModel
+import models.NormalMode
+import models.Quarter
 import navigators.CompoundNavigator
-import pages.{DeclarationPage, PSANameQuery}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import pages.DeclarationPage
+import pages.PSANameQuery
+import play.api.i18n.I18nSupport
+import play.api.i18n.Messages
+import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.Action
+import play.api.mvc.AnyContent
+import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate}
+import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.dateFormatterStartDate
+import utils.DateHelper.dateFormatterSubmittedDate
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class DeclarationController @Inject()(
     override val messagesApi: MessagesApi,
@@ -94,7 +109,7 @@ class DeclarationController @Inject()(
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
-    val submittedDate = dateFormatterSubmittedDate.format(LocalDateTime.now())
+    val submittedDate = dateFormatterSubmittedDate.format(ZonedDateTime.now(ZoneId.of("Europe/London")))
 
     val sendToEmailId = messages("confirmation.whatNext.send.to.email.id")
     val accountingPeriod = messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)

@@ -95,7 +95,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
   lazy val minimumYear: Int = configuration.get[Int]("minimumYear")
 
-  lazy val overviewApiEnablementDate: String = configuration.get[String]("overviewApiEnablementDate")
   lazy val earliestStartDate: String = configuration.get[String]("earliestStartDate")
   lazy val earliestEndDate: String = configuration.get[String]("earliestEndDate")
   lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
