@@ -243,10 +243,10 @@ GET         /:year/select-a-scheme                                              
 POST        /:year/select-a-scheme                                                                                                                   controllers.financialStatement.SelectSchemeController.onSubmit(year: String)
 
 GET         /:year/:identifier/penalties                                                                                                             controllers.financialStatement.PenaltiesController.onPageLoad(year: String, identifier: String)
-GET         /:identifier/penalties/:startDate/:chargeReference/charge-details                                                                        controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReference: String)
+GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                                  controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
 
 GET         /:srn/payments-and-charges-partial                                                                                                       controllers.PartialController.paymentsAndChargesPartial(srn: String)
 
 GET         /:srn/:year/payments-and-charges                                                                                                         controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
-GET         /:srn/payments-and-charges/:startDate/:chargeReference/charge-details                                                                    controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, chargeReference: String)
-GET         /:srn/payments-and-charges/:startDate/:chargeReference/interest/charge-details                                                           controllers.paymentsAndCharges.PaymentsAndChargesInterestController.onPageLoad(srn: String, startDate: String, chargeReference: String)
+GET         /:srn/payments-and-charges/:startDate/:index/charge-details                                                                              controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, index: String)
+GET         /:srn/payments-and-charges/:startDate/:index/interest/charge-details                                                                     controllers.paymentsAndCharges.PaymentsAndChargesInterestController.onPageLoad(srn: String, startDate: String, index: String)

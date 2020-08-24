@@ -80,19 +80,23 @@ class SelectSchemeController @Inject()(
 
               renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
             },
-            value =>
-              value.srn match {
-                case Some(srn) =>
-                  Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
-                case _ =>
-                  fiCacheConnector.fetch flatMap {
-                    case Some(jsValue) =>
-                      val pstrIndex: String = (jsValue \ "pstrs").as[Seq[String]].indexOf(value.pstr).toString
-                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
+            value => {
+              penaltiesService.fetchPstrsAndSaveWithChargeRefs(value.pstr, request.psaId.id, year) flatMap {
+                _ =>
+                  value.srn match {
+                    case Some(srn) =>
+                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
                     case _ =>
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                      fiCacheConnector.fetch flatMap {
+                        case Some(jsValue) =>
+                          val pstrIndex: String = (jsValue \ "pstrs").as[Seq[String]].indexOf(value.pstr).toString
+                          Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
+                        case _ =>
+                          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                      }
                   }
               }
+            }
           )
       }
   }

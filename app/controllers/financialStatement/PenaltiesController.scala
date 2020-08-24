@@ -28,6 +28,8 @@ import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import config.Constants._
+import models.financialStatement.PsaFS
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
@@ -57,33 +59,53 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       fsConnector.getPsaFS(request.psaId.id).flatMap {
         psaFS =>
           if (identifier.matches(srnRegex)) {
-            schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier) flatMap {
+            schemeService.retrieveSchemeDetails(request.psaId.id, identifier) flatMap {
               schemeDetails =>
-                val filteredPsaFS =
+                val filteredPsaFS: Seq[PsaFS] =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
-                val penaltyTables: Seq[JsObject] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt).filter(_ != Json.obj())
-                val json = viewModel(
-                  pstr = schemeDetails.pstr,
-                  schemeAssociated = true,
-                  tables = penaltyTables,
-                  args = schemeDetails.schemeName
-                )
-                renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+
+                val penaltyTables: Future[Seq[JsObject]] =
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                    _.filter(_ != Json.obj())
+                  }
+
+                penaltyTables flatMap {
+                  tables =>
+                    val json = viewModel(
+                      pstr = schemeDetails.pstr,
+                      schemeAssociated = true,
+                      tables = tables,
+                      args = schemeDetails.schemeName
+                    )
+                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                }
+
             }
           } else {
             fiCacheConnector.fetch flatMap {
               case Some(jsValue) =>
                 val pstrs: Seq[String] =
                   (jsValue \ "pstrs").as[Seq[String]]
-                val penaltyTables: Seq[JsObject] =
-                  penaltiesService.getPsaFsJson(psaFS, identifier, year.toInt).filter(_ != Json.obj())
-                val json = viewModel(
-                  pstr = pstrs(identifier.toInt),
-                  schemeAssociated = false,
-                  tables = penaltyTables
-                )
-                renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+
+                val filteredPsaFS =
+                  psaFS.filter(_.pstr == pstrs(identifier.toInt))
+
+                val penaltyTables: Future[Seq[JsObject]] =
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                    _.filter(_ != Json.obj())
+                  }
+
+                penaltyTables flatMap {
+                  tables =>
+                    val json = viewModel(
+                      pstr = pstrs(identifier.toInt),
+                      schemeAssociated = false,
+                      tables = tables
+                    )
+
+                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                }
+
               case _ =>
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
             }

@@ -18,6 +18,7 @@ package controllers.financialStatement
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -53,20 +54,22 @@ class ChargeDetailsControllerSpec
   import ChargeDetailsControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, "2020-04-01", chargeRef).url
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = "0").url
 
   private def httpPathGETUnassociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad("0", "2020-04-01", chargeRef).url
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0").url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PenaltiesService].toInstance(mockPenaltiesService),
       bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFSConnector)
+      bind[FinancialStatementConnector].toInstance(mockFSConnector),
+      bind[FinancialInfoCacheConnector].toInstance(mockFIConnector)
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
@@ -91,12 +94,15 @@ class ChargeDetailsControllerSpec
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
 
+
   }
 
   "ChargeDetails Controller" when {
     "on a GET" must {
 
       "render the correct view with penalty tables for associated" in {
+
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq(chargeRef)))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -131,6 +137,18 @@ class ChargeDetailsControllerSpec
         templateCaptor.getValue mustEqual templateToBeRendered
 
         jsonCaptor.getValue must containJson(commonJson ++ json)
+      }
+
+      "redirect to session expired when no data in FICacheConnector" in {
+
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(None))
+
+        val result = route(application, httpGETRequest(httpPathGETAssociated)).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+
       }
 
     }
