@@ -66,7 +66,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
               filteredSchemeFs match {
                 case Some(schemeFs) =>
                   renderer
-                    .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, schemeFs, schemeDetails.schemeName, index))
+                    .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index))
                     .map(Ok(_))
                 case _ =>
                   Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
@@ -79,7 +79,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       }
   }
 
-  def summaryListData(srn: String, schemeFS: SchemeFS, schemeName: String, index: String)
+  def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String, index: String)
                      (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(date), true, true) =>
@@ -119,7 +119,8 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+      "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
   }
 
