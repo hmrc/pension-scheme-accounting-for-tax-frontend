@@ -915,12 +915,20 @@ confirmation.whatNext.send.to = To get your charge reference send an email to
 confirmation.whatNext.send.to.email.id = pensions.administration@hmrc.gov.uk
 confirmation.whatNext.send.to.with.details = with these details:
 confirmation.whatNext.li.item1 = the name of the pension scheme
-confirmation.whatNext.li.item2 = the date and time of submission
+confirmation.whatNext.li.item2 = the date and time of the submission
 confirmation.whatNext.li.item3 = the submission number
 confirmation.saveOrPrint.h2 = Print
 confirmation.li1 = Return to {0}
 confirmation.li2 = View your other pension schemes
 confirmation.print.page.link.text = Print this page
+
+confirmation.amend.decrease.whatNext.p1 = The amendment you have submitted has reduced the charge for this Accounting for Tax return.
+confirmation.amend.decrease.whatNext.p2 = You must email pensions.administration@hmrc.gov.uk to ensure your account is updated correctly. Include these details in your email:
+confirmation.amend.viewPaymentCharges.prelink.text = You can
+confirmation.amend.viewPaymentCharges.link.text = view payments and charge references for your AFT returns
+
+confirmation.amend.increase.whatNext.p1 = A new charge reference has been created for the additional amount included in this amendment. You must use this charge reference when making payment.
+confirmation.amend.noChange.whatNext.p1 = This amended Accounting for Tax return has resulted in nothing additional to pay.
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?

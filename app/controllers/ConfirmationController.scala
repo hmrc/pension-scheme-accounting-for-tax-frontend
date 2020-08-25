@@ -27,6 +27,11 @@ import javax.inject.Inject
 import models.AccessType
 import models.GenericViewModel
 import models.LocalDateBinder._
+import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
+import models.requests.DataRequest
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
@@ -47,7 +52,7 @@ import utils.DateHelper.dateFormatterDMY
 import utils.DateHelper.dateFormatterStartDate
 import utils.DateHelper.dateFormatterSubmittedDate
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -88,9 +93,10 @@ class ConfirmationController @Inject()(
               submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
               returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
               schemeName = schemeName
-            )
+            ),
+            "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url
           )
-          renderer.render("confirmation.njk", json).flatMap { viewHtml =>
+          renderer.render(getView, json).flatMap { viewHtml =>
             userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
               Ok(viewHtml)
             }
@@ -129,4 +135,14 @@ class ConfirmationController @Inject()(
   private def confirmationPanelText(implicit messages: Messages): Html = {
     Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString()}")
   }
+
+  private def getView(implicit request: DataRequest[AnyContent]): String ={
+    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
+      case (true,Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
+      case (true,Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
+      case (true,Some(ChangeTypeSame)) => "confirmationNoChange.njk"
+      case _ => "confirmation.njk"
+    }
+  }
+
 }

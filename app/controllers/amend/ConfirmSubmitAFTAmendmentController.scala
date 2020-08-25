@@ -28,9 +28,9 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers}
+import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
 import navigators.CompoundNavigator
-import pages.ConfirmSubmitAFTAmendmentPage
+import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -115,24 +115,31 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
             val (previousTotalAmountUK, previousTotalAmountNonUK) = amendmentHelper.getTotalAmount(UserAnswers(previousVersionJsValue.as[JsObject]))
 
-            val viewModel = GenericViewModel(
-              submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
-              returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
-              schemeName = schemeName
-            )
+           val updatedUA = ua.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage,ValueChangeType.valueChangeType(
+              currentTotalAmountNonUK + currentTotalAmountUK,
+              previousTotalAmountNonUK + previousTotalAmountUK
+            ))
+            userAnswersCacheConnector.save(request.internalId, updatedUA.data).
+            flatMap{ _ =>
+              val viewModel = GenericViewModel(
+                submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
+                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                schemeName = schemeName
+              )
 
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "startDate" -> Some(startDate),
-              "form" -> form,
-              "versionNumber" -> amendedVersion,
-              "viewModel" -> viewModel,
-              "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
-              "tableRowsNonUK" -> amendmentHelper
-                .amendmentSummaryRows(currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion),
-              "radios" -> Radios.yesNo(form("value"))
-            )
-            renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+              val json = Json.obj(
+                fields = "srn" -> srn,
+                "startDate" -> Some(startDate),
+                "form" -> form,
+                "versionNumber" -> amendedVersion,
+                "viewModel" -> viewModel,
+                "tableRowsUK" -> amendmentHelper.amendmentSummaryRows(currentTotalAmountUK, previousTotalAmountUK, amendedVersion, previousVersion),
+                "tableRowsNonUK" -> amendmentHelper
+                  .amendmentSummaryRows(currentTotalAmountNonUK, previousTotalAmountNonUK, amendedVersion, previousVersion),
+                "radios" -> Radios.yesNo(form("value"))
+              )
+              renderer.render(template = "confirmSubmitAFTAmendment.njk", json).map(result(_))
+            }
           }
         }
       }
