@@ -42,18 +42,11 @@
 
         <h2 class="govuk-heading-m">{{messages("confirmation.whatNext.h2")}}</h2>
          <p class="govuk-body">{{messages("confirmation.whatNext.p1")}}</p>
+
          <p class="govuk-body">
-             {{messages("confirmation.whatNext.send.to")}}
-                <a class="govuk-link" href="mailto:{{messages("confirmation.whatNext.send.to.email.id")}}">{{messages("confirmation.whatNext.send.to.email.id")}}</a>
-             {{messages("confirmation.whatNext.send.to.with.details")}}
+            {{messages("confirmation.amend.viewPaymentCharges.prelink.text")}}
+            <a class="govuk-link" href="{{ viewPaymentsUrl }}">{{messages("confirmation.amend.viewPaymentCharges.link.text")}}</a>.
          </p>
-         <div><ul class="govuk-list govuk-list--bullet">
-            <li>{{messages("confirmation.whatNext.li.item1")}}</li>
-            <li>{{messages("confirmation.whatNext.li.item2")}}</li>
-            {% if isAmendment %}
-                <li>{{messages("confirmation.whatNext.li.item3")}}</li>
-            {% endif %}
-        </ul></div>
 
         <ul class="govuk-list">
               <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>

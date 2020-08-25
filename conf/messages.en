@@ -910,7 +910,7 @@ confirmation.table.data.submitted.label = Date submitted
 confirmation.table.submission.number.label = Submission number
 
 confirmation.whatNext.h2 = What to do next
-confirmation.whatNext.p1 = If you need to make a payment for this submission, you must include a charge reference with your payment.
+confirmation.whatNext.p1 = You must include the correct charge reference with any payment for this submission.
 confirmation.whatNext.send.to = To get your charge reference send an email to
 confirmation.whatNext.send.to.email.id = pensions.administration@hmrc.gov.uk
 confirmation.whatNext.send.to.with.details = with these details:
