@@ -28,6 +28,7 @@ import models.AccessType
 import models.GenericViewModel
 import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
 import models.requests.DataRequest
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.i18n.I18nSupport
@@ -50,7 +51,7 @@ import utils.DateHelper.dateFormatterDMY
 import utils.DateHelper.dateFormatterStartDate
 import utils.DateHelper.dateFormatterSubmittedDate
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -137,6 +138,7 @@ class ConfirmationController @Inject()(
   private def getView(implicit request: DataRequest[AnyContent]): String ={
     (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
       case (true,Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
+      case (true,Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
       case _ => "confirmation.njk"
     }
   }

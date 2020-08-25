@@ -924,8 +924,10 @@ confirmation.print.page.link.text = Print this page
 
 confirmation.amend.decrease.whatNext.p1 = The amendment you have submitted has reduced the charge for this Accounting for Tax return.
 confirmation.amend.decrease.whatNext.p2 = You must email pensions.administration@hmrc.gov.uk to ensure your account is updated correctly. Include these details in your email:
-confirmation.amend.decrease.viewPaymentCharges.prelink.text = You can
-confirmation.amend.decrease.viewPaymentCharges.link.text = view payments and charge references for your AFT returns
+confirmation.amend.viewPaymentCharges.prelink.text = You can
+confirmation.amend.viewPaymentCharges.link.text = view payments and charge references for your AFT returns
+
+confirmation.amend.increase.whatNext.p1 = A new charge reference has been created for the additional amount included in this amendment. You must use this charge reference when making payment.
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
