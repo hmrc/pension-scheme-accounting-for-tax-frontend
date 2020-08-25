@@ -29,6 +29,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -155,6 +156,26 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "confirmationAmendIncrease.njk"
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
+    }
+
+    "return OK and the correct view for amendment for a GET when value not changed" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction
+        .setDataToReturn(Some(
+          userAnswersWithSchemeNamePstrQuarter
+            .setOrException(PSAEmailQuery, email)
+            .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
+        ))
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmationNoChange.njk"
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 

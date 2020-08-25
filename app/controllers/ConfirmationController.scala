@@ -29,6 +29,7 @@ import models.GenericViewModel
 import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.i18n.I18nSupport
@@ -139,6 +140,7 @@ class ConfirmationController @Inject()(
     (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
       case (true,Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
       case (true,Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
+      case (true,Some(ChangeTypeSame)) => "confirmationNoChange.njk"
       case _ => "confirmation.njk"
     }
   }

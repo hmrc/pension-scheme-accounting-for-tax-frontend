@@ -928,6 +928,7 @@ confirmation.amend.viewPaymentCharges.prelink.text = You can
 confirmation.amend.viewPaymentCharges.link.text = view payments and charge references for your AFT returns
 
 confirmation.amend.increase.whatNext.p1 = A new charge reference has been created for the additional amount included in this amendment. You must use this charge reference when making payment.
+confirmation.amend.noChange.whatNext.p1 = This amended Accounting for Tax return has resulted in nothing additional to pay.
 
 confirmSubmitAFTReturn.title = Do you want to submit this AFT return to HMRC?
 confirmSubmitAFTReturn.heading = Do you want to submit this AFT return to HMRC?
