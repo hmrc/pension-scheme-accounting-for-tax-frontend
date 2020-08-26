@@ -28,6 +28,8 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import models.{SessionAccessData, GenericViewModel, UserAnswers, Quarter, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -129,7 +131,8 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       emailParamsCaptor.getValue mustEqual emailParams()
     }
 
-    "Save data to user answers, file amended AFT Return (decreased value), send an email and redirect to next page when on submit declaration" in {
+    "Save data to user answers, file amended AFT Return (decreased value), " +
+      "send an email with correct template ID and redirect to next page when on submit declaration" in {
       mutableFakeDataRetrievalAction.setDataToReturn(
         userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease))
       )
@@ -149,6 +152,54 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       redirectLocation(result) mustBe Some(dummyCall.url)
       journeyTypeCaptor.getValue mustEqual "AFTAmendmentSubmitted"
       templateCaptor.getValue mustEqual amendAftReturnDecreaseTemplateIdId
+      emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
+    }
+
+    "Save data to user answers, file amended AFT Return (no change in value), " +
+      "send an email with correct template ID and redirect to next page when on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame))
+      )
+      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), journeyTypeCaptor.capture(), any(),
+        templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+      journeyTypeCaptor.getValue mustEqual "AFTAmendmentSubmitted"
+      templateCaptor.getValue mustEqual amendAftReturnNoChangeTemplateIdId
+      emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
+    }
+
+    "Save data to user answers, file amended AFT Return (increased value), " +
+      "send an email with correct template ID and redirect to next page when on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease))
+      )
+      mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+      verify(mockEmailConnector, times(1)).sendEmail(any(), any(), journeyTypeCaptor.capture(), any(),
+        templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+      journeyTypeCaptor.getValue mustEqual "AFTAmendmentSubmitted"
+      templateCaptor.getValue mustEqual amendAftReturnIncreaseTemplateIdId
       emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
     }
 
