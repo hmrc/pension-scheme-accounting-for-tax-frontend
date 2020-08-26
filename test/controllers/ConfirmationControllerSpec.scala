@@ -16,11 +16,13 @@
 
 package controllers
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+import connectors.FinancialStatementConnector
 import controllers.actions.{AllowSubmissionAction, MutableFakeDataRetrievalAction, FakeAllowSubmissionAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
@@ -30,6 +32,9 @@ import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
+import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.financialStatement.SchemeFSChargeType.PSS_OTC_AFT_RETURN
 import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -44,6 +49,7 @@ import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.SchemeService
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -56,8 +62,18 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
   import ConfirmationControllerSpec._
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val extraModules: Seq[GuiceableModule] = Seq(bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction))
+
+  private val mockSchemeService = mock[SchemeService]
+  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+
+  private val extraModules: Seq[GuiceableModule] = Seq(
+    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction),
+    bind[SchemeService].toInstance(mockSchemeService),
+    bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
+  )
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+
+  private val year = QUARTER_START_DATE.getYear
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,
@@ -70,7 +86,8 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     "viewModel" -> GenericViewModel(
       submitUrl = submitUrl.url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = SampleData.schemeName)
+      schemeName = SampleData.schemeName),
+    "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
   )
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -82,12 +99,15 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
+    when(mockAppConfig.isFSEnabled).thenReturn(true)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
+    when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
   "Confirmation Controller" must {
 
-    "return OK and the correct view for submission for a GET" in {
+    "return OK and the correct view for submission for a GET when financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
@@ -104,7 +124,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       jsonCaptor.getValue must containJson(json(isAmendment = false))
     }
 
-    "return OK and the correct view for amendment for a GET" in {
+    "return OK and the correct view for amendment for a GET when financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
@@ -119,7 +139,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
-    "return OK and the correct view for amendment for a GET when value decreased" in {
+    "return OK and the correct view for amendment for a GET when value decreased and financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
@@ -139,7 +159,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
-    "return OK and the correct view for amendment for a GET when value increased" in {
+    "return OK and the correct view for amendment for a GET when value increased and financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
@@ -159,7 +179,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
-    "return OK and the correct view for amendment for a GET when value not changed" in {
+    "return OK and the correct view for amendment for a GET when value not changed and financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
@@ -177,6 +197,55 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
 
       templateCaptor.getValue mustEqual "confirmationNoChange.njk"
       jsonCaptor.getValue must containJson(json(isAmendment = true))
+    }
+
+    "return OK and don't include financial info link when no financial info exists for year" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
+        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
+
+      val schemeFSResponse: Seq[SchemeFS] = Seq(
+        SchemeFS(
+          chargeReference = "XY002610150184",
+          chargeType = PSS_AFT_RETURN,
+          dueDate = Some(LocalDate.parse("2021-02-15")),
+          totalAmount = 12345.00,
+          outstandingAmount = 56049.08,
+          stoodOverAmount = 25089.08,
+          amountDue = 1029.05,
+          accruedInterestTotal = 23000.55,
+          periodStartDate = LocalDate.parse("2021-04-01"),
+          periodEndDate = LocalDate.parse("2021-06-30")
+        )
+      )
+
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmation.njk"
+      (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
+    }
+
+    "return OK and the correct view for submission for a GET when financial info exists for year but toggle is off" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
+        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
+      when(mockAppConfig.isFSEnabled).thenReturn(false)
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmation.njk"
+      (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
     }
 
     "redirect to Session Expired page when there is no scheme name or pstr or quarter" in {
