@@ -75,7 +75,9 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     Mockito.reset(mockRenderer, mockEmailConnector, mockAFTService, mockUserAnswersCacheConnector, mockCompoundNavigator)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockAppConfig.amendAftReturnTemplateIdId).thenReturn(amendAftReturnTemplateIdId)
+    when(mockAppConfig.amendAftReturnDecreaseTemplateIdId).thenReturn(amendAftReturnDecreaseTemplateIdId)
+    when(mockAppConfig.amendAftReturnNoChangeTemplateIdId).thenReturn(amendAftReturnNoChangeTemplateIdId)
+    when(mockAppConfig.amendAftReturnIncreaseTemplateIdId).thenReturn(amendAftReturnIncreaseTemplateIdId)
     when(mockAppConfig.fileAFTReturnTemplateId).thenReturn(fileAFTReturnTemplateId)
   }
   private def emailParams(isAmendment: Boolean = false): Map[String, String] =
@@ -146,7 +148,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
       redirectLocation(result) mustBe Some(dummyCall.url)
       journeyTypeCaptor.getValue mustEqual "AFTAmendmentSubmitted"
-      templateCaptor.getValue mustEqual amendAftReturnTemplateIdId
+      templateCaptor.getValue mustEqual amendAftReturnDecreaseTemplateIdId
       emailParamsCaptor.getValue mustEqual emailParams(isAmendment = true)
     }
 
@@ -181,6 +183,8 @@ object DeclarationControllerSpec {
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = schemeName)
   )
-  private val amendAftReturnTemplateIdId = "pods_aft_amended_return"
+  private val amendAftReturnDecreaseTemplateIdId = "pods_aft_amended_return_decrease"
+  private val amendAftReturnNoChangeTemplateIdId = "pods_aft_amended_return_no_change"
+  private val amendAftReturnIncreaseTemplateIdId = "pods_aft_amended_return_increase"
   private val fileAFTReturnTemplateId = "pods_file_aft_return"
 }

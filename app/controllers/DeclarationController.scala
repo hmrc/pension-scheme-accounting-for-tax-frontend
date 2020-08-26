@@ -137,9 +137,9 @@ class DeclarationController @Inject()(
 
   private def templateId(implicit request: DataRequest[_]): String ={
     (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
-      case (true, Some(ChangeTypeDecrease)) => config.amendAftReturnTemplateIdId
-      case (true, Some(ChangeTypeIncrease)) => config.amendAftReturnTemplateIdId
-      case (true, Some(ChangeTypeSame)) => config.amendAftReturnTemplateIdId
+      case (true, Some(ChangeTypeDecrease)) => config.amendAftReturnDecreaseTemplateIdId
+      case (true, Some(ChangeTypeIncrease)) => config.amendAftReturnIncreaseTemplateIdId
+      case (true, Some(ChangeTypeSame)) => config.amendAftReturnNoChangeTemplateIdId
       case _ => config.fileAFTReturnTemplateId
     }
   }
