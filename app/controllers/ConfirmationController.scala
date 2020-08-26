@@ -74,7 +74,7 @@ class ConfirmationController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def checkIfFinancialInfoLinkDisplayable(srn:String, year:Int)(implicit request: DataRequest[AnyContent]):Future[Boolean] = {
+  private def checkIfFinancialInfoLinkDisplayable(srn:String, year:Int)(implicit request: DataRequest[AnyContent]):Future[Boolean] = {
     if (config.isFSEnabled) {
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
         fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate.getYear == year))
