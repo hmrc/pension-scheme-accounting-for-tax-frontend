@@ -17,13 +17,14 @@
 package controllers
 
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 import connectors.FinancialStatementConnector
-import controllers.actions.{AllowSubmissionAction, MutableFakeDataRetrievalAction, FakeAllowSubmissionAction}
+import controllers.actions.AllowSubmissionAction
+import controllers.actions.FakeAllowSubmissionAction
+import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -34,23 +35,32 @@ import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import models.financialStatement.SchemeFSChargeType.PSS_OTC_AFT_RETURN
-import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
+import models.AccessMode
+import models.GenericViewModel
+import models.SessionAccessData
+import models.SessionData
+import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.when
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import pages.PSAEmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.JsObject
+import play.api.libs.json.Json
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.Key
+import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.Value
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
@@ -88,6 +98,21 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName),
     "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+  )
+
+  private val schemeFSResponseWithDataForDifferentYear: Seq[SchemeFS] = Seq(
+    SchemeFS(
+      chargeReference = "XY002610150184",
+      chargeType = PSS_AFT_RETURN,
+      dueDate = Some(LocalDate.parse("2021-02-15")),
+      totalAmount = 12345.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 23000.55,
+      periodStartDate = LocalDate.parse("2021-04-01"),
+      periodEndDate = LocalDate.parse("2021-06-30")
+    )
   )
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -199,29 +224,15 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
-    "return OK and don't include financial info link when no financial info exists for year" in {
+    "return OK but don't include financial info link when no financial info exists for year" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
         set(PSAEmailQuery, email).getOrElse(UserAnswers())))
 
-      val schemeFSResponse: Seq[SchemeFS] = Seq(
-        SchemeFS(
-          chargeReference = "XY002610150184",
-          chargeType = PSS_AFT_RETURN,
-          dueDate = Some(LocalDate.parse("2021-02-15")),
-          totalAmount = 12345.00,
-          outstandingAmount = 56049.08,
-          stoodOverAmount = 25089.08,
-          amountDue = 1029.05,
-          accruedInterestTotal = 23000.55,
-          periodStartDate = LocalDate.parse("2021-04-01"),
-          periodEndDate = LocalDate.parse("2021-06-30")
-        )
-      )
-
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
 
       val result = route(application, request).value
       status(result) mustEqual OK
@@ -232,7 +243,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       (jsonCaptor.getValue \ "viewPaymentsUrl").toOption mustBe None
     }
 
-    "return OK and the correct view for submission for a GET when financial info exists for year but toggle is off" in {
+    "return OK but don't include financial info link for a GET when financial info exists for year but toggle is off" in {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
