@@ -33,7 +33,11 @@ import models.Declaration
 import models.GenericViewModel
 import models.NormalMode
 import models.Quarter
+import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import navigators.CompoundNavigator
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import pages.DeclarationPage
 import pages.PSANameQuery
 import play.api.i18n.I18nSupport
@@ -122,12 +126,22 @@ class DeclarationController @Inject()(
       "psaName" -> psaName
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
-    val (journeyType, templateId) = if (isAmendment) {
-      ("AFTAmendmentSubmitted", config.amendAftReturnTemplateIdId)
+    val journeyType = if (isAmendment) {
+      "AFTAmendmentSubmitted"
     } else {
-      ("AFTReturnSubmitted", config.fileAFTReturnTemplateId)
+      "AFTReturnSubmitted"
     }
 
     emailConnector.sendEmail(requestId, request.psaId, journeyType, email, templateId, templateParams)
   }
+
+  private def templateId(implicit request: DataRequest[_]): String ={
+    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
+      case (true, Some(ChangeTypeDecrease)) => config.amendAftReturnTemplateIdId
+      case (true, Some(ChangeTypeIncrease)) => config.amendAftReturnTemplateIdId
+      case (true, Some(ChangeTypeSame)) => config.amendAftReturnTemplateIdId
+      case _ => config.fileAFTReturnTemplateId
+    }
+  }
+
 }

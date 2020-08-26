@@ -27,6 +27,7 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.ValueChangeType.ChangeTypeDecrease
 import models.{SessionAccessData, GenericViewModel, UserAnswers, Quarter, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -126,8 +127,10 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       emailParamsCaptor.getValue mustEqual emailParams()
     }
 
-    "Save data to user answers, file amended AFT Return, send an email and redirect to next page when on submit declaration" in {
-      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
+    "Save data to user answers, file amended AFT Return (decreased value), send an email and redirect to next page when on submit declaration" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(
+        userAnswersWithPSTREmailQuarter.map(_.setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease))
+      )
       mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData(sessionAccessData =
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
