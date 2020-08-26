@@ -21,6 +21,7 @@ import java.time.ZoneId
 import java.time.LocalDate
 
 import config.FrontendAppConfig
+import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
@@ -32,6 +33,7 @@ import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
 import models.requests.DataRequest
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
+import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
@@ -41,6 +43,7 @@ import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
 import play.twirl.api.Html
 import renderer.Renderer
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.Key
 import uk.gov.hmrc.viewmodels.SummaryList.Row
@@ -64,15 +67,30 @@ class ConfirmationController @Inject()(
                                         val controllerComponents: MessagesControllerComponents,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         renderer: Renderer,
-                                        config: FrontendAppConfig
+                                        config: FrontendAppConfig,
+                                        fsConnector: FinancialStatementConnector,
+                                        schemeService: SchemeService
                                       )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
+
+  def checkIfFinancialInfoLinkDisplayable(srn:String, year:Int)(implicit request: DataRequest[AnyContent]):Future[Boolean] = {
+    if (config.isFSEnabled) {
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+        fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate.getYear == year))
+      } recover { case e => Logger.error("Exception (not rendered to user) when checking for financial information", e)
+        false
+      }
+    } else {
+      Future.successful(false)
+    }
+  }
 
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
+        val year = startDate.getYear
         DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
@@ -82,23 +100,34 @@ class ConfirmationController @Inject()(
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
 
-          val json = Json.obj(
-            fields = "srn" -> srn,
-            "panelHtml" -> confirmationPanelText.toString(),
-            "email" -> email,
-            "isAmendment" -> isAmendment,
-            "list" -> rows,
-            "pensionSchemesUrl" -> listSchemesUrl,
-            "viewModel" -> GenericViewModel(
-              submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
-              returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-              schemeName = schemeName
-            ),
-            "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url
-          )
-          renderer.render(getView, json).flatMap { viewHtml =>
-            userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-              Ok(viewHtml)
+          checkIfFinancialInfoLinkDisplayable(srn, year).flatMap{ isFinancialInfoLinkDisplayable =>
+            val optViewPaymentsUrl =
+              if (isFinancialInfoLinkDisplayable) {
+                Json.obj(
+                "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+                )
+              } else {
+                Json.obj()
+              }
+
+            val json = Json.obj(
+              fields = "srn" -> srn,
+              "panelHtml" -> confirmationPanelText.toString(),
+              "email" -> email,
+              "isAmendment" -> isAmendment,
+              "list" -> rows,
+              "pensionSchemesUrl" -> listSchemesUrl,
+              "viewModel" -> GenericViewModel(
+                submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
+                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                schemeName = schemeName
+              )
+            ) ++ optViewPaymentsUrl
+
+            renderer.render(getView, json).flatMap { viewHtml =>
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                Ok(viewHtml)
+              }
             }
           }
         }
