@@ -26,7 +26,7 @@ site.finishAndSignOut = Finish and sign out
 error.title.prefix = Error:
 error.summary.title = There is a problem
 
-footer.links.support_links = Cysylltiadau cymorth
+footer.links.support_links = Help contacts
 footer.links.help = Help using GOV.UK
 footer.links.cookies = Cookies
 footer.links.accessibility = Accessibility
