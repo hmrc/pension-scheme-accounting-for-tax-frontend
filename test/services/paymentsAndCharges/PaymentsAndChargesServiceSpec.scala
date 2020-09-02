@@ -19,6 +19,7 @@ package services.paymentsAndCharges
 import java.time.LocalDate
 
 import base.SpecBase
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
@@ -27,7 +28,11 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAc
 import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Matchers.any
+import org.mockito.Mockito._
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import play.api.i18n.Messages
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -36,7 +41,11 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
 class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
+
   import PaymentsAndChargesServiceSpec._
 
   private def htmlChargeType(chargeType: String, chargeReference: String, redirectUrl: String, visuallyHiddenText: String) = {
@@ -76,13 +85,13 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                   redirectUrl: String,
                   visuallyHiddenText: String,
                   paymentAndChargeStatus: PaymentAndChargeStatus = NoStatus
-  ): Seq[Table.Cell] = {
-    val statusHtml =   paymentAndChargeStatus match {
+                 ): Seq[Table.Cell] = {
+    val statusHtml = paymentAndChargeStatus match {
       case InterestIsAccruing => Html(s"<span class='govuk-tag govuk-tag--blue'>${paymentAndChargeStatus.toString}</span>")
-      case PaymentOverdue     => Html(s"<span class='govuk-tag govuk-tag--red'>${paymentAndChargeStatus.toString}</span>")
-      case _ => if(amountDue == "£0.00") {
+      case PaymentOverdue => Html(s"<span class='govuk-tag govuk-tag--red'>${paymentAndChargeStatus.toString}</span>")
+      case _ => if (amountDue == "£0.00") {
         Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.noPaymentDue")}</span>")
-      } else{
+      } else {
         Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue")}</span>")
       }
     }
@@ -95,76 +104,100 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     )
   }
 
-  private val paymentsAndChargesService = new PaymentsAndChargesService
+  private val mockFiCacheConnector = mock[FinancialInfoCacheConnector]
+  private val paymentsAndChargesService = new PaymentsAndChargesService(mockFiCacheConnector)
 
-  "getPaymentsAndChargesSeqOfTables" must {
+  "getPaymentsAndCharges" must {
 
-    Seq(PSS_AFT_RETURN, PSS_OTC_AFT_RETURN).foreach { chargeType =>
-      s"return payments and charges table with two rows for the charge and interest accrued for $chargeType" in {
-        val expectedTable = Seq(
-          paymentTable(Seq(
-            row(
-              chargeType.toString,
-              "AYU3494534632",
-              FormatHelper.formatCurrencyAmountAsString(1029.05),
-              Html(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
-              controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
-                .url,
-              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
-              PaymentAndChargeStatus.PaymentOverdue
-            ),
-            row(
-              if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
-              messages("paymentsAndCharges.chargeReference.toBeAssigned"),
-              FormatHelper.formatCurrencyAmountAsString(153.00),
-              Html(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                .onPageLoad(srn, QUARTER_START_DATE.toString, "AYU3494534632")
-                .url,
-              messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
-              PaymentAndChargeStatus.InterestIsAccruing
-            )
-          )))
+    Seq(PSS_AFT_RETURN, PSS_OTC_AFT_RETURN).foreach {
+      chargeType =>
+        s"return payments and charges table with two rows for the charge and interest accrued for $chargeType" in {
+          when(mockFiCacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(chargeRefs)))
 
-        val result = paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(paymentsAndChargesForAGivenPeriod(chargeType), srn)
+          val expectedTable = Seq(
+            paymentTable(Seq(
+              row(
+                chargeType = chargeType.toString,
+                chargeReference = "AYU3494534632",
+                amountDue = FormatHelper.formatCurrencyAmountAsString(1029.05),
+                status = Html(s"<span class='govuk-tag govuk-tag--red'>${PaymentAndChargeStatus.PaymentOverdue.toString}</span>"),
+                redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                  .onPageLoad(srn, QUARTER_START_DATE.toString, "0")
+                  .url,
+                visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632"),
+                paymentAndChargeStatus = PaymentAndChargeStatus.PaymentOverdue
+              ),
+              row(
+                chargeType = if (chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST.toString else PSS_OTC_AFT_RETURN_INTEREST.toString,
+                chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
+                amountDue = FormatHelper.formatCurrencyAmountAsString(153.00),
+                status = Html(s"<span class='govuk-tag govuk-tag--blue'>${PaymentAndChargeStatus.InterestIsAccruing.toString}</span>"),
+                redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                  .onPageLoad(srn, QUARTER_START_DATE.toString, "0")
+                  .url,
+                visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
+                paymentAndChargeStatus = PaymentAndChargeStatus.InterestIsAccruing
+              )
+            )))
 
-        result mustBe expectedTable
-      }
+          val result = paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(chargeType), srn)
+
+          whenReady(result) {
+            _ mustBe expectedTable
+          }
+        }
     }
 
     "return payments and charges table with no rows for credit" in {
+      when(mockFiCacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(chargeRefs)))
+
       val totalAmount = -56432.00
       val expectedTable = Seq(paymentTable(Seq.empty))
 
-      val result = paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(
+      val result = paymentsAndChargesService.getPaymentsAndCharges(
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00),
         srn)
 
-      result mustBe expectedTable
+      whenReady(result) {
+        _ mustBe expectedTable
+      }
     }
 
     "return payments and charges table with row where there is no amount due" in {
-      val redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-        .onPageLoad(srn, QUARTER_START_DATE.toString, chargeReference = "AYU3494534632")
-        .url
+      when(mockFiCacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(chargeRefs)))
+
       val expectedTable = Seq(
         paymentTable(
           Seq(
             row(
-              PSS_OTC_AFT_RETURN.toString,
+              chargeType = PSS_OTC_AFT_RETURN.toString,
               chargeReference = "AYU3494534632",
               amountDue = FormatHelper.formatCurrencyAmountAsString(0.00),
-              Html(""),
-              redirectUrl,
-              messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
+              status = Html(""),
+              redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                .onPageLoad(srn, QUARTER_START_DATE.toString, index = "0")
+                .url,
+              visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
             )
           )))
 
       val result =
-        paymentsAndChargesService.getPaymentsAndChargesSeqOfTables(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
+        paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
 
-      result mustBe expectedTable
+      whenReady(result) {
+        _ mustBe expectedTable
+      }
+    }
+
+    "return Seq.empty when no charge ref data in FI Cache" in {
+      when(mockFiCacheConnector.fetch(any(), any())).thenReturn(Future.successful(None))
+
+      val result =
+        paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
+
+      whenReady(result) {
+        _ mustBe Seq.empty[PaymentsAndChargesTable]
+      }
     }
   }
 
@@ -197,6 +230,7 @@ object PaymentsAndChargesServiceSpec {
   val srn = "S1234567"
   val startDate: String = QUARTER_START_DATE.format(dateFormatterStartDate)
   val endDate: String = QUARTER_END_DATE.format(dateFormatterDMY)
+
   private def createCharge(chargeType: SchemeFSChargeType, totalAmount: BigDecimal, amountDue: BigDecimal): SchemeFS = {
     SchemeFS(
       chargeReference = "AYU3494534632",
@@ -224,6 +258,11 @@ object PaymentsAndChargesServiceSpec {
     periodStartDate = QUARTER_START_DATE,
     periodEndDate = QUARTER_END_DATE
   )
+
+  private val chargeRefs: JsObject = Json.obj(
+    "chargeRefs" -> Seq(
+      "AYU3494534632"
+    ))
 
   private def paymentsAndChargesForAGivenPeriod(chargeType: SchemeFSChargeType,
                                                 totalAmount: BigDecimal = 56432.00,

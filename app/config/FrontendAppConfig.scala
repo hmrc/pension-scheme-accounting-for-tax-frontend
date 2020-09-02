@@ -99,7 +99,9 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val earliestEndDate: String = configuration.get[String]("earliestEndDate")
   lazy val aftNoOfYearsDisplayed: Int = configuration.get[Int]("aftNoOfYearsDisplayed")
   lazy val fileAFTReturnTemplateId: String = configuration.get[String]("email.fileAftReturnTemplateId")
-  lazy val amendAftReturnTemplateIdId: String = configuration.get[String]("email.amendAftReturnTemplateId")
+  lazy val amendAftReturnDecreaseTemplateIdId: String = configuration.get[String]("email.amendAftReturnDecreaseTemplateId")
+  lazy val amendAftReturnNoChangeTemplateIdId: String = configuration.get[String]("email.amendAftReturnNoChangeTemplateId")
+  lazy val amendAftReturnIncreaseTemplateIdId: String = configuration.get[String]("email.amendAftReturnIncreaseTemplateId")
 
   lazy val aftLoginUrl: String = s"${configuration.get[String](path = "urls.partials.aftLoginLink")}"
   lazy val aftSummaryPageUrl: String = s"${configuration.get[String](path = "urls.partials.aftSummaryPageLink")}"

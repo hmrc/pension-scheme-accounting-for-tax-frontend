@@ -17,7 +17,7 @@
 package controllers.amend
 
 import connectors.AFTConnector
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions.{AllowSubmissionAction, MutableFakeDataRetrievalAction, FakeAllowSubmissionAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -25,16 +25,19 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{AFTOverview, AccessMode, GenericViewModel, UserAnswers}
+import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeSame
+import models.{AccessMode, GenericViewModel, AFTOverview, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.Mockito.{times, never, when, verify}
 import org.mockito.{ArgumentCaptor, Mockito}
 import pages.ConfirmSubmitAFTAmendmentPage
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
@@ -103,8 +106,9 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
   "ConfirmSubmitAFTAmendment Controller" must {
 
-    "return OK and the correct view for a GET" in {
+    "return OK and the correct view for a GET and store flag indicating that value has not changed" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
       val expectedJson = jsonToBePassed(form)
 
@@ -115,11 +119,16 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
       templateCaptor.getValue mustEqual templateToBeRendered
       jsonCaptor.getValue must containJson(expectedJson)
+
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture())(any(), any())
+      val storedValueChangeType = UserAnswers(jsonCaptor.getValue).get(ConfirmSubmitAFTAmendmentValueChangeTypePage)
+      storedValueChangeType mustEqual Some(ChangeTypeSame)
     }
 
     "populate the view correctly on a GET when the question has previously been answered" in {
       val filledAnswers = userAnswers.map(_.set(ConfirmSubmitAFTAmendmentPage, value = true).getOrElse(UserAnswers()))
       mutableFakeDataRetrievalAction.setDataToReturn(filledAnswers)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(GET, confirmSubmitAFTAmendmentRoute)
       val filledForm = form.bind(Map("value" -> "true"))
       val expectedJson = jsonToBePassed(filledForm)
@@ -166,13 +175,14 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
 
     "return a Bad Request and errors when invalid data is submitted" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       val request = FakeRequest(POST, confirmSubmitAFTAmendmentRoute).withFormUrlEncodedBody(("value", ""))
 
       val result = route(application, request).value
       status(result) mustEqual BAD_REQUEST
 
       verify(mockRenderer, times(1)).render(any(), any())(any())
-      verify(mockUserAnswersCacheConnector, never).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
     }
 
     "redirect to Session Expired for a GET if no existing data is found" in {

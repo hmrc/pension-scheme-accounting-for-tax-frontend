@@ -27,10 +27,14 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.ValueChangeType.ChangeTypeDecrease
+import models.ValueChangeType.ChangeTypeIncrease
+import models.ValueChangeType.ChangeTypeSame
 import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
 import org.mockito.{ArgumentCaptor, Mockito}
+import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import pages.PSAEmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
@@ -112,6 +116,66 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "confirmation.njk"
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
+    }
+
+    "return OK and the correct view for amendment for a GET when value decreased" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction
+        .setDataToReturn(Some(
+          userAnswersWithSchemeNamePstrQuarter
+            .setOrException(PSAEmailQuery, email)
+            .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease)
+        ))
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmationAmendDecrease.njk"
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
+    }
+
+    "return OK and the correct view for amendment for a GET when value increased" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction
+        .setDataToReturn(Some(
+          userAnswersWithSchemeNamePstrQuarter
+            .setOrException(PSAEmailQuery, email)
+            .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease)
+        ))
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmationAmendIncrease.njk"
+      jsonCaptor.getValue must containJson(json(isAmendment = true))
+    }
+
+    "return OK and the correct view for amendment for a GET when value not changed" in {
+      val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
+      mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
+        SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
+      mutableFakeDataRetrievalAction
+        .setDataToReturn(Some(
+          userAnswersWithSchemeNamePstrQuarter
+            .setOrException(PSAEmailQuery, email)
+            .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
+        ))
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "confirmationNoChange.njk"
       jsonCaptor.getValue must containJson(json(isAmendment = true))
     }
 
