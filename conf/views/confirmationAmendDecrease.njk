@@ -52,10 +52,12 @@
             {% endif %}
         </ul></div>
 
-         <p class="govuk-body">
-            {{messages("confirmation.amend.viewPaymentCharges.prelink.text")}}
-            <a class="govuk-link" href="{{ viewPaymentsUrl }}">{{messages("confirmation.amend.viewPaymentCharges.link.text")}}</a>.
-         </p>
+         {% if viewPaymentsUrl %}
+             <p class="govuk-body">
+                {{messages("confirmation.amend.viewPaymentCharges.prelink.text")}}
+                <a class="govuk-link" href="{{ viewPaymentsUrl }}">{{messages("confirmation.amend.viewPaymentCharges.link.text")}}</a>.
+             </p>
+         {% endif %}
 
         <ul class="govuk-list">
           <li><a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("confirmation.li1", viewModel.schemeName) }}</a></li>
