@@ -15,8 +15,8 @@
 
 {% block pageTitle %}
     {{ title(
-        viewModel.schemeName + " " + messages('aft.summary.heading', quarterStartDate, quarterEndDate),
-        form.errors
+        messages('aft.summary.heading', quarterStartDate, quarterEndDate),
+        form.errors + formSearchText.errors
     ) }}
 {% endblock %}
 
