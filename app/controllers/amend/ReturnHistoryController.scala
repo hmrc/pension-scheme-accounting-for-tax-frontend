@@ -83,18 +83,21 @@ class ReturnHistoryController @Inject()(
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])(implicit messages: Messages,
-                                                                                                   ec: ExecutionContext,
-                                                                                                   hc: HeaderCarrier): Future[JsObject] = {
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])
+                             (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
       val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
       val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-      def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
+      def link(version: Int, linkText: String, accessType: AccessType, index: Int)
+              (implicit messages: Messages): Html = {
         val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version + 1 else version
-        Html(s"<a id= report-version-$version href=${url(accessType, updatedVersion)}> ${messages(linkText)}" +
-          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", version.toString)}</span> </a>")
+        Html(
+          s"<a id= report-version-$version href=${url(accessType, updatedVersion)}>${messages(linkText)}" +
+          "<span class=govuk-visually-hidden>" +
+          s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
+        )
       }
 
       val head = Seq(
