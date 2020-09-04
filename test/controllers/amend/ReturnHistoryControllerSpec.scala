@@ -113,14 +113,15 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
           .map(_.value.flatMap(
             jsValue => (jsValue \ "html").validate[String].asOpt.toSeq))
 
-      val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
-        .map(_.value.flatMap(_.validate[JsArray].asOpt.toSeq
-          .flatMap(_.value.flatMap { jsValue =>
-            ((jsValue \ "text").validate[String].asOpt match {
-              case None => (jsValue \ "html").validate[String].asOpt
-              case t => t
-            }).toSeq
-          })))
+      val actualColumnValues: Option[IndexedSeq[String]] =
+        (actual \ "versions" \ "rows").validate[JsArray].asOpt
+          .map(_.value.flatMap(_.validate[JsArray].asOpt.toSeq
+            .flatMap(_.value.flatMap { jsValue =>
+              ((jsValue \ "text").validate[String].asOpt match {
+                case None => (jsValue \ "html").validate[String].asOpt
+                case t => t
+              }).toSeq
+            })))
 
       actualColumnTextTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status")))
 
@@ -169,7 +170,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val actual = jsonCaptor.getValue
 
       val expectedJson =
-        Json.obj("paymentsAndChargesUrl" -> paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
+        Json.obj("paymentsAndChargesUrl" -> paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate.getYear).url)
 
       actual must containJson(expectedJson)
     }
