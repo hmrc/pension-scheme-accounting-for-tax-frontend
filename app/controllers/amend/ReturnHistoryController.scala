@@ -100,7 +100,7 @@ class ReturnHistoryController @Inject()(
       val head = Seq(
         Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
         Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
-        Cell(msg"")
+        Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
       )
 
       def versionCell(reportVersion: Int, reportStatus: String): Cell = {

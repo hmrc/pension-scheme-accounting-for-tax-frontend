@@ -63,8 +63,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       Json.obj("text" -> "Member", "classes" -> cssQuarterWidth),
       Json.obj("text" -> "National Insurance number", "classes" -> cssQuarterWidth),
       Json.obj("text" -> "Charge amount", "classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
-      Json.obj("text" -> ""),
-      Json.obj("text" -> "")
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""),
+      Json.obj("html" -> s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")
     ),
     "rows" -> Json.arr(
       Json.arr(

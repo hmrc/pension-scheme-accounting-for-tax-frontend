@@ -32,8 +32,13 @@ object AddMembersService {
       Cell(msg"addMembers.members.header", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"addMembers.nino.header", classes = Seq("govuk-!-width-one-quarter")),
       Cell(msg"addMembers.$chargeName.amount.header", classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-      Cell(msg"")
-    ) ++ (if (canChange) Seq(Cell(msg"")) else Nil)
+      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""))
+    ) ++ (
+      if (canChange)
+        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")))
+      else
+        Nil
+      )
 
     val rows = members.map { data =>
       Seq(
