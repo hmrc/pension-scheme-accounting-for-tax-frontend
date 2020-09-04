@@ -18,48 +18,36 @@ package controllers.amend
 
 import java.time.LocalDate
 
-import connectors.AFTConnector
-import connectors.FinancialStatementConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
+import controllers._
 import controllers.base.ControllerSpecBase
-import play.api.mvc.Results._
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.AFTOverview
-import models.AFTVersion
-import models.AccessType
-import models.Draft
-import models.Submission
 import models.LocalDateBinder._
+import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsArray
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers._
+import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.mvc.Results._
+import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.SchemeService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.AFTConstants._
 
 import scala.concurrent.Future
 
 class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers {
 
   private val templateToBeRendered = "amend/returnHistory.njk"
-  private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
-  private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
 
-  private val cssQuarterWidth = "govuk-!-width-one-quarter"
-  private val cssHalfWidth = "govuk-!-width-one-half"
+  private def httpPathGET: String = amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+
+  private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
 
   private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "Submitted")
   private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "Submitted")
@@ -72,33 +60,6 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       numberOfVersions = 3,
       submittedVersionAvailable = true,
       compiledVersionAvailable = true
-    )
-  )
-
-  private def versionsTable = Json.obj(
-    "firstCellIsHeader" -> false,
-    "head" -> Json.arr(
-      Json.obj("text" -> "Version", "classes" -> cssHalfWidth),
-      Json.obj("text" -> "Date submitted", "classes" -> cssQuarterWidth),
-      Json.obj("text" -> "")
-    ),
-
-    "rows" -> Json.arr(
-      Json.arr(
-        Json.obj("text" -> "Submission 3","classes" -> cssHalfWidth),
-        Json.obj("text" -> "17/6/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-3 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/3/summary> View<span class= govuk-visually-hidden>submission 3 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
-      ),
-      Json.arr(
-        Json.obj("text" -> "Submission 2","classes" -> cssHalfWidth),
-        Json.obj("text" -> "17/5/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-2 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/2/summary> View<span class= govuk-visually-hidden>submission 2 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
-      ),
-      Json.arr(
-        Json.obj("text" -> "Submission 1","classes" -> cssHalfWidth),
-        Json.obj("text" -> "17/4/2020","classes" -> cssQuarterWidth),
-        Json.obj("html" -> s"<a id=report-version-1 href=/manage-pension-scheme-accounting-for-tax/aa/new-return/$QUARTER_START_DATE/1/summary> View<span class= govuk-visually-hidden>submission 1 of the AFT return</span> </a>","classes" -> cssQuarterWidth)
-      )
     )
   )
 
@@ -136,30 +97,39 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       status(result) mustEqual OK
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(),any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
 
       val actual = jsonCaptor.getValue
 
-      val actualColumnTitles = (actual \ "versions" \ "head").validate[JsArray].asOpt
-          .map(_.value.flatMap(jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
+      val actualColumnTextTitles: Option[IndexedSeq[String]] =
+        (actual \ "versions" \ "head").validate[JsArray].asOpt
+          .map(_.value.flatMap(
+            jsValue => (jsValue \ "text").validate[String].asOpt.toSeq))
+
+      val actualColumnHtmlTitles: Option[IndexedSeq[String]] =
+        (actual \ "versions" \ "head").validate[JsArray].asOpt
+          .map(_.value.flatMap(
+            jsValue => (jsValue \ "html").validate[String].asOpt.toSeq))
 
       val actualColumnValues = (actual \ "versions" \ "rows").validate[JsArray].asOpt
-        .map(_.value.flatMap( _.validate[JsArray].asOpt.toSeq
-          .flatMap( _.value.flatMap{jsValue =>
+        .map(_.value.flatMap(_.validate[JsArray].asOpt.toSeq
+          .flatMap(_.value.flatMap { jsValue =>
             ((jsValue \ "text").validate[String].asOpt match {
               case None => (jsValue \ "html").validate[String].asOpt
               case t => t
             }).toSeq
           })))
 
-      actualColumnTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), ""))
+      actualColumnTextTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status")))
 
-      def anchor(startDate:String, version:Int, linkContent:String, accessType: AccessType) =
-        s"<a id= report-version-$version " +
-          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
-          s"""$linkContent<span class=govuk-visually-hidden>${messages("returnHistory.visuallyHidden", version)}</span></a>"""
+      actualColumnHtmlTitles mustBe Some(Seq(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
+
+      def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType) =
+        s"<a id= report-version-$version href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
+          s"<span aria-hidden=true>$linkContent</span>" +
+          s"<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
 
       val expectedStartDate = "2020-04-01"
 
@@ -199,7 +169,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val actual = jsonCaptor.getValue
 
       val expectedJson =
-        Json.obj("paymentsAndChargesUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
+        Json.obj("paymentsAndChargesUrl" -> paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn,startDate.getYear).url)
 
       actual must containJson(expectedJson)
     }

@@ -38,6 +38,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import uk.gov.hmrc.viewmodels.Content
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -90,20 +91,20 @@ class ReturnHistoryController @Inject()(
       val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-      def link(version: Int, linkText: String, accessType: AccessType, index: Int)
-              (implicit messages: Messages): Html = {
+      def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
         val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version + 1 else version
         Html(
-          s"<a id= report-version-$version href=${url(accessType, updatedVersion)}>${messages(linkText)}" +
-          "<span class=govuk-visually-hidden>" +
-          s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
+          s"<a id= report-version-$version href=${url(accessType, updatedVersion)}>" +
+          s"<span aria-hidden=true>${messages(linkText)}</span>" +
+          s"<span class=govuk-visually-hidden>${messages(linkText)} " +
+            s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
         )
       }
 
       val head = Seq(
         Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
         Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
-        Cell(msg"")
+        Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
       )
 
       def versionCell(reportVersion: Int, reportStatus: String): Cell = {
