@@ -4,8 +4,7 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
-{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
-
+{% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
 {% block pageTitle %}
   {{ title(messages("chargeG.chargeAmount.title", memberName), form.errors) }}
 {% endblock %}
@@ -28,7 +27,7 @@
 
           {{ csrf() | safe }}
 
-          {{ hmrcInputCurrency({
+          {{ hmrcCurrencyInput({
             label: {
               text: messages('chargeG.chargeAmount.transferred'),
               isPageHeading: false,
@@ -41,7 +40,7 @@
             errorMessage: form.amountTransferred.error
           }) }}
 
-        {{ hmrcInputCurrency({
+        {{ hmrcCurrencyInput({
           label: {
             text: messages('chargeG.chargeAmount.taxDue'),
             isPageHeading: false,

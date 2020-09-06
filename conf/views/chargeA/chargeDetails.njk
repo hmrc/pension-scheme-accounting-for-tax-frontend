@@ -6,7 +6,8 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 {% from "govuk/components/input/macro.njk" import govukInput %}
-{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
+{% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
+
 
 {% block pageTitle %}
   {{ title(messages("chargeA.chargeDetails.title"), form.errors) }}
@@ -44,34 +45,36 @@
             errorMessage: form.numberOfMembers.error
           }) }}
 
-        {{ hmrcInputCurrency({
-          id: "totalAmtOfTaxDueAtLowerRate",
-          label: {
-            text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label'),
-            isPageHeading: false,
-            classes: "govuk-label--s"
-          },
-          name: "totalAmtOfTaxDueAtLowerRate",
-          type: "text",
-          value: form.totalAmtOfTaxDueAtLowerRate.value,
-          classes: "govuk-input--width-10",
-          errorMessage: form.totalAmtOfTaxDueAtLowerRate.error
-        }) }}
+            {{ hmrcCurrencyInput({
+                         id: "totalAmtOfTaxDueAtLowerRate",
+                                 label: {
+                                             text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtLowerRate.label'),
+                                             isPageHeading: false,
+                                             classes: "govuk-label--s"
+                                           },
+                                   name: "totalAmtOfTaxDueAtLowerRate",
+                                            type: "text",
+                                            value: form.totalAmtOfTaxDueAtLowerRate.value,
+                                            classes: "govuk-input--width-10",
+                                            errorMessage: form.totalAmtOfTaxDueAtLowerRate.error
+                                  })
+                              }}
 
-         {{ hmrcInputCurrency({
-            id: "totalAmtOfTaxDueAtHigherRate",
-            label: {
-              text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label'),
-              isPageHeading: false,
-              classes: "govuk-label--s"
-            },
-            name: "totalAmtOfTaxDueAtHigherRate",
-            type: "text",
-            value: form.totalAmtOfTaxDueAtHigherRate.value,
-            classes: "govuk-input--width-10",
-            errorMessage: form.totalAmtOfTaxDueAtHigherRate.error
-          }) }}
 
+          {{ hmrcCurrencyInput({
+                     id: "totalAmtOfTaxDueAtHigherRate",
+                                 label: {
+                                   text: messages('chargeA.chargeDetails.totalAmtOfTaxDueAtHigherRate.label'),
+                                   isPageHeading: false,
+                                   classes: "govuk-label--s"
+                                 },
+                                 name: "totalAmtOfTaxDueAtHigherRate",
+                                 type: "text",
+                                 value: form.totalAmtOfTaxDueAtHigherRate.value,
+                                 classes: "govuk-input--width-10",
+                                 errorMessage: form.totalAmtOfTaxDueAtHigherRate.error
+                      })
+                  }}
 
           {{ govukButton({
             attributes: {id: "submit"},
