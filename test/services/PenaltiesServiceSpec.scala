@@ -57,11 +57,11 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): Seq[JsObject] = Seq(
     Json.obj(
       "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue))
+      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
     ),
     Json.obj(
       "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue))
+      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
     )
   )
 
