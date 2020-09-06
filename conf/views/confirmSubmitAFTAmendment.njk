@@ -28,7 +28,7 @@
            {{ messages("confirmSubmitAFTReturn.title") }}
         </h1>
 
-        <h3 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h3>
+        <h2 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h2>
 
             {% if tableRowsUK.length > 0 %}
                 {{ govukSummaryList({
@@ -38,7 +38,7 @@
                 }}
             {% endif %}
             {% if tableRowsNonUK.length > 0 %}
-                <h3 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h3>
+                <h2 class="govuk-heading-m govuk-!-margin-top-2">{{messages('confirmSubmitAFTReturn.overseasCharge.table.h1')}}</h2>
 
                 {{ govukSummaryList({
                                         rows: tableRowsNonUK
