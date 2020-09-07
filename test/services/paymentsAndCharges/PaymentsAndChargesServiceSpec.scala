@@ -74,7 +74,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       caption = messages("paymentsAndCharges.caption", startDate, endDate),
       table = Table(
         head = tableHead,
-        rows = rows
+        rows = rows,
+        attributes = Map("role" -> "table")
       )
     )
 

@@ -91,16 +91,16 @@ class ViewAllAmendmentsControllerSpec
 
     val tableRows = allAmendments.map { data =>
       Seq(
-        Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"))
+        Cell(Literal(data.memberDetails), classes = Seq("govuk-!-width-one-quarter"),attributes = Map("role" -> "cell")),
+        Cell(msg"allAmendments.charge.type.${data.chargeType}", classes = Seq("govuk-!-width-one-quarter"),attributes = Map("role" -> "cell")),
+        Cell(Literal(data.chargeAmount), classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric"), attributes = Map("role" -> "cell"))
       )
     }
 
     Table(
       head = tableHeadingRows,
       rows = tableRows,
-      attributes = Map("role" -> "grid" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
+      attributes = Map("role" -> "table" ,"aria-describedby" -> messages(s"allAmendments.table.caption.$caption").toLowerCase )
     )
   }
 
