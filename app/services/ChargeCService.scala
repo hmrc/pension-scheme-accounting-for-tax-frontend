@@ -46,7 +46,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
   private def getEmployerDetails(ua: UserAnswers, index: Int): Option[String] = ua.get(WhichTypeOfSponsoringEmployerPage(index)) flatMap {
     case SponsoringEmployerTypeIndividual => ua.get(SponsoringIndividualDetailsPage(index)).map(_.fullName)
-    case _                                => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
+    case _ => ua.get(SponsoringOrganisationDetailsPage(index)).map(_.name)
   }
 
   def getSponsoringEmployers(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
@@ -57,16 +57,16 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
         case Some(status) if status == "Deleted" => Nil
         case _ =>
           getEmployerDetails(ua, index).flatMap { name =>
-          ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
-            Employer(
-              index,
-              name,
-              chargeDetails.amountTaxDue,
-              viewUrl(index, srn, startDate, accessType, version).url,
-              removeUrl(index, srn, startDate, ua, accessType, version).url
-            )
-          }
-        }.toSeq
+            ua.get(ChargeCDetailsPage(index)).map { chargeDetails =>
+              Employer(
+                index,
+                name,
+                chargeDetails.amountTaxDue,
+                viewUrl(index, srn, startDate, accessType, version).url,
+                removeUrl(index, srn, startDate, ua, accessType, version).url
+              )
+            }
+          }.toSeq
       }
     }
   }
@@ -74,22 +74,22 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def getAllAuthSurplusAmendments(ua: UserAnswers, currentVersion: Int): Seq[ViewAmendmentDetails] = {
     (0 until numberOfEmployersIncludingDeleted(ua)).flatMap { index =>
       getEmployerDetails(ua, index).flatMap { name =>
-          ua.get(ChargeCDetailsPage(index)).map { chargeAmounts =>
-            val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
+        ua.get(ChargeCDetailsPage(index)).map { chargeAmounts =>
+          val memberVersion = ua.get(MemberAFTVersionPage(index)).getOrElse(0)
 
-            if (memberVersion == currentVersion) {
-              Seq(
-                ViewAmendmentDetails(
-                  name,
-                  ChargeTypeAuthSurplus.toString,
-                  FormatHelper.formatCurrencyAmountAsString(chargeAmounts.amountTaxDue),
-                  ua.get(MemberStatusPage(index)).map(amendedChargeStatus).getOrElse(Unknown)
-                )
+          if (memberVersion == currentVersion) {
+            Seq(
+              ViewAmendmentDetails(
+                name,
+                ChargeTypeAuthSurplus.toString,
+                FormatHelper.formatCurrencyAmountAsString(chargeAmounts.amountTaxDue),
+                ua.get(MemberStatusPage(index)).map(amendedChargeStatus).getOrElse(Unknown)
               )
-            } else {
-              Nil
-            }
+            )
+          } else {
+            Nil
           }
+        }
       }
     }.flatten
   }
@@ -105,21 +105,27 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       controllers.chargeC.routes.DeleteEmployerController.onPageLoad(srn, startDate, accessType, version, index)
     }
 
-  def mapToTable(members: Seq[Employer], canChange: Boolean)(implicit messages: Messages): Table = {
+  def mapToTable(members: Seq[Employer], canChange: Boolean)
+                (implicit messages: Messages): Table = {
     val head = Seq(
       Cell(msg"addEmployers.employer.header", classes = Seq("govuk-!-width-one-half")),
       Cell(msg"addEmployers.amount.header", classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-      Cell(msg"")
-    ) ++ (if (canChange) Seq(Cell(msg"")) else Nil)
+      Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""))
+    ) ++ (
+      if (canChange)
+        Seq(Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.remove.link")}</span>""")))
+      else
+        Nil
+      )
 
     val rows = members.map { data =>
       Seq(
         Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
-             classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
       ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
-            else Nil)
+      else Nil)
     }
     val totalAmount = members.map(_.amount).sum
 
@@ -127,7 +133,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
       Seq(
         Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
         Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"),
-             classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 

@@ -19,7 +19,6 @@ package controllers.amend
 import java.time.LocalDate
 
 import connectors.{AFTConnector, FinancialStatementConnector}
-import controllers._
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -45,7 +44,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
 
   private val templateToBeRendered = "amend/returnHistory.njk"
 
-  private def httpPathGET: String = amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
+  private def httpPathGET: String = controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
 
   private val mockFinancialStatementConnector = mock[FinancialStatementConnector]
 
@@ -170,7 +169,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val actual = jsonCaptor.getValue
 
       val expectedJson =
-        Json.obj("paymentsAndChargesUrl" -> paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate.getYear).url)
+        Json.obj("paymentsAndChargesUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate.getYear).url)
 
       actual must containJson(expectedJson)
     }

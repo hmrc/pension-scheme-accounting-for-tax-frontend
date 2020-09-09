@@ -23,6 +23,8 @@ site.signOut = Sign out
 site.agree_and_submit = Agree and submit this AFT return
 site.finishAndSignOut = Finish and sign out
 site.action = Action
+site.view.link = View link
+site.remove.link = Remove link
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
