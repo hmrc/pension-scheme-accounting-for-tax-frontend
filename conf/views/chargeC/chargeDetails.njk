@@ -5,8 +5,7 @@
 {% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
-{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
-
+{% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
 {% block pageTitle %}
   {{ title(messages("chargeC.chargeDetails.title", sponsorName), form.errors) }}
 {% endblock %}
@@ -42,7 +41,7 @@
             items: date.items
            }) }}
 
-          {{ hmrcInputCurrency({
+          {{ hmrcCurrencyInput({
             id: "amountTaxDue",
             label: {
               text: messages('chargeC.amountTaxDue.label'),

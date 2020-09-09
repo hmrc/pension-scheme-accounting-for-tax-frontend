@@ -7,8 +7,7 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
-{% from 'macros/govHmrcInput/macro.njk'               import hmrcInputCurrency with context %}
-
+{% from "hmrc/components/currency-input/macro.njk" import hmrcCurrencyInput with context %}
 {% block pageTitle %}
   {{ title(messages("chargeEDetails.title", memberName), form.errors) }}
 {% endblock %}
@@ -31,7 +30,7 @@
 
           {{ csrf() | safe }}
 
-          {{ hmrcInputCurrency({
+          {{ hmrcCurrencyInput({
                 name: "chargeAmount",
                 id: "chargeAmount",
                 label: {
