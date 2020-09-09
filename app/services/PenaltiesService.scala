@@ -89,7 +89,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       rows =>
         Json.obj(
           "header" -> caption,
-          "penaltyTable" -> Table(head = head, rows = rows)
+          "penaltyTable" -> Table(head = head, rows = rows,attributes = Map("role" -> "table"))
         )
     }
   }

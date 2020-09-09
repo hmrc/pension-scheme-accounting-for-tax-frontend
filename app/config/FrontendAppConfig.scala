@@ -122,4 +122,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
+
+  lazy val isFSEnabled: Boolean = configuration.get[Boolean]("features.is-fs-enabled")
 }

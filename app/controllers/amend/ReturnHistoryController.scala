@@ -127,13 +127,15 @@ class ReturnHistoryController @Inject()(
           Seq(
             versionCell(version.reportVersion, version.reportStatus),
             statusCell(version.date.format(dateFormatter), version.reportStatus),
-            Cell(link(version.reportVersion, linkText, accessType, index), classes = Seq("govuk-!-width-one-quarter"))
+            Cell(link(version.reportVersion, linkText, accessType, index), classes = Seq("govuk-!-width-one-quarter"),attributes = Map("role" -> "cell"))
           )
         }
       }
 
       Future.sequence(tableRows).map { rows =>
-        Json.obj("versions" -> Table(head = head, rows = rows))
+        Json.obj("versions" -> Table(head = head,
+          rows = rows,
+          attributes = Map("role" -> "table")))
       }
     } else {
       Future.successful(Json.obj())
