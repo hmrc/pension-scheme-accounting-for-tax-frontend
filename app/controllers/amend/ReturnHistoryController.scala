@@ -38,6 +38,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+import uk.gov.hmrc.viewmodels.Content
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -83,9 +84,8 @@ class ReturnHistoryController @Inject()(
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])(implicit messages: Messages,
-                                                                                                   ec: ExecutionContext,
-                                                                                                   hc: HeaderCarrier): Future[JsObject] = {
+  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])
+                             (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
       val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
       val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
@@ -93,14 +93,18 @@ class ReturnHistoryController @Inject()(
 
       def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
         val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version + 1 else version
-        Html(s"<a id= report-version-$version href=${url(accessType, updatedVersion)}> ${messages(linkText)}" +
-          s"<span class=govuk-visually-hidden>${messages(linkText)} ${messages(s"returnHistory.visuallyHidden", version.toString)}</span> </a>")
+        Html(
+          s"<a id= report-version-$version href=${url(accessType, updatedVersion)}>" +
+          s"<span aria-hidden=true>${messages(linkText)}</span>" +
+          s"<span class=govuk-visually-hidden>${messages(linkText)} " +
+            s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
+        )
       }
 
       val head = Seq(
         Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
         Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
-        Cell(msg"")
+        Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
       )
 
       def versionCell(reportVersion: Int, reportStatus: String): Cell = {

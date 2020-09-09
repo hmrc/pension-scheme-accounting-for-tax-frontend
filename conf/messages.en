@@ -16,12 +16,13 @@ site.save_charge_and_continue = Save this charge and continue
 site.return_to_summary = Return to AFT summary
 site.service_name = Managing pension schemes
 site.textarea.char_limit = (Limit is {0} characters)
-site.title.suffix = - managing pension schemes - GOV.UK
+site.title.suffix = - Managing pension schemes - GOV.UK
 site.view = View
 site.remove = Remove
 site.signOut = Sign out
 site.agree_and_submit = Agree and submit this AFT return
 site.finishAndSignOut = Finish and sign out
+site.action = Action
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
