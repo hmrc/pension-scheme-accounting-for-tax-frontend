@@ -3,6 +3,7 @@ $hmrc-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/hmrc-fr
 
 @import "lib/govuk-frontend/govuk/all";
 @import "lib/hmrc-frontend/hmrc/components/header/header";
+@import "lib/hmrc-frontend/hmrc/components/page-heading/page-heading";
 @import "language-toggles.scss";
 @import "_input-currency.scss";
 @import "_timeout-dialog.scss";
