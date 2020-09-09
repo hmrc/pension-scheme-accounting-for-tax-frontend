@@ -88,7 +88,8 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
-    )
+    ),
+    "attributes" -> Map("role" -> "table")
   )
 
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(

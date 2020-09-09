@@ -172,7 +172,8 @@ class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheCo
       caption,
       Table(
         head = head,
-        rows = rows
+        rows = rows,
+        attributes = Map("role" -> "table")
       )
     )
   }

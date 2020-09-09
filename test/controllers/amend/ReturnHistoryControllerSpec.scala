@@ -127,9 +127,9 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       actualColumnHtmlTitles mustBe Some(Seq(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
 
       def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType) =
-        s"<a id= report-version-$version " +
-          s"href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}> " +
-          s"""$linkContent<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span> </a>"""
+        s"<a id= report-version-$version href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
+          s"<span aria-hidden=true>$linkContent</span>" +
+          s"<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
 
       val expectedStartDate = "2020-04-01"
 

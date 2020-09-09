@@ -62,7 +62,7 @@ object AddMembersService {
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
-    Table(head = head, rows = rows ++ totalRow)
+    Table(head = head, rows = rows ++ totalRow, attributes = Map("role" -> "table"))
   }
 
   def link(id: String, text: String, url: String, name: String, chargeName: String)(implicit messages: Messages): Html = {
