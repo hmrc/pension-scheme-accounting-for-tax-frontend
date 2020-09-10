@@ -317,7 +317,7 @@ object AFTSummaryControllerSpec {
       ),
       Seq(
         Action(
-          Html(s"<span>${messages("site.view")}</span>"),
+          Html(s"<span class='aria-hidden=true'>${messages("site.view")}</span>"),
           controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         ),

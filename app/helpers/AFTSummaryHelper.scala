@@ -99,9 +99,11 @@ class AFTSummaryHelper extends NunjucksSupport {
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
-            content = Html(s"<span>${messages("site.view")}</span>"),
+            content = Html(s"<span class='aria-hidden=true'>${messages("site.view")}</span>"),
             href = data.href.url,
-            visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            visuallyHiddenText = Some(Literal(
+              messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            ))
           )
         )
       } else {
