@@ -35,7 +35,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
-import play.twirl.api.Html
+import play.twirl.api.{Html => TwirlHtml}
+import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -63,7 +64,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         .map { url =>
           List(
             Action(
-              content = msg"site.view",
+              content = Html(s"<span>${messages("site.view")}</span>"),
               href = url,
               visuallyHiddenText = Some(msg"aft.summary.${chargeType.toString}.visuallyHidden.row")
             )
@@ -78,7 +79,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
   "summaryListData" must {
 
     "return all the rows if all the charges have data" in {
-      val result = aftSummaryHelper.summaryListData(userAnswers, srn, startDate, accessType, versionInt)
+      val result = aftSummaryHelper.summaryListData(userAnswers, srn, startDate, accessType, versionInt)(messages)
 
       result mustBe Seq(
         createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
@@ -90,7 +91,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(2100.00))}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
         createRow(ChargeTypeOverseasTransfer, BigDecimal(700.00), Some(chargeG.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url))
@@ -133,7 +134,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
 
       val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly, dataRequest())
 
-      link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
+      link mustBe TwirlHtml(s"${TwirlHtml(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
         "allAmendments.view.changes.draft.link")}</a>""".stripMargin).toString()}")
 
     }
@@ -143,7 +144,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
       val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly,
         dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)))
 
-      link mustBe Html(s"${Html(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
+      link mustBe TwirlHtml(s"${TwirlHtml(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
         "allAmendments.view.changes.submission.link")}</a>""".stripMargin).toString()}")
 
     }

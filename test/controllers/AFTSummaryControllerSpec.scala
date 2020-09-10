@@ -24,26 +24,28 @@ import forms.AFTSummaryFormProvider
 import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{AccessMode, GenericViewModel, MemberDetails, Quarter, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
+import models.{GenericViewModel, UserAnswers, Quarter, MemberDetails, AccessMode}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import pages._
 import play.api.data.Form
+import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
-import play.twirl.api.Html
+import play.twirl.api.{Html => TwirlHtml}
 import services.MemberSearchService.MemberRow
-import services.{AFTService, MemberSearchService, SchemeService}
+import services.{AFTService, SchemeService, MemberSearchService}
+import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import utils.AFTConstants.QUARTER_END_DATE
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import scala.concurrent.Future
 
@@ -76,7 +78,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
     super.beforeEach()
     reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockMemberSearchService)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(uaGetAFTDetails.data))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(TwirlHtml("")))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(testManagePensionsUrl.url)
     when(mockAFTSummaryHelper.summaryListData(any(), any(), any(), any(), any())(any())).thenReturn(Nil)
@@ -288,14 +290,14 @@ object AFTSummaryControllerSpec {
   private val templateToBeRendered = "aftSummary.njk"
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeNamePstrQuarter)
   private val form = new AFTSummaryFormProvider()()
-  private val emptyHtml = Html("")
+  private val emptyHtml = TwirlHtml("")
 
   private def httpPathGET(version: Option[String]): String =
     controllers.routes.AFTSummaryController.onPageLoad(SampleData.srn, startDate, accessType, versionInt).url
 
   private def httpPathPOST: String = controllers.routes.AFTSummaryController.onSubmit(SampleData.srn, startDate, accessType, versionInt).url
 
-  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0) = Seq(
+  private def searchResultsMemberDetailsChargeD(memberDetails: MemberDetails, totalAmount: BigDecimal, index: Int = 0)(implicit messages:Messages) = Seq(
     MemberRow(
       memberDetails.fullName,
       Seq(
@@ -315,7 +317,7 @@ object AFTSummaryControllerSpec {
       ),
       Seq(
         Action(
-          Message("site.view"),
+          Html(s"<span>${messages("site.view")}</span>"),
           controllers.chargeD.routes.CheckYourAnswersController.onPageLoad(srn, startDate, accessType, versionInt, index).url,
           None
         ),
