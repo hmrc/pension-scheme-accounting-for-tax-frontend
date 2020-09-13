@@ -13,9 +13,11 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
-        <span class="govuk-caption-xl">{{schemeName}}</span>
+         {{ hmrcPageHeading({
+                      text: messages("returnHistory.title", quarterStart, quarterEnd),
+                      section: schemeName
+            }) }}
 
-        <h1 class="govuk-heading-xl">{{messages("returnHistory.title", quarterStart, quarterEnd)}}</h1>
         {{ govukTable(versions) }}
 
       </div>

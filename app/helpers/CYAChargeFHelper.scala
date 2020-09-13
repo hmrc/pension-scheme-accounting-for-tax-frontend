@@ -34,9 +34,11 @@ class CYAChargeFHelper(srn: String, startDate: LocalDate, accessType: AccessType
       value = Value(Literal(answer.deRegistrationDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(msg"chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeF.chargeDetails.date.visuallyHidden.checkYourAnswersLabel")
+          ))
         )
       )
     )
@@ -47,9 +49,11 @@ class CYAChargeFHelper(srn: String, startDate: LocalDate, accessType: AccessType
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.totalAmount)}"), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeF.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(msg"chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeF.chargeDetails.amount.visuallyHidden.checkYourAnswersLabel")
+          ))
         )
       )
     )

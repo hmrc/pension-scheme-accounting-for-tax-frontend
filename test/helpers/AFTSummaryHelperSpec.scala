@@ -64,9 +64,11 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         .map { url =>
           List(
             Action(
-              content = Html(s"<span class='aria-hidden=true'>${messages("site.view")}</span>"),
+              content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
               href = url,
-              visuallyHiddenText = Some(msg"aft.summary.${chargeType.toString}.visuallyHidden.row")
+              visuallyHiddenText = Some(Literal(
+                messages("site.view") + " " + messages(s"aft.summary.${chargeType.toString}.visuallyHidden.row")
+              ))
             )
           )
         }

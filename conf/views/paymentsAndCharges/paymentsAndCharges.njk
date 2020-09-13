@@ -13,10 +13,10 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
-        <h1 class="govuk-heading-xl">
-            <span class="govuk-caption-xl">{{ schemeName }}</span>
-           {{ messages("paymentsAndCharges.h1") }}
-        </h1>
+        {{ hmrcPageHeading({
+          text: messages("paymentsAndCharges.h1"),
+          section: schemeName
+        }) }}
 
         <p class="govuk-body">{{ messages("paymentsAndCharges.reflect.charge.text") }}</p>
 

@@ -33,9 +33,11 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType
       value = Value(Literal(answer.numberOfMembers.toString), classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(msg"chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeA.chargeDetails.numberOfMembers.visuallyHidden.checkYourAnswersLabel")
+          ))
         )
       )
     )
@@ -48,9 +50,11 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType
         classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeA.chargeDetails.amountLowerRate.visuallyHidden.checkYourAnswersLabel")
+          ))
         )
       )
     )
@@ -63,9 +67,11 @@ class CYAChargeAHelper(srn: String, startDate: LocalDate, accessType: AccessType
         classes = Seq("govuk-!-width-one-quarter")),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeA.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-          visuallyHiddenText = Some(msg"chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeA.chargeDetails.amountHigherRate.visuallyHidden.checkYourAnswersLabel")
+          ))
         )
       )
     )

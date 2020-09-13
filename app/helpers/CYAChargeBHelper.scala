@@ -35,9 +35,11 @@ class CYAChargeBHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.numberOfDeceased.toString), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(msg"chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeB.numberOfDeceased.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       ),
@@ -48,7 +50,9 @@ class CYAChargeBHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = msg"site.edit",
             href = controllers.chargeB.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version).url,
-            visuallyHiddenText = Some(msg"chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeB.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       )
