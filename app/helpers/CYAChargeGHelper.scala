@@ -35,9 +35,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"visuallyHidden.memberName.label")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("visuallyHidden.memberName.label")
+            ))
           )
         )
       ),
@@ -46,9 +48,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.dob.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"dob.cya.label".withArgs(answer.fullName))
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("dob.cya.label",answer.fullName)
+            ))
           )
         )
       ),
@@ -57,9 +61,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.nino), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.MemberDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"cya.nino.label".withArgs(answer.fullName))
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("cya.nino.label", answer.fullName)
+            ))
           )
         )
       )
@@ -73,9 +79,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.qropsReferenceNumber), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeGDetails.qropsReferenceNumber.visuallyHidden.label")
+            ))
           )
         )
       ),
@@ -84,9 +92,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(answer.qropsTransferDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeGDetails.qropsTransferDate.visuallyHidden.label")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeGDetails.qropsTransferDate.visuallyHidden.label")
+            ))
           )
         )
       )
@@ -100,9 +110,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(answer.amountTransferred)}"), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeG.chargeAmount.transferred.visuallyHidden.label")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeG.chargeAmount.transferred.visuallyHidden.label")
+            ))
           )
         )
       ),
@@ -112,9 +124,11 @@ class CYAChargeGHelper(srn: String, startDate: LocalDate, accessType: AccessType
           "")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span aria-hidden=true>${messages("site.edit")}</span>"),
             href = controllers.chargeG.routes.ChargeAmountsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeG.chargeAmount.taxDue.visuallyHidden.label")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeG.chargeAmount.taxDue.visuallyHidden.label")
+            ))
           )
         )
       )

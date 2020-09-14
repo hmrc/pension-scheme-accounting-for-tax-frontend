@@ -23,10 +23,10 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">
-          <span class="govuk-caption-xl">{{ messages('confirmSubmitAFTReturn.h1.caption') }}</span>
-           {{ messages("confirmSubmitAFTReturn.title") }}
-        </h1>
+         {{ hmrcPageHeading({
+                      text: messages("confirmSubmitAFTReturn.title"),
+                      section: messages('confirmSubmitAFTReturn.h1.caption')
+            }) }}
 
         <h2 class="govuk-heading-m">{{messages('confirmSubmitAFTReturn.allCharges.table.h1')}}</h2>
 

@@ -27,16 +27,21 @@ import models.requests.DataRequest
 import models.{AccessType, ChargeType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
-import play.twirl.api.Html
+import play.twirl.api.{Html => TwirlHtml}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
+import uk.gov.hmrc.viewmodels.Html
 
-class AFTSummaryHelper {
+class AFTSummaryHelper extends NunjucksSupport {
 
   case class SummaryDetails(chargeType: ChargeType, totalAmount: BigDecimal, href: Call)
 
-  private def summaryDataUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
+  private def summaryDataUK(ua: UserAnswers,
+    srn: String,
+    startDate: LocalDate,
+    accessType: AccessType,
+    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeAnnualAllowance,
       totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
@@ -69,7 +74,11 @@ class AFTSummaryHelper {
     )
   )
 
-  private def summaryDataNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryDetails] = Seq(
+  private def summaryDataNonUK(ua: UserAnswers,
+    srn: String,
+    startDate: LocalDate,
+    accessType: AccessType,
+    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeOverseasTransfer,
       totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
@@ -77,7 +86,11 @@ class AFTSummaryHelper {
     )
   )
 
-  private def summaryRowsUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
+  private def summaryRowsUK(ua: UserAnswers,
+    srn: String,
+    startDate: LocalDate,
+    accessType: AccessType,
+    version: Int)(implicit messages:Messages): Seq[SummaryList.Row] = {
     summaryDataUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
@@ -86,9 +99,11 @@ class AFTSummaryHelper {
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
-            content = msg"site.view",
+            content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
             href = data.href.url,
-            visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            visuallyHiddenText = Some(Literal(
+              messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            ))
           )
         )
       } else {
@@ -96,9 +111,13 @@ class AFTSummaryHelper {
       }
     )
   }
+  }
 
-
-  private def summaryRowsNonUK(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Seq[SummaryList.Row] =
+  private def summaryRowsNonUK(ua: UserAnswers,
+    srn: String,
+    startDate: LocalDate,
+    accessType: AccessType,
+    version: Int)(implicit messages:Messages): Seq[SummaryList.Row] =
     summaryDataNonUK(ua, srn, startDate, accessType, version).map { data =>
     Row(
       key = Key(msg"aft.summary.${data.chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
@@ -107,9 +126,11 @@ class AFTSummaryHelper {
       actions = if (data.totalAmount > BigDecimal(0)) {
         List(
           Action(
-            content = msg"site.view",
+            content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
             href = data.href.url,
-            visuallyHiddenText = Some(msg"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            visuallyHiddenText = Some(Literal(
+              messages("site.view") + " " + messages(s"aft.summary.${data.chargeType.toString}.visuallyHidden.row")
+            ))
           )
         )
       } else {
@@ -117,8 +138,6 @@ class AFTSummaryHelper {
       }
     )
   }
-
-
 
   def summaryListData(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Seq[Row] = {
 
@@ -133,7 +152,7 @@ class AFTSummaryHelper {
   }
 
   def viewAmendmentsLink(version: Int, srn: String, startDate: LocalDate, accessType: AccessType)
-                        (implicit messages: Messages, request: DataRequest[_]): Html = {
+                        (implicit messages: Messages, request: DataRequest[_]): TwirlHtml = {
 
     val linkText = if (request.sessionData.sessionAccessData.accessMode == PageAccessModeCompile) {
       messages("allAmendments.view.changes.draft.link")
@@ -141,6 +160,7 @@ class AFTSummaryHelper {
       messages("allAmendments.view.changes.submission.link")
     }
     val viewAllAmendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, version).url
-    Html(s"${Html(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
+    TwirlHtml(
+      s"${TwirlHtml(s"""<a id=view-amendments-link href=$viewAllAmendmentsUrl class="govuk-link"> $linkText</a>""".stripMargin).toString()}")
   }
 }

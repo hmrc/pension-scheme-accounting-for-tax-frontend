@@ -19,12 +19,14 @@
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
 
-            <h1 class="govuk-heading-xl">
-                {% if schemeAssociated %}
-                    <span class="govuk-caption-xl">{{ schemeName }}</span>
-                {% endif %}
-                {{ heading }}
-            </h1>
+            {% if schemeAssociated %}
+                        {{ hmrcPageHeading({
+                              text: heading,
+                              section: schemeName
+                            }) }}
+                    {% else %}
+                    <h1 class="govuk-heading-xl">{{ heading }}</h1>
+                    {% endif %}
 
             {% if isOverdue %}
                 <p class="govuk-body govuk-tag govuk-tag--red">

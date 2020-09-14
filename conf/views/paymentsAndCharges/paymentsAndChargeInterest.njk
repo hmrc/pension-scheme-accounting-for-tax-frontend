@@ -14,10 +14,10 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
-        <h1 class="govuk-heading-xl">
-                <span class="govuk-caption-xl">{{ schemeName }}</span>
-               {{ chargeType }}
-        </h1>
+        {{ hmrcPageHeading({
+          text: chargeType,
+          section: schemeName
+        }) }}
 
         {% if accruedInterest > 0 %}
               <p class="govuk-body govuk-tag govuk-tag--blue">{{ messages("paymentsAndCharges.status.InterestAccruing") }}</p>

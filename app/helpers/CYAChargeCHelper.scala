@@ -50,10 +50,13 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       value = Value(typeOfSponsoringEmployer(answer)),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeC.routes.WhichTypeOfSponsoringEmployerController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-          visuallyHiddenText = Some(msg"chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel"))
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeC.whichTypeOfSponsoringEmployer.visuallyHidden.checkYourAnswersLabel")
+          ))
       )
+    )
     )
 
   def chargeCIndividualDetails(index: Int, answer: models.MemberDetails): Seq[Row] = {
@@ -65,7 +68,9 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
           Action(
             content = msg"site.edit",
             href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.sponsoringIndividualName.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       ),
@@ -74,9 +79,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(lit"${answer.nino}"),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.SponsoringIndividualDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel".withArgs(answer.fullName))
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.sponsoringIndividualNino.visuallyHidden.checkYourAnswersLabel",answer.fullName)
+            ))
           )
         )
       )
@@ -90,9 +97,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(lit"${answer.name}"),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationName.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       ),
@@ -101,9 +110,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(lit"${answer.crn}"),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.SponsoringOrganisationDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel".withArgs(answer.name))
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.sponsoringOrganisationCrn.visuallyHidden.checkYourAnswersLabel", answer.name)
+            ))
           )
         )
       )
@@ -120,9 +131,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
       value = Value(addressAnswer(address)),
       actions = List(
         Action(
-          content = msg"site.edit",
+          content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
           href = controllers.chargeC.routes.SponsoringEmployerAddressController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-          visuallyHiddenText = Some(msg"chargeC.sponsoringEmployerAddress.checkYourAnswersLabel".withArgs(getEmployerName(index, sponsorDetails)))
+          visuallyHiddenText = Some(Literal(
+            messages("site.edit") + " " + messages("chargeC.sponsoringEmployerAddress.checkYourAnswersLabel", getEmployerName(index, sponsorDetails))
+          ))
         )
       )
     )
@@ -134,9 +147,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(chargeDetails.paymentDate.format(FormatHelper.dateFormatter)), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.paymentDate.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       ),
@@ -145,9 +160,11 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
         value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(chargeDetails.amountTaxDue)}"), classes = Seq("govuk-!-width-one-quarter")),
         actions = List(
           Action(
-            content = msg"site.edit",
+            content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),
             href = controllers.chargeC.routes.ChargeDetailsController.onPageLoad(CheckMode, srn, startDate, accessType, version, index).url,
-            visuallyHiddenText = Some(msg"chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+            visuallyHiddenText = Some(Literal(
+              messages("site.edit") + " " + messages("chargeC.totalTaxDue.visuallyHidden.checkYourAnswersLabel")
+            ))
           )
         )
       )
