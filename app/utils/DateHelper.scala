@@ -16,7 +16,7 @@
 
 package utils
 
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
@@ -32,7 +32,13 @@ object DateHelper {
   val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   val dateFormatterDMY: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   val dateFormatterStartDate: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
-  val dateFormatterSubmittedDate: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a", Locale.UK)
+  private val dateFormatterSubmittedDate: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'at' h:mma", Locale.UK)
 
   def formatDateDMY(date: LocalDate): String = date.format(dateFormatterDMY)
+  def formatSubmittedDate(dateTime: ZonedDateTime): String = {
+    val str = dateFormatterSubmittedDate.format(dateTime)
+    val suffix = str.takeRight(2).toLowerCase
+    val prefix = str.take(str.length -2)
+    prefix + suffix
+  }
 }

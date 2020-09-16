@@ -51,11 +51,9 @@ import uk.gov.hmrc.viewmodels.SummaryList.Value
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.SummaryList
 import uk.gov.hmrc.viewmodels._
-import utils.DateHelper.dateFormatterDMY
-import utils.DateHelper.dateFormatterStartDate
-import utils.DateHelper.dateFormatterSubmittedDate
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmationController @Inject()(
                                         override val messagesApi: MessagesApi,
@@ -95,7 +93,7 @@ class ConfirmationController @Inject()(
           val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
 
-          val submittedDate = dateFormatterSubmittedDate.format(ZonedDateTime.now(ZoneId.of("Europe/London")))
+          val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
           val listSchemesUrl = config.yourPensionSchemesUrl
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)

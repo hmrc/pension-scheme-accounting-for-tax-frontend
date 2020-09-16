@@ -64,6 +64,7 @@ import uk.gov.hmrc.viewmodels.SummaryList.Value
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
+import utils.DateHelper.formatSubmittedDate
 
 import scala.concurrent.Future
 
@@ -291,7 +292,7 @@ object ConfirmationControllerSpec {
     ),
     Row(
       key = Key(msg"confirmation.table.data.submitted.label", classes = Seq("govuk-!-font-weight-regular")),
-      value = Value(Literal(DateTimeFormatter.ofPattern("d MMMM yyyy 'at' hh:mm a").format(ZonedDateTime.now(ZoneId.of("Europe/London")))), classes = Nil),
+      value = Value(Literal(formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))), classes = Nil),
       actions = Nil
     )
   ) ++ (if(hasVersion) {
