@@ -22,18 +22,19 @@ import base.SpecBase
 
 class DateHelperSpec extends SpecBase {
 
-  private def generateDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) = {
-    ZonedDateTime.of(year, month, day, hour, minute,0,0, ZoneId.of("Europe/London"))
+  //scalastyle.off: magic.number
+  private def generateDate( hour: Int):ZonedDateTime = {
+    ZonedDateTime.of(2020, 4, 12, hour, 2,0,0, ZoneId.of("Europe/London"))
   }
 
   "formatSubmittedDate" must {
     "display correct morning am date time" in {
-      val result = DateHelper.formatSubmittedDate(generateDate(2020, 4, 12, 2, 2))
+      val result = DateHelper.formatSubmittedDate(generateDate(2))
       result mustBe "12 April 2020 at 2:02am"
     }
 
     "display correct evening pm date time" in {
-      val result = DateHelper.formatSubmittedDate(generateDate(2020, 4, 12, 17, 2))
+      val result = DateHelper.formatSubmittedDate(generateDate(17))
       result mustBe "12 April 2020 at 5:02pm"
     }
 
