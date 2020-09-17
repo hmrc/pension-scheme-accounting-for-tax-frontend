@@ -32,16 +32,30 @@ import scala.concurrent.{ExecutionContext, Future}
 trait ListOfSchemesConnector {
 
   def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
-
+  def getListOfSchemesForPsp(pspId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
 }
 
 @Singleton
 class ListOfSchemesConnectorImpl @Inject()(http: HttpClient, config: FrontendAppConfig) extends ListOfSchemesConnector {
 
-  def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
-    val url = config.listOfSchemesUrl
-    val schemeHc = hc.withExtraHeaders("psaId" -> psaId)
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
+  override def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+    val (url, schemeHc) = if(config.listOfSchemesIFEnabled) {
+      (config.listOfSchemesIFUrl, hc.withExtraHeaders("idType" -> "PSA", "idValue" -> psaId))
+    } else {
+      (config.listOfSchemesUrl, hc.withExtraHeaders("psaId" -> psaId))
+    }
+
+    listOfSchemes(url)(schemeHc, ec)
+  }
+
+  override def getListOfSchemesForPsp(pspId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+    val schemeHc = hc.withExtraHeaders("idType" -> "PSP", "idValue" -> pspId)
+    listOfSchemes(config.listOfSchemesIFUrl)(schemeHc, ec)
+  }
+
+  private def listOfSchemes(url: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+    http.GET[HttpResponse](url).map { response =>
       response.status match {
         case OK => val json = Json.parse(response.body)
           json.validate[ListOfSchemes] match {

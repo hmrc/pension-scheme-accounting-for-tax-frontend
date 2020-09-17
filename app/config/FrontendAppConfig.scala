@@ -111,7 +111,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLink")}"
 
   lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
-
+  lazy val listOfSchemesIFUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.if-listOfSchemes")}"
   lazy val earliestDateOfNotice: LocalDate = LocalDate
     .parse(
       configuration.get[String]("earliestDateOfNotice"),
@@ -124,4 +124,5 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
 
   lazy val isFSEnabled: Boolean = configuration.get[Boolean]("features.is-fs-enabled")
+  lazy val listOfSchemesIFEnabled: Boolean = configuration.get[Boolean]("features.list-of-schemes-IF-enabled")
 }
