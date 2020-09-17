@@ -20,8 +20,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
-import connectors.{EmailSent, EmailConnector}
-import controllers.actions.{AllowSubmissionAction, MutableFakeDataRetrievalAction, FakeAllowSubmissionAction}
+import connectors.{EmailConnector, EmailSent}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -30,21 +30,21 @@ import models.LocalDateBinder._
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
-import models.{SessionAccessData, GenericViewModel, UserAnswers, Quarter, AccessMode}
+import models.{AccessMode, GenericViewModel, Quarter, SessionAccessData, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
-import utils.DateHelper.{dateFormatterSubmittedDate, dateFormatterStartDate, dateFormatterDMY}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
 
 import scala.concurrent.Future
 
@@ -88,7 +88,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       "accountingPeriod" -> messages("confirmation.table.accounting.period.value",
                                      quarter.startDate.format(dateFormatterStartDate),
                                      quarter.endDate.format(dateFormatterDMY)),
-      "dateSubmitted" -> dateFormatterSubmittedDate.format(ZonedDateTime.now(ZoneId.of("Europe/London"))),
+      "dateSubmitted" -> formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London"))),
       "psaName" -> psaName,
       "hmrcEmail" -> messages("confirmation.whatNext.send.to.email.id")
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$versionNumber") else Map.empty)

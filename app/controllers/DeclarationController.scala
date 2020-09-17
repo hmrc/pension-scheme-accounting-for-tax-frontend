@@ -51,9 +51,7 @@ import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.DateHelper.dateFormatterDMY
-import utils.DateHelper.dateFormatterStartDate
-import utils.DateHelper.dateFormatterSubmittedDate
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -113,7 +111,7 @@ class DeclarationController @Inject()(
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
-    val submittedDate = dateFormatterSubmittedDate.format(ZonedDateTime.now(ZoneId.of("Europe/London")))
+    val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
 
     val sendToEmailId = messages("confirmation.whatNext.send.to.email.id")
     val accountingPeriod = messages("confirmation.table.accounting.period.value", quarterStartDate, quarterEndDate)
