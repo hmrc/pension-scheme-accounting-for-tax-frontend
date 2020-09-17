@@ -107,14 +107,14 @@ object ListOfSchemesConnectorSpec extends OptionValues {
       Json.obj(
         "processingDate" -> "2001-12-17T09:30:47Z",
         "totalSchemesRegistered" -> "1",
-        "schemeDetail" -> Json.arr(
+        "schemeDetails" -> Json.arr(
           Json.obj(
             "name" -> "abcdefghi",
             "referenceNumber" -> "S1000000456",
             "schemeStatus" -> SchemeStatus.Pending.toString,
             "openDate" -> "2012-10-10",
             "pstr" -> "10000678RE",
-            "relationShip" -> "Primary PSA"
+            "relationship" -> "Primary PSA"
           )
         )
       )
