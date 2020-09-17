@@ -85,13 +85,13 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       case (Some(date), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
-            s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate", date.format(dateFormatterDMY))}" +
-            s"<span class=govuk-!-display-block><a id='breakdown' class=govuk-link href=${
+            s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
+            s" <span><a id='breakdown' class=govuk-link href=${
               controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoad(srn, schemeFS.periodStartDate, index)
                 .url
             }>" +
-            s"${messages("paymentsAndCharges.chargeDetails.interest.breakdown")}</a></span></p>"
+            s"${messages("paymentsAndCharges.chargeDetails.interest.paid")}</a></span></p>"
         )
       case (Some(date), true, false) =>
         Html(

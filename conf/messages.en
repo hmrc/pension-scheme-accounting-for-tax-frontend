@@ -1080,9 +1080,9 @@ paymentsAndCharges.chargeDetails.visuallyHiddenText.paymentIsDue = Payment is du
 paymentsAndCharges.chargeDetails.chargeReference = Charge reference: {0}
 paymentsAndCharges.chargeDetails.interestAccruing = Interest is accruing on this charge
 paymentsAndCharges.chargeDetails.interestAccrued = Interest accrued on this charge
-paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate = This is because the amount due was not paid in full before {0}. The interest must be paid separately.
+paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate = This is because this charge was not paid by the original due date for this quarter.
 paymentsAndCharges.chargeDetails.amount.paid.after.dueDate = This is because amount due was only paid in full after the due date of {0}. The interest must be paid separately.
-paymentsAndCharges.chargeDetails.interest.breakdown = See breakdown of interest
+paymentsAndCharges.chargeDetails.interest.paid = The interest must be paid separately.
 paymentsAndCharges.status.PaymentOverdue = PAYMENT OVERDUE
 paymentsAndCharges.status.InterestAccruing = INTEREST ACCRUING
 
@@ -1090,7 +1090,7 @@ paymentsAndCharges.credit.information = This Accounting for Tax return resulted 
 paymentsAndCharges.credit = credit
 
 paymentsAndCharges.interest = Interest accruing
-paymentsAndCharges.interestDue = Interest due as of {0}
+paymentsAndCharges.interestFrom = Interest accruing from {0}
 paymentsAndCharges.interest.chargeReference = Charge reference: To be assigned
 paymentsAndCharges.interest.chargeReference.text1 = The charge reference for the interest due will show once you have paid
 paymentsAndCharges.interest.chargeReference.linkText = original amount due

@@ -1,5 +1,6 @@
 // initialise GovUK lib
 GOVUKFrontend.initAll();
+timeoutDialog = HMRC.TimeoutDialog.init()
 if (document.querySelector('#country') != null) {
     openregisterLocationPicker({
         selectElement: document.getElementById('country'),

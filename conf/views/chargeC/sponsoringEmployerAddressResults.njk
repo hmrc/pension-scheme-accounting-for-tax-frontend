@@ -28,7 +28,7 @@
           {{ messages("chargeC.employerAddressSearch.selectAddress") }} <a href="{{ enterManuallyUrl }}" class="govuk-link">{{ messages("chargeC.employerAddressSearch.link.enterManually") }}</a>.
         </p>
 
-        <form action="{{ submitUrl }}" method="post" autocomplete="off">
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
