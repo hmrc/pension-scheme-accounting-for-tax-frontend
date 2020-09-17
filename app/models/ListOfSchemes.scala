@@ -16,22 +16,33 @@
 
 package models
 
-import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.libs.json.{Format, Json}
-import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels.Radios.Radio
-import uk.gov.hmrc.viewmodels.Text.Literal
 
-case class SchemeDetail(name: String, referenceNumber: String, schemeStatus: String, openDate: Option[String],
-                        pstr: Option[String] = None, relationShip: Option[String], underAppeal: Option[String] = None)
+case class PSPDetails(pspid: String,
+                      orgOrPartName: Option[String],
+                      firstName: Option[String],
+                      secondName: Option[String],
+                      lastName: Option[String],
+                      relationshipStartDate: String,
+                      authorizedPSAID: String,
+                      authorizedPSAOrgOrPartName: Option[String],
+                      authorizedPSAFirstName: Option[String],
+                      authorizedPSASecondName: Option[String],
+                      authorizedPSALastName: Option[String])
 
-object SchemeDetail {
-  implicit val format: Format[SchemeDetail] = Json.format[SchemeDetail]
+object PSPDetails {
+  implicit val format: Format[PSPDetails] = Json.format[PSPDetails]
+}
+
+case class ListSchemeDetails(name: String, referenceNumber: String, schemeStatus: String, openDate: Option[String], pstr: Option[String] = None,
+                         relationship: Option[String], pspDetails: Option[List[PSPDetails]] = None, underAppeal: Option[String] = None)
+
+object ListSchemeDetails {
+  implicit val format: Format[ListSchemeDetails] = Json.format[ListSchemeDetails]
 }
 
 case class ListOfSchemes(processingDate: String, totalSchemesRegistered: String,
-                         schemeDetail: Option[List[SchemeDetail]] = None)
+                         schemeDetails: Option[List[ListSchemeDetails]] = None)
 
 object ListOfSchemes {
   implicit val format: Format[ListOfSchemes] = Json.format[ListOfSchemes]

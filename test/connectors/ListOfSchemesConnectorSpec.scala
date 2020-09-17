@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.{ListOfSchemes, SchemeDetail, SchemeStatus}
+import models.{ListOfSchemes, ListSchemeDetails, SchemeStatus}
 import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -120,7 +120,7 @@ object ListOfSchemesConnectorSpec extends OptionValues {
       )
     )
 
-  private val schemeDetail = SchemeDetail("abcdefghi", "S1000000456", SchemeStatus.Pending.toString, Some("2012-10-10"),
+  private val schemeDetail = ListSchemeDetails("abcdefghi", "S1000000456", SchemeStatus.Pending.toString, Some("2012-10-10"),
     Some("10000678RE"), Some("Primary PSA"), None)
 
   private val expectedResponse = ListOfSchemes("2001-12-17T09:30:47Z", "1", Some(List(schemeDetail)))

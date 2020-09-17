@@ -17,7 +17,7 @@
 package forms
 
 import forms.mappings.Mappings
-import models.{ListOfSchemes, PenaltySchemes, Quarter, Quarters, SchemeDetail}
+import models.{ListOfSchemes, PenaltySchemes, Quarter, Quarters, ListSchemeDetails}
 import play.api.data.Form
 
 class SelectSchemeFormProvider extends Mappings {

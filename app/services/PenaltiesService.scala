@@ -26,7 +26,7 @@ import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.Quarters._
 import models.financialStatement.PsaFS
-import models.{PenaltySchemes, SchemeDetail}
+import models.{PenaltySchemes, ListSchemeDetails}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -199,10 +199,10 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     }
 
   private def getListOfSchemes(psaId: String)
-                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[SchemeDetail]] = {
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[ListSchemeDetails]] = {
     listOfSchemesConnector.getListOfSchemes(psaId).map {
-      case Right(list) => list.schemeDetail.getOrElse(Nil)
-      case _ => Seq.empty[SchemeDetail]
+      case Right(list) => list.schemeDetails.getOrElse(Nil)
+      case _ => Seq.empty[ListSchemeDetails]
     }
   }
 

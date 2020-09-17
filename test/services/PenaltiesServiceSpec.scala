@@ -25,7 +25,7 @@ import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
 import helpers.FormatHelper
 import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
-import models.{ListOfSchemes, PenaltySchemes, SchemeDetail}
+import models.{ListOfSchemes, PenaltySchemes, ListSchemeDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -271,6 +271,6 @@ object PenaltiesServiceSpec {
     PenaltySchemes(None, "24000041IN", None))
 
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
-    SchemeDetail("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
+    ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))
 
 }
