@@ -25,7 +25,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeG.addMembers.heading', quarterStart, quarterEnd)}}</h1>
 
-        <form action="{{ submitUrl }}" method="post" autocomplete="off">
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 

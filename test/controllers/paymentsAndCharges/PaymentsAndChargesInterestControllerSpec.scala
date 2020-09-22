@@ -92,7 +92,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
       ),
       Row(
         key = Key(
-          msg"paymentsAndCharges.interestDue".withArgs(LocalDate.now().format(dateFormatterDMY)),
+          msg"paymentsAndCharges.interestFrom".withArgs(schemeFS.periodEndDate.plusDays(46).format(dateFormatterDMY)),
           classes = Seq("govuk-table__cell--numeric", "govuk-!-padding-right-0", "govuk-!-width-three-quarters", "govuk-!-font-weight-bold")
         ),
         value = Value(
