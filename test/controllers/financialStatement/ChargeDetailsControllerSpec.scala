@@ -93,8 +93,6 @@ class ChargeDetailsControllerSpec
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
-
-
   }
 
   "ChargeDetails Controller" when {
@@ -102,7 +100,7 @@ class ChargeDetailsControllerSpec
 
       "render the correct view with penalty tables for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq(chargeRef)))))
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

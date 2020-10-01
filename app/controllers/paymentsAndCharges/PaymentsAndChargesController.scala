@@ -44,7 +44,6 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
                                              config: FrontendAppConfig,
                                              schemeService: SchemeService,
                                              fsConnector: FinancialStatementConnector,
-                                             fiCacheConnector: FinancialInfoCacheConnector,
                                              paymentsAndChargesService: PaymentsAndChargesService,
                                              renderer: Renderer
                                             )(implicit ec: ExecutionContext)
@@ -65,23 +64,19 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
                 val schemePaymentsAndChargesGroupedWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
                   schemePaymentsAndChargesForSelectedYear.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
 
-                fiCacheConnector.save(
-                  Json.obj("chargeRefs" -> schemePaymentsAndChargesForSelectedYear.map(_.chargeReference))
-                ) flatMap {
-                  _ =>
+                val tableOfPaymentsAndCharges: Future[Seq[PaymentsAndChargesTable]] =
+                  paymentsAndChargesService.getPaymentsAndCharges(
+                    schemePaymentsAndChargesGroupedWithPeriodStartDate, srn, request.psaId.id
+                  )
 
-                    val tableOfPaymentsAndCharges: Future[Seq[PaymentsAndChargesTable]] =
-                      paymentsAndChargesService.getPaymentsAndCharges(schemePaymentsAndChargesGroupedWithPeriodStartDate, srn)
-
-                    tableOfPaymentsAndCharges flatMap {
-                      tables =>
-                        val json = Json.obj(
-                          fields = "seqPaymentsAndChargesTable" -> tables,
-                          "schemeName" -> schemeDetails.schemeName,
-                          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-                        )
-                        renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
-                    }
+                tableOfPaymentsAndCharges flatMap {
+                  tables =>
+                    val json = Json.obj(
+                      fields = "seqPaymentsAndChargesTable" -> tables,
+                      "schemeName" -> schemeDetails.schemeName,
+                      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+                    )
+                    renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
                 }
 
               } else {

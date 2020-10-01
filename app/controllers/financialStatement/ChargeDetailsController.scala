@@ -32,6 +32,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import config.Constants._
 import connectors.cache.FinancialInfoCacheConnector
+import models.financialStatement.PsaFS
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -55,7 +56,7 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
           val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
           fiCacheConnector.fetch flatMap {
             case Some(jsValue) =>
-              val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
+              val chargeRefs: Seq[String] = jsValue.as[Seq[PsaFS]].map(_.chargeReference)
 
               psaFS.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)) match {
                 case Some(fs) =>

@@ -25,7 +25,7 @@ import controllers.actions._
 import helpers.FormatHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.financialStatement.SchemeFS
+import models.financialStatement.{PsaFS, SchemeFS}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -58,7 +58,7 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
     implicit request =>
       fiCacheConnector.fetch flatMap {
         case Some(jsValue) =>
-          val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
+          val chargeRefs: Seq[String] = jsValue.as[Seq[PsaFS]].map(_.chargeReference)
           schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
             schemeDetails =>
               fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {

@@ -95,11 +95,14 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any())(any(), any(), any())).thenReturn(Future.successful(penaltyTables))
-    when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltiesService.getPsaFsJson(any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful(penaltyTables))
+    when(mockFSConnector.getPsaFS(any())(any(), any()))
+      .thenReturn(Future.successful(psaFSResponse))
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
+    when(mockRenderer.render(any(), any())(any()))
+      .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   "Penalties Controller" when {
@@ -121,9 +124,12 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
       }
 
       "render the correct view with penalty tables for unassociated" in {
-        when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(pstrs)))
+        when(mockFIConnector.fetch(any())(any(), any()))
+          .thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
+        when(mockPenaltiesService.unassociatedSchemes(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(psaFSResponse))
 
-        val pstrIndex: String = (pstrs \ "pstrs").as[Seq[String]].indexOf(pstr).toString
+        val pstrIndex: String = psaFSResponse.map(_.pstr).indexOf(pstr).toString
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
         val result = route(application, httpGETRequest(httpPathGETUnassociated(pstrIndex))).value
@@ -146,7 +152,6 @@ object PenaltiesControllerSpec {
   val year = "2020"
   val srn = "S2400000041"
   val pstr = "24000040IN"
-  val pstrs: JsObject = Json.obj("pstrs" -> Json.arr("24000040IN", "24000040IN"))
 
   val head = Seq(
     Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
@@ -163,6 +168,4 @@ object PenaltiesControllerSpec {
   def link(startDate: String): Html = Html(
     s"<a id=XY002610150184 href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty </a>")
-
-
 }

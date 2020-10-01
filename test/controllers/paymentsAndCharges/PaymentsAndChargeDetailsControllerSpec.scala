@@ -27,16 +27,17 @@ import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.financialStatement.SchemeFS
+import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
+import models.financialStatement.{PsaFS, SchemeFS}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, reset, when, verify}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -44,7 +45,7 @@ import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future
 
@@ -139,7 +140,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150183", "XY002610150184")))))
+        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFS("XY002610150183"), psaFS("XY002610150184"))))))
 
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -157,7 +158,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150188", "XY002610150189")))))
+        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFS("XY002610150188"), psaFS("XY002610150189"))))))
 
       val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = BigDecimal(0.00))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -175,7 +176,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150186")))))
+        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFS("XY002610150186"))))))
 
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -191,7 +192,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150187")))))
+        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFS("XY002610150187"))))))
 
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -207,7 +208,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
       when(mockFICacheConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150185")))))
+        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFS("XY002610150185"))))))
 
       val schemeFS = createChargeWithDeltaCredit(chargeReference = "XY002610150185")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -234,6 +235,19 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
 
 object PaymentsAndChargeDetailsControllerSpec {
   private val srn = "test-srn"
+
+  def psaFS(chargeReference: String): PsaFS = PsaFS(
+    chargeReference = chargeReference,
+    chargeType = AFT_INITIAL_LFP,
+    dueDate = Some(LocalDate.parse("2020-07-15")),
+    totalAmount = 80000.00,
+    outstandingAmount = 56049.08,
+    stoodOverAmount = 25089.08,
+    amountDue = 1029.05,
+    periodStartDate = LocalDate.parse("2020-04-01"),
+    periodEndDate = LocalDate.parse("2020-06-30"),
+    pstr = "24000040IN"
+  )
 
   private def createChargeWithAmountDueAndInterest(chargeReference: String, amountDue: BigDecimal = 0.00, interest: BigDecimal = 123.00): SchemeFS = {
     SchemeFS(

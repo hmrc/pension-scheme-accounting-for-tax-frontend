@@ -23,7 +23,7 @@ import controllers.chargeB.{routes => _}
 import helpers.FormatHelper._
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.financialStatement.SchemeFS
+import models.financialStatement.{PsaFS, SchemeFS}
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
 import models.viewModels.paymentsAndCharges.{PaymentsAndChargesDetails, PaymentsAndChargesTable}
@@ -40,12 +40,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheConnector) {
 
-  def getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod: Seq[(LocalDate, Seq[SchemeFS])], srn: String)
+  def getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod: Seq[(LocalDate, Seq[SchemeFS])], srn: String, psaId: String)
                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PaymentsAndChargesTable]] = {
 
     fiCacheConnector.fetch map {
       case Some(jsValue) =>
-        val chargeRefs = (jsValue \ "chargeRefs").as[Seq[String]]
+        val chargeRefs = jsValue.as[Seq[PsaFS]].map(_.chargeReference)
 
         paymentsAndChargesForAGivenPeriod.map {
           paymentsAndCharges =>

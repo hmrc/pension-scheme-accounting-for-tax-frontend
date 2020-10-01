@@ -19,6 +19,7 @@ package controllers.financialStatement
 import java.time.LocalDate
 
 import connectors.FinancialStatementConnector
+import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -75,7 +76,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
-    when(mockPenaltyService.fetchPstrsAndSaveWithChargeRefs(any(), any(), any())(any(), any())).thenReturn(Future.successful(()))
   }
 
   "SelectScheme Controller" when {
@@ -100,6 +100,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
     "on a POST" must {
       "redirect to penalties page when valid data with associated scheme is submitted" in {
+        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(psaFS)))
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps1.pstr)))).value
 
@@ -111,10 +112,9 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
       "redirect to penalties page when valid data with unassociated scheme is submitted" in {
 
-        when(mockFICacheConnector.fetch(any(), any()))
-          .thenReturn(Future.successful(Some(pstrs)))
+        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(psaFS)))
 
-        val pstrIndex: String = (pstrs \ "pstrs").as[Seq[String]].indexOf(ps2.pstr).toString
+        val pstrIndex: String = (psaFS \ "psaFS").as[Seq[PsaFS]].map(_.pstr).indexOf(ps2.pstr).toString
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
 
@@ -127,8 +127,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
       "redirect to sessionExpired page when valid data with unassociated scheme is submitted " +
         "but no pstrs return from fiCacheConnector" in {
 
-        when(mockFICacheConnector.fetch(any(), any()))
-          .thenReturn(Future.successful(None))
+        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(None))
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
 
@@ -154,21 +153,8 @@ object SelectSchemeControllerSpec {
   private val year = "2020"
   private val ps1 = PenaltySchemes(name = Some("Assoc scheme"), pstr = "24000040IN", srn = Some(srn))
   private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
-  private val psaFS = PsaFS(
-    chargeReference = "XY002610150184",
-    chargeType = AFT_INITIAL_LFP,
-    dueDate = Some(LocalDate.parse("2020-07-15")),
-    totalAmount = 80000.00,
-    outstandingAmount = 56049.08,
-    stoodOverAmount = 25089.08,
-    amountDue = 1029.05,
-    periodStartDate = LocalDate.parse("2020-04-01"),
-    periodEndDate = LocalDate.parse("2020-06-30"),
-    pstr = "24000040IN"
-  )
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
-  val pstrs: JsObject = Json.obj("pstrs" -> Json.arr("24000041IN", "24000041IN"))
-  val chargeRefs: JsObject = Json.obj("chargeRefs" -> Json.arr("XY002610150184", "XY002610150185"))
+  val psaFS: JsObject = Json.obj("psaFS" -> psaFSResponse)
 
   private def form = new SelectSchemeFormProvider()(penaltySchemes)
   private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(year).url

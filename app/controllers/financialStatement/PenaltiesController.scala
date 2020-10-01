@@ -65,7 +65,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                   psaFS.filter(_.pstr == schemeDetails.pstr)
 
                 val penaltyTables: Future[Seq[JsObject]] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt, request.psaId.id) map {
                     _.filter(_ != Json.obj())
                   }
 
@@ -85,25 +85,25 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             fiCacheConnector.fetch flatMap {
               case Some(jsValue) =>
                 val pstrs: Seq[String] =
-                  (jsValue \ "pstrs").as[Seq[String]]
+                  jsValue.as[Seq[PsaFS]].map(_.pstr)
 
-                val filteredPsaFS =
-                  psaFS.filter(_.pstr == pstrs(identifier.toInt))
+                penaltiesService.unassociatedSchemes(psaFS, year, request.psaId.id) flatMap {
+                  filteredPsaFS =>
+                    val penaltyTables: Future[Seq[JsObject]] =
+                      penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt, request.psaId.id) map {
+                        _.filter(_ != Json.obj())
+                      }
 
-                val penaltyTables: Future[Seq[JsObject]] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
-                    _.filter(_ != Json.obj())
-                  }
+                    penaltyTables flatMap {
+                      tables =>
+                        val json = viewModel(
+                          pstr = pstrs(identifier.toInt),
+                          schemeAssociated = false,
+                          tables = tables
+                        )
 
-                penaltyTables flatMap {
-                  tables =>
-                    val json = viewModel(
-                      pstr = pstrs(identifier.toInt),
-                      schemeAssociated = false,
-                      tables = tables
-                    )
-
-                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                    }
                 }
 
               case _ =>

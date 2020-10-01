@@ -21,6 +21,7 @@ import controllers.actions._
 import forms.SelectSchemeFormProvider
 import javax.inject.Inject
 import models.PenaltySchemes
+import models.financialStatement.PsaFS
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -81,20 +82,17 @@ class SelectSchemeController @Inject()(
               renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
             },
             value => {
-              penaltiesService.fetchPstrsAndSaveWithChargeRefs(value.pstr, request.psaId.id, year) flatMap {
-                _ =>
+              fiCacheConnector.fetch flatMap {
+                case Some(jsValue) =>
                   value.srn match {
                     case Some(srn) =>
                       Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
                     case _ =>
-                      fiCacheConnector.fetch flatMap {
-                        case Some(jsValue) =>
-                          val pstrIndex: String = (jsValue \ "pstrs").as[Seq[String]].indexOf(value.pstr).toString
-                          Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
-                        case _ =>
-                          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                      }
+                      val pstrIndex: String = jsValue.as[Seq[PsaFS]].map(_.pstr).indexOf(value.pstr).toString
+                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
                   }
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
             }
           )
