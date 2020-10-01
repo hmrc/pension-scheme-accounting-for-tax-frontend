@@ -20,12 +20,11 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import helpers.FormatHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -46,7 +45,6 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
                                                    config: FrontendAppConfig,
                                                    schemeService: SchemeService,
                                                    fsConnector: FinancialStatementConnector,
-                                                   fiCacheConnector: FinancialInfoCacheConnector,
                                                    paymentsAndChargesService: PaymentsAndChargesService,
                                                    renderer: Renderer
                                                   )(implicit ec: ExecutionContext)
@@ -56,33 +54,37 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
 
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
-      fiCacheConnector.fetch flatMap {
-        case Some(jsValue) =>
-          val chargeRefs: Seq[String] = jsValue.as[Seq[PsaFS]].map(_.chargeReference)
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            seqSchemeFS =>
+              val chargeRefs: Seq[String] =
+                paymentsAndChargesService.orderSchemeFS(seqSchemeFS).map(_.chargeReference)
 
-          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-            fsConnector.getSchemeFS(schemeDetails.pstr).flatMap { seqSchemeFS =>
-              val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt))
-              filteredSchemeFs match {
-                case Some(schemeFs) =>
-                  renderer
-                    .render(template = "paymentsAndCharges/paymentsAndChargeDetails.njk", summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index))
-                    .map(Ok(_))
+              chargeRefs(index.toInt) match {
+                case _: String =>
+                  seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
+                    case Some(schemeFs) =>
+                      renderer.render(
+                        "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                        summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+                      )
+                        .map(Ok(_))
+                    case _ =>
+                      Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
                 case _ =>
-                  Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
-            }
           }
-        case _ =>
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
   }
 
   def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String, index: String)
                      (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
-      case (Some(date), true, true) =>
+      case (Some(_), true, true) =>
         Html(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
@@ -102,8 +104,9 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         Html("")
     }
 
-    val optHintText = if(schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
-     Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
+    val optHintText = if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
+      Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
+
     Json.obj(
       fields = "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
       "tableHeader" -> messages("paymentsAndCharges.caption",

@@ -65,7 +65,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                   psaFS.filter(_.pstr == schemeDetails.pstr)
 
                 val penaltyTables: Future[Seq[JsObject]] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt, request.psaId.id) map {
+                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
                     _.filter(_ != Json.obj())
                   }
 
@@ -90,7 +90,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                 penaltiesService.unassociatedSchemes(psaFS, year, request.psaId.id) flatMap {
                   filteredPsaFS =>
                     val penaltyTables: Future[Seq[JsObject]] =
-                      penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt, request.psaId.id) map {
+                      penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
                         _.filter(_ != Json.obj())
                       }
 

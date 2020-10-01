@@ -106,7 +106,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
   }
 
   private val mockFiCacheConnector = mock[FinancialInfoCacheConnector]
-  private val paymentsAndChargesService = new PaymentsAndChargesService(mockFiCacheConnector)
+  private val paymentsAndChargesService = new PaymentsAndChargesService()
 
   "getPaymentsAndCharges" must {
 
@@ -141,11 +141,13 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
               )
             )))
 
-          val result = paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(chargeType), srn)
+          val result = paymentsAndChargesService.getPaymentsAndCharges(
+            paymentsAndChargesForAGivenPeriod(chargeType),
+            srn,
+            Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+          )
 
-          whenReady(result) {
-            _ mustBe expectedTable
-          }
+          result mustBe expectedTable
         }
     }
 
@@ -157,11 +159,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00),
-        srn)
+        srn,
+        Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+      )
 
-      whenReady(result) {
-        _ mustBe expectedTable
-      }
+      result mustBe expectedTable
     }
 
     "return payments and charges table with row where there is no amount due" in {
@@ -183,22 +185,26 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           )))
 
       val result =
-        paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
+        paymentsAndChargesService.getPaymentsAndCharges(
+          paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00),
+          srn,
+          Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+        )
 
-      whenReady(result) {
-        _ mustBe expectedTable
-      }
+      result mustBe expectedTable
     }
 
     "return Seq.empty when no charge ref data in FI Cache" in {
       when(mockFiCacheConnector.fetch(any(), any())).thenReturn(Future.successful(None))
 
       val result =
-        paymentsAndChargesService.getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00), srn)
+        paymentsAndChargesService.getPaymentsAndCharges(
+          paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00),
+          srn,
+          Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+        )
 
-      whenReady(result) {
-        _ mustBe Seq.empty[PaymentsAndChargesTable]
-      }
+      result mustBe Seq.empty[PaymentsAndChargesTable]
     }
   }
 

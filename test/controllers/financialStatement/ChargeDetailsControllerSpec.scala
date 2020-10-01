@@ -100,7 +100,7 @@ class ChargeDetailsControllerSpec
 
       "render the correct view with penalty tables for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

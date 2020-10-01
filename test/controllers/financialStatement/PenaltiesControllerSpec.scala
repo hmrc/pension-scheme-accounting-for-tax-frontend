@@ -124,7 +124,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
       }
 
       "render the correct view with penalty tables for unassociated" in {
-        when(mockFIConnector.fetch(any())(any(), any()))
+        when(mockFIConnector.fetch(any(), any()))
           .thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
         when(mockPenaltiesService.unassociatedSchemes(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(psaFSResponse))

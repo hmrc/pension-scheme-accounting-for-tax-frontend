@@ -47,7 +47,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
 
   //PENALTIES
-  def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int, psaId: String)
+  def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int)
                   (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[JsObject]] =
     Future.sequence(availableQuarters(year)(config).map { quarter =>
       val startDate = getStartDate(quarter, year)
@@ -55,13 +55,13 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
 
       if (filteredPsaFS.nonEmpty) {
-        singlePeriodFSMapping(identifier, startDate, filteredPsaFS, psaId)
+        singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
       } else {
         Future.successful(Json.obj())
       }
     })
 
-  private def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS], psaId: String)
+  private def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])
                                    (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
 
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
@@ -75,7 +75,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
     Future.sequence(filteredPsaFS.map {
       data =>
-        chargeTypeLink(identifier, data, startDate, psaId).map {
+        chargeTypeLink(identifier, data, startDate).map {
           content =>
             Seq(
               Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
@@ -94,7 +94,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     }
   }
 
-  private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate, psaId: String)
+  private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
                             (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Html] = {
     fiCacheConnector.fetch flatMap {
       case Some(jsValue) =>
