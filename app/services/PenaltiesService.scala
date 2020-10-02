@@ -51,9 +51,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
                   (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[JsObject]] =
     Future.sequence(availableQuarters(year)(config).map {
       quarter =>
-        val startDate = getStartDate(quarter, year)
-
-//        singlePeriodFSMapping(identifier, startDate, psaFS.filter(_.periodStartDate == startDate))
+        val startDate: LocalDate = getStartDate(quarter, year)
 
         val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
 
