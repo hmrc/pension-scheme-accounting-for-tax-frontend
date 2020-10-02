@@ -59,7 +59,7 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             seqSchemeFS =>
               val chargeRefs: Seq[String] =
-                paymentsAndChargesService.orderSchemeFS(seqSchemeFS).map(_.chargeReference)
+                paymentsAndChargesService.groupAndSortByStartDate(seqSchemeFS).flatMap(_._2).map(_.chargeReference)
 
               chargeRefs(index.toInt) match {
                 case _: String =>

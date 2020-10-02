@@ -16,10 +16,12 @@
 
 package controllers.financialStatement
 
+import config.Constants._
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.financialStatement.PsaFS
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -27,8 +29,6 @@ import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import config.Constants._
-import models.financialStatement.PsaFS
 
 import scala.concurrent.{ExecutionContext, Future}
 

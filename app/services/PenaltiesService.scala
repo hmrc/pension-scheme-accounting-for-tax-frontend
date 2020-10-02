@@ -49,16 +49,19 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   //PENALTIES
   def getPsaFsJson(psaFS: Seq[PsaFS], identifier: String, year: Int)
                   (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[JsObject]] =
-    Future.sequence(availableQuarters(year)(config).map { quarter =>
-      val startDate = getStartDate(quarter, year)
+    Future.sequence(availableQuarters(year)(config).map {
+      quarter =>
+        val startDate = getStartDate(quarter, year)
 
-      val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
+//        singlePeriodFSMapping(identifier, startDate, psaFS.filter(_.periodStartDate == startDate))
 
-      if (filteredPsaFS.nonEmpty) {
-        singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
-      } else {
-        Future.successful(Json.obj())
-      }
+        val filteredPsaFS: Seq[PsaFS] = psaFS.filter(_.periodStartDate == startDate)
+
+        if (filteredPsaFS.nonEmpty) {
+          singlePeriodFSMapping(identifier, startDate, filteredPsaFS)
+        } else {
+          Future.successful(Json.obj())
+        }
     })
 
   private def singlePeriodFSMapping(identifier: String, startDate: LocalDate, filteredPsaFS: Seq[PsaFS])

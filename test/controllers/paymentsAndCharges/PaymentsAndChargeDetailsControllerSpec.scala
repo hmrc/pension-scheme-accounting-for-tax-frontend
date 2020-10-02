@@ -142,10 +142,15 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150183"),
-          createChargeWithAmountDueAndInterest("XY002610150184")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150183"),
+              createChargeWithAmountDueAndInterest("XY002610150184")
+            )
+          )
         ))
 
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150184", amountDue = 1234.00)
@@ -163,10 +168,15 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150188"),
-          createChargeWithAmountDueAndInterest("XY002610150189")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150188"),
+              createChargeWithAmountDueAndInterest("XY002610150189")
+            )
+          )
         ))
 
       val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = BigDecimal(0.00))
@@ -184,9 +194,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150186")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(createChargeWithAmountDueAndInterest("XY002610150186"))
+          )
         ))
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150186")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -201,9 +214,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150187")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(createChargeWithAmountDueAndInterest("XY002610150187"))
+          )
         ))
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -218,9 +234,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150185")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(createChargeWithAmountDueAndInterest("XY002610150185"))
+          )
         ))
       val schemeFS = createChargeWithDeltaCredit(chargeReference = "XY002610150185")
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -235,9 +254,12 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "redirect to Session Expired page when there is no match for charge reference for a GET" in {
-      when(mockPaymentsAndChargesService.orderSchemeFS(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
-          createChargeWithAmountDueAndInterest("XY002610150185")
+          (
+            LocalDate.parse(QUARTER_START_DATE),
+            Seq(createChargeWithAmountDueAndInterest("XY002610150185"))
+          )
         ))
 
       val result = route(application, httpGETRequest(httpPathGET(index = "-1"))).value

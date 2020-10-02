@@ -20,8 +20,6 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import connectors.FinancialStatementConnectorSpec.psaFSResponse
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -58,7 +56,6 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  private val mockIFConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
       Seq[GuiceableModule](
@@ -66,18 +63,16 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
         bind[SchemeService].toInstance(mockSchemeService),
-        bind[FinancialStatementConnector].toInstance(mockFSConnector),
-        bind[FinancialInfoCacheConnector].toInstance(mockIFConnector)
+        bind[FinancialStatementConnector].toInstance(mockFSConnector)
       ): _*
     )
     .build()
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockFSConnector, mockRenderer, mockIFConnector)
+    reset(mockSchemeService, mockFSConnector, mockRenderer)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
@@ -118,8 +113,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   "PaymentsAndChargesInterestController" must {
 
     "return OK and the correct view for interest accrued for aft return charge if amount is due and interest is accruing for a GET" in {
-      when(mockIFConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
+      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
 
       val schemeFS = createCharge(chargeReference = "XY002610150184", chargeType = PSS_AFT_RETURN)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -134,8 +128,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     }
 
     "return OK and the correct view for interest accrued for overseas transfer charge if amount is due and interest is accruing for a GET" in {
-      when(mockIFConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> psaFSResponse))))
+      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
 
       val schemeFS = createCharge(chargeReference = "XY002610150185", chargeType = PSS_OTC_AFT_RETURN)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -150,18 +143,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     }
 
     "redirect to Session Expired page when there is no data for the selected charge reference for a GET" in {
-      when(mockIFConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(Some(Json.obj("psaFS" -> Seq(psaFSResponse.head.copy(chargeReference = "XY002610150186"))))))
-
-      val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-    }
-
-    "redirect to Session Expired page when there is no charge reference held in FI Cache for a GET" in {
-      when(mockIFConnector.fetch(any(), any()))
-        .thenReturn(Future.successful(None))
-
+      when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

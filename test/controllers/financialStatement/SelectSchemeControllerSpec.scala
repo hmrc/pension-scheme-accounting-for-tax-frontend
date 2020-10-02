@@ -16,8 +16,6 @@
 
 package controllers.financialStatement
 
-import java.time.LocalDate
-
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import connectors.cache.FinancialInfoCacheConnector
@@ -27,7 +25,6 @@ import data.SampleData._
 import forms.SelectSchemeFormProvider
 import matchers.JsonMatchers
 import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
 import models.{Enumerable, PenaltySchemes}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -38,7 +35,7 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -114,7 +111,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
         when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(psaFS)))
 
-        val pstrIndex: String = (psaFS \ "psaFS").as[Seq[PsaFS]].map(_.pstr).indexOf(ps2.pstr).toString
+        val pstrIndex: String = psaFS.as[Seq[PsaFS]].map(_.pstr).indexOf(ps2.pstr).toString
 
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
 
@@ -154,7 +151,7 @@ object SelectSchemeControllerSpec {
   private val ps1 = PenaltySchemes(name = Some("Assoc scheme"), pstr = "24000040IN", srn = Some(srn))
   private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
   val penaltySchemes: Seq[PenaltySchemes] = Seq(ps1, ps2)
-  val psaFS: JsObject = Json.obj("psaFS" -> psaFSResponse)
+  val psaFS: JsValue = Json.toJson(psaFSResponse)
 
   private def form = new SelectSchemeFormProvider()(penaltySchemes)
   private def httpPathGETVersion: String = routes.SelectSchemeController.onPageLoad(year).url

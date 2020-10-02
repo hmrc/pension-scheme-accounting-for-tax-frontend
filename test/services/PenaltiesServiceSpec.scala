@@ -62,13 +62,17 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     Json.obj(
       "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
       "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
+    ),
+    Json.obj(
+      "header" -> msg"penalties.period".withArgs("1 October", "31 December 2020"),
+      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-10-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
     )
   )
 
   override def beforeEach: Unit = {
     super.beforeEach
     when(mockAppConfig.minimumYear).thenReturn(year)
-    when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq("XY002610150184")))))
+    when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse()))))
     DateHelper.setDate(Some(dateNow))
   }
 
@@ -195,6 +199,18 @@ object PenaltiesServiceSpec {
       periodStartDate = LocalDate.parse("2020-07-01"),
       periodEndDate = LocalDate.parse("2020-09-30"),
       pstr = "24000041IN"
+    ),
+    PsaFS(
+      chargeReference = "XY002610150184",
+      chargeType = OTC_6_MONTH_LPP,
+      dueDate = Some(dueDate),
+      totalAmount = 80000.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = amountDue,
+      periodStartDate = LocalDate.parse("2020-10-01"),
+      periodEndDate = LocalDate.parse("2020-12-31"),
+      pstr = "24000041IN"
     )
   )
 
@@ -268,7 +284,9 @@ object PenaltiesServiceSpec {
 
   val penaltySchemes: Seq[PenaltySchemes] = Seq(
     PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some("SRN123")),
-    PenaltySchemes(None, "24000041IN", None))
+    PenaltySchemes(None, "24000041IN", None),
+    PenaltySchemes(None, "24000041IN", None)
+  )
 
   val listOfSchemes: ListOfSchemes = ListOfSchemes("", "", Some(List(
     ListSchemeDetails("Assoc scheme", "SRN123", "", None, Some("24000040IN"), None, None))))

@@ -60,13 +60,9 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
                 schemeFs.filter(_.periodStartDate.getYear == year)
 
               if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
-                val schemePaymentsAndChargesGroupedWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
-                  schemePaymentsAndChargesForSelectedYear.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
 
                 val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService.getPaymentsAndCharges(
-                    schemePaymentsAndChargesGroupedWithPeriodStartDate, srn, schemePaymentsAndChargesForSelectedYear
-                  )
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear)
 
                 val json = Json.obj(
                   fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
