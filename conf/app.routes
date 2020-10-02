@@ -1,6 +1,8 @@
 # microservice specific routes
 
 GET         /                                                                                                                                        controllers.IndexController.onPageLoad
+GET          /:srn/keepAlive                                                                                                                        controllers.KeepAliveController.keepAlive(srn: String, startDate: Option[String] = None)
+GET          /:startDate/:srn/keepAlive                                                                                                              controllers.KeepAliveController.keepAlive(srn: String, startDate: Option[String] )
 
 GET         /:srn/sign-out                                                                                                                           controllers.SignOutController.signOut(srn: String, startDate: Option[String] = None)
 GET         /:startDate/:srn/sign-out                                                                                                                controllers.SignOutController.signOut(srn: String, startDate: Option[String])
