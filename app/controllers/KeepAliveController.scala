@@ -40,17 +40,19 @@ class KeepAliveController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def keepAlive(srn: String, startDate: Option[LocalDate])(implicit ec: ExecutionContext, hc: HeaderCarrier): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  def keepAlive(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
     implicit request =>
-
-      startDate match {
-        case Some(startDt) =>
-          val id = s"$srn$startDt"
-          userAnswersCacheConnector.save(id, request.userAnswers.data).map { _ =>
-            NoContent
-          }
-      }
-
+        val id = s"$srn$startDate"
+        userAnswersCacheConnector.save(id, request.userAnswers.data).map { _ =>
+          NoContent
+    }
   }
+  //
+  //def keepAlive(srn: String)(implicit
+  //  ec: ExecutionContext, hc: HeaderCarrier): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
+  //  implicit request =>
+  //          NoContent
+  //
+  //}
 
 }
