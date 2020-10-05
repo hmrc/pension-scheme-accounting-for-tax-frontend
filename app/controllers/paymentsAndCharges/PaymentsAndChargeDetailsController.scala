@@ -61,20 +61,20 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
               val chargeRefs: Seq[String] =
                 paymentsAndChargesService.groupAndSortByStartDate(seqSchemeFS).flatMap(_._2).map(_.chargeReference)
 
-              chargeRefs(index.toInt) match {
-                case _: String =>
-                  seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
-                    case Some(schemeFs) =>
-                      renderer.render(
-                        "paymentsAndCharges/paymentsAndChargeDetails.njk",
-                        summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
-                      )
-                        .map(Ok(_))
-                    case _ =>
-                      Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                  }
-                case _ =>
+              try {
+                seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
+                  case Some(schemeFs) =>
+                    renderer.render(
+                      "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                      summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+                    )
+                      .map(Ok(_))
+                  case _ =>
+                    Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
+                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                }
+              } catch {
+                case _: IndexOutOfBoundsException =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

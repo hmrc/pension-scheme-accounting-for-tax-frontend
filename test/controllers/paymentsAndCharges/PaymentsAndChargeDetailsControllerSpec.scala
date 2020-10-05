@@ -46,7 +46,6 @@ import utils.AFTConstants._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future
-import scala.reflect.runtime.universe.typeOf
 
 class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with RecoverMethods {
 
@@ -253,7 +252,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
     }
 
-    "redirect to Session Expired page when there is no match for charge reference for a GET" in {
+    "catch IndexOutOfBoundsException" in {
       when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
         .thenReturn(Seq(
           (
@@ -262,11 +261,10 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
           )
         ))
 
-      val result = route(application, httpGETRequest(httpPathGET(index = "-1"))).value
+      val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
 
-      assertThrows[IndexOutOfBoundsException] {
-        status(result)
-      }
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }
