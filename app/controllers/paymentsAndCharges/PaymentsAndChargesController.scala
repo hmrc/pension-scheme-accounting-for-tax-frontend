@@ -62,7 +62,7 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
               if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
 
                 val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear)
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year)
 
                 val json = Json.obj(
                   fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,

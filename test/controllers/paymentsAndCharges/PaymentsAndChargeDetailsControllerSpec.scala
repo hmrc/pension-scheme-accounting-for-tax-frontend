@@ -141,7 +141,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
   "PaymentsAndChargesController" must {
 
     "return OK and the correct view with inset text linked to interest page if amount is due and interest is accruing for a GET" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
@@ -167,7 +167,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with hint text linked to interest page if amount is due and interest is not accruing for a GET" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
@@ -193,7 +193,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with inset text if amount is all paid and interest accrued has been created as another charge for a GET" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
@@ -213,7 +213,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text if amount is all paid and no interest accrued for a GET" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
@@ -233,7 +233,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "return OK and the correct view with no inset text and correct chargeReference text if amount is in credit for a GET" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
@@ -253,7 +253,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     }
 
     "catch IndexOutOfBoundsException" in {
-      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any()))
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),

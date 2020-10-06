@@ -135,8 +135,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
           val result = paymentsAndChargesService.getPaymentsAndCharges(
             srn,
-            paymentsAndChargesForAGivenPeriod(chargeType).head._2
-            //            Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+            paymentsAndChargesForAGivenPeriod(chargeType).head._2,
+            2020
           )
 
           result mustBe expectedTable
@@ -150,8 +150,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
-        paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2
-        //        Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+        paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
+        2020
       )
 
       result mustBe expectedTable
@@ -177,8 +177,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result =
         paymentsAndChargesService.getPaymentsAndCharges(
           srn,
-          paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00).head._2
-          //          Seq(createCharge(PSS_AFT_RETURN, totalAmount = 56432.00, amountDue = 1029.05))
+          paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00).head._2,
+          2020
         )
 
       result mustBe expectedTable

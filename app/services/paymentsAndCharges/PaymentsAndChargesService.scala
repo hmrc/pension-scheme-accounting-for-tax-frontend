@@ -40,15 +40,15 @@ import scala.concurrent.ExecutionContext
 
 class PaymentsAndChargesService @Inject()() {
 
-  def getPaymentsAndCharges(srn: String, schemeFS: Seq[SchemeFS])
+  def getPaymentsAndCharges(srn: String, schemeFS: Seq[SchemeFS], year: Int)
                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[PaymentsAndChargesTable] = {
 
-    groupAndSortByStartDate(schemeFS) map {
+    groupAndSortByStartDate(schemeFS, year) map {
       startDateAndFS =>
 
         val seqPaymentsAndCharges: Seq[SchemeFS] = startDateAndFS._2
 
-        val chargeRefs: Seq[String] = groupAndSortByStartDate(schemeFS).flatMap(_._2).map(_.chargeReference)
+        val chargeRefs: Seq[String] = startDateAndFS._2.map(_.chargeReference)
 
         val seqPayments: Seq[PaymentsAndChargesDetails] =
           seqPaymentsAndCharges.flatMap {
@@ -70,8 +70,8 @@ class PaymentsAndChargesService @Inject()() {
     }
   }
 
-  def groupAndSortByStartDate(schemeFS: Seq[SchemeFS]): Seq[(LocalDate, Seq[SchemeFS])] = {
-    schemeFS.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
+  def groupAndSortByStartDate(schemeFS: Seq[SchemeFS], year: Int): Seq[(LocalDate, Seq[SchemeFS])] = {
+    schemeFS.filter(_.periodStartDate.getYear == year).groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
   }
 
   private def paymentsAndChargesDetails(
