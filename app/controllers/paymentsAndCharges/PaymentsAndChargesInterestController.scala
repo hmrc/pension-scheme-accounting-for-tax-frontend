@@ -58,13 +58,18 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             seqSchemeFS =>
-              val chargeRefs: Seq[String] = seqSchemeFS.map(_.chargeReference)
-              val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt))
-              filteredSchemeFs match {
-                case Some(_) =>
+
+              val filteredSchemeFS =
+                seqSchemeFS.filter(_.periodStartDate.getYear == startDate.getYear)
+
+              val chargeRefs: Seq[String] =
+                filteredSchemeFS.map(_.chargeReference)
+
+              filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
+                case Some(fs) =>
                   renderer
                     .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                      summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName, index))
+                      summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
                     .map(Ok(_))
                 case _ =>
                   Logger.warn(s"No Payments and Charge details " +
