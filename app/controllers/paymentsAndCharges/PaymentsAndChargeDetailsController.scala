@@ -59,7 +59,10 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             seqSchemeFS =>
               val chargeRefs: Seq[String] =
-                paymentsAndChargesService.groupAndSortByStartDate(seqSchemeFS, startDate.getYear).flatMap(_._2).map(_.chargeReference)
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(seqSchemeFS, startDate.getYear)
+                  .flatMap(_._2)
+                  .map(_.chargeReference)
 
               try {
                 seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
@@ -75,6 +78,10 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
                 }
               } catch {
                 case _: IndexOutOfBoundsException =>
+                  Logger.warn(
+                    s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+                      s"index $index of collection length ${chargeRefs.length} attempted"
+                  )
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

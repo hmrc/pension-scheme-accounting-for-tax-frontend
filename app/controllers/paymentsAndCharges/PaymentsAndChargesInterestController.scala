@@ -65,15 +65,24 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
               val chargeRefs: Seq[String] =
                 filteredSchemeFS.map(_.chargeReference)
 
-              filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
-                case Some(fs) =>
-                  renderer
-                    .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                      summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
-                    .map(Ok(_))
-                case _ =>
-                  Logger.warn(s"No Payments and Charge details " +
-                    s"found for the selected charge reference ${chargeRefs(index.toInt)}")
+              try {
+                filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
+                  case Some(fs) =>
+                    renderer
+                      .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                        summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
+                      .map(Ok(_))
+                  case _ =>
+                    Logger.warn(s"No Payments and Charge details " +
+                      s"found for the selected charge reference ${chargeRefs(index.toInt)}")
+                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                }
+              } catch {
+                case _: IndexOutOfBoundsException =>
+                  Logger.warn(
+                    s"[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
+                      s"index $index of collection length ${chargeRefs.length} attempted"
+                  )
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

@@ -33,6 +33,7 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import config.Constants._
 import connectors.cache.FinancialInfoCacheConnector
 import models.financialStatement.PsaFS
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -95,6 +96,10 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
                 }
               } catch {
                 case _: IndexOutOfBoundsException =>
+                  Logger.warn(
+                    s"[financialStatement.ChargeDetailsController][IndexOutOfBoundsException]:" +
+                      s"index $chargeReferenceIndex of collection length ${chargeRefs.length} attempted"
+                  )
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
             case _ =>
