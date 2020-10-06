@@ -36,12 +36,12 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 class DataRetrievalImpl(
-    srn: String,
-    startDate: LocalDate,
-    userAnswersCacheConnector: UserAnswersCacheConnector
-)(implicit val executionContext: ExecutionContext)
-    extends DataRetrieval {
-  
+                         srn: String,
+                         startDate: LocalDate,
+                         userAnswersCacheConnector: UserAnswersCacheConnector
+                       )(implicit val executionContext: ExecutionContext)
+  extends DataRetrieval {
+
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     val id = s"$srn$startDate"
@@ -57,9 +57,9 @@ class DataRetrievalImpl(
 
 }
 
-class DataRetrievalActionImpl @Inject()(userAnswersCacheConnector: UserAnswersCacheConnector
-                                        )(implicit val executionContext: ExecutionContext)
-                                        extends DataRetrievalAction {
+class DataRetrievalActionImpl @Inject()(userAnswersCacheConnector: UserAnswersCacheConnector)
+                                       (implicit val executionContext: ExecutionContext)
+  extends DataRetrievalAction {
   override def apply(srn: String, startDate: LocalDate): DataRetrieval =
     new DataRetrievalImpl(srn, startDate, userAnswersCacheConnector)
 }

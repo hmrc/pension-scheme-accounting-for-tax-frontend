@@ -53,11 +53,15 @@ class ChargeDetailsControllerSpec
 
   import ChargeDetailsControllerSpec._
 
-  private def httpPathGETAssociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = "0").url
+  private def httpPathGETAssociated(chargeReferenceIndex: String): String =
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+      identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = chargeReferenceIndex
+    ).url
 
   private def httpPathGETUnassociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0").url
+    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+      identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0"
+    ).url
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
@@ -93,8 +97,6 @@ class ChargeDetailsControllerSpec
     when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
-
-
   }
 
   "ChargeDetails Controller" when {
@@ -102,11 +104,11 @@ class ChargeDetailsControllerSpec
 
       "render the correct view with penalty tables for associated" in {
 
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.obj("chargeRefs" -> Seq(chargeRef)))))
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-        val result = route(application, httpGETRequest(httpPathGETAssociated)).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
         val json = Json.obj(
           "schemeAssociated" -> true,
           "schemeName" -> schemeDetails.schemeName
@@ -143,7 +145,7 @@ class ChargeDetailsControllerSpec
 
         when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(None))
 
-        val result = route(application, httpGETRequest(httpPathGETAssociated)).value
+        val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
 
         status(result) mustEqual SEE_OTHER
 
@@ -151,8 +153,15 @@ class ChargeDetailsControllerSpec
 
       }
 
-    }
+      "catch IndexOutOfBoundsException" in {
+        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
 
+        val result = route(application, httpGETRequest(httpPathGETAssociated("2"))).value
+
+        status(result) mustBe SEE_OTHER
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      }
+    }
   }
 }
 
