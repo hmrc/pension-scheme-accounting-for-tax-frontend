@@ -1,7 +1,8 @@
 # microservice specific routes
 
 GET         /                                                                                                                                        controllers.IndexController.onPageLoad
-GET         /:startDate/:srn/keepAlive                                                                                                               controllers.KeepAliveController.keepAlive(srn: String, startDate: String)
+GET         /keep-alive                                                                                                                              controllers.KeepAliveController.keepAlive(srn: Option[String] = None, startDate: Option[String] = None)
+GET         /:startDate/:srn/keep-alive                                                                                                              controllers.KeepAliveController.keepAlive(srn: Option[String], startDate: Option[String])
 
 GET         /:srn/sign-out                                                                                                                           controllers.SignOutController.signOut(srn: String, startDate: Option[String] = None)
 GET         /:startDate/:srn/sign-out                                                                                                                controllers.SignOutController.signOut(srn: String, startDate: Option[String])
@@ -244,7 +245,7 @@ GET         /:year/select-a-scheme                                              
 POST        /:year/select-a-scheme                                                                                                                   controllers.financialStatement.SelectSchemeController.onSubmit(year: String)
 
 GET         /:year/:identifier/penalties                                                                                                             controllers.financialStatement.PenaltiesController.onPageLoad(year: String, identifier: String)
-GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                                  controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
+GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                   controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
 
 GET         /:srn/payments-and-charges-partial                                                                                                       controllers.PartialController.paymentsAndChargesPartial(srn: String)
 

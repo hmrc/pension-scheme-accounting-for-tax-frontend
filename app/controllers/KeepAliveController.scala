@@ -16,43 +16,40 @@
 
 package controllers
 
-import java.time.LocalDate
-
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, IdentifierAction}
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class KeepAliveController @Inject()(
-    config: FrontendAppConfig,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    userAnswersCacheConnector: UserAnswersCacheConnector
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                     identify: IdentifierAction,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     userAnswersCacheConnector: UserAnswersCacheConnector
+                                   )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport {
 
-  def keepAlive(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-    implicit request =>
-        val id = s"$srn$startDate"
-        userAnswersCacheConnector.save(id, request.userAnswers.data).map { _ =>
-          NoContent
+  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] =
+    identify.async {
+      implicit request =>
+        (srn, startDate) match {
+          case (Some(sr), Some(startDt)) =>
+            val id = s"$sr$startDt"
+            userAnswersCacheConnector.fetch(id).flatMap {
+              case Some(ua) =>
+                userAnswersCacheConnector.save(id, ua).map {
+                  _ => NoContent
+                }
+              case _ =>
+                Future.successful(NoContent)
+            }
+          case _ =>
+            Future.successful(NoContent)
+        }
     }
-  }
-  //
-  //def keepAlive(srn: String)(implicit
-  //  ec: ExecutionContext, hc: HeaderCarrier): Action[AnyContent] = (identify andThen getData(srn, startDate) andThen requireData).async {
-  //  implicit request =>
-  //          NoContent
-  //
-  //}
 
 }
