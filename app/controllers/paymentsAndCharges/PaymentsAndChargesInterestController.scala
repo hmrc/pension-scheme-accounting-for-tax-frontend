@@ -20,7 +20,6 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import helpers.FormatHelper
 import javax.inject.Inject
@@ -47,7 +46,6 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
                                                      config: FrontendAppConfig,
                                                      schemeService: SchemeService,
                                                      fsConnector: FinancialStatementConnector,
-                                                     fiCacheConnector: FinancialInfoCacheConnector,
                                                      renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
@@ -56,37 +54,46 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
 
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
-      fiCacheConnector.fetch flatMap {
-        case Some(jsValue) =>
-          val chargeRefs: Seq[String] = (jsValue \ "chargeRefs").as[Seq[String]]
-          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
-            schemeDetails =>
-              fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-                seqSchemeFS =>
-                  val filteredSchemeFs = seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt))
-                  filteredSchemeFs match {
-                    case Some(_) =>
-                      renderer
-                        .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                          summaryListData(srn, filteredSchemeFs, schemeDetails.schemeName, index))
-                        .map(Ok(_))
-                    case _ =>
-                      Logger.warn(s"No Payments and Charge details " +
-                        s"found for the selected charge reference ${chargeRefs(index.toInt)}")
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                  }
+      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            seqSchemeFS =>
+
+              val filteredSchemeFS =
+                seqSchemeFS.filter(_.periodStartDate.getYear == startDate.getYear)
+
+              val chargeRefs: Seq[String] =
+                filteredSchemeFS.map(_.chargeReference)
+
+              try {
+                filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
+                  case Some(fs) =>
+                    renderer
+                      .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                        summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
+                      .map(Ok(_))
+                  case _ =>
+                    Logger.warn(s"No Payments and Charge details " +
+                      s"found for the selected charge reference ${chargeRefs(index.toInt)}")
+                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                }
+              } catch {
+                case _: IndexOutOfBoundsException =>
+                  Logger.warn(
+                    s"[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
+                      s"index $index of collection length ${chargeRefs.length} attempted"
+                  )
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }
-        case _ =>
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
       }
+
   }
 
   def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String)
                      (implicit messages: Messages): JsObject = {
     filteredSchemeFs match {
       case Some(schemeFS) =>
-        println("chargedetails"+ schemeFS.periodEndDate.format(dateFormatterDMY))
         Json.obj(
           fields = "chargeDetailsList" -> getSummaryListRows(schemeFS),
           "tableHeader" -> messages("paymentsAndCharges.caption",
@@ -95,10 +102,10 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
           "schemeName" -> schemeName,
           "accruedInterest" -> schemeFS.accruedInterestTotal,
           "chargeType" -> (
-              if (schemeFS.chargeType == PSS_AFT_RETURN)
-                PSS_AFT_RETURN_INTEREST.toString
-              else
-                PSS_OTC_AFT_RETURN_INTEREST.toString
+            if (schemeFS.chargeType == PSS_AFT_RETURN)
+              PSS_AFT_RETURN_INTEREST.toString
+            else
+              PSS_OTC_AFT_RETURN_INTEREST.toString
             ),
           "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
             .onPageLoad(srn, schemeFS.periodStartDate, index)

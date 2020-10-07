@@ -168,7 +168,7 @@ object FinancialStatementConnectorSpec {
       pstr = "24000040IN"
     ),
     PsaFS(
-      chargeReference = "XY002610150184",
+      chargeReference = "XY002610150185",
       chargeType = OTC_6_MONTH_LPP,
       dueDate = Some(LocalDate.parse("2020-02-15")),
       totalAmount = 80000.00,

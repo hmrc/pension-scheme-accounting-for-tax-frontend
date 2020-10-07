@@ -16,10 +16,12 @@
 
 package controllers.financialStatement
 
+import config.Constants._
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.financialStatement.PsaFS
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -27,8 +29,6 @@ import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import config.Constants._
-import models.financialStatement.PsaFS
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -85,25 +85,25 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
             fiCacheConnector.fetch flatMap {
               case Some(jsValue) =>
                 val pstrs: Seq[String] =
-                  (jsValue \ "pstrs").as[Seq[String]]
+                  jsValue.as[Seq[PsaFS]].map(_.pstr)
 
-                val filteredPsaFS =
-                  psaFS.filter(_.pstr == pstrs(identifier.toInt))
+                penaltiesService.unassociatedSchemes(psaFS, year, request.psaId.id) flatMap {
+                  filteredPsaFS =>
+                    val penaltyTables: Future[Seq[JsObject]] =
+                      penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
+                        _.filter(_ != Json.obj())
+                      }
 
-                val penaltyTables: Future[Seq[JsObject]] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
-                    _.filter(_ != Json.obj())
-                  }
+                    penaltyTables flatMap {
+                      tables =>
+                        val json = viewModel(
+                          pstr = pstrs(identifier.toInt),
+                          schemeAssociated = false,
+                          tables = tables
+                        )
 
-                penaltyTables flatMap {
-                  tables =>
-                    val json = viewModel(
-                      pstr = pstrs(identifier.toInt),
-                      schemeAssociated = false,
-                      tables = tables
-                    )
-
-                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                    }
                 }
 
               case _ =>

@@ -18,8 +18,8 @@ package services.paymentsAndCharges
 
 import java.time.LocalDate
 
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
+import dateOrdering._
 import helpers.FormatHelper._
 import javax.inject.Inject
 import models.LocalDateBinder._
@@ -36,43 +36,42 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-class PaymentsAndChargesService @Inject()(fiCacheConnector: FinancialInfoCacheConnector) {
+class PaymentsAndChargesService @Inject()() {
 
-  def getPaymentsAndCharges(paymentsAndChargesForAGivenPeriod: Seq[(LocalDate, Seq[SchemeFS])], srn: String)
-                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PaymentsAndChargesTable]] = {
+  def getPaymentsAndCharges(srn: String, schemeFS: Seq[SchemeFS], year: Int)
+                           (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Seq[PaymentsAndChargesTable] = {
 
-    fiCacheConnector.fetch map {
-      case Some(jsValue) =>
-        val chargeRefs = (jsValue \ "chargeRefs").as[Seq[String]]
+    groupAndSortByStartDate(schemeFS, year) map {
+      startDateAndFS =>
 
-        paymentsAndChargesForAGivenPeriod.map {
-          paymentsAndCharges =>
+        val seqPaymentsAndCharges: Seq[SchemeFS] = startDateAndFS._2
 
-            val seqPaymentsAndCharges: Seq[SchemeFS] = paymentsAndCharges._2
+        val chargeRefs: Seq[String] = startDateAndFS._2.map(_.chargeReference)
 
-            val seqPayments: Seq[PaymentsAndChargesDetails] =
-              seqPaymentsAndCharges.flatMap {
-                details =>
-                  val onlyAFTAndOTCChargeTypes: Boolean =
-                    details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
+        val seqPayments: Seq[PaymentsAndChargesDetails] =
+          seqPaymentsAndCharges.flatMap {
+            details =>
+              val onlyAFTAndOTCChargeTypes: Boolean =
+                details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
 
-                  val redirectChargeDetailsUrl: String =
-                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                      .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
-                      .url
+              val redirectChargeDetailsUrl: String =
+                controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                  .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                  .url
 
-                  paymentsAndChargesDetails(onlyAFTAndOTCChargeTypes, details, srn, chargeRefs, redirectChargeDetailsUrl)
-              }
+              paymentsAndChargesDetails(onlyAFTAndOTCChargeTypes, details, srn, chargeRefs, redirectChargeDetailsUrl)
+          }
 
-            val startDate = seqPaymentsAndCharges.headOption.map(_.periodStartDate.format(dateFormatterStartDate)).getOrElse("")
-            val endDate = seqPaymentsAndCharges.headOption.map(_.periodEndDate.format(dateFormatterDMY)).getOrElse("")
-            mapToTable(startDate, endDate, seqPayments)
-        }
-      case _ =>
-        Seq.empty[PaymentsAndChargesTable]
+        val startDate = seqPaymentsAndCharges.headOption.map(_.periodStartDate.format(dateFormatterStartDate)).getOrElse("")
+        val endDate = seqPaymentsAndCharges.headOption.map(_.periodEndDate.format(dateFormatterDMY)).getOrElse("")
+        mapToTable(startDate, endDate, seqPayments)
     }
+  }
+
+  def groupAndSortByStartDate(schemeFS: Seq[SchemeFS], year: Int): Seq[(LocalDate, Seq[SchemeFS])] = {
+    schemeFS.filter(_.periodStartDate.getYear == year).groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
   }
 
   private def paymentsAndChargesDetails(

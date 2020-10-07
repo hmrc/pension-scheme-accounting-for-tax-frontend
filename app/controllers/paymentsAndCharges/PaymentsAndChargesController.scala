@@ -20,7 +20,6 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import dateOrdering._
 import javax.inject.Inject
@@ -44,7 +43,6 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
                                              config: FrontendAppConfig,
                                              schemeService: SchemeService,
                                              fsConnector: FinancialStatementConnector,
-                                             fiCacheConnector: FinancialInfoCacheConnector,
                                              paymentsAndChargesService: PaymentsAndChargesService,
                                              renderer: Renderer
                                             )(implicit ec: ExecutionContext)
@@ -62,34 +60,22 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
                 schemeFs.filter(_.periodStartDate.getYear == year)
 
               if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
-                val schemePaymentsAndChargesGroupedWithPeriodStartDate: Seq[(LocalDate, Seq[SchemeFS])] =
-                  schemePaymentsAndChargesForSelectedYear.groupBy(_.periodStartDate).toSeq.sortWith(_._1 < _._1)
 
-                fiCacheConnector.save(
-                  Json.obj("chargeRefs" -> schemePaymentsAndChargesForSelectedYear.map(_.chargeReference))
-                ) flatMap {
-                  _ =>
+                val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year)
 
-                    val tableOfPaymentsAndCharges: Future[Seq[PaymentsAndChargesTable]] =
-                      paymentsAndChargesService.getPaymentsAndCharges(schemePaymentsAndChargesGroupedWithPeriodStartDate, srn)
-
-                    tableOfPaymentsAndCharges flatMap {
-                      tables =>
-                        val json = Json.obj(
-                          fields = "seqPaymentsAndChargesTable" -> tables,
-                          "schemeName" -> schemeDetails.schemeName,
-                          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-                        )
-                        renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
-                    }
-                }
+                val json = Json.obj(
+                  fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
+                  "schemeName" -> schemeDetails.schemeName,
+                  "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+                )
+                renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
                 Logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }
-
       }
   }
 }
