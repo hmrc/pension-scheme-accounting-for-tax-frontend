@@ -68,8 +68,8 @@ object AddMembersService {
   def link(id: String, text: String, url: String, name: String, chargeName: String)(implicit messages: Messages): Html = {
     val hiddenTag = "govuk-visually-hidden"
     Html(
-      s"<a id=$id href=$url> ${messages(text)}" +
-        s"<span class= $hiddenTag>${messages(s"$chargeName.addMembers.visuallyHidden", name)}</span> </a>")
+      s"""<a class= govuk-link id=$id href=$url><span aria-hidden=true>${messages(text)}</span><span class= $hiddenTag>${messages(text)} ${messages(s"$chargeName.addMembers.visuallyHidden", name)}</span> </a>""".stripMargin)
+
   }
 
 }
