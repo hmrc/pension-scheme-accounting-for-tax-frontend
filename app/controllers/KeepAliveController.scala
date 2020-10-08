@@ -33,23 +33,19 @@ class KeepAliveController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] =
-    identify.async {
-      implicit request =>
-        (srn, startDate) match {
-          case (Some(sr), Some(startDt)) =>
-            val id = s"$sr$startDt"
-            userAnswersCacheConnector.fetch(id).flatMap {
-              case Some(ua) =>
-                userAnswersCacheConnector.save(id, ua).map {
-                  _ => NoContent
-                }
-              case _ =>
-                Future.successful(NoContent)
-            }
-          case _ =>
-            Future.successful(NoContent)
-        }
-    }
-
+  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = identify.async {
+    implicit request =>
+      (srn, startDate) match {
+        case (Some(sr), Some(startDt)) =>
+          val id = s"$sr$startDt"
+          userAnswersCacheConnector.fetch(id).flatMap {
+            case Some(ua) =>
+              userAnswersCacheConnector.save(id, ua).map(_ => NoContent)
+            case _ =>
+              Future.successful(NoContent)
+          }
+        case _ =>
+          Future.successful(NoContent)
+      }
+  }
 }

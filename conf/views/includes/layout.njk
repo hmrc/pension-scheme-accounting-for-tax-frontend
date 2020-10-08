@@ -12,8 +12,8 @@
 {% block head %}
   {% block pageHead %}{% endblock %}
 {{ hmrcTimeoutDialog({
-  timeout: 300,
-  countdown: 20,
+  timeout: config.timeout,
+  countdown: config.countdown,
   keepAliveUrl: routes.controllers.KeepAliveController.keepAlive(srn, startDate).url,
   signOutUrl: routes.controllers.SignOutController.signOut(srn, startDate).url
 }) }}

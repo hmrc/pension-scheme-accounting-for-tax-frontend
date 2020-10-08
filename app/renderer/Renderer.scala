@@ -40,10 +40,11 @@ class Renderer @Inject()(appConfig: FrontendAppConfig, renderer: NunjucksRendere
     renderer.render(template, ctx ++ Json.obj("config" -> config))
 
   private lazy val config: JsObject = Json.obj(
-    "betaFeedbackUnauthenticatedUrl" -> appConfig.betaFeedbackUnauthenticatedUrl,
-    "reportAProblemPartialUrl"       -> appConfig.reportAProblemPartialUrl,
-    "reportAProblemNonJSUrl"         -> appConfig.reportAProblemNonJSUrl,
-    "timeout"                        -> appConfig.timeoutSeconds,
-    "countdown"                      -> appConfig.CountdownInSeconds
+    fields =
+      "betaFeedbackUnauthenticatedUrl" -> appConfig.betaFeedbackUnauthenticatedUrl,
+      "reportAProblemPartialUrl"       -> appConfig.reportAProblemPartialUrl,
+      "reportAProblemNonJSUrl"         -> appConfig.reportAProblemNonJSUrl,
+      "timeout"                        -> appConfig.timeoutSeconds,
+      "countdown"                      -> appConfig.countdownSeconds
   )
 }
