@@ -12,9 +12,9 @@
 {% block head %}
   {% block pageHead %}{% endblock %}
 {{ hmrcTimeoutDialog({
-  timeout:config.timeout ,
+  timeout: config.timeout,
   countdown: config.countdown,
-  keepAliveUrl: '/keep-alive',
+  keepAliveUrl: routes.controllers.KeepAliveController.keepAlive(srn, startDate).url,
   signOutUrl: routes.controllers.SignOutController.signOut(srn, startDate).url
 }) }}
   {% include "includes/head.njk" %}
