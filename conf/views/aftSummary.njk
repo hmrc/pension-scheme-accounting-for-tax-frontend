@@ -39,14 +39,18 @@
                 }) }}
             {% endif %}
 
-            {{ hmrcPageHeading({
-                "text": messages('aft.summary.heading', quarterStartDate, quarterEndDate),
-                "section": viewModel.schemeName
-            }) }}
+
 
             <form action="{{ searchURL }}" method="post" autocomplete="off">
                 {{ csrf() | safe }}
-
+                {% call govukFieldset({
+                  legend: {
+                    text: summaryheadingtext,
+                    classes: "govuk-fieldset__legend--l",
+                    "section": viewModel.schemeName,
+                    isPageHeading: true
+                  }
+                }) %}
                 {% if formSearchText.searchText.value %}
                     {% set btnText = messages('aft.summary.searchAgain.button') %}
                 {% else %}
@@ -66,7 +70,7 @@
                     name: "searchText",
                     type: "search",
                     value: formSearchText.searchText.value,
-                    classes: "govuk-!-width-one-half",
+                    classes: "govuk-!-width-one-half govuk-!-margin-bottom-3",
                     errorMessage: formSearchText.searchText.error,
                     hint: {
                         text: messages('aft.summary.search.hint')
@@ -125,7 +129,8 @@
                         {% endfor %}
 
                     {% endif %}
-                {% endif %}
+                    {% endif %}
+                {% endcall %}
             </form>
 
             <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">

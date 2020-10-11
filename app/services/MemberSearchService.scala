@@ -147,6 +147,8 @@ object MemberSearchService {
   }
 
   object MemberRow {
+    implicit lazy val formats: Format[MemberRow] =
+      Json.format[MemberRow]
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and

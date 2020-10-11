@@ -30,10 +30,12 @@ import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAns
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json, Reads}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
+import services.MemberSearchService.MemberRow
 import services._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -88,7 +90,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
@@ -105,8 +107,10 @@ class AFTSummaryController @Inject()(
               val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
-                  Json.obj("list" -> searchResults) ++
-                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url)
+                  Json.obj("list" -> Json.toJson(searchResults)) ++
+                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url) ++
+                  Json.obj("summaryheadingtext" -> Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString())
+
 
               renderer.render(template = nunjucksTemplate, json).map(Ok(_))
             }
