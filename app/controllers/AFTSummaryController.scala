@@ -108,9 +108,7 @@ class AFTSummaryController @Inject()(
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> Json.toJson(searchResults)) ++
-                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url) ++
-                  Json.obj("summaryheadingtext" -> getHtml.toString()
-                  )
+                  Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url)
 
               renderer.render(template = nunjucksTemplate, json).map(Ok(_))
             }
@@ -118,8 +116,11 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def getHtml(implicit messages: Messages): Html =
-    Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
+  private def confirmationPanelText(schemeName: String,startDate:LocalDate, endDate:LocalDate)(implicit messages: Messages): Html = {
+    val quarterStartDate = startDate.format(dateFormatterStartDate)
+    val quarterEndDate = endDate.format(dateFormatterDMY)
+    Html(s"${Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""").toString()}")
+  }
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
@@ -151,7 +152,7 @@ class AFTSummaryController @Inject()(
                             version: Int,
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-
+    val getLegendHtml =  Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName,startDate, endDate).toString())
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -170,7 +171,7 @@ class AFTSummaryController @Inject()(
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version).url
-    ) ++ returnHistoryURL
+    ) ++ returnHistoryURL ++ getLegendHtml
   }
 
   //scalastyle:off parameter.number

@@ -39,15 +39,12 @@
                 }) }}
             {% endif %}
 
-
-
             <form action="{{ searchURL }}" method="post" autocomplete="off">
                 {{ csrf() | safe }}
                 {% call govukFieldset({
                   legend: {
-                    text: summaryheadingtext,
-                    classes: "govuk-fieldset__legend--l",
-                    "section": viewModel.schemeName,
+                    html: summaryheadingtext,
+                    classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8",
                     isPageHeading: true
                   }
                 }) %}
