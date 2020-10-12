@@ -90,7 +90,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int)(implicit messages: Messages): Action[AnyContent] =
+  def onSearchMember(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
       schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
@@ -109,14 +109,17 @@ class AFTSummaryController @Inject()(
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
                   Json.obj("list" -> Json.toJson(searchResults)) ++
                   Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url) ++
-                  Json.obj("summaryheadingtext" -> Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString())
-
+                  Json.obj("summaryheadingtext" -> getHtml.toString()
+                  )
 
               renderer.render(template = nunjucksTemplate, json).map(Ok(_))
             }
           )
       }
     }
+
+  private def getHtml(implicit messages: Messages): Html =
+    Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
