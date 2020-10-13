@@ -23,11 +23,10 @@ import helpers.FormatHelper
 import javax.inject.Singleton
 import models.requests.DataRequest
 import models.{AccessType, ChargeType, Member, UserAnswers}
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Json, Writes, _}
 import play.api.mvc.AnyContent
-import play.twirl.api.{Html => TwirlHtml}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
@@ -45,7 +44,7 @@ class MemberSearchService @Inject()(
   import MemberSearchService._
 
   def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit messages: Messages,
-                                                                                                                           request: DataRequest[AnyContent]): Seq[MemberRow] = {
+                                                                                     request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean = { member =>
       if (searchTextUpper.matches(ninoRegex)) {
@@ -72,7 +71,7 @@ class MemberSearchService @Inject()(
     chargeDMembers ++ chargeEMembers ++ chargeGMembers
   }
 
-  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean)(implicit messages: Messages ): Seq[MemberRow] = {
+  private def listOfRows(listOfMembers: Seq[MemberSummary], isViewOnly: Boolean): Seq[MemberRow] = {
     val allRows = listOfMembers.map { data =>
       val rowNino =
         Seq(
@@ -97,25 +96,24 @@ class MemberSearchService @Inject()(
       val removeAction = if (isViewOnly) {
         Nil
       } else {
-         List(
+        List(
           Action(
             content = msg"site.remove",
             href = data.removeLink,
             visuallyHiddenText = None
           )
-
         )
       }
 
       val actions = List(
         Action(
-          content = Html(s"<span  aria-hidden=true >${messages("site.view")}</span>"),
+          content = msg"site.view",
           href = data.viewLink,
           visuallyHiddenText = None
         )
       ) ++ removeAction
 
-      println("\n actions XXXX"+ actions)
+
       MemberRow(data.name, rowNino ++ rowChargeType ++ rowAmount, actions)
     }
     allRows.sortBy(_.name)
