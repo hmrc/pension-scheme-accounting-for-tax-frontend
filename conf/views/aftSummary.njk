@@ -116,7 +116,7 @@
                                 <p class="govuk-body">
                                     {% for action in row.actions %}
                                         <a class="govuk-link govuk-!-margin-right-3"
-                                           href="{{ action.href }}">{{ action.text }}
+                                           href="{{ action.href }}"><span aria-hidden="true">{{ action.text }}<span>
                                             <span class="govuk-visually-hidden">{{ action.text }} {{ row.name }} </span>
                                         </a>
                                     {% endfor %}
