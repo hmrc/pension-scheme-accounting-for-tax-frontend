@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
@@ -26,26 +25,27 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SignOutController @Inject()(
-                                   config: FrontendAppConfig,
-                                   identify: IdentifierAction,
-                                   val controllerComponents: MessagesControllerComponents,
-                                   userAnswersCacheConnector: UserAnswersCacheConnector
-                                 )(implicit ec: ExecutionContext)
+class KeepAliveController @Inject()(
+                                     identify: IdentifierAction,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     userAnswersCacheConnector: UserAnswersCacheConnector
+                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport {
 
-  def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async {
+  def keepAlive(srn: Option[String], startDate: Option[String]): Action[AnyContent] = identify.async {
     implicit request =>
-
-      startDate match {
-        case Some(startDt) =>
-          val id = s"$srn$startDt"
-          userAnswersCacheConnector.removeAll(id).map { _ =>
-            Redirect(config.signOutUrl).withNewSession
+      (srn, startDate) match {
+        case (Some(sr), Some(startDt)) =>
+          val id = s"$sr$startDt"
+          userAnswersCacheConnector.fetch(id).flatMap {
+            case Some(ua) =>
+              userAnswersCacheConnector.save(id, ua).map(_ => NoContent)
+            case _ =>
+              Future.successful(NoContent)
           }
         case _ =>
-          Future.successful(Redirect(config.signOutUrl).withNewSession)
+          Future.successful(NoContent)
       }
   }
 }

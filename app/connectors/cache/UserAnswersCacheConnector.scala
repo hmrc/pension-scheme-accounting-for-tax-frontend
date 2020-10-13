@@ -18,37 +18,32 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.SessionData
-import models.SessionAccessData
+import models.{SessionAccessData, SessionData}
 import play.api.http.Status._
-import play.api.libs.json.JsError
-import play.api.libs.json.JsResultException
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpException
+import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserAnswersCacheConnectorImpl @Inject()(
-    config: FrontendAppConfig,
-    http: WSClient
-) extends UserAnswersCacheConnector {
+                                               config: FrontendAppConfig,
+                                               http: WSClient
+                                             ) extends UserAnswersCacheConnector {
 
   override protected def saveUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft"
+
   override protected def saveSessionUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data"
+
   override protected def saveSessionAndLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
+
   override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
-  override def fetch(id: String)(implicit
-                                 ec: ExecutionContext,
-                                 hc: HeaderCarrier): Future[Option[JsValue]] = {
+  override def fetch(id: String)
+                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
     http
       .url(saveUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
@@ -63,7 +58,6 @@ class UserAnswersCacheConnectorImpl @Inject()(
             Future.failed(new HttpException(response.body, response.status))
         }
       }
-  }
 
   def save(id: String, value: JsValue)
           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
@@ -74,7 +68,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
   }
 
   private def savePost(headers: Seq[(String, String)], url: String, value: JsValue)
-                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]= {
+                      (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] =
     http
       .url(url)
       .withHttpHeaders(hc.withExtraHeaders(headers: _*).headers: _*)
@@ -87,39 +81,31 @@ class UserAnswersCacheConnectorImpl @Inject()(
             Future.failed(new HttpException(response.body, response.status))
         }
       }
-  }
 
-  override def saveAndLock(
-    id: String,
-    value: JsValue,
-    sessionAccessData: SessionAccessData,
-  lockReturn: Boolean = false
-  )(implicit
-  ec: ExecutionContext,
-  hc: HeaderCarrier): Future[JsValue] = {
+  override def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
+                          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue] = {
 
-    val useURL = if(lockReturn) saveSessionAndLockUrl else saveSessionUrl
+    val useURL = if (lockReturn) saveSessionAndLockUrl else saveSessionUrl
 
     val sessionDataHeaders = Seq(
-        Tuple2("version", sessionAccessData.version.toString),
-        Tuple2("accessMode", sessionAccessData.accessMode.toString),
-        Tuple2("areSubmittedVersionsAvailable", sessionAccessData.areSubmittedVersionsAvailable.toString))
+      Tuple2("version", sessionAccessData.version.toString),
+      Tuple2("accessMode", sessionAccessData.accessMode.toString),
+      Tuple2("areSubmittedVersionsAvailable", sessionAccessData.areSubmittedVersionsAvailable.toString))
     val allExtraHeaders = Seq(Tuple2("id", id), Tuple2("content-type", "application/json")) ++ sessionDataHeaders
 
     savePost(allExtraHeaders, useURL, value)
   }
 
-  override def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  override def removeAll(id: String)
+                        (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] =
     http
       .url(saveUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
       .delete()
       .map(_ => Ok)
-  }
 
-  override def getSessionData(id: String)(implicit
-                                          ec: ExecutionContext,
-                                          hc: HeaderCarrier): Future[Option[SessionData]] = {
+  override def getSessionData(id: String)
+                             (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]] =
     http
       .url(saveSessionUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", id)).headers: _*)
@@ -130,18 +116,15 @@ class UserAnswersCacheConnectorImpl @Inject()(
           case OK =>
             val sessionData = Json.parse(response.body).validate[SessionData] match {
               case JsSuccess(value, path) => value
-              case JsError(errors)        => throw JsResultException(errors)
+              case JsError(errors) => throw JsResultException(errors)
             }
             Future.successful(Some(sessionData))
           case _ => Future.failed(new HttpException(response.body, response.status))
         }
       }
-  }
 
-  override def lockedBy(srn: String, startDate: String)(implicit
-                                               ec: ExecutionContext,
-                                               hc: HeaderCarrier
-  ): Future[Option[String]] = {
+  override def lockedBy(srn: String, startDate: String)
+                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[String]] =
     http.url(lockedByUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
       .get()
@@ -156,40 +139,34 @@ class UserAnswersCacheConnectorImpl @Inject()(
               Future.failed(new HttpException(response.body, response.status))
           }
       }
-  }
-
-
 }
 
 trait UserAnswersCacheConnector {
 
   protected def saveUrl: String
+
   protected def saveSessionUrl: String
+
   protected def saveSessionAndLockUrl: String
+
   protected def lockedByUrl: String
 
-  def fetch(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
+  def fetch(cacheId: String)
+           (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
 
-  def save(cacheId: String, value: JsValue
-          )(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
+  def save(cacheId: String, value: JsValue)
+          (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
-  def removeAll(cacheId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
+  def removeAll(cacheId: String)
+               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result]
 
-  def getSessionData(id: String)(implicit
-                                 ec: ExecutionContext,
-                                 hc: HeaderCarrier): Future[Option[SessionData]]
+  def getSessionData(id: String)
+                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]]
 
-  def lockedBy(srn: String, startDate: String)(implicit
-                                               ec: ExecutionContext,
-                                               hc: HeaderCarrier
-  ): Future[Option[String]]
+  def lockedBy(srn: String, startDate: String)
+              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[String]]
 
-  def saveAndLock(id: String,
-                  value: JsValue,
-                  sessionAccessData: SessionAccessData,
-                  lockReturn: Boolean = false
-                  )(implicit
-                    ec: ExecutionContext,
-                    hc: HeaderCarrier): Future[JsValue]
+  def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
+                 (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
 
 }
