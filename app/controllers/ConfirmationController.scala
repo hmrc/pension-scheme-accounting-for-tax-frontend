@@ -160,7 +160,7 @@ class ConfirmationController @Inject()(
   }
 
   private def confirmationPanelText(implicit messages: Messages): Html = {
-    Html(s"${Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""").toString()}")
+   Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
   }
 
   private def getView(implicit request: DataRequest[AnyContent]): String ={

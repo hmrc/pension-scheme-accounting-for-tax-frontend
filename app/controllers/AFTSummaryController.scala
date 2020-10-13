@@ -30,10 +30,12 @@ import models.{AccessType, GenericViewModel, Mode, NormalMode, Quarters, UserAns
 import navigators.CompoundNavigator
 import pages.AFTSummaryPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json, Reads}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
+import services.MemberSearchService.MemberRow
 import services._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
@@ -105,7 +107,7 @@ class AFTSummaryController @Inject()(
               val searchResults = memberSearchService.search(ua, srn, startDate, value, accessType, version)
               val json =
                 getJsonCommon(form, preparedForm, srn, startDate, schemeDetails.schemeName, version, accessType) ++
-                  Json.obj("list" -> searchResults) ++
+                  Json.obj("list" -> Json.toJson(searchResults)) ++
                   Json.obj("aftSummaryURL" -> controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url)
 
               renderer.render(template = nunjucksTemplate, json).map(Ok(_))
@@ -113,6 +115,12 @@ class AFTSummaryController @Inject()(
           )
       }
     }
+
+  private def confirmationPanelText(schemeName: String,startDate:LocalDate, endDate:LocalDate)(implicit messages: Messages): Html = {
+    val quarterStartDate = startDate.format(dateFormatterStartDate)
+    val quarterEndDate = endDate.format(dateFormatterDMY)
+    Html(s"${Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""").toString()}")
+  }
 
   def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
@@ -144,7 +152,7 @@ class AFTSummaryController @Inject()(
                             version: Int,
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-
+    val getLegendHtml =  Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName,startDate, endDate).toString())
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -163,7 +171,7 @@ class AFTSummaryController @Inject()(
       "quarterEndDate" -> endDate.format(dateFormatterDMY),
       "canChange" -> request.isEditable,
       "searchURL" -> controllers.routes.AFTSummaryController.onSearchMember(srn, startDate, accessType, version).url
-    ) ++ returnHistoryURL
+    ) ++ returnHistoryURL ++ getLegendHtml
   }
 
   //scalastyle:off parameter.number

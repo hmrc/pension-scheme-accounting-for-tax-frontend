@@ -147,6 +147,7 @@ object MemberSearchService {
   }
 
   object MemberRow {
+
     implicit def writes(implicit messages: Messages): Writes[MemberRow] =
       ((JsPath \ "name").write[String] and
         (JsPath \ "rows").write[Seq[Row]] and
