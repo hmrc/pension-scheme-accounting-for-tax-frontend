@@ -130,8 +130,6 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual templateToBeRendered
-      println("/n jsonCaptor.getValue"+ jsonCaptor.getValue)
-      println("/n jsonCaptor.getValue"+ jsonToPassToTemplate.apply(form).toString())
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
