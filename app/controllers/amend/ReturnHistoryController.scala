@@ -94,7 +94,7 @@ class ReturnHistoryController @Inject()(
       def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
         val updatedVersion = if(index == 0 && isCompileAvailable.contains(false)) version + 1 else version
         Html(
-          s"<a id= report-version-$version href=${url(accessType, updatedVersion)}>" +
+          s"<a id= report-version-$version class=govuk-link href=${url(accessType, updatedVersion)}>" +
           s"<span aria-hidden=true>${messages(linkText)}</span>" +
           s"<span class=govuk-visually-hidden>${messages(linkText)} " +
             s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"

@@ -69,7 +69,6 @@ object AddMembersService {
     val hiddenTag = "govuk-visually-hidden"
     Html(
       s"""<a class= govuk-link id=$id href=$url><span aria-hidden=true>${messages(text)}</span><span class= $hiddenTag>${messages(text)} ${messages(s"$chargeName.addMembers.visuallyHidden", name)}</span> </a>""".stripMargin)
-
   }
 
 }

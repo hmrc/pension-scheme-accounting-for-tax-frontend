@@ -166,6 +166,6 @@ object PenaltiesControllerSpec {
     ))
 
   def link(startDate: String): Html = Html(
-    s"<a id=XY002610150184 href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+      s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

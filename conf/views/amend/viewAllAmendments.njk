@@ -25,7 +25,6 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
 
-        <h1 class="govuk-heading-xl">
         {% if isDraft %}
                  {{ hmrcPageHeading({
                          text: messages("paymentsAndCharges.h1"),
@@ -37,8 +36,6 @@
                           section: messages('allAmendments.h1.submission.caption', versionNumber)
                         }) }}
         {% endif %}
-        </h1>
-
 
         {% if addedTable.rows.length > 0 %}
         <h2 id ="added" class="govuk-heading-m">{{messages("allAmendments.table.caption.added")}}</h2>

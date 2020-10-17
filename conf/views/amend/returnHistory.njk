@@ -24,9 +24,9 @@
     </div>
 
     {% if paymentsAndChargesUrl %}
-          <p class="govuk-body"><a id="payments-charges" href="{{ paymentsAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
+          <p class="govuk-body govuk-!-margin-bottom-5"><a id="payments-charges" href="{{ paymentsAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
     {% endif %}
 
-    <p class="govuk-body"><a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a></p>
+    <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
 
 {% endblock %}
