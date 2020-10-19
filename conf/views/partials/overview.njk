@@ -10,10 +10,10 @@
                     {{ aftViewModel.status }}
                 </div>
                 <div class="column-one-sixth table-column">
-                    <a id="{{ aftViewModel.link.id }}" href="{{ aftViewModel.link.url }}">
-                        {{ aftViewModel.link.linkText }}
+                    <a id="{{ aftViewModel.link.id }}" class=govuk-link href="{{ aftViewModel.link.url }}">
+                        <span aria-hidden=true>{{ aftViewModel.link.linkText }}</span>
                         {% if aftViewModel.link.hiddenText %}
-                            <span class="visually-hidden">{{ aftViewModel.link.hiddenText }}</span>
+                            <span class="visually-hidden">{{ aftViewModel.link.linkText }} {{ aftViewModel.link.hiddenText }}</span>
                         {% endif %}
                     </a>
                 </div>
@@ -22,7 +22,7 @@
     {% else %}
 
         <p class="govuk-margin-top-5">
-            <a id="{{ aftViewModel.link.id }}" href="{{ aftViewModel.link.url }}">
+            <a class="govuk-link" id="{{ aftViewModel.link.id }}" href="{{ aftViewModel.link.url }}">
                 {{ aftViewModel.link.linkText }}
             </a>
         </p>

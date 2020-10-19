@@ -143,7 +143,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {
     val hiddenTag = "govuk-visually-hidden"
     Html(
-      s"<a id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
+        s"<a class=govuk-link id=$id href=$url>" + s"<span aria-hidden=true >${messages(text)}</span>" +
         s"<span class= $hiddenTag>${messages(text)} ${messages(s"chargeC.addEmployers.visuallyHidden", name)}</span> </a>")
   }
 
