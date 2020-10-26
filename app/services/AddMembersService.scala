@@ -29,9 +29,9 @@ object AddMembersService {
   private[services] def mapChargeXMembersToTable(chargeName: String, members: Seq[Member], canChange: Boolean)(implicit messages: Messages): Table = {
 
     val head = Seq(
-      Cell(msg"addMembers.members.header", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"addMembers.nino.header", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"addMembers.$chargeName.amount.header", classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+      Cell(msg"addMembers.members.header"),
+      Cell(msg"addMembers.nino.header"),
+      Cell(msg"addMembers.$chargeName.amount.header", classes = Seq("govuk-table__header--numeric")),
       Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.view.link")}</span>"""))
     ) ++ (
       if (canChange)
@@ -42,12 +42,12 @@ object AddMembersService {
 
     val rows = members.map { data =>
       Seq(
-        Cell(Literal(data.name), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(data.nino), classes = Seq("govuk-!-width-one-quarter")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter"))
+        Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("addMembers.members.header")}</span>${data.name}""")),
+        Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("addMembers.nino.header")}</span>${data.nino}""")),
+        Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages(s"addMembers.${chargeName}.amount.header")}</span>${FormatHelper.formatCurrencyAmountAsString(data.amount)}"""), classes = Seq("govuk-table__header--numeric")),
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name, chargeName))
       ) ++ (if (canChange) {
-              Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName), classes = Seq("govuk-!-width-one-quarter")))
+              Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name, chargeName)))
       } else {
         Nil
       })
@@ -58,11 +58,11 @@ object AddMembersService {
       Seq(
         Cell(msg""),
         Cell(msg"addMembers.total", classes = Seq("govuk-table__header--numeric")),
-        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(totalAmount)}"), classes = Seq("govuk-table__header--numeric")),
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
-    Table(head = head, rows = rows ++ totalRow, attributes = Map("role" -> "table"))
+    Table(head = head, rows = rows ++ totalRow,classes= Seq("hmrc-responsive-table"), attributes = Map("role" -> "table"))
   }
 
   def link(id: String, text: String, url: String, name: String, chargeName: String)(implicit messages: Messages): Html = {
