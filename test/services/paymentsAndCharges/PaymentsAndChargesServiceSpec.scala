@@ -49,17 +49,17 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         case "None" => "none"
         case _ => chargeReference
       }
-    Html(
+
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
-        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>"
   }
 
   private val tableHead = Seq(
-    Cell(msg"paymentsAndCharges.chargeType.table", classes = Seq("govuk-!-width-two-thirds-quarter")),
-    Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
-    Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-width-one-quarter", "govuk-!-font-weight-bold")),
+    Cell(msg"paymentsAndCharges.chargeType.table"),
+    Cell(msg"paymentsAndCharges.totalDue.table", classes = Seq( "govuk-!-font-weight-bold")),
+    Cell(msg"paymentsAndCharges.chargeReference.table", classes = Seq("govuk-!-font-weight-bold")),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
 
@@ -69,7 +69,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       table = Table(
         head = tableHead,
         rows = rows,
-        attributes = Map("role" -> "table")
+        attributes = Map("role" -> "table"),
+        classes= Seq("hmrc-responsive-table")
       )
     )
 
@@ -92,9 +93,9 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     }
 
     Seq(
-      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
-      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeType.table")}</span>${htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText)}""")),
+      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.totalDue.table")}</span>${amountDue}""")),
+      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeReference.table")}</span>${chargeReference}""")),
       Cell(statusHtml)
     )
   }

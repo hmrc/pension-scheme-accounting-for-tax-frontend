@@ -68,9 +68,9 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
     val caption: Text = msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY))
 
     val head: Seq[Cell] = Seq(
-      Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-two-thirds-quarter")),
-      Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
-      Cell(msg"penalties.column.chargeReference", classes = Seq("govuk-!-width-one-quarter")),
+      Cell(msg"penalties.column.penalty"),
+      Cell(msg"penalties.column.amount"),
+      Cell(msg"penalties.column.chargeReference"),
       Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
     )
 
@@ -79,10 +79,9 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
         chargeTypeLink(identifier, data, startDate).map {
           content =>
             Seq(
-              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
-              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
-                classes = Seq("govuk-!-width-one-quarter")),
-              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.penalty")}</span>${content}""")),
+              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.amount")}</span>${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}""")),
+              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.chargeReference")}</span>${data.chargeReference}""")),
               statusCell(data)
             )
         }
@@ -90,25 +89,26 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       rows =>
         Json.obj(
           "header" -> caption,
-          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
+          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"),
+            classes= Seq("hmrc-responsive-table"))
         )
     }
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
-                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Html] = {
+                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
     fiCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val chargeRefsIndex: String =
           jsValue.as[Seq[PsaFS]].map(_.chargeReference).indexOf(data.chargeReference).toString
 
-        Future.successful(Html(
+        Future.successful(
           s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
-            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"))
+            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
       case _ =>
-        Future.successful(Html(""))
+        Future.successful("")
     }
 
   }
