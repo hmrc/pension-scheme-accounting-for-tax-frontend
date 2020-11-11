@@ -13,3 +13,6 @@ $hmrc-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/hmrc-fr
     display: none;
 }
 
+.hmrc-header.hmrc-header--with-additional-navigation .hmrc-sign-out-nav__link:focus {
+    color: #0B0C0C;
+}
