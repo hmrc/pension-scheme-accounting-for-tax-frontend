@@ -31,7 +31,7 @@
   {{ hmrcHeader({
     homepageUrl: "/pension-scheme-accounting-for-tax-frontend",
     serviceName: messages("site.service_name"),
-    serviceUrl: "/pension-scheme-accounting-for-tax-frontend",
+    serviceUrl: config.managePensionsSchemeOverviewUrl,
     containerClasses: "govuk-width-container",
     assetsPath: "/assets",
     signOutHref: routes.controllers.SignOutController.signOut(srn, startDate).url
