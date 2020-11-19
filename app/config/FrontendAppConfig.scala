@@ -119,11 +119,13 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
       DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
 
+  def featureToggleUrl(toggle:String) : String =
+    s"$pensionSchemeUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
+
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
 
   def routeToSwitchLanguage: String => Call =
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
 
   lazy val isFSEnabled: Boolean = configuration.get[Boolean]("features.is-fs-enabled")
-  lazy val listOfSchemesIFEnabled: Boolean = configuration.get[Boolean]("features.list-of-schemes-IF-enabled")
 }
