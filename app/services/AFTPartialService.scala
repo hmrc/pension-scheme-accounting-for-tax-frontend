@@ -51,7 +51,6 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
     }
   }
 
-
   /* Returns a start link if:
       1. Return has not been initiated for any of the quarters that are valid for starting a return OR
       2. Any of the returns in their first compile have been zeroed out due to deletion of all charges

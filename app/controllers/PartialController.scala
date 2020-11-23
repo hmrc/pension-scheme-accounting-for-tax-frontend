@@ -32,24 +32,24 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class PartialController @Inject()(
-                                    identify: IdentifierAction,
-                                    override val messagesApi: MessagesApi,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    schemeService: SchemeService,
-                                    financialStatementConnector: FinancialStatementConnector,
-                                    aftPartialService: AFTPartialService,
-                                    renderer: Renderer,
-                                    config: FrontendAppConfig
-                                  )(implicit ec: ExecutionContext)
+                                   identify: IdentifierAction,
+                                   override val messagesApi: MessagesApi,
+                                   val controllerComponents: MessagesControllerComponents,
+                                   schemeService: SchemeService,
+                                   financialStatementConnector: FinancialStatementConnector,
+                                   aftPartialService: AFTPartialService,
+                                   renderer: Renderer,
+                                   config: FrontendAppConfig
+                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftPartial =>
+    aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftViewModels =>
       renderer.render(
         template = "partials/overview.njk",
-        ctx = Json.obj("aftModels" -> Json.toJson(aftPartial))).map(Ok(_)
+        ctx = Json.obj("aftModels" -> Json.toJson(aftViewModels))).map(Ok(_)
       )
     }
   }
@@ -57,16 +57,27 @@ class PartialController @Inject()(
   def paymentsAndChargesPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
     schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
       financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
-        val futureHtml =  if(schemeFs.isEmpty){
-           Future.successful(Html(""))
+        val futureHtml = if (schemeFs.isEmpty) {
+          Future.successful(Html(""))
         }
         else {
           renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
             config.paymentsAndChargesUrl.format(srn, "2020"))
-         )
+          )
         }
         futureHtml.map(Ok(_))
       }
     }
+  }
+
+  def pspDashboardAftCard(srn: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      aftPartialService.retrieveOptionAFTViewModel(srn).flatMap {
+        viewModels =>
+          renderer.render(
+            template = "partials/pspDashboardAftCard.njk",
+            ctx = Json.obj("aftViewModels" -> Json.toJson(viewModels))).map(Ok(_)
+          )
+      }
   }
 }

@@ -1030,6 +1030,8 @@ aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 
+pspDashboardAftPartial.h1 = Accounting for Tax returns
+
 penaltiesPartial.linkText = View your penalties for 2020
 
 penalties.title = Penalties for {0}
