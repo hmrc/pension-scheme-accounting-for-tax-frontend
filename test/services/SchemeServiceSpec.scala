@@ -33,9 +33,10 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures {
   "retrieveSchemeDetails" must {
     "return scheme details" in {
       when(mockSchemeDetailsConnector
-        .getSchemeDetails(Matchers.eq(SampleData.psaId),
-          Matchers.eq("srn"),
-          Matchers.eq(SampleData.srn))(any(), any()))
+        .getSchemeDetails(
+          userIdNumber = Matchers.eq(SampleData.psaId),
+          schemeIdNumber = Matchers.eq(SampleData.srn)
+        )(any(), any()))
         .thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)
       val result = schemeService.retrieveSchemeDetails(SampleData.psaId, SampleData.srn)

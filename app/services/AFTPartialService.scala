@@ -32,15 +32,16 @@ import viewmodels.{AFTViewModel, Link}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
-                                  schemeService: SchemeService,
-                                  aftConnector: AFTConnector,
-                                  aftCacheConnector: UserAnswersCacheConnector
+class AFTPartialService @Inject()(
+                                   appConfig: FrontendAppConfig,
+                                   schemeService: SchemeService,
+                                   aftConnector: AFTConnector,
+                                   aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
 
-  def retrieveOptionAFTViewModel(srn: String, psaId: String)
+  def retrieveOptionAFTViewModel(srn: String, userIdNumber: String)
                                 (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
-    schemeService.retrieveSchemeDetails(psaId, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(userIdNumber, srn).flatMap { schemeDetails =>
       for {
         overview <- aftConnector.getAftOverview(schemeDetails.pstr)
         inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)

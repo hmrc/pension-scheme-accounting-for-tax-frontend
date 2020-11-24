@@ -32,13 +32,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String, schemeIdType: String, idNumber: String)
+  def getSchemeDetails(userIdNumber: String, schemeIdNumber: String)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.schemeDetailsUrl
 
     val headers: Seq[(String, String)] =
-      Seq(("schemeIdType", schemeIdType), ("idNumber", idNumber), ("PSAId", psaId))
+      Seq(
+        ("schemeIdNumber", schemeIdNumber),
+        ("userIdNumber", userIdNumber)
+      )
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 

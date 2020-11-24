@@ -72,7 +72,7 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
 
                     if (filteredPsaFS.nonEmpty) {
                       if (identifier.matches(srnRegex)) {
-                        schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
+                        schemeService.retrieveSchemeDetails(request.psaId.id, identifier).flatMap {
                           schemeDetails =>
                             val json = Json.obj(
                               "schemeAssociated" -> true,

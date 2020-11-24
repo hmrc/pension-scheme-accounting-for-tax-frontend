@@ -25,10 +25,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeService @Inject()(
                                schemeDetailsConnector: SchemeDetailsConnector
-                             ){
-  def retrieveSchemeDetails(psaId:String, srn:String)(implicit hc:HeaderCarrier, ec:ExecutionContext): Future[SchemeDetails] = {
-    schemeDetailsConnector.getSchemeDetails(psaId, schemeIdType = "srn", srn).map { schemeDetails =>
-      SchemeDetails(schemeDetails.schemeName, schemeDetails.pstr, schemeDetails.schemeStatus)
+                             ) {
+  def retrieveSchemeDetails(userIdNumber: String, srn: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+    schemeDetailsConnector.getSchemeDetails(
+      userIdNumber = userIdNumber,
+      schemeIdNumber = srn
+    ) map { schemeDetails =>
+      SchemeDetails(
+        schemeName = schemeDetails.schemeName,
+        pstr = schemeDetails.pstr,
+        schemeStatus = schemeDetails.schemeStatus
+      )
     }
   }
 }

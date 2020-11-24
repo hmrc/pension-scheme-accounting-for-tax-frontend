@@ -26,6 +26,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.{AFTPartialService, SchemeService}
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -46,7 +47,10 @@ class PartialController @Inject()(
     with NunjucksSupport {
 
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftViewModels =>
+    aftPartialService.retrieveOptionAFTViewModel(
+      srn = srn,
+      userIdNumber = request.psaId.id
+    ) flatMap { aftViewModels =>
       renderer.render(
         template = "partials/overview.njk",
         ctx = Json.obj("aftModels" -> Json.toJson(aftViewModels))).map(Ok(_)
@@ -61,8 +65,9 @@ class PartialController @Inject()(
           Future.successful(Html(""))
         }
         else {
-          renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
-            config.paymentsAndChargesUrl.format(srn, "2020"))
+          renderer.render(
+            template = "partials/paymentsAndCharges.njk",
+            Json.obj("redirectUrl" -> config.paymentsAndChargesUrl.format(srn, "2020"))
           )
         }
         futureHtml.map(Ok(_))
@@ -70,13 +75,28 @@ class PartialController @Inject()(
     }
   }
 
-  def pspDashboardAftCard(srn: String): Action[AnyContent] = identify.async {
+  def pspDashboardAftCard: Action[AnyContent] = identify.async {
     implicit request =>
-      aftPartialService.retrieveOptionAFTViewModel(srn).flatMap {
-        viewModels =>
-          renderer.render(
-            template = "partials/pspDashboardAftCard.njk",
-            ctx = Json.obj("aftViewModels" -> Json.toJson(viewModels))).map(Ok(_)
+      val schemeIdNumber = request.headers.get("schemeIdNumber")
+      val userIdNumber = request.headers.get("userIdNumber")
+
+      println(s"\n\n\tpspDashboardAftCard\n\n")
+
+      (schemeIdNumber, userIdNumber) match {
+        case (Some(srn), Some(userNumber)) =>
+          aftPartialService.retrieveOptionAFTViewModel(
+            srn = srn,
+            userIdNumber = userNumber
+          ) flatMap {
+            viewModels =>
+              renderer.render(
+                template = "partials/pspDashboardAftCard.njk",
+                ctx = Json.obj("aftViewModels" -> Json.toJson(viewModels))).map(Ok(_)
+              )
+          }
+        case _ =>
+          Future.failed(
+            new BadRequestException("Bad Request with missing parameters schemeIdNumber, userIdType or userIdNumber")
           )
       }
   }

@@ -90,7 +90,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
 
     "return OK and the correct view for a GET" in {
       mutableFakeDataRetrievalAction.setDataToReturn(Option(userAnswersWithSchemeNamePstrQuarter))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -111,7 +111,7 @@ class AnnualAllowanceYearControllerSpec extends ControllerSpecBase with Nunjucks
         writes(YearRange.enumerable)
       ).get
       mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
-      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+      when(mockSchemeDetailsConnector.getSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
