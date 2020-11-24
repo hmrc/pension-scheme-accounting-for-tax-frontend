@@ -25,7 +25,7 @@ import scala.language.implicitConversions
 
 case class SessionAccessData(version: Int, accessMode: AccessMode, areSubmittedVersionsAvailable:Boolean)
 
-case class SessionData(sessionId: String, name: Option[String], sessionAccessData: SessionAccessData) {
+case class SessionData(sessionId: String, lockDetail: Option[LockDetail], sessionAccessData: SessionAccessData) {
 
   def deriveMinimumChargeValueAllowed: BigDecimal = {
     (sessionAccessData.accessMode, sessionAccessData.version) match {
@@ -39,16 +39,16 @@ case class SessionData(sessionId: String, name: Option[String], sessionAccessDat
 object SessionData {
   implicit val writes: Writes[SessionData] =
     ((JsPath \ "sessionId").write[String] and
-      (JsPath \ "name").writeNullable[String] and
+      (JsPath \ "lockDetail").writeNullable[LockDetail] and
       (JsPath \ "version").write[Int] and
       (JsPath \ "accessMode").write[AccessMode] and
       (JsPath \ "areSubmittedVersionsAvailable").write[Boolean]
-      )(sd => (sd.sessionId, sd.name, sd.sessionAccessData.version,
+      )(sd => (sd.sessionId, sd.lockDetail, sd.sessionAccessData.version,
       sd.sessionAccessData.accessMode, sd.sessionAccessData.areSubmittedVersionsAvailable))
 
   implicit val reads: Reads[SessionData] =
     ((JsPath \ "sessionId").read[String] and
-      (JsPath \ "name").readNullable[String] and
+      (JsPath \ "name").readNullable[LockDetail] and
       (JsPath \ "version").read[Int] and
       (JsPath \ "accessMode").read[AccessMode] and
       (JsPath \ "areSubmittedVersionsAvailable").read[Boolean]

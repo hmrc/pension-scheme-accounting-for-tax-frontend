@@ -141,10 +141,10 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
   private def modelForSingleInProgressReturn(srn: String, startDate: LocalDate, endDate: LocalDate, overview: AFTOverview)
                                             (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockedBy(srn, startDate.toString).map {
-      case Some(lockedBy) => Some(AFTViewModel(
+      case Some(lockDetail) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
-        if (lockedBy.nonEmpty) {
-          Some(msg"aftPartial.status.lockedBy".withArgs(lockedBy))
+        if (lockDetail.name.nonEmpty) {
+          Some(msg"aftPartial.status.lockDetail".withArgs(lockDetail))
         }
         else {
           Some(msg"aftPartial.status.locked")

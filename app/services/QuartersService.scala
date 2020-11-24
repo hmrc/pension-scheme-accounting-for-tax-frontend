@@ -61,8 +61,8 @@ class QuartersService @Inject()(
 
               val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
               userAnswersCacheConnector.lockedBy(srn, overviewElement.periodStartDate).flatMap {
-                case Some(lockingPsa) =>
-                  Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, Some(lockingPsa), Some(LockedHint))))
+                case Some(lockDetail) =>
+                  Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, Some(lockDetail.name), Some(LockedHint))))
                 case None =>
                   if(overviewElement.numberOfVersions == 1) {
                     aftConnector.getIsAftNonZero(pstr, overviewElement.periodStartDate.toString, "1").map {
@@ -90,7 +90,7 @@ class QuartersService @Inject()(
             val availableQuarter = getQuarter(x, year)
 
               userAnswersCacheConnector.lockedBy(srn, availableQuarter.startDate).flatMap {
-                case Some(lockingPsa) => Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockingPsa), Some(LockedHint))))
+                case Some(lockDetail) => Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint))))
                 case _ =>
                   val overviewElementForAvailableQuarter = aftOverview.filter(_.periodStartDate == availableQuarter.startDate)
                   if (overviewElementForAvailableQuarter.nonEmpty) {

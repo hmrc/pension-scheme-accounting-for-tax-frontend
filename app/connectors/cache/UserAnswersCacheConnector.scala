@@ -18,16 +18,17 @@ package connectors.cache
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SessionAccessData, SessionData}
+import models.LockDetail
+import models.{SessionData, SessionAccessData}
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class UserAnswersCacheConnectorImpl @Inject()(
                                                config: FrontendAppConfig,
@@ -114,8 +115,11 @@ class UserAnswersCacheConnectorImpl @Inject()(
         response.status match {
           case NOT_FOUND => Future.successful(None)
           case OK =>
+            println( "\n>>>>RESPON:" + response.body)
             val sessionData = Json.parse(response.body).validate[SessionData] match {
-              case JsSuccess(value, path) => value
+              case JsSuccess(value, path) =>
+              println( "\nPARSED:" + value)
+                value
               case JsError(errors) => throw JsResultException(errors)
             }
             Future.successful(Some(sessionData))
@@ -124,7 +128,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
 
   override def lockedBy(srn: String, startDate: String)
-                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[String]] =
+                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
     http.url(lockedByUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
       .get()
@@ -134,7 +138,9 @@ class UserAnswersCacheConnectorImpl @Inject()(
             case NOT_FOUND =>
               Future.successful(None)
             case OK =>
-              Future.successful(Some(response.body))
+              val tt = Some(Json.parse(response.body).as[LockDetail])
+              println( "\nLOCKED BY" + tt)
+              Future.successful(tt)
             case _ =>
               Future.failed(new HttpException(response.body, response.status))
           }
@@ -164,7 +170,7 @@ trait UserAnswersCacheConnector {
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]]
 
   def lockedBy(srn: String, startDate: String)
-              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[String]]
+              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]]
 
   def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]
