@@ -29,6 +29,7 @@ import models.SchemeStatus.Rejected
 import models.SchemeStatus.WoundUp
 import models.requests.DataRequest
 import models.AccessMode
+import models.LockDetail
 import models.SessionAccessData
 import models.SessionData
 import models.UserAnswers
@@ -56,7 +57,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   private val version = 1
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val sessionId = "1"
-  private val optionLockedByName = Some("bob")
+  private val optionLockedByName = Some(LockDetail("bob", psaId))
   private def sessionData(sad:SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
   private val sessionAccessDataViewOnly: SessionAccessData =
     SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)

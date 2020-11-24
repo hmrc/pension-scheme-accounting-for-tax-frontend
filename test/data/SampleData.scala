@@ -19,6 +19,7 @@ package data
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import models.LockDetail
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.SponsoringEmployerType.SponsoringEmployerTypeOrganisation
 import models.chargeB.ChargeBDetails
@@ -31,7 +32,7 @@ import models.chargeG.ChargeAmounts
 import models.chargeG.{MemberDetails => MemberDetailsG}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{DisplayQuarter, InProgressHint, AFTOverview, SessionAccessData, SchemeStatus, UserAnswers, Quarter, Draft, SessionData, SubmittedHint, SchemeDetails, MemberDetails, AccessMode, LockedHint}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.financialStatement.SchemeFSChargeType.PSS_OTC_AFT_RETURN
@@ -91,7 +92,7 @@ object SampleData {
     )
 
   val sessionId = "1234567890"
-  val lockedByName = Some("Name")
+  val lockedByName = Some(LockDetail("Name", psaId))
   val accessModeViewOnly = AccessMode.PageAccessModeViewOnly
 
   def sessionAccessData(version: Int = version.toInt,
@@ -104,7 +105,7 @@ object SampleData {
 
   def sessionData(
                    sessionId: String = sessionId,
-                   name: Option[String]= lockedByName,
+                   name: Option[LockDetail]= lockedByName,
                    sessionAccessData: SessionAccessData = sessionAccessDataCompile
                  ) =
     SessionData(sessionId, lockedByName, sessionAccessData)

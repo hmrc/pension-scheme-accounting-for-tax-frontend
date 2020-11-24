@@ -21,8 +21,9 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
 import data.SampleData._
 import helpers.DeleteChargeHelper
+import models.LockDetail
 import models.requests.DataRequest
-import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -30,7 +31,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, Results}
+import play.api.mvc.{Results, AnyContent}
 import uk.gov.hmrc.domain.PsaId
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -41,7 +42,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockDeleteChargeHelper: DeleteChargeHelper = mock[DeleteChargeHelper]
   private def sessionAccessData(version: Int) = SessionAccessData(version, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
-  private def sessionData(version: Int) = SessionData(s"id", Some("name"), sessionAccessData(version))
+  private def sessionData(version: Int) = SessionData(s"id", Some(LockDetail("name", psaId)), sessionAccessData(version))
   private val emptyUserAnswers = UserAnswers()
 
   private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int): DataRequest[AnyContent] =

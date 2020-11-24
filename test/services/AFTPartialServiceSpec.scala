@@ -98,7 +98,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
-        .thenReturn(Future.successful(Some(name)))
+        .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
 
       whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
         _ mustBe oneInProgressModelLocked

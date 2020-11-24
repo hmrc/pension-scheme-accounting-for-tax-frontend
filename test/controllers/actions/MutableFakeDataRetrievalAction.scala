@@ -32,7 +32,7 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
   private var dataToReturn: Option[UserAnswers] = None
   private var storedSessionData: SessionData = SessionData(
     sessionId = "1",
-    name = None,
+    lockDetail = None,
     sessionAccessData = SessionAccessData(
       version = 1,
       accessMode = AccessMode.PageAccessModeCompile,
@@ -68,7 +68,7 @@ class MutableFakeDataRetrieval(sessionData: SessionData = MutableFakeDataRetriev
 object MutableFakeDataRetrieval {
   private val sessionDataViewOnly: SessionData = SessionData(
     sessionId = "1",
-    name = None,
+    lockDetail = None,
     sessionAccessData = SessionAccessData(
       version = 1,
       accessMode = AccessMode.PageAccessModeViewOnly,
