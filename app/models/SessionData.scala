@@ -48,7 +48,7 @@ object SessionData {
 
   implicit val reads: Reads[SessionData] =
     ((JsPath \ "sessionId").read[String] and
-      (JsPath \ "name").readNullable[LockDetail] and
+      (JsPath \ "lockDetail").readNullable[LockDetail] and
       (JsPath \ "version").read[Int] and
       (JsPath \ "accessMode").read[AccessMode] and
       (JsPath \ "areSubmittedVersionsAvailable").read[Boolean]

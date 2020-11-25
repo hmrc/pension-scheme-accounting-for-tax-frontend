@@ -115,11 +115,8 @@ class UserAnswersCacheConnectorImpl @Inject()(
         response.status match {
           case NOT_FOUND => Future.successful(None)
           case OK =>
-            println( "\n>>>>RESPON:" + response.body)
             val sessionData = Json.parse(response.body).validate[SessionData] match {
-              case JsSuccess(value, path) =>
-              println( "\nPARSED:" + value)
-                value
+              case JsSuccess(value, _) => value
               case JsError(errors) => throw JsResultException(errors)
             }
             Future.successful(Some(sessionData))
@@ -138,9 +135,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
             case NOT_FOUND =>
               Future.successful(None)
             case OK =>
-              val tt = Some(Json.parse(response.body).as[LockDetail])
-              println( "\nLOCKED BY" + tt)
-              Future.successful(tt)
+              Future.successful(Some(Json.parse(response.body).as[LockDetail]))
             case _ =>
               Future.failed(new HttpException(response.body, response.status))
           }

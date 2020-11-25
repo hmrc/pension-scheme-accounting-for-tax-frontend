@@ -144,7 +144,7 @@ class AFTPartialService @Inject()(appConfig: FrontendAppConfig,
       case Some(lockDetail) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
         if (lockDetail.name.nonEmpty) {
-          Some(msg"aftPartial.status.lockDetail".withArgs(lockDetail))
+          Some(msg"aftPartial.status.lockedBy".withArgs(lockDetail.name))
         }
         else {
           Some(msg"aftPartial.status.locked")
