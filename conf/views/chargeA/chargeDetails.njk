@@ -27,7 +27,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeA.chargeDetails.heading')}}</h1>
 
-        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate>
 
           {{ csrf() | safe }}
 
@@ -38,6 +38,8 @@
               isPageHeading: false,
               classes: "govuk-label--s"
             },
+            inputmode:"numeric",
+            pattern:"[0-9]*",
             name: "numberOfMembers",
             type: "text",
             value: form.numberOfMembers.value,

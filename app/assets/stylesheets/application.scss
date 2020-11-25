@@ -16,3 +16,10 @@ $hmrc-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/hmrc-fr
 .hmrc-header.hmrc-header--with-additional-navigation .hmrc-sign-out-nav__link:focus {
     color: #0B0C0C;
 }
+
+.autocomplete__input:focus, .form-control:focus {
+    outline: 3px solid #fd0;
+    outline-offset: 0;
+    -webkit-box-shadow: inset 0 0 0 2px;
+    box-shadow: inset 0 0 0 2px;
+}
