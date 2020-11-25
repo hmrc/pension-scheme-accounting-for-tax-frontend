@@ -60,7 +60,7 @@ class QuartersService @Inject()(
             .map { overviewElement =>
 
               val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
-              userAnswersCacheConnector.lockedBy(srn, overviewElement.periodStartDate).flatMap {
+              userAnswersCacheConnector.lockDetail(srn, overviewElement.periodStartDate).flatMap {
                 case Some(lockDetail) =>
                   Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, Some(lockDetail.name), Some(LockedHint))))
                 case None =>
@@ -89,7 +89,7 @@ class QuartersService @Inject()(
         val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =  availableQuarters(year)(config).map { x =>
             val availableQuarter = getQuarter(x, year)
 
-              userAnswersCacheConnector.lockedBy(srn, availableQuarter.startDate).flatMap {
+              userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {
                 case Some(lockDetail) => Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint))))
                 case _ =>
                   val overviewElementForAvailableQuarter = aftOverview.filter(_.periodStartDate == availableQuarter.startDate)

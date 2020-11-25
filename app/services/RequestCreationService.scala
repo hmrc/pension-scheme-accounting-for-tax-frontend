@@ -90,7 +90,7 @@ class RequestCreationService @Inject()(
 
   private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], srn: String, startDate: LocalDate)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[SessionAccessData] = {
-    userAnswersCacheConnector.lockedBy(srn, startDate).map { optionLockDetail =>
+    userAnswersCacheConnector.lockDetail(srn, startDate).map { optionLockDetail =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
       val viewOnly = optionLockDetail.isDefined || versionInt < maxVersion
       val anyVersions = seqAFTOverview.nonEmpty

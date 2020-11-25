@@ -41,7 +41,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
 
   override protected def saveSessionAndLockUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/session-data-lock"
 
-  override protected def lockedByUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
+  override protected def lockDetailUrl = s"${config.aftUrl}/pension-scheme-accounting-for-tax/journey-cache/aft/lock"
 
   override def fetch(id: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]] =
@@ -124,9 +124,9 @@ class UserAnswersCacheConnectorImpl @Inject()(
         }
       }
 
-  override def lockedBy(srn: String, startDate: String)
+  override def lockDetail(srn: String, startDate: String)
                        (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
-    http.url(lockedByUrl)
+    http.url(lockDetailUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
       .get()
       .flatMap {
@@ -150,7 +150,7 @@ trait UserAnswersCacheConnector {
 
   protected def saveSessionAndLockUrl: String
 
-  protected def lockedByUrl: String
+  protected def lockDetailUrl: String
 
   def fetch(cacheId: String)
            (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[JsValue]]
@@ -164,7 +164,7 @@ trait UserAnswersCacheConnector {
   def getSessionData(id: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]]
 
-  def lockedBy(srn: String, startDate: String)
+  def lockDetail(srn: String, startDate: String)
               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]]
 
   def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)

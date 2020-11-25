@@ -211,7 +211,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
     }
   }
 
-  ".lockedBy" must {
+  ".lockDetail" must {
 
     "return `None` when there is no data in the collection" in {
       server.stubFor(
@@ -221,7 +221,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
         result =>
           result mustBe None
       }
@@ -238,7 +238,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
         result =>
           result mustBe Some(expectedLockDetail)
       }
@@ -253,7 +253,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
 
       recoverToExceptionIf[HttpException] {
-        connector.lockedBy(srn = "srn", startDate = "2020-04-01")
+        connector.lockDetail(srn = "srn", startDate = "2020-04-01")
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }

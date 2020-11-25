@@ -84,7 +84,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
+      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
       whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
@@ -97,7 +97,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
         .thenReturn(Future.successful(oneInProgress))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
+      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
 
       whenReady(service.retrieveOptionAFTViewModel(srn, psaId)) {
@@ -112,7 +112,7 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
           .thenReturn(Future.successful(oneCompileZeroedOut))
         when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
         when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
-        when(aftCacheConnector.lockedBy(any(), any())(any(), any()))
+        when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
           .thenReturn(Future.successful(None))
         when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-07-01"), any())(any(), any()))
           .thenReturn(Future.successful(false))
@@ -145,7 +145,7 @@ object AFTPartialServiceSpec {
   def lockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
-      Some(msg"aftPartial.status.lockedBy".withArgs(name)),
+      Some(msg"aftPartial.status.lockDetail".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
@@ -167,7 +167,7 @@ object AFTPartialServiceSpec {
   def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
-      Some(msg"aftPartial.status.lockedBy".withArgs(name)),
+      Some(msg"aftPartial.status.lockDetail".withArgs(name)),
       Link(
         id = "aftSummaryPageLink",
         url = s"http://localhost:8206/manage-pension-scheme-accounting-for-tax/$srn/$startDate/$Draft/1/summary",
@@ -249,7 +249,7 @@ object AFTPartialServiceSpec {
   def oneInProgressModel(locked: Boolean)(implicit messages: Messages): AFTViewModel = AFTViewModel(
     Some(msg"aftPartial.inProgress.forPeriod".withArgs("1 October", "31 December 2020")),
     if (locked) {
-      Some(msg"aftPartial.status.lockedBy".withArgs(name))
+      Some(msg"aftPartial.status.lockDetail".withArgs(name))
     }
     else {
       Some(msg"aftPartial.status.inProgress")
