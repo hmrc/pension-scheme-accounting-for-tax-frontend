@@ -53,7 +53,11 @@ class AmendQuartersController @Inject()(
     formProvider(messages("amendQuarters.error.required"), quarters)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
@@ -77,7 +81,11 @@ class AmendQuartersController @Inject()(
   }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       quartersService.getPastQuarters(schemeDetails.pstr, year.toInt).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
@@ -87,7 +95,11 @@ class AmendQuartersController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+                schemeService.retrieveSchemeDetails(
+                  psaId = request.idOrException,
+                  srn = srn,
+                  schemeIdType = "srn"
+                ) flatMap { schemeDetails =>
                   val json = Json.obj(
                     fields = "srn" -> srn,
                     "startDate" -> None,

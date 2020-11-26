@@ -40,21 +40,25 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 class AmendYearsController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    formProvider: AmendYearsFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    aftConnector: AFTConnector,
-    schemeService: SchemeService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                      override val messagesApi: MessagesApi,
+                                      identify: IdentifierAction,
+                                      formProvider: AmendYearsFormProvider,
+                                      val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
+                                      config: FrontendAppConfig,
+                                      aftConnector: AFTConnector,
+                                      schemeService: SchemeService
+                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         if (aftOverview.nonEmpty) {
           val yearsSeq =
@@ -93,7 +97,11 @@ class AmendYearsController @Inject()(
   }
 
   def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         if (aftOverview.nonEmpty) {
           val yearsSeq =
@@ -101,32 +109,29 @@ class AmendYearsController @Inject()(
           form(yearsSeq)
             .bindFromRequest()
             .fold(
-              formWithErrors =>
-                schemeService
-                  .retrieveSchemeDetails(request.psaId.id, srn)
-                  .flatMap { schemeDetails =>
-                    val json = Json.obj(
-                      fields = "srn" -> srn,
-                      "startDate" -> None,
-                      "form" -> formWithErrors,
-                      "radios" -> AmendYears
-                        .radios(formWithErrors, yearsSeq),
-                      "viewModel" -> viewModel(
-                        schemeDetails.schemeName,
-                        srn
-                      )
-                    )
-                    renderer
-                      .render(template = "amend/amendYears.njk", json)
-                      .map(BadRequest(_))
-                },
+              formWithErrors => {
+                val json = Json.obj(
+                  fields = "srn" -> srn,
+                  "startDate" -> None,
+                  "form" -> formWithErrors,
+                  "radios" -> AmendYears
+                    .radios(formWithErrors, yearsSeq),
+                  "viewModel" -> viewModel(
+                    schemeDetails.schemeName,
+                    srn
+                  )
+                )
+                renderer
+                  .render(template = "amend/amendYears.njk", json)
+                  .map(BadRequest(_))
+              },
               value =>
                 Future.successful(
                   Redirect(
                     controllers.amend.routes.AmendQuartersController
                       .onPageLoad(srn, value.toString)
                   )
-              )
+                )
             )
         } else {
           Future.successful(

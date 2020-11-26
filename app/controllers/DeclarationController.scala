@@ -49,6 +49,7 @@ import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
@@ -92,7 +93,7 @@ class DeclarationController @Inject()(
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
         for {
-          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.psaId.id, hasAgreed = true)))
+          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.idOrException, hasAgreed = true)))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
@@ -130,7 +131,7 @@ class DeclarationController @Inject()(
       "AFTReturnSubmitted"
     }
 
-    emailConnector.sendEmail(requestId, request.psaId, journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(requestId, PsaId(request.idOrException), journeyType, email, templateId, templateParams)
   }
 
   private def templateId(implicit request: DataRequest[_]): String ={

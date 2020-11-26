@@ -1,0 +1,24 @@
+<div class="card" id="aft-returns">
+    <div class="card-body">
+        <h2 class="card-heading heading-small">
+            {{ messages("pspDashboardAftReturnsPartial.h1") }}
+        </h2>
+        {% if aft.subHeading %}
+            {% block heading %}
+                {% import "partials/pspDashboardAftReturnsHeading.tpl" as h3 with context %}
+                {{ h3.render(
+                    return = aft.subHeading
+                ) }}
+            {% endblock %}
+        {% endif %}
+    </div>
+    <div class="card-action">
+        <ul>
+            {% for link in aft.links %}
+                <li>
+                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

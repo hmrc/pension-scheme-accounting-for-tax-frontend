@@ -45,7 +45,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private val emptyUserAnswers = UserAnswers()
 
   private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int): DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, sessionData(version))
+    DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, sessionData(version))
 
   private val deleteChargeService = new DeleteAFTChargeService(mockAFTService, mockUserAnswersCacheConnector, mockDeleteChargeHelper)
 

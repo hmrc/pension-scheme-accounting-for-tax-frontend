@@ -41,6 +41,7 @@ import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
+
 class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
 
   private val userAnswers = UserAnswers(Json.obj())
@@ -59,7 +60,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
     Row(
       key = Key(msg"aft.summary.${chargeType.toString}.row", classes = Seq("govuk-!-width-three-quarters")),
       value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(amount)}"),
-                    classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
       actions = href
         .map { url =>
           List(
@@ -102,8 +103,8 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
 
     "return only one row with link and others with zero amount if only one charge has data" in {
       val result = aftSummaryHelper.summaryListData(UserAnswers(Json.obj()).setOrException(pages.chargeE.TotalChargeAmountPage, BigDecimal(100.00)),
-                                                    srn,
-                                                    startDate, accessType, versionInt)
+        srn,
+        startDate, accessType, versionInt)
 
       result mustBe Seq(
         createRow(ChargeTypeAnnualAllowance, BigDecimal(100.00), Some(chargeE.routes.AddMembersController.onPageLoad(srn, startDate, accessType, versionInt).url)),
@@ -115,7 +116,7 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
         Row(
           key = Key(msg"aft.summary.total", classes = Seq("govuk-table__header--numeric", "govuk-!-padding-right-0")),
           value = Value(Literal(s"${FormatHelper.formatCurrencyAmountAsString(BigDecimal(100.00))}"),
-                        classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
+            classes = Seq("govuk-!-width-one-quarter", "govuk-table__cell--numeric")),
           actions = Nil
         ),
         createRow(ChargeTypeOverseasTransfer, BigDecimal(0.00), None)
@@ -126,18 +127,25 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
   "viewAmendmentsLink" must {
     def dataRequest(sessionData: SessionAccessData = sessionAccessDataCompile): DataRequest[_] =
       DataRequest(FakeRequest(GET, "/"),
-                  "test-internal-id",
-                  PsaId("A2100000"),
-                  UserAnswers(),
-                  SampleData.sessionData(sessionAccessData = sessionData))
+        "test-internal-id",
+        Some(PsaId("A2100000")),
+        None,
+        UserAnswers(),
+        SampleData.sessionData(sessionAccessData = sessionData))
+
     def amendmentsUrl = controllers.amend.routes.ViewAllAmendmentsController.onPageLoad(srn, startDate, accessType, versionInt).url
 
     "have correct link text when its amendment compile" in {
 
       val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly, dataRequest())
 
-      link mustBe TwirlHtml(s"${TwirlHtml(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
-        "allAmendments.view.changes.draft.link")}</a>""".stripMargin).toString()}")
+      link mustBe TwirlHtml(s"${
+        TwirlHtml(
+          s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${
+            messages(
+              "allAmendments.view.changes.draft.link")
+          }</a>""".stripMargin).toString()
+      }")
 
     }
 
@@ -146,8 +154,13 @@ class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar 
       val link = aftSummaryHelper.viewAmendmentsLink(versionInt, srn, startDate, accessType)(implicitly,
         dataRequest(SessionAccessData(version.toInt, AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)))
 
-      link mustBe TwirlHtml(s"${TwirlHtml(s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${messages(
-        "allAmendments.view.changes.submission.link")}</a>""".stripMargin).toString()}")
+      link mustBe TwirlHtml(s"${
+        TwirlHtml(
+          s"""<a id=view-amendments-link href=$amendmentsUrl class="govuk-link"> ${
+            messages(
+              "allAmendments.view.changes.submission.link")
+          }</a>""".stripMargin).toString()
+      }")
 
     }
   }

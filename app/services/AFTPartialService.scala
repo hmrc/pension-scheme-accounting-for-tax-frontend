@@ -23,12 +23,13 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.{AFTOverview, AFTVersion, Draft, Quarters}
+import models.{AFTOverview, Draft, Quarters, SchemeDetails}
 import play.api.i18n.Messages
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, Link}
+import viewmodels.{AFTViewModel, Link, PspDashboardAftReturnsViewModel}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,9 +40,13 @@ class AFTPartialService @Inject()(
                                    aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
 
-  def retrieveOptionAFTViewModel(srn: String, userIdNumber: String)
-                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] = {
-    schemeService.retrieveSchemeDetails(userIdNumber, srn).flatMap { schemeDetails =>
+  def retrieveOptionAFTViewModel(srn: String, psaId: String, schemeIdType: String)
+                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] =
+    schemeService.retrieveSchemeDetails(
+      psaId = psaId,
+      srn = srn,
+      schemeIdType = schemeIdType
+    ) flatMap { schemeDetails =>
       for {
         overview <- aftConnector.getAftOverview(schemeDetails.pstr)
         inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)
@@ -50,6 +55,91 @@ class AFTPartialService @Inject()(
         Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModel(overview, srn)).flatten
       }
     }
+
+  def retrievePspDashboardAftReturnsModel(
+                                           srn: String,
+                                           pspId: String,
+                                           schemeIdType: String
+                                         )(
+                                           implicit
+                                           hc: HeaderCarrier,
+                                           messages: Messages
+                                         ): Future[PspDashboardAftReturnsViewModel] = {
+    schemeService.retrieveSchemeDetails(
+      psaId = pspId,
+      srn = srn,
+      schemeIdType = schemeIdType
+    ) flatMap { schemeDetails =>
+      for {
+        overview <- aftConnector.getAftOverview(schemeDetails.pstr)
+        inProgressReturnsOpt <- getInProgressReturnsModel(
+          overview = overview,
+          srn = srn,
+          pstr = schemeDetails.pstr,
+          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link"
+        )
+        startReturnsOpt <- getStartReturnsModel(overview, srn, schemeDetails.pstr)
+        inProgressReturns = overview.filter(_.compiledVersionAvailable)
+        subHeading <- optionSubHeading(inProgressReturns, schemeDetails)
+      } yield {
+
+        val links: Seq[AFTViewModel] = Seq(
+          inProgressReturnsOpt,
+          startReturnsOpt,
+          getPastReturnsModel(overview, srn)
+        ).flatten
+
+        PspDashboardAftReturnsViewModel(
+          subHeading = subHeading,
+          links = links.map(_.link)
+        )
+      }
+    }
+  }
+
+  def optionSubHeading(
+                        inProgressReturns: Seq[AFTOverview],
+                        schemeDetails: SchemeDetails
+                      )(
+                        implicit hc: HeaderCarrier
+                      ): Future[Option[JsObject]] = {
+    if (inProgressReturns.size == 1) {
+      if (inProgressReturns.head.numberOfVersions == 1) {
+        aftConnector.getIsAftNonZero(
+          pstr = schemeDetails.pstr,
+          startDate = inProgressReturns.head.periodStartDate.toString,
+          aftVersion = "1"
+        ) flatMap {
+          case true =>
+            Future.successful(Some(singleReturnSubHeading(inProgressReturns)))
+          case _ =>
+            Future.successful(None)
+        }
+      } else {
+        Future.successful(Some(singleReturnSubHeading(inProgressReturns)))
+      }
+    } else if (inProgressReturns.size > 1) {
+      Future.successful(Some(Json.obj(
+        "size" -> inProgressReturns.size.toString
+      )))
+    } else {
+      Future.successful(None)
+    }
+  }
+
+  def singleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject = {
+    val startDate: LocalDate = inProgressReturns.head.periodStartDate
+    val endDate: String =
+      Quarters
+        .getQuarter(startDate)
+        .endDate
+        .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+
+    Json.obj(
+      "size" -> inProgressReturns.size.toString,
+      "startDate" -> startDate.format(DateTimeFormatter.ofPattern("d MMMM")),
+      "endDate" -> endDate
+    )
   }
 
   /* Returns a start link if:
@@ -86,8 +176,8 @@ class AFTPartialService @Inject()(
 
   /* Returns a seq of the aftReturns in their first compile have been zeroed out due to deletion of all charges
   */
-  private def retrieveZeroedOutReturns(overview: Seq[AFTOverview], pstr: String
-                                      )(implicit hc: HeaderCarrier): Future[Seq[AFTOverview]] = {
+  private def retrieveZeroedOutReturns(overview: Seq[AFTOverview], pstr: String)
+                                      (implicit hc: HeaderCarrier): Future[Seq[AFTOverview]] = {
     val firstCompileReturns = overview.filter(_.compiledVersionAvailable).filter(_.numberOfVersions == 1)
 
     Future.sequence(firstCompileReturns.map(aftReturn =>
@@ -96,7 +186,8 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModel(overview: Seq[AFTOverview], srn: String)(implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
+  private def getPastReturnsModel(overview: Seq[AFTOverview], srn: String)
+                                 (implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
@@ -114,8 +205,16 @@ class AFTPartialService @Inject()(
   }
 
 
-  private def getInProgressReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String)
-                                       (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def getInProgressReturnsModel(
+                                         overview: Seq[AFTOverview],
+                                         srn: String,
+                                         pstr: String,
+                                         linkText: Text = msg"aftPartial.view.link"
+                                       )(
+                                         implicit
+                                         hc: HeaderCarrier,
+                                         messages: Messages
+                                       ): Future[Option[AFTViewModel]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
     if (inProgressReturns.size == 1) {
@@ -124,22 +223,27 @@ class AFTPartialService @Inject()(
 
       if (inProgressReturns.head.numberOfVersions == 1) {
         aftConnector.getIsAftNonZero(pstr, startDate.toString, "1").flatMap {
-          case true => modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head)
+          case true => modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head, linkText)
           case _ => Future.successful(None)
         }
       } else {
-        modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head)
+        modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head, linkText)
       }
 
     } else if (inProgressReturns.nonEmpty) {
-      modelForMultipleInProgressReturns(srn, pstr, inProgressReturns)
+      modelForMultipleInProgressReturns(srn, pstr, inProgressReturns, linkText)
     } else {
       Future.successful(None)
     }
   }
 
-  private def modelForSingleInProgressReturn(srn: String, startDate: LocalDate, endDate: LocalDate, overview: AFTOverview)
-                                            (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def modelForSingleInProgressReturn(
+                                              srn: String,
+                                              startDate: LocalDate,
+                                              endDate: LocalDate,
+                                              overview: AFTOverview,
+                                              linkText: Text
+                                            )(implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockedBy(srn, startDate.toString).map {
       case Some(lockedBy) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
@@ -150,7 +254,7 @@ class AFTPartialService @Inject()(
           Some(msg"aftPartial.status.locked")
         },
         Link(id = "aftSummaryLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"aftPartial.view.link",
+          linkText = linkText,
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
         )
       ))
@@ -160,14 +264,21 @@ class AFTPartialService @Inject()(
         Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"aftPartial.view.link",
+          linkText = linkText,
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
         )))
     }
   }
 
-  private def modelForMultipleInProgressReturns(srn: String, pstr: String, inProgressReturns: Seq[AFTOverview])
-                                               (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+  private def modelForMultipleInProgressReturns(
+                                                 srn: String,
+                                                 pstr: String,
+                                                 inProgressReturns: Seq[AFTOverview],
+                                                 linkText: Text
+                                               )(
+                                                 implicit hc: HeaderCarrier,
+                                                 messages: Messages
+                                               ): Future[Option[AFTViewModel]] = {
 
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
 
@@ -180,7 +291,7 @@ class AFTPartialService @Inject()(
           Link(
             id = "aftContinueInProgressLink",
             url = appConfig.aftContinueReturnUrl.format(srn),
-            linkText = msg"aftPartial.view.link",
+            linkText = linkText,
             hiddenText = Some(msg"aftPartial.view.hidden")
           )
         ))

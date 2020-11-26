@@ -42,8 +42,8 @@ class SchemeDetailsConnectorSpec
       val jsonResponse = """{"schemeName":"test scheme", "pstr": "test pstr", "schemeStatus": "test status"}"""
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("schemeIdNumber", equalTo(idNumber))
-          .withHeader("userIdNumber", equalTo(psaId))
+          .withHeader("idNumber", equalTo(idNumber))
+          .withHeader("psaId", equalTo(psaId))
           .willReturn(ok(jsonResponse)
             .withHeader("Content-Type", "application/json")
           )
@@ -51,7 +51,7 @@ class SchemeDetailsConnectorSpec
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.getSchemeDetails(psaId, idNumber).map(schemeDetails =>
+      connector.getSchemeDetails(psaId, idNumber, "srn").map(schemeDetails =>
         schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status")
       )
     }
@@ -59,8 +59,8 @@ class SchemeDetailsConnectorSpec
     "throw BadRequestException for a 400 Bad Request response" in {
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("schemeIdNumber", equalTo(idNumber))
-          .withHeader("userIdNumber", equalTo(psaId))
+          .withHeader("idNumber", equalTo(idNumber))
+          .withHeader("psaId", equalTo(psaId))
           .willReturn(
             badRequest
               .withHeader("Content-Type", "application/json")
@@ -70,7 +70,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeDetails(psaId, idNumber)
+        connector.getSchemeDetails(psaId, idNumber, "srn")
       }
     }
   }

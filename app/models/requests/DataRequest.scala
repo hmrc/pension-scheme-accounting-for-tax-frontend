@@ -16,16 +16,18 @@
 
 package models.requests
 
+import controllers.actions.IdNotFound
 import models.AccessMode
 import models.SessionData
 import play.api.mvc.{Request, WrappedRequest}
 import models.UserAnswers
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 
 case class OptionalDataRequest[A] (
                                     request: Request[A],
                                     internalId: String,
-                                    psaId: PsaId,
+                                    psaId: Option[PsaId],
+                                    pspId: Option[PspId],
                                     userAnswers: Option[UserAnswers],
                                     sessionData: Option[SessionData]
                                   ) extends WrappedRequest[A](request)
@@ -33,7 +35,8 @@ case class OptionalDataRequest[A] (
 case class DataRequest[A] (
                             request: Request[A],
                             internalId: String,
-                            psaId: PsaId,
+                            psaId: Option[PsaId],
+                            pspId: Option[PspId],
                             userAnswers: UserAnswers,
                             sessionData: SessionData
                           ) extends WrappedRequest[A](request) {
@@ -44,4 +47,8 @@ case class DataRequest[A] (
   def isPrecompile: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
   def isEditable: Boolean = !isViewOnly
   def isLocked: Boolean = sessionData.name.isDefined
+  def idOrException: String =
+    if (psaId.nonEmpty) psaId.get.id
+    else if (pspId.nonEmpty) pspId.get.id
+    else throw IdNotFound()
 }

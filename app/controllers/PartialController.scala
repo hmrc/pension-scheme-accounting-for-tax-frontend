@@ -49,7 +49,8 @@ class PartialController @Inject()(
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
     aftPartialService.retrieveOptionAFTViewModel(
       srn = srn,
-      userIdNumber = request.psaId.id
+      psaId = request.idOrException,
+      schemeIdType = "srn"
     ) flatMap { aftViewModels =>
       renderer.render(
         template = "partials/overview.njk",
@@ -59,7 +60,11 @@ class PartialController @Inject()(
   }
 
   def paymentsAndChargesPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
         val futureHtml = if (schemeFs.isEmpty) {
           Future.successful(Html(""))
@@ -77,26 +82,28 @@ class PartialController @Inject()(
 
   def pspDashboardAftCard: Action[AnyContent] = identify.async {
     implicit request =>
-      val schemeIdNumber = request.headers.get("schemeIdNumber")
-      val userIdNumber = request.headers.get("userIdNumber")
+      val idNumber = request.headers.get("idNumber")
+      val schemeIdType = request.headers.get("schemeIdType")
+      val pspId = request.headers.get("psaId")
 
-      println(s"\n\n\tpspDashboardAftCard\n\n")
-
-      (schemeIdNumber, userIdNumber) match {
-        case (Some(srn), Some(userNumber)) =>
-          aftPartialService.retrieveOptionAFTViewModel(
+      (idNumber, schemeIdType, pspId) match {
+        case (Some(srn), Some(idType), Some(userNumber)) =>
+          aftPartialService.retrievePspDashboardAftReturnsModel(
             srn = srn,
-            userIdNumber = userNumber
+            pspId = userNumber,
+            schemeIdType = idType
           ) flatMap {
-            viewModels =>
+            viewModel => {
+              println(s"\n\n\tviewmodels:${Json.prettyPrint(Json.toJson(viewModel))}\n\n")
               renderer.render(
-                template = "partials/pspDashboardAftCard.njk",
-                ctx = Json.obj("aftViewModels" -> Json.toJson(viewModels))).map(Ok(_)
-              )
+                template = "partials/pspDashboardAftReturnsCard.njk",
+                ctx = Json.obj("aft" -> Json.toJson(viewModel))
+              ).map(Ok(_))
+            }
           }
         case _ =>
           Future.failed(
-            new BadRequestException("Bad Request with missing parameters schemeIdNumber, userIdType or userIdNumber")
+            new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType or psaId")
           )
       }
   }

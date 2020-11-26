@@ -28,7 +28,7 @@ class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends Ident
   private val defaultPsaId: String = "A0000000"
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
-    block(IdentifierRequest(request, PsaId(defaultPsaId)))
+    block(IdentifierRequest(request, Some(PsaId(defaultPsaId))))
   }
 
   override def parser: BodyParser[AnyContent] =

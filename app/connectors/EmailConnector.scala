@@ -37,10 +37,10 @@ case object EmailSent extends EmailStatus
 case object EmailNotSent extends EmailStatus
 
 class EmailConnector @Inject()(
-    appConfig: FrontendAppConfig,
-    http: HttpClient,
-    crypto: ApplicationCrypto
-) {
+                                appConfig: FrontendAppConfig,
+                                http: HttpClient,
+                                crypto: ApplicationCrypto
+                              ) {
   private def callBackUrl(requestId: String, journeyType: String, psaId: PsaId, email: String): String = {
     val encryptedPsaId = crypto.QueryParameterCrypto.encrypt(PlainText(psaId.value)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
@@ -49,13 +49,13 @@ class EmailConnector @Inject()(
   }
 
   def sendEmail(
-      requestId: String,
-      psaId: PsaId,
-      journeyType: String,
-      emailAddress: String,
-      templateName: String,
-      templateParams: Map[String, String]
-  )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
+                 requestId: String,
+                 psaId: PsaId,
+                 journeyType: String,
+                 emailAddress: String,
+                 templateName: String,
+                 templateParams: Map[String, String]
+               )(implicit hc: HeaderCarrier, executionContext: ExecutionContext): Future[EmailStatus] = {
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
     val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce,

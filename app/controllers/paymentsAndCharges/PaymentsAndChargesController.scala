@@ -52,7 +52,11 @@ class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesA
 
   def onPageLoad(srn: String, year: Int): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap {
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap {
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>

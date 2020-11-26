@@ -62,7 +62,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)
   private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
-    DataRequest(request, "", PsaId(psaId), ua, sessionData(sessionAccessDataViewOnly))
+    DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)

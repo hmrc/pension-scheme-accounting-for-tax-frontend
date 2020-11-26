@@ -26,7 +26,7 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.language.implicitConversions
@@ -46,5 +46,12 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
   protected implicit def request(ua: UserAnswers = UserAnswers(), sessionAccessData: SessionAccessData = SampleData.sessionAccessDataCompile): DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, SampleData.sessionData(name = None, sessionAccessData = sessionAccessData))
+    DataRequest(
+      request = fakeRequest,
+      internalId = "",
+      psaId = Some(PsaId(SampleData.psaId)),
+      pspId = Some(PspId(SampleData.pspId)),
+      userAnswers = ua,
+      sessionData = SampleData.sessionData(name = None, sessionAccessData = sessionAccessData)
+    )
 }

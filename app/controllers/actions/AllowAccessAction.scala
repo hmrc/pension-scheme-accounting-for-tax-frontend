@@ -60,14 +60,14 @@ class AllowAccessAction(srn: String,
 
     if (isInvalidDate) {
       //todo redirect to new error page for invalid dates once it is created
-      Future.successful(Option(Redirect(SessionExpiredController.onPageLoad())))
+      Future.successful(Option(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
     } else {
       request.userAnswers.get(SchemeStatusQuery) match {
         case Some(schemeStatus) =>
           if (!validStatuses.contains(schemeStatus)) {
             errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
           } else {
-            schemeDetailsConnector.checkForAssociation(request.psaId.id, srn)(hc, implicitly, request).flatMap {
+            schemeDetailsConnector.checkForAssociation(request.idOrException, srn)(hc, implicitly, request).flatMap {
               case true => associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
               case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
             }

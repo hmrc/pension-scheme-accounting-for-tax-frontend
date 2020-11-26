@@ -78,7 +78,7 @@ class ChargeDServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllLifetimeAllowanceAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
 
     "return all the amendments for lifetime allowance charge" in {
       val expectedRows = Seq(

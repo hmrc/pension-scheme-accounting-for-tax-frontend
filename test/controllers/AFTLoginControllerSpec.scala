@@ -68,7 +68,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
-    when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
   "AFTLogin Controller on a GET" must {

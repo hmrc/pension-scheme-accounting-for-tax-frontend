@@ -89,7 +89,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   val chargeCHelper: ChargeCService = new ChargeCService(mockDeleteChargeHelper)
 
   private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContent] =
-    DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua,
+    DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua,
       SampleData.sessionData(name = None, sessionAccessData = SampleData.sessionAccessData(2)))
 
   override def beforeEach: Unit = {
@@ -109,7 +109,7 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllAuthSurplusAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
 
     "return all the amendments for auth surplus charge" in {
       val expectedAmendments = Seq(

@@ -75,11 +75,11 @@ class PartialControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockAftPartialService, mockRenderer)
-    when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
+    when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(allTypesMultipleReturnsModel))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
@@ -87,7 +87,7 @@ class PartialControllerSpec
     "on a GET" must {
 
       "return the html with information received from overview api" in {
-        when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
+        when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(allTypesMultipleReturnsModel))
         val result = route(application, httpGETRequest(httpPathGET)).value
 

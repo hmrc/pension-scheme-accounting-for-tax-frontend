@@ -23,14 +23,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SchemeService @Inject()(
-                               schemeDetailsConnector: SchemeDetailsConnector
-                             ) {
-  def retrieveSchemeDetails(userIdNumber: String, srn: String)
+class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector) {
+
+  def retrieveSchemeDetails(psaId: String, srn: String, schemeIdType: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
     schemeDetailsConnector.getSchemeDetails(
-      userIdNumber = userIdNumber,
-      schemeIdNumber = srn
+      psaId = psaId,
+      idNumber = srn,
+      schemeIdType = schemeIdType
     ) map { schemeDetails =>
       SchemeDetails(
         schemeName = schemeDetails.schemeName,

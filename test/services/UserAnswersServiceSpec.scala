@@ -284,7 +284,7 @@ object UserAnswersServiceSpec {
     SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false))
 
   private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int = 1): DataRequest[AnyContent] =
-    DataRequest(FakeRequest(GET, "/"), "test-internal-id", PsaId("A2100000"), ua, sessionData(version))
+    DataRequest(FakeRequest(GET, "/"), "test-internal-id", Some(PsaId("A2100000")), None, ua, sessionData(version))
 
   private val ua: UserAnswers = UserAnswers(Json.obj(Page.toString -> pageValue))
 

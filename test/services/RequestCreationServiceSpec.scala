@@ -59,7 +59,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
 
   private val request: IdentifierRequest[AnyContentAsEmpty.type] =
-    IdentifierRequest(fakeRequest, psaIdInstance)
+    IdentifierRequest(fakeRequest, Some(psaIdInstance))
 
   private val schemeStatus = "Open"
 
@@ -74,7 +74,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
@@ -126,7 +126,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         val referer = Seq("Referer" -> "manage-pension-scheme-accounting-for-tax")
 
         val request: IdentifierRequest[AnyContentAsEmpty.type] =
-          IdentifierRequest(fakeRequest.withHeaders(referer :_*), psaIdInstance)
+          IdentifierRequest(fakeRequest.withHeaders(referer :_*), Some(psaIdInstance))
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
@@ -147,7 +147,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
       "create data request with details" in {
 
         val request: IdentifierRequest[AnyContentAsEmpty.type] =
-          IdentifierRequest(fakeRequest, psaIdInstance)
+          IdentifierRequest(fakeRequest, Some(psaIdInstance))
 
         val multipleVersions = Seq[AFTOverview](
           AFTOverview(

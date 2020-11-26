@@ -53,6 +53,7 @@ object SampleData {
   //scalastyle.off: magic.number
   val userAnswersId = "id"
   val psaId = "A0000000"
+  val pspId = "20000000"
   val srn = "aa"
   val startDate = QUARTER_START_DATE
   val accessType = Draft

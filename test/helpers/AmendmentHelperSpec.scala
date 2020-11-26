@@ -118,7 +118,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   }
 
   "getAllAmendments" when {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData())
+    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
 
     "called with chargeA" must {
 

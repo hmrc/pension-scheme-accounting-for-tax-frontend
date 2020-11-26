@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package viewmodels
+package controllers.actions
 
-import play.api.i18n.Messages
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{OWrites, __}
-import uk.gov.hmrc.viewmodels.Text
+import uk.gov.hmrc.auth.core.AuthorisationException
 
-case class AFTViewModel(period: Option[Text], status: Option[Text], link: Link)
-
-object AFTViewModel {
-
-  implicit def writes(implicit messages: Messages): OWrites[AFTViewModel] = (
-    (__ \ "period").writeNullable[Text] and
-      (__ \ "status").writeNullable[Text] and
-      (__ \ "link").write[Link]
-    ) { model => (model.period, model.status, model.link) }
-}
+case class IdNotFound(
+                       msg: String = "Unable to retrieve Id"
+                     ) extends AuthorisationException(msg)

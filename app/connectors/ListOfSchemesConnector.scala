@@ -31,14 +31,18 @@ import scala.concurrent.{ExecutionContext, Future}
 @ImplementedBy(classOf[ListOfSchemesConnectorImpl])
 trait ListOfSchemesConnector {
 
-  def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
-  def getListOfSchemesForPsp(pspId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
+  def getListOfSchemes(psaId: String)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
+
+  def getListOfSchemesForPsp(pspId: String)
+                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]]
 }
 
 @Singleton
 class ListOfSchemesConnectorImpl @Inject()(http: HttpClient, config: FrontendAppConfig) extends ListOfSchemesConnector {
 
-  override def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+  override def getListOfSchemes(psaId: String)
+                               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
     val (url, schemeHc) = if(config.listOfSchemesIFEnabled) {
       (config.listOfSchemesIFUrl, hc.withExtraHeaders("idType" -> "PSA", "idValue" -> psaId))
     } else {
@@ -48,7 +52,8 @@ class ListOfSchemesConnectorImpl @Inject()(http: HttpClient, config: FrontendApp
     listOfSchemes(url)(schemeHc, ec)
   }
 
-  override def getListOfSchemesForPsp(pspId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+  override def getListOfSchemesForPsp(pspId: String)
+                                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
     val schemeHc = hc.withExtraHeaders("idType" -> "PSP", "idValue" -> pspId)
     listOfSchemes(config.listOfSchemesIFUrl)(schemeHc, ec)
   }

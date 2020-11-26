@@ -62,7 +62,7 @@ class ReturnHistoryController @Inject()(
     val internalId = s"$srn$startDate"
 
     val json = for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(request.psaId.id, srn)
+      schemeDetails <- schemeService.retrieveSchemeDetails(request.idOrException, srn, "srn")
       schemeFs <- financialStatementConnector.getSchemeFS(schemeDetails.pstr)
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
       versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)

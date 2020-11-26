@@ -57,7 +57,7 @@ class RequestCreationService @Inject()(
    userAnswersCacheConnector.fetch(id).flatMap { data =>
       (data, version, accessType, optionCurrentPage, isPreviousPageWithinAFT) match {
         case (None, 1, Draft, Some(AFTSummaryPage), true) =>
-          Future.successful(OptionalDataRequest[A](request, id, request.psaId, None, None))
+          Future.successful(OptionalDataRequest[A](request, id, request.psaId, request.pspId, None, None))
         case _ =>
           val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject])}
           retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
@@ -70,9 +70,9 @@ class RequestCreationService @Inject()(
                                          ua: Option[UserAnswers])(
                                         implicit request: IdentifierRequest[A], hc: HeaderCarrier, ec: ExecutionContext): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
-    val psaId = request.psaId.id
+    val psaId = request.idOrException
     for {
-      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn)
+      schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn, "srn")
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
       uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus, psaId)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
@@ -81,7 +81,7 @@ class RequestCreationService @Inject()(
       lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
-      OptionalDataRequest[A](request, id, request.psaId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)
+      OptionalDataRequest[A](request, id, request.psaId, request.pspId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)
     }
   }
 

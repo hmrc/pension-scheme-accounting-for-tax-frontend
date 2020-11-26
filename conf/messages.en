@@ -1030,7 +1030,13 @@ aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 
-pspDashboardAftPartial.h1 = Accounting for Tax returns
+pspDashboardAftReturnsPartial.h1 = Accounting for Tax returns
+pspDashboardAftReturnsPartial.span.single = AFT return {0} to {1}:
+pspDashboardAftReturnsPartial.h3.single = In progress
+pspDashboardAftReturnsPartial.span.multiple = AFT returns:
+pspDashboardAftReturnsPartial.h3.multiple = {0} in progress
+pspDashboardAftReturnsPartial.inProgressReturns.link = View AFT returns in progress
+
 
 penaltiesPartial.linkText = View your penalties for 2020
 
