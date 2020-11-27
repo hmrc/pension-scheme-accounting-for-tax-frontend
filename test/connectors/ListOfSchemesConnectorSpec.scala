@@ -17,16 +17,45 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.{ListOfSchemes, ListSchemeDetails, SchemeStatus}
-import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
+import models.FeatureToggle.Disabled
+import models.FeatureToggleName.IntegrationFrameworkListSchemes
+import models.ListOfSchemes
+import models.ListSchemeDetails
+import models.SchemeStatus
+import org.mockito.Matchers.any
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar.mock
+import org.scalatest.AsyncWordSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
 import play.api.http.Status._
+import play.api.inject.bind
+import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.Json
+import services.FeatureToggleService
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.WireMockHelper
 
-class ListOfSchemesConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+import scala.concurrent.Future
+
+class ListOfSchemesConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with BeforeAndAfterEach {
 
   import ListOfSchemesConnectorSpec._
+
+  private val mockFeatureToggleService = mock[FeatureToggleService]
+
+  override protected def bindings: Seq[GuiceableModule] =
+    Seq(
+      bind[FeatureToggleService].toInstance(mockFeatureToggleService)
+    )
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockFeatureToggleService)
+    when(mockFeatureToggleService.get(any())(any(), any())).thenReturn(Future.successful(Disabled(IntegrationFrameworkListSchemes)))
+  }
 
   override protected def portConfigKey: String = "microservice.services.pensions-scheme.port"
 
