@@ -129,7 +129,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
     val q =  getQuartersFromDate(displayQuarter.quarter.startDate)
     val year: String = if(displayQuarter.displayYear) displayQuarter.quarter.startDate.getYear.toString else ""
     val lockedString = displayQuarter.lockedBy match {
-      case Some(lockingPsa) => messages("quarters.lockedBy", lockingPsa)
+      case Some(lockingPsa) => messages("quarters.lockDetail", lockingPsa)
       case _ => ""
     }
 

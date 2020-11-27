@@ -18,12 +18,13 @@ package connectors.cache
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
+import models.LockDetail
 import models.{AccessMode, SessionAccessData}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -210,7 +211,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
     }
   }
 
-  ".lockedBy" must {
+  ".lockDetail" must {
 
     "return `None` when there is no data in the collection" in {
       server.stubFor(
@@ -220,23 +221,26 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
           )
       )
 
-      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
         result =>
           result mustBe None
       }
     }
 
     "return some value if status is OK and data is present in the collection" in {
+      val expectedLockDetail = LockDetail("joe", SampleData.psaId)
+      val lockDetailJson = Json.toJson(expectedLockDetail).toString
+
       server.stubFor(
         get(urlEqualTo(isLockedUrl))
           .willReturn(
-            ok("joe")
+            ok(lockDetailJson)
           )
       )
 
-      connector.lockedBy(srn = "srn", startDate = "2020-04-01") map {
+      connector.lockDetail(srn = "srn", startDate = "2020-04-01") map {
         result =>
-          result mustBe Some("joe")
+          result mustBe Some(expectedLockDetail)
       }
     }
 
@@ -249,7 +253,7 @@ class UserAnswersCacheConnectorSpec extends AsyncWordSpec with MustMatchers with
       )
 
       recoverToExceptionIf[HttpException] {
-        connector.lockedBy(srn = "srn", startDate = "2020-04-01")
+        connector.lockDetail(srn = "srn", startDate = "2020-04-01")
       } map {
         _.responseCode mustEqual Status.INTERNAL_SERVER_ERROR
       }

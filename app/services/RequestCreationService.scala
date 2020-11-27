@@ -25,14 +25,16 @@ import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
+import models.{AFTOverview, SessionAccessData, Quarters, UserAnswers, AccessType, Draft, SchemeDetails, AccessMode}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Future, ExecutionContext}
 
 @Singleton
 class RequestCreationService @Inject()(
@@ -88,9 +90,9 @@ class RequestCreationService @Inject()(
 
   private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], srn: String, startDate: LocalDate)
                                      (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[SessionAccessData] = {
-    userAnswersCacheConnector.lockedBy(srn, startDate).map { lockedBy =>
+    userAnswersCacheConnector.lockDetail(srn, startDate).map { optionLockDetail =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
-      val viewOnly = lockedBy.isDefined || versionInt < maxVersion
+      val viewOnly = optionLockDetail.isDefined || versionInt < maxVersion
       val anyVersions = seqAFTOverview.nonEmpty
       val isInCompile = seqAFTOverview.headOption.exists(_.compiledVersionAvailable)
 
