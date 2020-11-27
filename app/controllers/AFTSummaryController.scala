@@ -44,24 +44,23 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import scala.concurrent.{ExecutionContext, Future}
 
 class AFTSummaryController @Inject()(
-    override val messagesApi: MessagesApi,
-    userAnswersCacheConnector: UserAnswersCacheConnector,
-    navigator: CompoundNavigator,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    updateData: DataSetupAction,
-    allowAccess: AllowAccessActionProvider,
-    requireData: DataRequiredAction,
-    formProvider: AFTSummaryFormProvider,
-    memberSearchFormProvider: MemberSearchFormProvider,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer,
-    config: FrontendAppConfig,
-    aftSummaryHelper: AFTSummaryHelper,
-    schemeService: SchemeService,
-    memberSearchService: MemberSearchService
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                      override val messagesApi: MessagesApi,
+                                      userAnswersCacheConnector: UserAnswersCacheConnector,
+                                      navigator: CompoundNavigator,
+                                      identify: IdentifierAction,
+                                      getData: DataRetrievalAction,
+                                      updateData: DataSetupAction,
+                                      allowAccess: AllowAccessActionProvider,
+                                      requireData: DataRequiredAction,
+                                      formProvider: AFTSummaryFormProvider,
+                                      memberSearchFormProvider: MemberSearchFormProvider,
+                                      val controllerComponents: MessagesControllerComponents,
+                                      renderer: Renderer,
+                                      aftSummaryHelper: AFTSummaryHelper,
+                                      schemeService: SchemeService,
+                                      memberSearchService: MemberSearchService
+                                    )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -73,6 +72,8 @@ class AFTSummaryController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(AFTSummaryPage)) andThen requireData andThen
       allowAccess(srn, startDate, optionPage = Some(AFTSummaryPage), version, accessType)).async { implicit request =>
+      println(s"\n\n\tAFTSummaryController\n\n")
+
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
         srn = srn,
@@ -124,7 +125,7 @@ class AFTSummaryController @Inject()(
       }
     }
 
-  private def confirmationPanelText(schemeName: String,startDate:LocalDate, endDate:LocalDate)(implicit messages: Messages): Html = {
+  private def confirmationPanelText(schemeName: String, startDate: LocalDate, endDate: LocalDate)(implicit messages: Messages): Html = {
     val quarterStartDate = startDate.format(dateFormatterStartDate)
     val quarterEndDate = endDate.format(dateFormatterDMY)
     Html(s"${Html(s""" <span class=govuk-caption-xl>${schemeName}</span>${messages("aft.summary.heading", quarterStartDate, quarterEndDate)}""").toString()}")
@@ -142,11 +143,11 @@ class AFTSummaryController @Inject()(
               renderer.render(template = nunjucksTemplate, json).map(BadRequest(_))
             },
             value => {
-                Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
-                  userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
-                    Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate, accessType, version))
-                  }
+              Future.fromTry(request.userAnswers.set(AFTSummaryPage, value)).flatMap { answers =>
+                userAnswersCacheConnector.save(request.internalId, answers.data).map { updatedAnswers =>
+                  Redirect(navigator.nextPage(AFTSummaryPage, NormalMode, UserAnswers(updatedAnswers.as[JsObject]), srn, startDate, accessType, version))
                 }
+              }
             }
           )
       }
@@ -160,7 +161,7 @@ class AFTSummaryController @Inject()(
                             version: Int,
                             accessType: AccessType)(implicit request: DataRequest[_]): JsObject = {
     val endDate = Quarters.getQuarter(startDate).endDate
-    val getLegendHtml =  Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName,startDate, endDate).toString())
+    val getLegendHtml = Json.obj("summaryheadingtext" -> confirmationPanelText(schemeName, startDate, endDate).toString())
     val returnHistoryURL = if (request.areSubmittedVersionsAvailable) {
       Json.obj("returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url)
     } else {
@@ -201,7 +202,7 @@ class AFTSummaryController @Inject()(
     }
     getJsonCommon(form, formSearchText, srn, startDate, schemeName, version, accessType) ++
       Json.obj(
-      "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version)
+        "list" -> aftSummaryHelper.summaryListData(ua, srn, startDate, accessType, version)
       ) ++ amendmentsLink
 
   }

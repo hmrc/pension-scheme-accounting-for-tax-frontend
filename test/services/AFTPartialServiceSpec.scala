@@ -132,6 +132,30 @@ class AFTPartialServiceSpec
 
   }
 
+  "retrievePspDashboardAftReturnsModel" must {
+    "return overview api returns multiple returns in progress, multiple past returns and start link needs to be displayed" in {
+      DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
+      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
+      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open")))
+
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+        _ mustBe pspDashboardAftReturnsViewModel
+      }
+    }
+
+//    "return the correct model when return no returns are in progress" in {
+//
+//    }
+//
+//    "return the correct model when return one return is in progress" in {
+//
+//    }
+  }
+
 }
 
 object AFTPartialServiceSpec {

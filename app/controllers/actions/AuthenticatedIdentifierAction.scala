@@ -51,7 +51,7 @@ class AuthenticatedIdentifierAction @Inject()(
     implicit val hc: HeaderCarrier =
       HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
-    authorised().retrieve(
+    authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
       Retrievals.allEnrolments
     ) { enrolments =>
       block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))

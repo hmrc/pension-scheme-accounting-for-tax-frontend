@@ -19,68 +19,79 @@ package services
 import java.time.LocalDate
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.{AFTConnector, MinimalPsaConnector}
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.requests.{OptionalDataRequest, IdentifierRequest}
-import models.{AFTOverview, SessionAccessData, Quarters, UserAnswers, AccessType, Draft, SchemeDetails, AccessMode}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RequestCreationService @Inject()(
                                         aftConnector: AFTConnector,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         schemeService: SchemeService,
-                                        minimalPsaConnector: MinimalPsaConnector,
-                                        config: FrontendAppConfig
+                                        minimalPsaConnector: MinimalPsaConnector
                                       ) {
 
 
   private def isPreviousPageWithinAFT(implicit request: Request[_]): Boolean =
     request.headers.get("Referer").getOrElse("").contains("manage-pension-scheme-accounting-for-tax")
 
-  def retrieveAndCreateRequest[A](srn: String, startDate: LocalDate, version: Int, accessType: AccessType, optionCurrentPage: Option[Page])(
-    implicit request: IdentifierRequest[A],
-    executionContext: ExecutionContext,
-    headerCarrier: HeaderCarrier): Future[OptionalDataRequest[A]] = {
+  def retrieveAndCreateRequest[A](
+                                   srn: String,
+                                   startDate: LocalDate,
+                                   version: Int,
+                                   accessType: AccessType,
+                                   optionCurrentPage: Option[Page]
+                                 )(
+                                   implicit request: IdentifierRequest[A],
+                                   executionContext: ExecutionContext,
+                                   headerCarrier: HeaderCarrier
+                                 ): Future[OptionalDataRequest[A]] = {
 
     val id = s"$srn$startDate"
 
-   userAnswersCacheConnector.fetch(id).flatMap { data =>
+    userAnswersCacheConnector.fetch(id).flatMap { data =>
       (data, version, accessType, optionCurrentPage, isPreviousPageWithinAFT) match {
         case (None, 1, Draft, Some(AFTSummaryPage), true) =>
           Future.successful(OptionalDataRequest[A](request, id, request.psaId, request.pspId, None, None))
         case _ =>
-          val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject])}
+          val optionUA = data.map { jsValue => UserAnswers(jsValue.as[JsObject]) }
           retrieveAFTRequiredDetails(srn, startDate, version, accessType, optionUA)
       }
     }
   }
 
-  private def retrieveAFTRequiredDetails[A](srn: String, startDate: LocalDate, version: Int,
-                                         accessType: AccessType,
-                                         ua: Option[UserAnswers])(
-                                        implicit request: IdentifierRequest[A], hc: HeaderCarrier, ec: ExecutionContext): Future[OptionalDataRequest[A]] = {
+  private def retrieveAFTRequiredDetails[A](
+                                             srn: String,
+                                             startDate: LocalDate,
+                                             version: Int,
+                                             accessType: AccessType,
+                                             ua: Option[UserAnswers]
+                                           )(
+                                             implicit request: IdentifierRequest[A],
+                                             hc: HeaderCarrier,
+                                             ec: ExecutionContext
+                                           ): Future[OptionalDataRequest[A]] = {
     val id = s"$srn$startDate"
     val psaId = request.idOrException
+
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn, "srn")
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
-      uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus, psaId)
+      uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
       sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(id, updatedUA.data, sessionAccessData,
-      lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
+        lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       OptionalDataRequest[A](request, id, request.psaId, request.pspId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)
@@ -88,8 +99,16 @@ class RequestCreationService @Inject()(
   }
 
 
-  private def createSessionAccessData(versionInt: Int, seqAFTOverview: Seq[AFTOverview], srn: String, startDate: LocalDate)
-                                     (implicit hc: HeaderCarrier, ec: ExecutionContext) : Future[SessionAccessData] = {
+  private def createSessionAccessData[A](
+                                          versionInt: Int,
+                                          seqAFTOverview: Seq[AFTOverview],
+                                          srn: String,
+                                          startDate: LocalDate
+                                        )(
+                                          implicit hc: HeaderCarrier,
+                                          ec: ExecutionContext,
+                                          request: IdentifierRequest[A]
+                                        ): Future[SessionAccessData] = {
     userAnswersCacheConnector.lockDetail(srn, startDate).map { optionLockDetail =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)
       val viewOnly = optionLockDetail.isDefined || versionInt < maxVersion
@@ -109,14 +128,20 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateMinimalPsaDetailsInUa(ua: UserAnswers, schemeStatus: String, psaId: String)
-                                         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[UserAnswers] = {
+  private def updateMinimalPsaDetailsInUa[A](
+                                              ua: UserAnswers,
+                                              schemeStatus: String
+                                            )(
+                                              implicit hc: HeaderCarrier,
+                                              ec: ExecutionContext,
+                                              request: IdentifierRequest[A]
+                                            ): Future[UserAnswers] = {
     val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
     (uaWithStatus.get(PSAEmailQuery), uaWithStatus.get(PSANameQuery)) match {
       case (Some(_), Some(_)) =>
         Future.successful(uaWithStatus)
       case _ =>
-        minimalPsaConnector.getMinimalPsaDetails(psaId).map { psaDetails =>
+        minimalPsaConnector.getMinimalPsaDetails.map { psaDetails =>
           uaWithStatus
             .setOrException(PSAEmailQuery, psaDetails.email)
             .setOrException(PSANameQuery, psaDetails.name)
@@ -127,26 +152,26 @@ class RequestCreationService @Inject()(
   private def updateUserAnswersWithAFTDetails(version: Int, schemeDetails: SchemeDetails, startDate: LocalDate,
                                               accessType: AccessType, ua: UserAnswers,
                                               seqAFTOverview: Seq[AFTOverview])(
-    implicit hc: HeaderCarrier,
-    ec: ExecutionContext): Future[UserAnswers] = {
+                                               implicit hc: HeaderCarrier,
+                                               ec: ExecutionContext): Future[UserAnswers] = {
 
-      if (seqAFTOverview.isEmpty) {
-        Future.successful(
-          ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
-            .setOrException(AFTStatusQuery, value = "Compiled")
-            .setOrException(SchemeNameQuery, schemeDetails.schemeName)
-            .setOrException(PSTRQuery, schemeDetails.pstr))
-      } else {
-        val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
+    if (seqAFTOverview.isEmpty) {
+      Future.successful(
+        ua.setOrException(QuarterPage, Quarters.getQuarter(startDate))
+          .setOrException(AFTStatusQuery, value = "Compiled")
+          .setOrException(SchemeNameQuery, schemeDetails.schemeName)
+          .setOrException(PSTRQuery, schemeDetails.pstr))
+    } else {
+      val isCompilable = seqAFTOverview.headOption.map(_.compiledVersionAvailable)
 
-        val updatedVersion = (accessType, isCompilable) match {
-          case (Draft, Some(false)) => version - 1
-          case _ => version
-        }
-
-        aftConnector
-          .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
-          .map(aftDetails => UserAnswers(ua.data ++ aftDetails.as[JsObject]))
+      val updatedVersion = (accessType, isCompilable) match {
+        case (Draft, Some(false)) => version - 1
+        case _ => version
       }
+
+      aftConnector
+        .getAFTDetails(schemeDetails.pstr, startDate, updatedVersion.toString)
+        .map(aftDetails => UserAnswers(ua.data ++ aftDetails.as[JsObject]))
+    }
   }
 }

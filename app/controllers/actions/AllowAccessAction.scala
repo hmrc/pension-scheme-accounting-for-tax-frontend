@@ -22,7 +22,6 @@ import com.google.inject.ImplementedBy
 import com.google.inject.Inject
 import connectors.AFTConnector
 import connectors.SchemeDetailsConnector
-import controllers.routes.SessionExpiredController
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.Deregistered
