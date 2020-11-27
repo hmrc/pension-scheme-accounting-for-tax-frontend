@@ -148,8 +148,8 @@ class ReturnHistoryController @Inject()(
 
   private def getLinkText(index: Int, srn: String, date: String, reportStatus:String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
     if (index == 0) {
-      userAnswersCacheConnector.lockedBy(srn, date).map { lockedBy =>
-        (lockedBy, reportStatus) match {
+      userAnswersCacheConnector.lockDetail(srn, date).map { optionLockDetail =>
+        (optionLockDetail, reportStatus) match {
           case (Some(_), _) => "site.view"
           case (_, "Compiled") => "site.change"
           case _ => "site.viewOrChange"

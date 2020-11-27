@@ -23,6 +23,7 @@ import connectors.AFTConnector
 import data.SampleData
 import data.SampleData._
 import models.JourneyType
+import models.LockDetail
 import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
 import models.requests.{DataRequest, OptionalDataRequest}
 import org.mockito.ArgumentCaptor
@@ -51,7 +52,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
 
   private val emptyUserAnswers = UserAnswers()
   private val sessionAccessData = SessionAccessData(1, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)
-  private val sessionData = SessionData("1", Some("name"), sessionAccessData)
+  private val sessionData = SessionData("1", Some(LockDetail("name", psaId.id)), sessionAccessData)
 
   implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =
     OptionalDataRequest(fakeRequest, internalId, Some(psaId), None, Some(emptyUserAnswers), Some(sessionData))

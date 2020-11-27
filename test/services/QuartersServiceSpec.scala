@@ -22,7 +22,8 @@ import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.{AFTOverview, DisplayQuarter, InProgressHint, LockedHint, SubmittedHint}
+import models.LockDetail
+import models.{DisplayQuarter, InProgressHint, AFTOverview, SubmittedHint, LockedHint}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -48,7 +49,7 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersConnector)
     when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(Nil))
-    when(mockUserAnswersConnector.lockedBy(any(), any())(any(), any())).thenReturn(Future.successful(None))
+    when(mockUserAnswersConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
   }
 
   "getPastQuarters" must {
@@ -85,8 +86,8 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
       when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(inProgress))
       when(mockAftConnector.getIsAftNonZero(any(), Matchers.eq(q12021.startDate.toString), any())(any(), any()))
         .thenReturn(Future.successful(false))
-      when(mockUserAnswersConnector.lockedBy(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
-        .thenReturn(Future.successful(Some(psaName)))
+      when(mockUserAnswersConnector.lockDetail(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
+        .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
       whenReady(quartersService.getInProgressQuarters(srn, pstr)) { result =>
         result mustBe Seq(
           DisplayQuarter(q32020, displayYear = true, Some(psaName), Some(LockedHint)),
@@ -106,8 +107,8 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     "give all quarters which are not started yet and the ones currently in progress when one of them is locked and one is unlocked" in {
       when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
       when(mockAftConnector.getIsAftNonZero(any(),any(), any())(any(), any())).thenReturn(Future.successful(true))
-      when(mockUserAnswersConnector.lockedBy(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
-        .thenReturn(Future.successful(Some(psaName)))
+      when(mockUserAnswersConnector.lockDetail(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
+        .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
       DateHelper.setDate(Some(newDate))
       whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
         result mustBe Seq(
@@ -121,8 +122,8 @@ class QuartersServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfter
     "give all quarters which are not started yet and the ones currently in progress when one of them is locked and one is unlocked but zeroed out" in {
       when(mockAftConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(startQuartersInProgress))
       when(mockAftConnector.getIsAftNonZero(any(),any(), any())(any(), any())).thenReturn(Future.successful(false))
-      when(mockUserAnswersConnector.lockedBy(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
-        .thenReturn(Future.successful(Some(psaName)))
+      when(mockUserAnswersConnector.lockDetail(any(), Matchers.eq(q32020.startDate.toString))(any(), any()))
+        .thenReturn(Future.successful(Some(LockDetail(psaName, psaId))))
       DateHelper.setDate(Some(newDate))
       whenReady(quartersService.getStartQuarters(srn, pstr, year2020)) { result =>
         result mustBe Seq(

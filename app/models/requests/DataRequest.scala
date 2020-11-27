@@ -46,7 +46,11 @@ case class DataRequest[A] (
   def isViewOnly: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModeViewOnly
   def isPrecompile: Boolean = sessionData.sessionAccessData.accessMode == AccessMode.PageAccessModePreCompile
   def isEditable: Boolean = !isViewOnly
-  def isLocked: Boolean = sessionData.name.isDefined
+  def isLocked: Boolean = sessionData.lockDetail.isDefined
+  def isLockedByPsp: Boolean = sessionData.lockDetail
+    .exists(ld => ld.psAdministratorOrPractitionerId.nonEmpty && ld.psAdministratorOrPractitionerId.charAt(0).isDigit)
+  def isLockedByPsa: Boolean = sessionData.lockDetail
+    .exists(ld => ld.psAdministratorOrPractitionerId.nonEmpty && ld.psAdministratorOrPractitionerId.charAt(0).isLetter)
   def idOrException: String =
     if (psaId.nonEmpty) psaId.get.id
     else if (pspId.nonEmpty) pspId.get.id

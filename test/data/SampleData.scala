@@ -27,7 +27,7 @@ import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
@@ -78,7 +78,7 @@ object SampleData {
     )
 
   val sessionId = "1234567890"
-  val lockedByName = Some("Name")
+  val lockedByName = Some(LockDetail("Name", psaId))
   val accessModeViewOnly = AccessMode.PageAccessModeViewOnly
 
   def sessionAccessData(version: Int = version.toInt,
@@ -91,7 +91,7 @@ object SampleData {
 
   def sessionData(
                    sessionId: String = sessionId,
-                   name: Option[String]= lockedByName,
+                   name: Option[LockDetail]= lockedByName,
                    sessionAccessData: SessionAccessData = sessionAccessDataCompile
                  ) =
     SessionData(sessionId, lockedByName, sessionAccessData)

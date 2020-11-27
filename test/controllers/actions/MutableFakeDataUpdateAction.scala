@@ -28,7 +28,7 @@ class MutableFakeDataSetupAction extends DataSetupAction {
   private var dataToReturn: Option[UserAnswers] = None
   private var storedSessionData: SessionData = SessionData(
     sessionId = "1",
-    name = None,
+    lockDetail = None,
     sessionAccessData = SessionAccessData(
       version = 1,
       accessMode = AccessMode.PageAccessModeCompile,
@@ -65,7 +65,7 @@ class MutableFakeDataSetup(sessionData: SessionData = MutableFakeDataSetup.sessi
 object MutableFakeDataSetup {
   private val sessionDataViewOnly: SessionData = SessionData(
     sessionId = "1",
-    name = None,
+    lockDetail = None,
     sessionAccessData = SessionAccessData(
       version = 1,
       accessMode = AccessMode.PageAccessModeViewOnly,
