@@ -19,32 +19,18 @@ package data
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
-import models.SponsoringEmployerType.SponsoringEmployerTypeOrganisation
+import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeB.ChargeBDetails
-import models.chargeC.ChargeCDetails
-import models.chargeC.SponsoringEmployerAddress
-import models.chargeC.SponsoringOrganisationDetails
+import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
-import models.chargeG.ChargeAmounts
-import models.chargeG.{MemberDetails => MemberDetailsG}
+import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
 import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
-import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import models.financialStatement.SchemeFSChargeType.PSS_OTC_AFT_RETURN
-import models.{DisplayQuarter, InProgressHint, AFTOverview, SessionAccessData, SchemeStatus, UserAnswers, Quarter, Draft, SessionData, SubmittedHint, SchemeDetails, MemberDetails, AccessMode, LockedHint}
-import pages.chargeC.ChargeCDetailsPage
-import pages.chargeC.SponsoringIndividualDetailsPage
-import pages.chargeC.SponsoringOrganisationDetailsPage
-import pages.chargeC.TotalChargeAmountPage
-import pages.chargeC.WhichTypeOfSponsoringEmployerPage
-import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage}
-import pages.chargeD.{MemberDetailsPage => ChargeDMemberDetailsPAge}
-import pages.chargeE.ChargeDetailsPage
-import pages.chargeE.MemberDetailsPage
+import pages.chargeC._
+import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
+import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
 import utils.AFTConstants._
