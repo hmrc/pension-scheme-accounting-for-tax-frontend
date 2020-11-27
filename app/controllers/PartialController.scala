@@ -80,7 +80,7 @@ class PartialController @Inject()(
     }
   }
 
-  def pspDashboardAftCard: Action[AnyContent] = identify.async {
+  def pspDashboardAftReturnsPartial(): Action[AnyContent] = identify.async {
     implicit request =>
       val idNumber = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
@@ -94,7 +94,6 @@ class PartialController @Inject()(
             schemeIdType = idType
           ) flatMap {
             viewModel => {
-              println(s"\n\n\tviewmodels:${Json.prettyPrint(Json.toJson(viewModel))}\n\n")
               renderer.render(
                 template = "partials/pspDashboardAftReturnsCard.njk",
                 ctx = Json.obj("aft" -> Json.toJson(viewModel))

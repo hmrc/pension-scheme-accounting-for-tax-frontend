@@ -30,13 +30,18 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
+import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, Link}
+import viewmodels.{AFTViewModel, Link, PspDashboardAftReturnsViewModel}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach with ScalaFutures {
+class AFTPartialServiceSpec
+  extends SpecBase
+    with MockitoSugar
+    with BeforeAndAfterEach
+    with ScalaFutures {
 
   import AFTPartialServiceSpec._
 
@@ -55,12 +60,12 @@ class AFTPartialServiceSpec extends SpecBase with MockitoSugar with BeforeAndAft
 
   "retrieveOptionAFTViewModel after overviewApiEnablement" must {
     "return overview api returns multiple returns in progress, multiple past returns and start link needs to be displayed" in {
-      DateHelper.setDate(Some(LocalDate.of(2021,4,1)))
+      DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
       when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(schemeService.retrieveSchemeDetails(any(),any(), any())(any(), any()))
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open")))
 
       whenReady(service.retrieveOptionAFTViewModel(srn, psaId, "srn")) {
@@ -133,8 +138,10 @@ object AFTPartialServiceSpec {
   private val startDate = "2020-04-01"
   private val endDate = "2020-06-30"
   private val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-  private val formattedStartDate: String = LocalDate.parse(startDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM"))
-  private val formattedEndDate: String = LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+  private val formattedStartDate: String =
+    LocalDate.parse(startDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM"))
+  private val formattedEndDate: String =
+    LocalDate.parse(endDate, dateFormatterYMD).format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
   private val srn = "srn"
   private val pstr = "pstr"
   private val psaId = "A0000000"
@@ -164,6 +171,7 @@ object AFTPartialServiceSpec {
         linkText = msg"aftPartial.startLink.forPeriod".withArgs(formattedStartDate, formattedEndDate))
     )
   )
+
   def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
@@ -175,6 +183,7 @@ object AFTPartialServiceSpec {
         hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(formattedStartDate, formattedEndDate)))
     )
   )
+
   def inProgressUnlockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
@@ -220,11 +229,13 @@ object AFTPartialServiceSpec {
     compiledVersionAvailable = true
   )
 
-  val aftLoginUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/aft-login"
-  val amendUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/previous-return/amend-select"
-  val returnHistoryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/previous-return/2020-10-01/amend-previous"
-  val aftSummaryUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/2020-10-01/draft/2/summary"
-  val continueUrl: String = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/srn/new-return/select-quarter-in-progress"
+  private val aftUrl = "http://localhost:8206/manage-pension-scheme-accounting-for-tax"
+
+  val aftLoginUrl: String = s"$aftUrl/srn/new-return/aft-login"
+  val amendUrl: String = s"$aftUrl/srn/previous-return/amend-select"
+  val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
+  val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
+  val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
 
   def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
@@ -261,7 +272,7 @@ object AFTPartialServiceSpec {
 
   val allTypesMultipleReturnsPresent = Seq(overviewApril20, overviewJuly20, overviewOctober20, overviewJan21)
   val noInProgress = Seq(overviewApril20, overviewJuly20)
-  val oneInProgress = Seq(overviewApril20 , overviewOctober20)
+  val oneInProgress = Seq(overviewApril20, overviewOctober20)
 
   def allTypesMultipleReturnsModel(implicit messages: Messages) =
     Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
@@ -275,10 +286,19 @@ object AFTPartialServiceSpec {
   def oneInProgressModelNotLocked(implicit messages: Messages) =
     Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
 
-  def oneCompileZeroedOut(implicit messages: Messages) = Seq(overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-    overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
-    overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true))
+  def oneCompileZeroedOut(implicit messages: Messages) =
+    Seq(
+      overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
+      overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
+      overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true)
+    )
 
-  def oneCompileZeroedOutModel(implicit messages: Messages) = Seq(multipleInProgressModel(2), startModel)
+  def oneCompileZeroedOutModel(implicit messages: Messages) =
+    Seq(multipleInProgressModel(2), startModel)
 
+  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
+    PspDashboardAftReturnsViewModel(
+      subHeading = Option(Json.obj("size" -> allTypesMultipleReturnsModel.size)),
+      links = allTypesMultipleReturnsModel.map(_.link)
+    )
 }

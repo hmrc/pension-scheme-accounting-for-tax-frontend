@@ -97,7 +97,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def optionSubHeading(
+  private def optionSubHeading(
                         inProgressReturns: Seq[AFTOverview],
                         schemeDetails: SchemeDetails
                       )(
@@ -119,15 +119,16 @@ class AFTPartialService @Inject()(
         Future.successful(Some(singleReturnSubHeading(inProgressReturns)))
       }
     } else if (inProgressReturns.size > 1) {
-      Future.successful(Some(Json.obj(
-        "size" -> inProgressReturns.size.toString
-      )))
+      Future.successful(Some(multipleReturnSubHeading(inProgressReturns)))
     } else {
       Future.successful(None)
     }
   }
 
-  def singleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject = {
+  private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject =
+    Json.obj("size" -> inProgressReturns.size.toString)
+
+  private def singleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject = {
     val startDate: LocalDate = inProgressReturns.head.periodStartDate
     val endDate: String =
       Quarters

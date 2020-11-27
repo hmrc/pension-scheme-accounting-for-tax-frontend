@@ -35,12 +35,20 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IdentifierActionSpec extends ControllerSpecBase {
+class IdentifierActionSpec
+  extends ControllerSpecBase {
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad(): Action[AnyContent] = authAction {
       implicit request =>
         Ok(Json.obj("psaId" -> request.psaId))
+    }
+  }
+
+  class PspHarness(authAction: IdentifierAction) {
+    def onPageLoad(): Action[AnyContent] = authAction {
+      implicit request =>
+        Ok(Json.obj("psaId" -> request.pspId))
     }
   }
 
@@ -57,9 +65,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
   "Identifier Action" when {
 
-    "the user has logged in and enrolled in PODS" must {
+    "the user has logged in with HMRC-PODS-ORG enrolment" must {
 
-      "have the psaId" in {
+      "have the PSAID" in {
 
         val controller = new Harness(authAction)
 
@@ -78,20 +86,24 @@ class IdentifierActionSpec extends ControllerSpecBase {
       }
     }
 
-    "the user has logged in but not enrolled in PODS" must {
+    "the user has logged in with HMRC-PODSPP-ORG enrolment" must {
 
-      "redirect to unauthorised page" in {
+      "have the PSPID" in {
 
-        val controller = new Harness(authAction)
+        val controller = new PspHarness(authAction)
 
-        val enrolments = Enrolments(Set())
+        val enrolments = Enrolments(Set(
+          Enrolment("HMRC-PODSPP-ORG", Seq(
+            EnrolmentIdentifier("PSPID", "20000000")
+          ), "Activated", None)
+        ))
 
         when(authConnector.authorise[Enrolments](any(), any())(any(), any()))
           .thenReturn(Future.successful(enrolments))
 
         val result = controller.onPageLoad()(fakeRequest)
-        status(result) mustBe SEE_OTHER
-        redirectLocation(result) mustBe Some(routes.UnauthorisedController.onPageLoad().url)
+        status(result) mustBe OK
+        (contentAsJson(result) \ "psaId").asOpt[String].value mustEqual "20000000"
       }
     }
 
@@ -99,7 +111,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to log in " in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new MissingBearerToken), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new MissingBearerToken), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -113,7 +127,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to log in " in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new BearerTokenExpired), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new BearerTokenExpired), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -127,7 +143,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to the unauthorised page" in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new InsufficientEnrolments), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new InsufficientEnrolments), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -141,7 +159,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to the unauthorised page" in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new InsufficientConfidenceLevel), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new InsufficientConfidenceLevel), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -155,7 +175,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to the unauthorised page" in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedAuthProvider), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new UnsupportedAuthProvider), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -169,7 +191,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to the unauthorised page" in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedAffinityGroup), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new UnsupportedAffinityGroup), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
@@ -183,7 +207,9 @@ class IdentifierActionSpec extends ControllerSpecBase {
 
       "redirect the user to the unauthorised page" in {
 
-        val authAction = new AuthenticatedIdentifierAction(new FakeFailingAuthConnector(new UnsupportedCredentialRole), frontendAppConfig, bodyParsers)
+        val authAction = new AuthenticatedIdentifierAction(
+          new FakeFailingAuthConnector(new UnsupportedCredentialRole), frontendAppConfig, bodyParsers
+        )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
 
