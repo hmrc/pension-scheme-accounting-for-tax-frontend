@@ -41,16 +41,19 @@ import utils.DateHelper
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class AllowAccessAction(srn: String,
-                        startDate: LocalDate,
-                        optPage:Option[Page],
-                        version: Int,
-                        accessType: AccessType,
-                        aftConnector: AFTConnector,
-                        errorHandler: ErrorHandler,
-                        schemeDetailsConnector: SchemeDetailsConnector)
-                       (implicit val executionContext: ExecutionContext)
-    extends ActionFilter[DataRequest] {
+class AllowAccessAction(
+                         srn: String,
+                         startDate: LocalDate,
+                         optPage: Option[Page],
+                         version: Int,
+                         accessType: AccessType,
+                         aftConnector: AFTConnector,
+                         errorHandler: ErrorHandler,
+                         schemeDetailsConnector: SchemeDetailsConnector
+                       )(
+                         implicit val executionContext: ExecutionContext
+                       )
+  extends ActionFilter[DataRequest] {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
 
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
@@ -66,9 +69,17 @@ class AllowAccessAction(srn: String,
           if (!validStatuses.contains(schemeStatus)) {
             errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
           } else {
-            schemeDetailsConnector.checkForAssociation(request.idOrException, srn)(hc, implicitly, request).flatMap {
-              case true => associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
-              case _ => errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
+            val idType: String =
+              (request.psaId, request.pspId) match {
+                case (Some(_), _) => "psaId"
+                case (_, Some(_)) => "pspId"
+                case _ => throw new Exception("Unable to get ID from request")
+              }
+            schemeDetailsConnector.checkForAssociation(request.idOrException, srn, idType)(hc, implicitly, request).flatMap {
+              case true =>
+                associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
+              case _ =>
+                errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
             }
           }
         case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
@@ -96,12 +107,12 @@ class AllowAccessAction(srn: String,
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
+  def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               errorHandler: ErrorHandler,
                                               schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
-  def apply(srn: String, startDate: LocalDate, optionPage:Option[Page] = None, version: Int, accessType: AccessType) =
+  def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
     new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, schemeDetailsConnector)
 }

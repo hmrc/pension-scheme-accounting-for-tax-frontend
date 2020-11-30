@@ -90,8 +90,12 @@ class RequestCreationService @Inject()(
       uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
       sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
-      userAnswers <- userAnswersCacheConnector.saveAndLock(id, updatedUA.data, sessionAccessData,
-        lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly)
+      userAnswers <- userAnswersCacheConnector.saveAndLock(
+        id = id,
+        value = updatedUA.data,
+        sessionAccessData = sessionAccessData,
+        lockReturn = sessionAccessData.accessMode != AccessMode.PageAccessModeViewOnly
+      )
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       OptionalDataRequest[A](request, id, request.psaId, request.pspId, Some(UserAnswers(userAnswers.as[JsObject])), sessionData)

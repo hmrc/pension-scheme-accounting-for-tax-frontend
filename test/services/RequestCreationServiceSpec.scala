@@ -66,7 +66,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus)
 
   private def requestCreationService =
-    new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
+    new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)
 
   private val email = "test@test.com"
 
@@ -75,7 +75,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockMinimalPsaConnector.getMinimalPsaDetails(any())(any(), any()))
+    when(mockMinimalPsaConnector.getMinimalPsaDetails(any(), any(), any()))
       .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))

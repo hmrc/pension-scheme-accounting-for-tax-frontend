@@ -59,7 +59,8 @@ class AFTPartialServiceSpec
     new AFTPartialService(frontendAppConfig, schemeService, aftConnector, aftCacheConnector)
 
   "retrieveOptionAFTViewModel after overviewApiEnablement" must {
-    "return overview api returns multiple returns in progress, multiple past returns and start link needs to be displayed" in {
+    "return the correct model when overview api returns multiple returns in " +
+      "progress, multiple past returns and start link needs to be displayed" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
       when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
@@ -111,7 +112,8 @@ class AFTPartialServiceSpec
     }
 
     "return a model with start link and only 2 returns in progress" when {
-      "a scheme has 3 compiles in progress but one has been zeroed out and all quarters have been initiated (ie no start link)" in {
+      "a scheme has 3 compiles in progress but one has been zeroed " +
+        "out and all quarters have been initiated (ie no start link)" in {
         DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
         when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(oneCompileZeroedOut))
@@ -133,7 +135,8 @@ class AFTPartialServiceSpec
   }
 
   "retrievePspDashboardAftReturnsModel" must {
-    "return overview api returns multiple returns in progress, multiple past returns and start link needs to be displayed" in {
+    "return overview api returns multiple returns in progress, " +
+      "multiple past returns and start link needs to be displayed" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 4, 1)))
       when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
@@ -147,13 +150,52 @@ class AFTPartialServiceSpec
       }
     }
 
-//    "return the correct model when return no returns are in progress" in {
-//
-//    }
-//
-//    "return the correct model when return one return is in progress" in {
-//
-//    }
+    "return the correct model when return one return is in progress but not locked" in {
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(oneInProgress))
+      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
+      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
+      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
+        .thenReturn(Future.successful(None))
+
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+        _ mustBe pspDashboardOneInProgressModelWithLocking(locked = false)
+      }
+    }
+
+    "return the correct model when one return is in progress and locked by another user" in {
+      when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(oneInProgress))
+      when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
+      when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
+      when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
+        .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
+
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+        _ mustBe pspDashboardOneInProgressModelWithLocking(locked = true)
+      }
+    }
+
+    "return a model with start link and only 2 returns in progress" when {
+      "a scheme has 3 compiles in progress but " +
+        "one has been zeroed out and all quarters have been initiated (ie no start link)" in {
+        DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
+        when(aftConnector.getAftOverview(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(oneCompileZeroedOut))
+        when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
+        when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 12, 31))
+        when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
+          .thenReturn(Future.successful(None))
+        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-07-01"), any())(any(), any()))
+          .thenReturn(Future.successful(false))
+        when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
+          .thenReturn(Future.successful(true))
+
+        whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+          _ mustBe pspDashboardOneCompileZeroedOutModel
+        }
+      }
+    }
   }
 
 }
@@ -271,17 +313,20 @@ object AFTPartialServiceSpec {
       url = amendUrl,
       linkText = msg"aftPartial.view.change.past"))
 
-  def multipleInProgressModel(count: Int)(implicit messages: Messages): AFTViewModel = AFTViewModel(
-    Some(msg"aftPartial.multipleInProgress.text"),
-    Some(msg"aftPartial.multipleInProgress.count".withArgs(count)),
-    Link(
-      id = "aftContinueInProgressLink",
-      url = continueUrl,
-      linkText = msg"aftPartial.view.link",
-      hiddenText = Some(msg"aftPartial.view.hidden"))
-  )
+  def multipleInProgressModel(count: Int, linkText: String = "aftPartial.view.link")
+                             (implicit messages: Messages): AFTViewModel =
+    AFTViewModel(
+      Some(msg"aftPartial.multipleInProgress.text"),
+      Some(msg"aftPartial.multipleInProgress.count".withArgs(count)),
+      Link(
+        id = "aftContinueInProgressLink",
+        url = continueUrl,
+        linkText = msg"$linkText",
+        hiddenText = Some(msg"aftPartial.view.hidden"))
+    )
 
-  def oneInProgressModel(locked: Boolean)(implicit messages: Messages): AFTViewModel = AFTViewModel(
+  def oneInProgressModel(locked: Boolean, linkText: String = "aftPartial.view.link")
+                        (implicit messages: Messages): AFTViewModel = AFTViewModel(
     Some(msg"aftPartial.inProgress.forPeriod".withArgs("1 October", "31 December 2020")),
     if (locked) {
       Some(msg"aftPartial.status.lockDetail".withArgs(name))
@@ -290,7 +335,7 @@ object AFTPartialServiceSpec {
       Some(msg"aftPartial.status.inProgress")
     },
     Link(id = "aftSummaryLink", url = aftSummaryUrl,
-      linkText = msg"aftPartial.view.link",
+      linkText = msg"$linkText",
       hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs("1 October", "31 December 2020")))
   )
 
@@ -298,31 +343,59 @@ object AFTPartialServiceSpec {
   val noInProgress = Seq(overviewApril20, overviewJuly20)
   val oneInProgress = Seq(overviewApril20, overviewOctober20)
 
-  def allTypesMultipleReturnsModel(implicit messages: Messages) =
+  def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
 
-  def noInProgressModel(implicit messages: Messages) =
+  def noInProgressModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(startModel, pastReturnsModel)
 
-  def oneInProgressModelLocked(implicit messages: Messages) =
+  def oneInProgressModelLocked(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = true), startModel, pastReturnsModel)
 
-  def oneInProgressModelNotLocked(implicit messages: Messages) =
+  def oneInProgressModelNotLocked(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
 
-  def oneCompileZeroedOut(implicit messages: Messages) =
+  def oneCompileZeroedOut(implicit messages: Messages): Seq[AFTOverview] =
     Seq(
       overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
       overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
       overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true)
     )
 
-  def oneCompileZeroedOutModel(implicit messages: Messages) =
+  def oneCompileZeroedOutModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
   def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
     PspDashboardAftReturnsViewModel(
-      subHeading = Option(Json.obj("size" -> allTypesMultipleReturnsModel.size)),
-      links = allTypesMultipleReturnsModel.map(_.link)
+      subHeading = Option(Json.obj("size" -> "2")),
+      links = Seq(
+        multipleInProgressModel(3, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        startModel,
+        pastReturnsModel
+      ).map(_.link)
+    )
+
+  def pspDashboardOneInProgressModelWithLocking(locked: Boolean)
+                                               (implicit messages: Messages): PspDashboardAftReturnsViewModel =
+    PspDashboardAftReturnsViewModel(
+      subHeading = Option(Json.obj(
+        "size" -> "1",
+        "startDate" -> "1 October",
+        "endDate" -> "31 December 2020"
+      )),
+      links = Seq(
+        oneInProgressModel(locked = locked, linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        startModel,
+        pastReturnsModel
+      ).map(_.link)
+    )
+
+  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
+    PspDashboardAftReturnsViewModel(
+      subHeading = Option(Json.obj("size" -> "3")),
+      links = Seq(
+        multipleInProgressModel(2, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        startModel
+      ).map(_.link)
     )
 }

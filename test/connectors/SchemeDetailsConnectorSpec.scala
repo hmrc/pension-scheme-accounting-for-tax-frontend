@@ -32,7 +32,6 @@ class SchemeDetailsConnectorSpec
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   private val psaId = "0000"
-  private val schemeIdType = "pstr"
   private val srn = "test srn"
   private val idNumber = "00000000AA"
 
@@ -44,6 +43,7 @@ class SchemeDetailsConnectorSpec
         get(urlEqualTo(schemeDetailsUrl))
           .withHeader("idNumber", equalTo(idNumber))
           .withHeader("psaId", equalTo(psaId))
+          .withHeader("schemeIdType", equalTo("pstr"))
           .willReturn(ok(jsonResponse)
             .withHeader("Content-Type", "application/json")
           )
@@ -51,7 +51,7 @@ class SchemeDetailsConnectorSpec
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.getSchemeDetails(psaId, idNumber, "srn").map(schemeDetails =>
+      connector.getSchemeDetails(psaId, idNumber, "pstr").map(schemeDetails =>
         schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status")
       )
     }
@@ -94,7 +94,7 @@ class SchemeDetailsConnectorSpec
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.checkForAssociation(psaId, srn).map(isPsaAssociated =>
+      connector.checkForAssociation(psaId, srn, "psaId").map(isPsaAssociated =>
         isPsaAssociated mustBe true
       )
     }
@@ -115,7 +115,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[JsResultException] {
-        connector.checkForAssociation(psaId, srn)
+        connector.checkForAssociation(psaId, srn, "psaId")
       }
     }
 
@@ -130,7 +130,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[UpstreamErrorResponse] {
-        connector.checkForAssociation(psaId, srn)
+        connector.checkForAssociation(psaId, srn, "psaId")
       }
     }
   }

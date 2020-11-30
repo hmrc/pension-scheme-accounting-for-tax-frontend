@@ -17,16 +17,24 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import models.requests.IdentifierRequest
 import org.scalatest._
 import play.api.libs.json.Json
+import play.api.test.FakeRequest
+import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+class MinimalPsaConnectorSpec
+  extends AsyncWordSpec
+    with MustMatchers
+    with WireMockHelper {
+
   import MinimalPsaConnector._
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
+  private implicit lazy val req = IdentifierRequest(FakeRequest("GET", "/"), Some(PsaId("A2100005")), None)
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
@@ -55,7 +63,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
           )
       )
 
-      connector.getMinimalPsaDetails(psaId) map {
+      connector.getMinimalPsaDetails map {
         _ mustBe MinimalPSA(email, isPsaSuspended = false, Some("test ltd"), None)
       }
     }
@@ -69,7 +77,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
           )
       )
 
-      connector.getMinimalPsaDetails(psaId) map {
+      connector.getMinimalPsaDetails map {
         _ mustBe MinimalPSA(email, isPsaSuspended = true, Some("test ltd"), None)
       }
     }
@@ -84,7 +92,7 @@ class MinimalPsaConnectorSpec extends AsyncWordSpec with MustMatchers with WireM
       )
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getMinimalPsaDetails(psaId)
+        connector.getMinimalPsaDetails
       }
     }
   }

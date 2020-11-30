@@ -60,14 +60,20 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     }
   }
 
-  def checkForAssociation(psaId: String, srn: String)
-                         (implicit headerCarrier: HeaderCarrier,
-                          ec: ExecutionContext, request: RequestHeader): Future[Boolean] = {
+  def checkForAssociation(
+                           psaId: String,
+                           srn: String,
+                           idType: String
+                         )(
+                           implicit headerCarrier: HeaderCarrier,
+                           ec: ExecutionContext,
+                           request: RequestHeader
+                         ): Future[Boolean] = {
 
     val url = config.checkAssociationUrl
 
     val headers: Seq[(String, String)] =
-      Seq(("psaId", psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
+      Seq((idType, psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
