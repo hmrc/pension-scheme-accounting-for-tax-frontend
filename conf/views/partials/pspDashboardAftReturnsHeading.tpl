@@ -4,7 +4,7 @@
             <span class="font-xsmall">
                 {{ messages("pspDashboardAftReturnsPartial.span.single", return.startDate, return.endDate) }}
             </span>
-            {{ messages("pspDashboardAftReturnsPartial.h3.single") }}
+            {{ return.h3 }}
         {% else %}
             <span class="font-xsmall">{{ messages("pspDashboardAftReturnsPartial.span.multiple") }}</span>
             {{ messages("pspDashboardAftReturnsPartial.h3.multiple", return.size) }}

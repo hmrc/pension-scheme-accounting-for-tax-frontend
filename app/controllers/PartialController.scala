@@ -85,13 +85,15 @@ class PartialController @Inject()(
       val idNumber = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
       val pspId = request.headers.get("psaId")
+      val authorisingPsaId = request.headers.get("authorisingPsaId")
 
-      (idNumber, schemeIdType, pspId) match {
-        case (Some(srn), Some(idType), Some(userNumber)) =>
+      (idNumber, schemeIdType, pspId, authorisingPsaId) match {
+        case (Some(srn), Some(idType), Some(userNumber), Some(psaId)) =>
           aftPartialService.retrievePspDashboardAftReturnsModel(
             srn = srn,
             pspId = userNumber,
-            schemeIdType = idType
+            schemeIdType = idType,
+            authorisingPsaId = psaId
           ) flatMap {
             viewModel => {
               renderer.render(
@@ -102,7 +104,7 @@ class PartialController @Inject()(
           }
         case _ =>
           Future.failed(
-            new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType or psaId")
+            new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType, psaId or authorisingPsaId")
           )
       }
   }

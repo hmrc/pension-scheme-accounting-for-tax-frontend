@@ -125,7 +125,7 @@ class UserAnswersCacheConnectorImpl @Inject()(
       }
 
   override def lockDetail(srn: String, startDate: String)
-                       (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
+                         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]] =
     http.url(lockDetailUrl)
       .withHttpHeaders(hc.withExtraHeaders(("id", srn + startDate)).headers: _*)
       .get()
@@ -165,7 +165,7 @@ trait UserAnswersCacheConnector {
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[SessionData]]
 
   def lockDetail(srn: String, startDate: String)
-              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]]
+                (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[LockDetail]]
 
   def saveAndLock(id: String, value: JsValue, sessionAccessData: SessionAccessData, lockReturn: Boolean = false)
                  (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[JsValue]

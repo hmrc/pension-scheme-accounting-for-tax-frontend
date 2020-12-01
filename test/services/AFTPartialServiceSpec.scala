@@ -145,7 +145,7 @@ class AFTPartialServiceSpec
       when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open")))
 
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardAftReturnsViewModel
       }
     }
@@ -158,8 +158,12 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
-        _ mustBe pspDashboardOneInProgressModelWithLocking(locked = false)
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+        _ mustBe pspDashboardOneInProgressModelWithLocking(
+          locked = false,
+          h3 = "In progress",
+          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single"
+        )
       }
     }
 
@@ -171,8 +175,12 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
 
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
-        _ mustBe pspDashboardOneInProgressModelWithLocking(locked = true)
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+        _ mustBe pspDashboardOneInProgressModelWithLocking(
+          locked = true,
+          h3 = "Locked by test-name",
+          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked"
+        )
       }
     }
 
@@ -191,7 +199,7 @@ class AFTPartialServiceSpec
         when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
-        whenReady(service.retrievePspDashboardAftReturnsModel(srn, psaId, "srn")) {
+        whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
           _ mustBe pspDashboardOneCompileZeroedOutModel
         }
       }
@@ -211,6 +219,7 @@ object AFTPartialServiceSpec {
   private val srn = "srn"
   private val pstr = "pstr"
   private val psaId = "A0000000"
+  private val pspId = "20000000"
   private val name = "test-name"
   private val date = "2020-01-01"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
@@ -375,16 +384,20 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneInProgressModelWithLocking(locked: Boolean)
-                                               (implicit messages: Messages): PspDashboardAftReturnsViewModel =
+  def pspDashboardOneInProgressModelWithLocking(
+                                                 locked: Boolean,
+                                                 h3: String,
+                                                 linkText: String
+                                               )(implicit messages: Messages): PspDashboardAftReturnsViewModel =
     PspDashboardAftReturnsViewModel(
       subHeading = Option(Json.obj(
         "size" -> "1",
         "startDate" -> "1 October",
-        "endDate" -> "31 December 2020"
+        "endDate" -> "31 December 2020",
+        "h3" -> h3
       )),
       links = Seq(
-        oneInProgressModel(locked = locked, linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        oneInProgressModel(locked = locked, linkText = linkText),
         startModel,
         pastReturnsModel
       ).map(_.link)

@@ -19,7 +19,7 @@ package models
 import play.api.libs.json.Format
 import play.api.libs.json.Json
 
-case class LockDetail(name:String, psAdministratorOrPractitionerId: String)
+case class LockDetail(name:String, psaOrPspId: String)
 
 object LockDetail {
   implicit val formats: Format[LockDetail] = Json.format[LockDetail]

@@ -142,7 +142,8 @@ class PartialControllerSpec
           mockAftPartialService.retrievePspDashboardAftReturnsModel(
             srn = any(),
             pspId = any(),
-            schemeIdType = any()
+            schemeIdType = any(),
+            authorisingPsaId = any()
           )(any(), any())
         ).thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
 
@@ -152,7 +153,8 @@ class PartialControllerSpec
             .withHeaders(
               "idNumber" -> SampleData.srn,
               "schemeIdType" -> "srn",
-              "psaId" -> SampleData.pspId
+              "psaId" -> SampleData.pspId,
+              "authorisingPsaId" -> SampleData.psaId
             )
         ).value
 

@@ -23,7 +23,7 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.{AFTOverview, Draft, Quarters, SchemeDetails}
+import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -59,7 +59,8 @@ class AFTPartialService @Inject()(
   def retrievePspDashboardAftReturnsModel(
                                            srn: String,
                                            pspId: String,
-                                           schemeIdType: String
+                                           schemeIdType: String,
+                                           authorisingPsaId: String
                                          )(
                                            implicit
                                            hc: HeaderCarrier,
@@ -72,51 +73,74 @@ class AFTPartialService @Inject()(
     ) flatMap { schemeDetails =>
       for {
         overview <- aftConnector.getAftOverview(schemeDetails.pstr)
-        inProgressReturnsOpt <- getInProgressReturnsModel(
+        inProgressReturnsLinkOpt <- pspAftDashboardGetInProgressReturnsModel(
           overview = overview,
           srn = srn,
-          pstr = schemeDetails.pstr,
-          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link"
+          pstr = schemeDetails.pstr
         )
-        startReturnsOpt <- getStartReturnsModel(overview, srn, schemeDetails.pstr)
         inProgressReturns = overview.filter(_.compiledVersionAvailable)
-        subHeading <- optionSubHeading(inProgressReturns, schemeDetails)
+        subHeading <- optionSubHeading(inProgressReturns, schemeDetails, srn, authorisingPsaId)
       } yield {
 
-        val links: Seq[AFTViewModel] = Seq(
-          inProgressReturnsOpt,
-          startReturnsOpt,
-          getPastReturnsModel(overview, srn)
-        ).flatten
+        val startLink: Link =
+          Link(
+            id = "aftLoginLink",
+            url = appConfig.aftLoginUrl.format(srn),
+            linkText = msg"aftPartial.start.link"
+          )
+
+        val linksFromAftViewModels: Seq[Link] =
+          Seq(
+            getPastReturnsModel(overview, srn)
+          ).flatten.map(_.link)
+
+        val links: Seq[Link] = inProgressReturnsLinkOpt match {
+          case Some(link) =>
+            Seq(link) ++ Seq(startLink) ++ linksFromAftViewModels
+          case _ =>
+            Seq(startLink) ++ linksFromAftViewModels
+        }
 
         PspDashboardAftReturnsViewModel(
           subHeading = subHeading,
-          links = links.map(_.link)
+          links = links
         )
       }
     }
   }
 
   private def optionSubHeading(
-                        inProgressReturns: Seq[AFTOverview],
-                        schemeDetails: SchemeDetails
-                      )(
-                        implicit hc: HeaderCarrier
-                      ): Future[Option[JsObject]] = {
+                                inProgressReturns: Seq[AFTOverview],
+                                schemeDetails: SchemeDetails,
+                                srn: String,
+                                authorisingPsaId: String
+                              )(
+                                implicit hc: HeaderCarrier,
+                                messages: Messages
+                              ): Future[Option[JsObject]] = {
+    val startDate = inProgressReturns.head.periodStartDate.toString
+
     if (inProgressReturns.size == 1) {
-      if (inProgressReturns.head.numberOfVersions == 1) {
-        aftConnector.getIsAftNonZero(
-          pstr = schemeDetails.pstr,
-          startDate = inProgressReturns.head.periodStartDate.toString,
-          aftVersion = "1"
-        ) flatMap {
-          case true =>
-            Future.successful(Some(singleReturnSubHeading(inProgressReturns)))
-          case _ =>
-            Future.successful(None)
-        }
-      } else {
-        Future.successful(Some(singleReturnSubHeading(inProgressReturns)))
+      aftCacheConnector.lockDetail(srn, startDate) flatMap {
+        optLockDetail =>
+          if (inProgressReturns.head.numberOfVersions == 1) {
+            aftConnector.getIsAftNonZero(
+              pstr = schemeDetails.pstr,
+              startDate = startDate,
+              aftVersion = "1"
+            ) flatMap {
+              case true =>
+                Future.successful(Some(
+                  singleReturnSubHeading(inProgressReturns, optLockDetail, authorisingPsaId)
+                ))
+              case _ =>
+                Future.successful(None)
+            }
+          } else {
+            Future.successful(Some(
+              singleReturnSubHeading(inProgressReturns, optLockDetail, authorisingPsaId)
+            ))
+          }
       }
     } else if (inProgressReturns.size > 1) {
       Future.successful(Some(multipleReturnSubHeading(inProgressReturns)))
@@ -128,7 +152,13 @@ class AFTPartialService @Inject()(
   private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject =
     Json.obj("size" -> inProgressReturns.size.toString)
 
-  private def singleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject = {
+  private def singleReturnSubHeading(
+                                      inProgressReturns: Seq[AFTOverview],
+                                      lockDetail: Option[LockDetail],
+                                      authorisingPsaId: String
+                                    )(
+                                      implicit messages: Messages
+                                    ): JsObject = {
     val startDate: LocalDate = inProgressReturns.head.periodStartDate
     val endDate: String =
       Quarters
@@ -136,10 +166,22 @@ class AFTPartialService @Inject()(
         .endDate
         .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
 
+    val h3: String =
+      if (lockDetail.nonEmpty) {
+        if (lockDetail.get.psaOrPspId == authorisingPsaId) {
+          msg"pspDashboardAftReturnsPartial.h3.single.lockedBy".withArgs(lockDetail.get.name).resolve
+        } else {
+          msg"pspDashboardAftReturnsPartial.h3.single.locked".resolve
+        }
+      } else {
+        msg"pspDashboardAftReturnsPartial.h3.single".resolve
+      }
+
     Json.obj(
       "size" -> inProgressReturns.size.toString,
       "startDate" -> startDate.format(DateTimeFormatter.ofPattern("d MMMM")),
-      "endDate" -> endDate
+      "endDate" -> endDate,
+      "h3" -> h3
     )
   }
 
@@ -254,7 +296,8 @@ class AFTPartialService @Inject()(
         else {
           Some(msg"aftPartial.status.locked")
         },
-        Link(id = "aftSummaryLink", url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
+        Link(id = "aftSummaryLink",
+          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
           linkText = linkText,
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
         )
@@ -267,7 +310,8 @@ class AFTPartialService @Inject()(
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
           linkText = linkText,
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
-        )))
+        )
+      ))
     }
   }
 
@@ -295,6 +339,96 @@ class AFTPartialService @Inject()(
             linkText = linkText,
             hiddenText = Some(msg"aftPartial.view.hidden")
           )
+        ))
+      } else {
+        None
+      }
+    }
+  }
+
+  private def pspAftDashboardGetInProgressReturnsModel(
+                                                        overview: Seq[AFTOverview],
+                                                        srn: String,
+                                                        pstr: String
+                                                      )(
+                                                        implicit
+                                                        hc: HeaderCarrier,
+                                                        messages: Messages
+                                                      ): Future[Option[Link]] = {
+    val inProgressReturns = overview.filter(_.compiledVersionAvailable)
+
+    if (inProgressReturns.size == 1) {
+      val startDate: LocalDate = inProgressReturns.head.periodStartDate
+      val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
+
+      if (inProgressReturns.head.numberOfVersions == 1) {
+        aftConnector.getIsAftNonZero(pstr, startDate.toString, "1").flatMap {
+          case true => pspAftDashboardSingleInProgressReturnLink(srn, startDate, endDate, inProgressReturns.head)
+          case _ => Future.successful(None)
+        }
+      } else {
+        pspAftDashboardSingleInProgressReturnLink(srn, startDate, endDate, inProgressReturns.head)
+      }
+
+    } else if (inProgressReturns.nonEmpty) {
+      pspAftDashboardMultipleInProgressReturnLink(srn, pstr, inProgressReturns)
+    } else {
+      Future.successful(None)
+    }
+  }
+
+  private def pspAftDashboardSingleInProgressReturnLink(
+                                                         srn: String,
+                                                         startDate: LocalDate,
+                                                         endDate: LocalDate,
+                                                         overview: AFTOverview
+                                                       )(
+                                                         implicit hc: HeaderCarrier,
+                                                         messages: Messages
+                                                       ): Future[Option[Link]] = {
+    aftCacheConnector.lockDetail(srn, startDate.toString).map {
+      case Some(_) =>
+        Some(Link(
+          id = "aftSummaryLink",
+          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
+          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked",
+          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
+            startDate.format(dateFormatterStartDate),
+            endDate.format(dateFormatterDMY)
+          ))
+        ))
+      case _ =>
+        Some(Link(
+          id = "aftSummaryLink",
+          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
+          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link.single",
+          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
+            startDate.format(dateFormatterStartDate),
+            endDate.format(dateFormatterDMY)
+          ))
+        ))
+    }
+  }
+
+  private def pspAftDashboardMultipleInProgressReturnLink(
+                                                           srn: String,
+                                                           pstr: String,
+                                                           inProgressReturns: Seq[AFTOverview]
+                                                         )(
+                                                           implicit hc: HeaderCarrier,
+                                                           messages: Messages
+                                                         ): Future[Option[Link]] = {
+    retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
+
+      val countInProgress: Int = inProgressReturns.size - zeroedReturns.size
+
+      if (countInProgress > 0) {
+
+        Some(Link(
+          id = "aftContinueInProgressLink",
+          url = appConfig.aftContinueReturnUrl.format(srn),
+          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link",
+          hiddenText = Some(msg"aftPartial.view.hidden")
         ))
       } else {
         None
