@@ -52,7 +52,7 @@ class AFTPartialService @Inject()(
         inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)
         startReturnsOpt <- getStartReturnsModel(overview, srn, schemeDetails.pstr)
       } yield {
-        Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModel(overview, srn)).flatten
+        Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModelOpt(overview, srn)).flatten
       }
     }
 
@@ -82,24 +82,16 @@ class AFTPartialService @Inject()(
         subHeading <- optionSubHeading(inProgressReturns, schemeDetails, srn, authorisingPsaId)
       } yield {
 
-        val startLink: Link =
-          Link(
-            id = "aftLoginLink",
-            url = appConfig.aftLoginUrl.format(srn),
-            linkText = msg"aftPartial.start.link"
-          )
-
-        val linksFromAftViewModels: Seq[Link] =
+        val links: Seq[Link] =
           Seq(
-            getPastReturnsModel(overview, srn)
-          ).flatten.map(_.link)
-
-        val links: Seq[Link] = inProgressReturnsLinkOpt match {
-          case Some(link) =>
-            Seq(link) ++ Seq(startLink) ++ linksFromAftViewModels
-          case _ =>
-            Seq(startLink) ++ linksFromAftViewModels
-        }
+            inProgressReturnsLinkOpt,
+            Option(Link(
+              id = "aftLoginLink",
+              url = appConfig.aftLoginUrl.format(srn),
+              linkText = msg"aftPartial.start.link"
+            )),
+            getPastReturnsModelOpt(overview, srn).map(_.link)
+          ).flatten
 
         PspDashboardAftReturnsViewModel(
           subHeading = subHeading,
@@ -149,8 +141,12 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview]): JsObject =
-    Json.obj("size" -> inProgressReturns.size.toString)
+  private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview])
+                                      (implicit messages: Messages): JsObject =
+    Json.obj(
+      "h3" -> msg"pspDashboardAftReturnsPartial.h3.multiple".withArgs(inProgressReturns.size.toString).resolve,
+      "span" -> msg"pspDashboardAftReturnsPartial.span.multiple".resolve
+    )
 
   private def singleReturnSubHeading(
                                       inProgressReturns: Seq[AFTOverview],
@@ -160,6 +156,7 @@ class AFTPartialService @Inject()(
                                       implicit messages: Messages
                                     ): JsObject = {
     val startDate: LocalDate = inProgressReturns.head.periodStartDate
+    val startDateStr: String = startDate.format(DateTimeFormatter.ofPattern("d MMMM"))
     val endDate: String =
       Quarters
         .getQuarter(startDate)
@@ -178,10 +175,8 @@ class AFTPartialService @Inject()(
       }
 
     Json.obj(
-      "size" -> inProgressReturns.size.toString,
-      "startDate" -> startDate.format(DateTimeFormatter.ofPattern("d MMMM")),
-      "endDate" -> endDate,
-      "h3" -> h3
+      "h3" -> h3,
+      "span" -> msg"pspDashboardAftReturnsPartial.span.single".withArgs(startDateStr, endDate)
     )
   }
 
@@ -229,8 +224,8 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModel(overview: Seq[AFTOverview], srn: String)
-                                 (implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String)
+                                    (implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {

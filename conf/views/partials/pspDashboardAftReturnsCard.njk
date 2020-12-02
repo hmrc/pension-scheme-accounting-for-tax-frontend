@@ -4,12 +4,10 @@
             {{ messages("pspDashboardAftReturnsPartial.h1") }}
         </h2>
         {% if aft.subHeading %}
-            {% block heading %}
-                {% import "partials/pspDashboardAftReturnsHeading.tpl" as h3 with context %}
-                {{ h3.render(
-                    return = aft.subHeading
-                ) }}
-            {% endblock %}
+            <h3 class="card-sub-heading bold">
+                <span class="font-xsmall">{{ aft.subHeading.span }}</span>
+                {{ aft.subHeading.h3 }}
+            </h3>
         {% endif %}
     </div>
     <div class="card-action">

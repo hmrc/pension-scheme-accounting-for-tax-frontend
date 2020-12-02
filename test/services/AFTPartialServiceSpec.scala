@@ -162,6 +162,7 @@ class AFTPartialServiceSpec
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = false,
           h3 = "In progress",
+          span = "AFT return 1 October to 31 December 2020:",
           linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single"
         )
       }
@@ -179,6 +180,7 @@ class AFTPartialServiceSpec
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = true,
           h3 = "Locked by test-name",
+          span = "AFT return 1 October to 31 December 2020:",
           linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked"
         )
       }
@@ -376,7 +378,10 @@ object AFTPartialServiceSpec {
 
   def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
     PspDashboardAftReturnsViewModel(
-      subHeading = Option(Json.obj("size" -> "2")),
+      subHeading = Option(Json.obj(
+        "h3" -> "2 in progress",
+        "span" -> "AFT returns:"
+      )),
       links = Seq(
         multipleInProgressModel(3, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
         startModel,
@@ -387,13 +392,12 @@ object AFTPartialServiceSpec {
   def pspDashboardOneInProgressModelWithLocking(
                                                  locked: Boolean,
                                                  h3: String,
+                                                 span: String,
                                                  linkText: String
                                                )(implicit messages: Messages): PspDashboardAftReturnsViewModel =
     PspDashboardAftReturnsViewModel(
       subHeading = Option(Json.obj(
-        "size" -> "1",
-        "startDate" -> "1 October",
-        "endDate" -> "31 December 2020",
+        "span" -> span,
         "h3" -> h3
       )),
       links = Seq(
@@ -405,7 +409,10 @@ object AFTPartialServiceSpec {
 
   def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
     PspDashboardAftReturnsViewModel(
-      subHeading = Option(Json.obj("size" -> "3")),
+      subHeading = Option(Json.obj(
+        "h3" -> "3 in progress",
+        "span" -> "AFT returns:"
+      )),
       links = Seq(
         multipleInProgressModel(2, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
         startModel
