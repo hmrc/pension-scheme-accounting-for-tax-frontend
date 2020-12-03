@@ -1115,3 +1115,6 @@ paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 selectScheme.title = Select a pension scheme
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
 selectScheme.error = Select a pension scheme
+
+enterPsaId.title = What is the pension scheme administrator’s ID?
+enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme

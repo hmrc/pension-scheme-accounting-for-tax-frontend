@@ -1,0 +1,61 @@
+{% extends "includes/layout.njk" %}
+
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "macros/title.njk"                         import title %}
+
+{% block pageTitle %}
+  {{ title(messages("enterPsaId.title", form.errors) }}
+{% endblock %}
+
+{% block mainContent %}
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+
+        {% if form.errors.length > 0 %}
+          {{ govukErrorSummary({
+            "titleText": messages("error.summary.title"),
+            "errorList": form.errors
+          }) }}
+        {% endif %}
+
+
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
+
+          {{ csrf() | safe }}
+
+        <h1 class="govuk-heading-xl">
+          {{ messages("enterPsaId.title") }}
+        </h1>
+        <p class="govuk-body">
+            {{ messages("enterPsaId.p1") }}
+        </p>
+
+        {{ govukInput({
+                    label: {
+                      isPageHeading: false,
+                      classes: "govuk-label--s"
+                    },
+                    id: "psaId",
+                    name: "psaId",
+                    value: form.name.value,
+                    classes: "govuk-input--width-20",
+                    attributes: {autocomplete: "off"},
+                    errorMessage: form.name.error
+                  }) }}
+
+          {{ govukButton({
+            text: messages("site.continue"),
+            attributes: {id: "submit"}
+          }) }}
+
+        </form>
+
+      </div>
+    </div>
+
+    <a href="{{ viewModel.returnUrl }}" class="govuk-link">{{ messages("return.to.link", viewModel.schemeName) }}</a>
+
+{% endblock %}
