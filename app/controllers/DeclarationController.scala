@@ -92,8 +92,14 @@ class DeclarationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
+        val submittedBy = (request.psaId, request.pspId) match {
+          case (Some(_), None) => "PSA"
+          case (None, Some(_)) => "PSP"
+          case _ => throw IdNotFound()
+        }
+        val declaration = Declaration(submittedBy, request.idOrException, hasAgreed = true)
         for {
-          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.idOrException, hasAgreed = true)))
+          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           //_ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)

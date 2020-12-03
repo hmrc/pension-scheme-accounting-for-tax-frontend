@@ -133,28 +133,33 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     //  jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     //}
     //
-    //"Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSA" in {
-    //  mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
-    //
-    //  when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
-    //  when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
-    //  when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
-    //  when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
-    //
-    //  val result = route(application, httpGETRequest(httpPathOnSubmit)).value
-    //
-    //  status(result) mustEqual SEE_OTHER
-    //
-    //  verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
-    //  verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
-    //  verify(mockEmailConnector, times(1)).sendEmail(
-    //    any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
-    //
-    //  redirectLocation(result) mustBe Some(dummyCall.url)
-    //  journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
-    //  templateCaptor.getValue mustEqual fileAFTReturnTemplateId
-    //  emailParamsCaptor.getValue mustEqual emailParams()
-    //}
+    "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSA" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
+      val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      uaCaptor.getValue.get(DeclarationPage) mustBe Some(Declaration(
+        submittedBy = "PSA",
+        submittedID = psaId,
+        hasAgreed = true
+      ))
+      //verify(mockEmailConnector, times(1)).sendEmail(
+      //  any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+      //journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
+      //templateCaptor.getValue mustEqual fileAFTReturnTemplateId
+      //emailParamsCaptor.getValue mustEqual emailParams()
+    }
 
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSP" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
