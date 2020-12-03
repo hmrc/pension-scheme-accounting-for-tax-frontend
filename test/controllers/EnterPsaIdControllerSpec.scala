@@ -71,11 +71,10 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
 
-  private val jsonToTemplate: Form[ChargeType] => JsObject = form => Json.obj(
+  private val jsonToTemplate: Form[String] => JsObject = form => Json.obj(
     fields = "form" -> form,
-    "radios" -> ChargeType.radios(form),
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, version).url,
+      submitUrl = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName)
   )
@@ -88,7 +87,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
   }
 
-  "ChargeType Controller" when {
+  "EnterPsaId Controller" when {
     "on a GET" must {
 
       "return OK with the correct view and call the aft service" in {
@@ -176,9 +175,9 @@ object EnterPsaIdControllerSpec {
 
   private def form = new EnterPsaIdFormProvider()()
 
-  private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(NormalMode, srn, startDate, accessType, version).url
+  private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, version).url
+  private def httpPathPOST: String = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq("A1111111")

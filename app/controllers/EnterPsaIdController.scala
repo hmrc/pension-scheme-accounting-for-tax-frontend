@@ -59,6 +59,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
+
       DataRetrievals.retrieveSchemeName{ schemeName =>
         val preparedForm = request.userAnswers.get(EnterPsaIdPage) match {
           case Some(value) => form.fill(value)
