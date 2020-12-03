@@ -96,7 +96,7 @@ class DeclarationController @Inject()(
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.idOrException, hasAgreed = true)))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
-          _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
+          //_ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }

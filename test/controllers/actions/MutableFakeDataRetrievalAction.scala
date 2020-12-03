@@ -58,8 +58,11 @@ class MutableFakeDataRetrievalAction extends DataRetrievalAction {
 class MutableFakeDataRetrieval(sessionData: SessionData = MutableFakeDataRetrieval.sessionDataViewOnly, dataToReturn: Option[UserAnswers])
     extends DataRetrieval {
 
-  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    Future(OptionalDataRequest(request.request, s"srn-startDt-id", Some(request.psaIdOrException), None, dataToReturn, Some(sessionData)))
+  override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = {
+println( "\n>>req1>" + request.psaId)
+println( "\n>>req2>" + request.pspId)
+    Future(OptionalDataRequest(request.request, s"srn-startDt-id", request.psaId, request.pspId, dataToReturn, Some(sessionData)))
+  }
 
   override protected implicit val executionContext: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
