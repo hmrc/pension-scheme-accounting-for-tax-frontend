@@ -20,8 +20,10 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
+import config.FrontendAppConfig
+import connectors.cache.UserAnswersCacheConnector
 import connectors.{EmailConnector, EmailSent}
-import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
+import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -31,6 +33,7 @@ import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
 import models.{AccessMode, GenericViewModel, Quarter, SessionAccessData, UserAnswers}
+import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers, Mockito}
@@ -43,6 +46,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
 
@@ -55,11 +59,27 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
   private val mockEmailConnector = mock[EmailConnector]
   private val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AFTService].toInstance(mockAFTService),
+    bind[IdentifierAction].to[FakeIdentifierAction],
     bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction),
     bind[EmailConnector].toInstance(mockEmailConnector)
   )
+  override def modules: Seq[GuiceableModule] = Seq(
+    bind[DataRequiredAction].to[DataRequiredActionImpl],
+    bind[NunjucksRenderer].toInstance(mockRenderer),
+    bind[FrontendAppConfig].toInstance(mockAppConfig),
+    bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator),
+    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
+  )
+  private val extraModulesPsp: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[AFTService].toInstance(mockAFTService),
+    bind[AllowSubmissionAction].toInstance(new FakeAllowSubmissionAction),
+    bind[EmailConnector].toInstance(mockEmailConnector),
+    bind[IdentifierAction].to[FakeIdentifierActionPSP]
+  )
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  private val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
   private val templateToBeRendered = "declaration.njk"
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
@@ -108,7 +128,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       jsonCaptor.getValue must containJson(jsonToPassToTemplate)
     }
 
-    "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration" in {
+    "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSA" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
 
       when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
@@ -117,6 +137,29 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
       when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 
       val result = route(application, httpGETRequest(httpPathOnSubmit)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      verify(mockAFTService, times(1)).fileSubmitReturn(any(), any())(any(), any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(
+        any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+
+      redirectLocation(result) mustBe Some(dummyCall.url)
+      journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
+      templateCaptor.getValue mustEqual fileAFTReturnTemplateId
+      emailParamsCaptor.getValue mustEqual emailParams()
+    }
+
+    "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSP" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
+
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
+      when(mockAFTService.fileSubmitReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
+
+      val result = route(applicationPsp, httpGETRequest(httpPathOnSubmit)).value
 
       status(result) mustEqual SEE_OTHER
 
