@@ -144,8 +144,8 @@ class AFTPartialService @Inject()(
   private def multipleReturnSubHeading(inProgressReturns: Seq[AFTOverview])
                                       (implicit messages: Messages): JsObject =
     Json.obj(
-      "h3" -> msg"pspDashboardAftReturnsPartial.h3.multiple".withArgs(inProgressReturns.size.toString).resolve,
-      "span" -> msg"pspDashboardAftReturnsPartial.span.multiple".resolve
+      "h3" -> msg"pspDashboardAftReturnsCard.h3.multiple".withArgs(inProgressReturns.size.toString).resolve,
+      "span" -> msg"pspDashboardAftReturnsCard.span.multiple".resolve
     )
 
   private def singleReturnSubHeading(
@@ -166,17 +166,17 @@ class AFTPartialService @Inject()(
     val h3: String =
       if (lockDetail.nonEmpty) {
         if (lockDetail.get.psaOrPspId == authorisingPsaId) {
-          msg"pspDashboardAftReturnsPartial.h3.single.lockedBy".withArgs(lockDetail.get.name).resolve
+          msg"pspDashboardAftReturnsCard.h3.single.lockedBy".withArgs(lockDetail.get.name).resolve
         } else {
-          msg"pspDashboardAftReturnsPartial.h3.single.locked".resolve
+          msg"pspDashboardAftReturnsCard.h3.single.locked".resolve
         }
       } else {
-        msg"pspDashboardAftReturnsPartial.h3.single".resolve
+        msg"pspDashboardAftReturnsCard.h3.single".resolve
       }
 
     Json.obj(
       "h3" -> h3,
-      "span" -> msg"pspDashboardAftReturnsPartial.span.single".withArgs(startDateStr, endDate)
+      "span" -> msg"pspDashboardAftReturnsCard.span.single".withArgs(startDateStr, endDate)
     )
   }
 
@@ -386,7 +386,7 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked",
+          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link.single.locked",
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
             startDate.format(dateFormatterStartDate),
             endDate.format(dateFormatterDMY)
@@ -396,7 +396,7 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "aftSummaryLink",
           url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link.single",
+          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link.single",
           hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(
             startDate.format(dateFormatterStartDate),
             endDate.format(dateFormatterDMY)
@@ -422,7 +422,7 @@ class AFTPartialService @Inject()(
         Some(Link(
           id = "aftContinueInProgressLink",
           url = appConfig.aftContinueReturnUrl.format(srn),
-          linkText = msg"pspDashboardAftReturnsPartial.inProgressReturns.link",
+          linkText = msg"pspDashboardAftReturnsCard.inProgressReturns.link",
           hiddenText = Some(msg"aftPartial.view.hidden")
         ))
       } else {

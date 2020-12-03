@@ -163,7 +163,7 @@ class AFTPartialServiceSpec
           locked = false,
           h3 = "In progress",
           span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single"
+          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single"
         )
       }
     }
@@ -181,7 +181,7 @@ class AFTPartialServiceSpec
           locked = true,
           h3 = "Locked by test-name",
           span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked"
+          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"
         )
       }
     }
@@ -383,7 +383,7 @@ object AFTPartialServiceSpec {
         "span" -> "AFT returns:"
       )),
       links = Seq(
-        multipleInProgressModel(3, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        multipleInProgressModel(3, "pspDashboardAftReturnsCard.inProgressReturns.link"),
         startModel,
         pastReturnsModel
       ).map(_.link)
@@ -414,7 +414,7 @@ object AFTPartialServiceSpec {
         "span" -> "AFT returns:"
       )),
       links = Seq(
-        multipleInProgressModel(2, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        multipleInProgressModel(2, "pspDashboardAftReturnsCard.inProgressReturns.link"),
         startModel
       ).map(_.link)
     )

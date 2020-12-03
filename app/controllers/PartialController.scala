@@ -19,6 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, SchemeDetailsConnector}
 import controllers.actions._
+
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -30,6 +31,7 @@ import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class PartialController @Inject()(
@@ -68,8 +70,7 @@ class PartialController @Inject()(
       financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
         val futureHtml = if (schemeFs.isEmpty) {
           Future.successful(Html(""))
-        }
-        else {
+        } else {
           renderer.render(
             template = "partials/paymentsAndCharges.njk",
             Json.obj("redirectUrl" -> config.paymentsAndChargesUrl.format(srn, "2020"))
@@ -84,14 +85,13 @@ class PartialController @Inject()(
     implicit request =>
       val idNumber = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
-      val pspId = request.headers.get("psaId")
       val authorisingPsaId = request.headers.get("authorisingPsaId")
 
-      (idNumber, schemeIdType, pspId, authorisingPsaId) match {
-        case (Some(srn), Some(idType), Some(userNumber), Some(psaId)) =>
+      (idNumber, schemeIdType, authorisingPsaId) match {
+        case (Some(srn), Some(idType), Some(psaId)) =>
           aftPartialService.retrievePspDashboardAftReturnsModel(
             srn = srn,
-            pspId = userNumber,
+            pspId = request.idOrException,
             schemeIdType = idType,
             authorisingPsaId = psaId
           ) flatMap {
@@ -105,6 +105,41 @@ class PartialController @Inject()(
         case _ =>
           Future.failed(
             new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType, psaId or authorisingPsaId")
+          )
+      }
+  }
+
+  def pspDashboardUpcomingAftChargesPartial(): Action[AnyContent] = identify.async {
+    implicit request =>
+      val idNumber = request.headers.get("idNumber")
+
+      idNumber match {
+        case Some(srn) =>
+          schemeService.retrieveSchemeDetails(
+            psaId = request.idOrException,
+            srn = srn,
+            schemeIdType = "srn"
+          ) flatMap { schemeDetails =>
+            financialStatementConnector.getSchemeFS(
+              pstr = schemeDetails.pstr
+            ).flatMap { schemeFs =>
+              if (schemeFs.isEmpty) {
+                Future.successful(Ok(Html("")))
+              } else {
+                println(s"\n\n\t${Json.prettyPrint(Json.toJson(
+                  schemeFs
+                    .filter(p => p.dueDate.nonEmpty && p.dueDate.get.isBefore(LocalDate.now()))
+                ))}\n\n")
+                renderer.render(
+                  template = "partials/pspDashboardUpcomingAftChargesCard.njk",
+                  Json.obj("upcomingCharges" -> Json.toJson(schemeFs))
+                ).map(Ok(_))
+              }
+            }
+          }
+        case _ =>
+          Future.failed(
+            new BadRequestException("Bad Request with missing parameters idNumber")
           )
       }
   }

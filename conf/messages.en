@@ -1030,16 +1030,18 @@ aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
 
-pspDashboardAftReturnsPartial.h1 = Accounting for Tax returns
-pspDashboardAftReturnsPartial.span.single = AFT return {0} to {1}:
-pspDashboardAftReturnsPartial.h3.single = In progress
-pspDashboardAftReturnsPartial.h3.single.locked = Locked
-pspDashboardAftReturnsPartial.h3.single.lockedBy = Locked by {0}
-pspDashboardAftReturnsPartial.span.multiple = AFT returns:
-pspDashboardAftReturnsPartial.h3.multiple = {0} in progress
-pspDashboardAftReturnsPartial.inProgressReturns.link = View AFT returns in progress
-pspDashboardAftReturnsPartial.inProgressReturns.link.single = View AFT return in progress
-pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked = View locked AFT return
+pspDashboardAftReturnsCard.h2 = Accounting for Tax returns
+pspDashboardAftReturnsCard.span.single = AFT return {0} to {1}:
+pspDashboardAftReturnsCard.h3.single = In progress
+pspDashboardAftReturnsCard.h3.single.locked = Locked
+pspDashboardAftReturnsCard.h3.single.lockedBy = Locked by {0}
+pspDashboardAftReturnsCard.span.multiple = AFT returns:
+pspDashboardAftReturnsCard.h3.multiple = {0} in progress
+pspDashboardAftReturnsCard.inProgressReturns.link = View AFT returns in progress
+pspDashboardAftReturnsCard.inProgressReturns.link.single = View AFT return in progress
+pspDashboardAftReturnsCard.inProgressReturns.link.single.locked = View locked AFT return
+
+pspDashboardUpcomingAftChargesCard.h2 = Upcoming AFT charges
 
 
 penaltiesPartial.linkText = View your penalties for 2020

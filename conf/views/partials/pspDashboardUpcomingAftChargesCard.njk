@@ -1,14 +1,9 @@
 <div class="card" id="aft-returns">
     <div class="card-body">
         <h2 class="card-heading heading-small">
-            {{ messages("pspDashboardAftReturnsCard.h2") }}
+            {{ messages("pspDashboardUpcomingAftChargesCard.h2") }}
         </h2>
-        {% if aft.subHeading %}
-            <h3 class="card-sub-heading bold">
-                <span class="font-xsmall">{{ aft.subHeading.span }}</span>
-                {{ aft.subHeading.h3 }}
-            </h3>
-        {% endif %}
+        {{ upcomingCharges }}
     </div>
     <div class="card-action">
         <ul>
