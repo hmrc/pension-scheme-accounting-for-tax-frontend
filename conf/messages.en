@@ -1118,3 +1118,6 @@ selectScheme.error = Select a pension scheme
 
 enterPsaId.title = What is the pension scheme administrator’s ID?
 enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme
+enterPsaId.error.required = Enter the pension scheme administrator’s ID
+enterPsaId.error.invalid = Enter a pension scheme administrator ID using the letter A followed by 7 numbers
+enterPsaId.error.noMatch = Enter the correct pension scheme administrator ID

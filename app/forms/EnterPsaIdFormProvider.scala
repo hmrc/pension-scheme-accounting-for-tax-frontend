@@ -16,27 +16,18 @@
 
 package forms
 
-import forms.mappings.{Constraints, Mappings}
+import forms.mappings.Constraints
+import forms.mappings.Mappings
 import javax.inject.Inject
-import models.MemberDetails
 import play.api.data.Form
-import play.api.data.Forms._
 
-class MemberDetailsFormProvider @Inject() extends Mappings with Constraints {
+class EnterPsaIdFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(): Form[MemberDetails] = Form(
-    mapping(
-      "firstName" -> text("memberDetails.error.firstName.required")
-        .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.firstName.length"))
-        .verifying(regexp(nameRegex, "memberDetails.error.firstName.invalid")),
-      "lastName" -> text("memberDetails.error.lastName.required")
-        .verifying(maxLength(MemberDetailsFormProvider.maxLength, "memberDetails.error.lastName.length"))
-        .verifying(regexp(nameRegex, "memberDetails.error.lastName.invalid")),
-      "nino" -> text("memberDetails.error.nino.required")
-        .transform(noSpaceWithUpperCaseTransform, noTransform).
-        verifying(validNino("memberDetails.error.nino.invalid"))
-    )(MemberDetails.applyDelete)(MemberDetails.unapplyDelete)
-  )
+  def apply(): Form[String] =
+    Form(
+      "value" ->  text("enterPsaId.error.required")
+        .verifying(regexp(psaIdRegex, "enterPsaId.error.invalid"))
+    )
 }
 
 

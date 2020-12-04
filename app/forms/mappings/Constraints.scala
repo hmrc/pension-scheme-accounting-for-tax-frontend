@@ -22,11 +22,14 @@ import play.api.data.validation.{Constraint, Invalid, Valid}
 import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
+import scala.util.matching.Regex
+
 trait Constraints {
   private val regexPostcode = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
   private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
+  val psaIdRegex = "^A[0-9]{7}$"
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {

@@ -18,30 +18,24 @@ package controllers
 
 import java.time.LocalDate
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.DataRetrievals
 import controllers.actions._
-import forms.chargeC.ChargeDetailsFormProvider
+import forms.EnterPsaIdFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode, Quarters, SessionData}
-import models.chargeC.ChargeCDetails
+import models.AccessType
+import models.GenericViewModel
+import models.Mode
 import navigators.CompoundNavigator
 import pages.EnterPsaIdPage
-import pages.chargeC.ChargeCDetailsPage
-import play.api.data.Form
 import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
-import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.DateInput
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.ExecutionContext
@@ -49,7 +43,6 @@ import scala.concurrent.Future
 
 class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
-                                        userAnswersService: UserAnswersService,
                                         navigator: CompoundNavigator,
                                         identify: IdentifierAction,
                                         getData: DataRetrievalAction,
@@ -57,33 +50,23 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                                         requireData: DataRequiredAction,
                                         formProvider: EnterPsaIdFormProvider,
                                         val controllerComponents: MessagesControllerComponents,
-                                        config: FrontendAppConfig,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(minimumChargeValue:BigDecimal, startDate: LocalDate)(implicit messages: Messages): Form[ChargeCDetails] = {
-    val endDate = Quarters.getQuarter(startDate).endDate
-    formProvider(
-      startDate,
-      endDate,
-      minimumChargeValue
-    )
-  }
+  private val form = formProvider()
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-
-
+      DataRetrievals.retrieveSchemeName{ schemeName =>
         val preparedForm = request.userAnswers.get(EnterPsaIdPage) match {
           case Some(value) => form.fill(value)
           case None        => form
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPsaIdController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+          submitUrl = routes.EnterPsaIdController.onSubmit(mode, srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -99,10 +82,9 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =
+  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
-      DataRetrievals.retrieveSchemeAndSponsoringEmployer(index) { (schemeName, sponsorName) =>
-
+      DataRetrievals.retrieveSchemeName{ schemeName =>
 
         form
           .bindFromRequest()
@@ -110,7 +92,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.enterPsaIdController.onSubmit(mode, srn, startDate, accessType, version, index).url,
+                submitUrl = routes.EnterPsaIdController.onSubmit(mode, srn, startDate, accessType, version).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -126,9 +108,9 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
             },
             value =>
               for {
-                updatedAnswers <- Future.fromTry(userAnswersService.set(EnterPsaIdPage, value))
+                updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPsaIdPage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ChargeCDetailsPage(index), mode, updatedAnswers, srn, startDate, accessType, version))
+              } yield Redirect(navigator.nextPage(EnterPsaIdPage, mode, updatedAnswers, srn, startDate, accessType, version))
           )
       }
     }

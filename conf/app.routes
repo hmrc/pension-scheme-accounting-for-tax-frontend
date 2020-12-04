@@ -203,6 +203,7 @@ GET         /:srn/:startDate/:accessType/:version/want-to-submit                
 POST        /:srn/:startDate/:accessType/:version/want-to-submit                                                                                     controllers.amend.ConfirmSubmitAFTAmendmentController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /:srn/:startDate/:accessType/:version/declaration                                                                                        controllers.DeclarationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
+
 GET         /:srn/:startDate/:accessType/:version/declaration/on-submit-declaration                                                                  controllers.DeclarationController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
 
 GET         /:srn/:startDate/:accessType/:version/confirmation                                                                                       controllers.ConfirmationController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
@@ -253,3 +254,9 @@ GET         /psp-dashboard-aft-cards                                            
 GET         /:srn/:year/payments-and-charges                                                                                                         controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
 GET         /:srn/payments-and-charges/:startDate/:index/charge-details                                                                              controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, index: String)
 GET         /:srn/payments-and-charges/:startDate/:index/interest/charge-details                                                                     controllers.paymentsAndCharges.PaymentsAndChargesInterestController.onPageLoad(srn: String, startDate: String, index: String)
+
+GET         /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onPageLoad(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int)
+GET         /:srn/:startDate/:accessType/:version/change/enter-psa-id                                                                                controllers.EnterPsaIdController.onPageLoad(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int)
+
+POST        /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onSubmit(mode: Mode = NormalMode, srn: String, startDate: String, accessType: AccessType, version: Int)
+POST        /:srn/:startDate/:accessType/:version/change/enter-psa-id                                                                                controllers.EnterPsaIdController.onSubmit(mode: Mode = CheckMode, srn: String, startDate: String, accessType: AccessType, version: Int)
