@@ -52,7 +52,7 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
 
   def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>
-      fsConnector.getPsaFS(request.psaId.id).flatMap {
+      fsConnector.getPsaFS(request.psaIdOrException.id).flatMap {
         psaFS =>
           val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
           fiCacheConnector.fetch flatMap {
@@ -72,7 +72,11 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
 
                     if (filteredPsaFS.nonEmpty) {
                       if (identifier.matches(srnRegex)) {
-                        schemeService.retrieveSchemeDetails(psaId = request.psaId.id, srn = identifier).flatMap {
+                        schemeService.retrieveSchemeDetails(
+                          psaId = request.idOrException,
+                          srn = identifier,
+                          schemeIdType = "srn"
+                        ) flatMap {
                           schemeDetails =>
                             val json = Json.obj(
                               "schemeAssociated" -> true,

@@ -68,7 +68,11 @@ class ChargeTypeController @Inject()(
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen updateData(srn, startDate, version, accessType, optionCurrentPage = Some(ChargeTypePage)) andThen
       requireData andThen allowAccess(srn, startDate, optionPage = Some(ChargeTypePage), version, accessType)).async { implicit request =>
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap { schemeDetails =>
         val preparedForm = request.userAnswers.get(ChargeTypePage).fold(form)(form.fill)
         val json = Json.obj(
           fields = "srn" -> srn,

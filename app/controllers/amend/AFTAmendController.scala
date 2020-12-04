@@ -48,7 +48,11 @@ class AFTAmendController @Inject()(
     with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
         val futureResult = if (aftOverview.nonEmpty) {
           val yearsSeq = aftOverview.map(_.periodStartDate.getYear).distinct.sorted
@@ -74,7 +78,7 @@ class AFTAmendController @Inject()(
         }
 
         futureResult.map { result =>
-          auditService.sendEvent(StartAmendAFTAuditEvent(request.psaId.id, schemeDetails.pstr))
+          auditService.sendEvent(StartAmendAFTAuditEvent(request.idOrException, schemeDetails.pstr))
           result
         }
       }

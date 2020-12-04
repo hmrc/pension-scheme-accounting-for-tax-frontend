@@ -35,17 +35,17 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.{ExecutionContext, Future}
 
 class ContinueQuartersController @Inject()(
-                                         override val messagesApi: MessagesApi,
-                                         identify: IdentifierAction,
-                                         formProvider: QuartersFormProvider,
-                                         val controllerComponents: MessagesControllerComponents,
-                                         renderer: Renderer,
-                                         config: FrontendAppConfig,
-                                         quartersService: QuartersService,
-                                         schemeService: SchemeService,
-                                         aftConnector: AFTConnector
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                            override val messagesApi: MessagesApi,
+                                            identify: IdentifierAction,
+                                            formProvider: QuartersFormProvider,
+                                            val controllerComponents: MessagesControllerComponents,
+                                            renderer: Renderer,
+                                            config: FrontendAppConfig,
+                                            quartersService: QuartersService,
+                                            schemeService: SchemeService,
+                                            aftConnector: AFTConnector
+                                          )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -53,7 +53,11 @@ class ContinueQuartersController @Inject()(
     formProvider(messages("continueQuarters.error.required"), quarters)
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
         if (displayQuarters.nonEmpty) {
 
@@ -76,18 +80,21 @@ class ContinueQuartersController @Inject()(
   }
 
   def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
-    aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
-      quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
-        if (displayQuarters.nonEmpty) {
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
+      aftConnector.getAftOverview(schemeDetails.pstr).flatMap { aftOverview =>
+        quartersService.getInProgressQuarters(srn, schemeDetails.pstr).flatMap { displayQuarters =>
+          if (displayQuarters.nonEmpty) {
 
-          val quarters = displayQuarters.map(_.quarter)
+            val quarters = displayQuarters.map(_.quarter)
 
-          form(quarters)
-            .bindFromRequest()
-            .fold(
-              formWithErrors => {
-                schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+            form(quarters)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
                   val json = Json.obj(
                     fields = "srn" -> srn,
                     "startDate" -> None,
@@ -96,24 +103,23 @@ class ContinueQuartersController @Inject()(
                     "viewModel" -> viewModel(srn, schemeDetails.schemeName)
                   )
                   renderer.render(template = "amend/continueQuarters.njk", json).map(BadRequest(_))
+                },
+                value => {
+                  val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
+                  if (!aftOverviewElement.submittedVersionAvailable) {
+                    Future.successful(
+                      Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version = 1)))
+                  } else {
+                    Future.successful(
+                      Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                  }
                 }
-              },
-              value => {
-                val aftOverviewElement = aftOverview.find(_.periodStartDate == value.startDate).getOrElse(throw InvalidValueSelected)
-                if (!aftOverviewElement.submittedVersionAvailable) {
-                  Future.successful(
-                    Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, value.startDate, Draft, version = 1)))
-                } else {
-                  Future.successful(
-                    Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
-                }
-              }
-            )
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+              )
+          } else {
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
         }
       }
-    }
     }
   }
 
@@ -125,4 +131,5 @@ class ContinueQuartersController @Inject()(
     )
 
   case object InvalidValueSelected extends Exception("The selected quarter did not match any quarters in the list of options")
+
 }

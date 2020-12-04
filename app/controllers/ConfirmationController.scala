@@ -74,7 +74,11 @@ class ConfirmationController @Inject()(
 
   private def checkIfFinancialInfoLinkDisplayable(srn:String, year:Int)(implicit request: DataRequest[AnyContent]):Future[Boolean] = {
     if (config.isFSEnabled) {
-      schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap { schemeDetails =>
         fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate.getYear == year))
       } recover { case e => Logger.error("Exception (not rendered to user) when checking for financial information", e)
         false

@@ -1,0 +1,22 @@
+<div class="card" id="aft-returns">
+    <div class="card-body">
+        <h2 class="card-heading heading-small">
+            {{ messages("pspDashboardAftReturnsPartial.h1") }}
+        </h2>
+        {% if aft.subHeading %}
+            <h3 class="card-sub-heading bold">
+                <span class="font-xsmall">{{ aft.subHeading.span }}</span>
+                {{ aft.subHeading.h3 }}
+            </h3>
+        {% endif %}
+    </div>
+    <div class="card-action">
+        <ul>
+            {% for link in aft.links %}
+                <li>
+                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

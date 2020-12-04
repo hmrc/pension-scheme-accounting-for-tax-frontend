@@ -21,19 +21,14 @@ import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
-import models.{AccessType, UserAnswers}
-import models.requests.IdentifierRequest
-import models.requests.OptionalDataRequest
-import pages.Page
+import models.UserAnswers
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.libs.json.JsObject
-import play.api.mvc.{ActionTransformer, Request}
-import services.RequestCreationService
-import uk.gov.hmrc.domain.PsaId
+import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class DataRetrievalImpl(
                          srn: String,
@@ -50,7 +45,7 @@ class DataRetrievalImpl(
       sessionData <- userAnswersCacheConnector.getSessionData(id)
     } yield {
       val optionUA = data.map(jsValue => UserAnswers(jsValue.as[JsObject]))
-      OptionalDataRequest[A](request, id, request.psaId, optionUA, sessionData)
+      OptionalDataRequest[A](request, id, request.psaId, request.pspId, optionUA, sessionData)
     }
   }
 

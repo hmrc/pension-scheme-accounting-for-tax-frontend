@@ -35,7 +35,7 @@ import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTPartialService, SchemeService}
-import services.AFTPartialServiceSpec.allTypesMultipleReturnsModel
+import services.AFTPartialServiceSpec._
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Await
@@ -43,7 +43,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 class PartialControllerSpec
-    extends ControllerSpecBase
+  extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach
@@ -51,8 +51,12 @@ class PartialControllerSpec
     with Results
     with ScalaFutures {
 
-  private def httpPathGET: String = controllers.routes.PartialController.aftPartial(srn).url
-  private def httpPathPaymentsAndCharges: String = controllers.routes.PartialController.paymentsAndChargesPartial(srn).url
+  private def aftPartial: String = controllers.routes.PartialController.aftPartial(srn).url
+
+  private def paymentsAndChargesPartial: String = controllers.routes.PartialController.paymentsAndChargesPartial(srn).url
+
+  private def pspDashboardAftReturnsPartial: String = controllers.routes.PartialController.pspDashboardAftReturnsPartial().url
+
   private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -64,65 +68,104 @@ class PartialControllerSpec
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateToBeRendered = "partials/overview.njk"
-  private val templateToBeRenderedForPaymentsAndCharges = "partials/paymentsAndCharges.njk"
-  private val jsonToPassToTemplate: JsObject = Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
-  private val jsonToPassToTemplatePaymentsAndCharges: JsObject =
+  private val aftPartialJson: JsObject =
+    Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
+  private val paymentsAndChargesPartialJson: JsObject =
     Json.obj("redirectUrl" -> dummyCall.url)
+  private val pspDashboardAftReturnsPartialJson: JsObject =
+    Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockAftPartialService, mockRenderer)
-    when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
-      .thenReturn(Future.successful(allTypesMultipleReturnsModel))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.paymentsAndChargesUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(schemeDetails))
+    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+      .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
   "Partial Controller" when {
-    "on a GET" must {
+    "aftPartial" must {
 
       "return the html with information received from overview api" in {
-        when(mockAftPartialService.retrieveOptionAFTViewModel(any(), any())(any(), any()))
-          .thenReturn(Future.successful(allTypesMultipleReturnsModel))
-        val result = route(application, httpGETRequest(httpPathGET)).value
+        when(
+          mockAftPartialService.retrieveOptionAFTViewModel(
+            srn = any(),
+            psaId = any(),
+            schemeIdType = any()
+          )(any(), any())
+        ).thenReturn(Future.successful(allTypesMultipleReturnsModel))
+
+        val result = route(application, httpGETRequest(aftPartial)).value
 
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        templateCaptor.getValue mustEqual templateToBeRendered
+        templateCaptor.getValue mustEqual "partials/overview.njk"
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+        jsonCaptor.getValue must containJson(aftPartialJson)
       }
     }
 
     "paymentsAndChargesPartial" must {
 
       "return the html with the information from payments and charges partial" in {
-        val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
+        val result = route(application, httpGETRequest(paymentsAndChargesPartial)).value
 
         status(result) mustEqual OK
 
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-        templateCaptor.getValue mustEqual templateToBeRenderedForPaymentsAndCharges
+        templateCaptor.getValue mustEqual "partials/paymentsAndCharges.njk"
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplatePaymentsAndCharges)
+        jsonCaptor.getValue must containJson(paymentsAndChargesPartialJson)
       }
 
       "not render the fin info section when there are no payments or charges" in {
         when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
-        val result = route(application, httpGETRequest(httpPathPaymentsAndCharges)).value
+        val result = route(application, httpGETRequest(paymentsAndChargesPartial)).value
 
         status(result) mustEqual OK
         verify(mockRenderer, times(0)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
       }
     }
 
+    "pspDashboardAftReturnsPartial" must {
+      "return the html with the information for AFT returns" in {
+
+        when(
+          mockAftPartialService.retrievePspDashboardAftReturnsModel(
+            srn = any(),
+            pspId = any(),
+            schemeIdType = any(),
+            authorisingPsaId = any()
+          )(any(), any())
+        ).thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
+
+        val result = route(
+          app = application,
+          req = httpGETRequest(pspDashboardAftReturnsPartial)
+            .withHeaders(
+              "idNumber" -> SampleData.srn,
+              "schemeIdType" -> "srn",
+              "psaId" -> SampleData.pspId,
+              "authorisingPsaId" -> SampleData.psaId
+            )
+        ).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual "partials/pspDashboardAftReturnsCard.njk"
+
+        jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
+      }
+    }
   }
 }

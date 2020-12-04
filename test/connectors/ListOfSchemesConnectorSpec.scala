@@ -26,7 +26,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar.mock
+import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatest.AsyncWordSpec
 import org.scalatest.MustMatchers
 import org.scalatest.OptionValues

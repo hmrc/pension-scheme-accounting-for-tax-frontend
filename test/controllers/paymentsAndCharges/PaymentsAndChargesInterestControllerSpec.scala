@@ -72,7 +72,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     super.beforeEach
     reset(mockSchemeService, mockFSConnector, mockRenderer)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 

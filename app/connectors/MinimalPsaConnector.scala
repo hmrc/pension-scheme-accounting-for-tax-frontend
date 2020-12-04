@@ -18,12 +18,14 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.requests.IdentifierRequest
 import play.api.libs.json._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import utils.HttpResponseHelper
 import play.api.http.Status._
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
@@ -31,14 +33,22 @@ class MinimalPsaConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
   import MinimalPsaConnector._
 
-  def getMinimalPsaDetails(psaId: String)
-                          (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[MinimalPSA] = {
+  def getMinimalPsaDetails[A](
+                               implicit hc: HeaderCarrier,
+                               ec: ExecutionContext,
+                               request: IdentifierRequest[A]
+                             ): Future[MinimalPSA] = {
 
-    val psaHc = hc.withExtraHeaders("psaId" -> psaId)
+    val hcWithId: HeaderCarrier =
+      (request.psaId, request.pspId) match {
+        case (Some(psa), _) => hc.withExtraHeaders("psaId" -> psa.id)
+        case (_, Some(psp)) => hc.withExtraHeaders("pspId" -> psp.id)
+        case _ => throw new Exception("Could not retrieve ID from request")
+      }
 
     val url = config.minimalPsaDetailsUrl
 
-    http.GET[HttpResponse](url)(implicitly, psaHc, implicitly) map {
+    http.GET[HttpResponse](url)(implicitly, hcWithId, implicitly) map {
       response =>
         response.status match {
           case OK =>
@@ -85,4 +95,5 @@ object MinimalPsaConnector {
   object IndividualDetails {
     implicit val format: Format[IndividualDetails] = Json.format[IndividualDetails]
   }
+
 }

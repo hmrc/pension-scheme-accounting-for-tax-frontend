@@ -26,47 +26,86 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.{AFTPartialService, SchemeService}
+import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class PartialController @Inject()(
-                                    identify: IdentifierAction,
-                                    override val messagesApi: MessagesApi,
-                                    val controllerComponents: MessagesControllerComponents,
-                                    schemeService: SchemeService,
-                                    financialStatementConnector: FinancialStatementConnector,
-                                    aftPartialService: AFTPartialService,
-                                    renderer: Renderer,
-                                    config: FrontendAppConfig
-                                  )(implicit ec: ExecutionContext)
+                                   identify: IdentifierAction,
+                                   override val messagesApi: MessagesApi,
+                                   val controllerComponents: MessagesControllerComponents,
+                                   schemeService: SchemeService,
+                                   financialStatementConnector: FinancialStatementConnector,
+                                   aftPartialService: AFTPartialService,
+                                   renderer: Renderer,
+                                   config: FrontendAppConfig
+                                 )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
   def aftPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    aftPartialService.retrieveOptionAFTViewModel(srn, request.psaId.id).flatMap { aftPartial =>
+    aftPartialService.retrieveOptionAFTViewModel(
+      srn = srn,
+      psaId = request.idOrException,
+      schemeIdType = "srn"
+    ) flatMap { aftViewModels =>
       renderer.render(
         template = "partials/overview.njk",
-        ctx = Json.obj("aftModels" -> Json.toJson(aftPartial))).map(Ok(_)
+        ctx = Json.obj("aftModels" -> Json.toJson(aftViewModels))).map(Ok(_)
       )
     }
   }
 
   def paymentsAndChargesPartial(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       financialStatementConnector.getSchemeFS(schemeDetails.pstr).flatMap { schemeFs =>
-        val futureHtml =  if(schemeFs.isEmpty){
-           Future.successful(Html(""))
+        val futureHtml = if (schemeFs.isEmpty) {
+          Future.successful(Html(""))
         }
         else {
-          renderer.render(template = "partials/paymentsAndCharges.njk", Json.obj("redirectUrl" ->
-            config.paymentsAndChargesUrl.format(srn, "2020"))
-         )
+          renderer.render(
+            template = "partials/paymentsAndCharges.njk",
+            Json.obj("redirectUrl" -> config.paymentsAndChargesUrl.format(srn, "2020"))
+          )
         }
         futureHtml.map(Ok(_))
       }
     }
+  }
+
+  def pspDashboardAftReturnsPartial(): Action[AnyContent] = identify.async {
+    implicit request =>
+      val idNumber = request.headers.get("idNumber")
+      val schemeIdType = request.headers.get("schemeIdType")
+      val pspId = request.headers.get("psaId")
+      val authorisingPsaId = request.headers.get("authorisingPsaId")
+
+      (idNumber, schemeIdType, pspId, authorisingPsaId) match {
+        case (Some(srn), Some(idType), Some(userNumber), Some(psaId)) =>
+          aftPartialService.retrievePspDashboardAftReturnsModel(
+            srn = srn,
+            pspId = userNumber,
+            schemeIdType = idType,
+            authorisingPsaId = psaId
+          ) flatMap {
+            viewModel => {
+              renderer.render(
+                template = "partials/pspDashboardAftReturnsCard.njk",
+                ctx = Json.obj("aft" -> Json.toJson(viewModel))
+              ).map(Ok(_))
+            }
+          }
+        case _ =>
+          Future.failed(
+            new BadRequestException("Bad Request with missing parameters idNumber, schemeIdType, psaId or authorisingPsaId")
+          )
+      }
   }
 }
