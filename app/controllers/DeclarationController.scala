@@ -102,7 +102,7 @@ class DeclarationController @Inject()(
           answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
-          //_ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
+          _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
         } yield {
           Redirect(navigator.nextPage(DeclarationPage, NormalMode, request.userAnswers, srn, startDate, accessType, version))
         }
@@ -137,7 +137,7 @@ class DeclarationController @Inject()(
       "AFTReturnSubmitted"
     }
 
-    emailConnector.sendEmail(requestId, PsaId(request.idOrException), journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(requestId, request.idOrException, journeyType, email, templateId, templateParams)
   }
 
   private def templateId(implicit request: DataRequest[_]): String ={

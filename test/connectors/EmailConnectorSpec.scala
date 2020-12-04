@@ -47,7 +47,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
+        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
         }
       }
     }
@@ -61,7 +61,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
 
@@ -72,7 +72,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }

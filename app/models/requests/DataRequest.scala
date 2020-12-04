@@ -52,7 +52,9 @@ case class DataRequest[A] (
   def isLockedByPsa: Boolean = sessionData.lockDetail
     .exists(ld => ld.psaOrPspId.nonEmpty && ld.psaOrPspId.charAt(0).isLetter)
   def idOrException: String =
-    if (psaId.nonEmpty) psaId.get.id
-    else if (pspId.nonEmpty) pspId.get.id
-    else throw IdNotFound()
+    (psaId, pspId) match {
+      case (Some(id), _) => id.id
+      case (_, Some(id)) => id.id
+      case _ => throw IdNotFound()
+    }
 }

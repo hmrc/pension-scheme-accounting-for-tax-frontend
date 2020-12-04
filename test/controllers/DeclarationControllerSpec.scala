@@ -82,7 +82,6 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     bind[IdentifierAction].to[FakeIdentifierActionPSP]
   )
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val mutableFakeDataRetrievalActionPsp: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
   private val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
@@ -152,13 +151,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         submittedID = psaId,
         hasAgreed = true
       ))
-      //verify(mockEmailConnector, times(1)).sendEmail(
-      //  any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(
+        any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-      //journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
-      //templateCaptor.getValue mustEqual fileAFTReturnTemplateId
-      //emailParamsCaptor.getValue mustEqual emailParams()
+      journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
+      templateCaptor.getValue mustEqual fileAFTReturnTemplateId
+      emailParamsCaptor.getValue mustEqual emailParams()
     }
 
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSP" in {
@@ -180,13 +179,13 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         submittedID = pspId,
         hasAgreed = true
       ))
-      //verify(mockEmailConnector, times(1)).sendEmail(
-      //  any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
+      verify(mockEmailConnector, times(1)).sendEmail(
+        any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
-      //journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
-      //templateCaptor.getValue mustEqual fileAFTReturnTemplateId
-      //emailParamsCaptor.getValue mustEqual emailParams()
+      journeyTypeCaptor.getValue mustEqual "AFTReturnSubmitted"
+      templateCaptor.getValue mustEqual fileAFTReturnTemplateId
+      emailParamsCaptor.getValue mustEqual emailParams()
     }
 
     //"Save data to user answers, file amended AFT Return (decreased value), " +
