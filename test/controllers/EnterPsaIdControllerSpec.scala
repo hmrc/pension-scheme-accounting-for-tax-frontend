@@ -91,8 +91,8 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
     "on a GET" must {
 
       "return OK with the correct view and call the aft service" in {
-        fakeDataSetupAction.setDataToReturn(Some(userAnswersWithSchemeName))
-        fakeDataSetupAction.setSessionData(SampleData.sessionData())
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData())
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
