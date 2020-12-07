@@ -1121,3 +1121,9 @@ enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised 
 enterPsaId.error.required = Enter the pension scheme administrator’s ID
 enterPsaId.error.invalid = Enter a pension scheme administrator ID using the letter A followed by 7 numbers
 enterPsaId.error.noMatch = Enter the correct pension scheme administrator ID
+
+pspDeclaration.title = Declaration
+pspDeclaration.heading = Declaration
+pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the
+pspDeclaration.li1 = pension scheme administrator approves the content and authorises you to
+pspDeclaration.li2 = submit this return.

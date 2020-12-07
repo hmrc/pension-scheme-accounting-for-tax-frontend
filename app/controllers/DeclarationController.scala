@@ -28,11 +28,7 @@ import controllers.actions._
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.AccessType
-import models.Declaration
-import models.GenericViewModel
-import models.NormalMode
-import models.Quarter
+import models.{AccessType, Declaration, GenericViewModel, NormalMode, Quarter, UserAnswers}
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
@@ -74,7 +70,6 @@ class DeclarationController @Inject()(
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
-
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
@@ -84,7 +79,12 @@ class DeclarationController @Inject()(
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
-        renderer.render(template = "declaration.njk", Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
+        val template = (request.psaId, request.pspId) match {
+          case (Some(_), None) => "declaration.njk"
+          case (None, Some(_)) => "pspDeclaration.njk"
+          case _ => throw IdNotFound()
+        }
+        renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
     }
 

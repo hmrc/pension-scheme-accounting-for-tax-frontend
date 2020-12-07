@@ -2,11 +2,12 @@
 
 {% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
 {% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "govuk/components/input/macro.njk"         import govukInput %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages("enterPsaId.title", form.errors) }}
+  {{ title(messages("enterPsaId.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -38,12 +39,12 @@
                       isPageHeading: false,
                       classes: "govuk-label--s"
                     },
-                    id: "psaId",
-                    name: "psaId",
-                    value: form.name.value,
+                    id: "value",
+                    name: "value",
+                    value: form.value.value,
                     classes: "govuk-input--width-20",
                     attributes: {autocomplete: "off"},
-                    errorMessage: form.name.error
+                    errorMessage: form.value.error
                   }) }}
 
           {{ govukButton({

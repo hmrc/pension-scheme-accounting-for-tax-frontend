@@ -118,20 +118,34 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$versionNumber") else Map.empty)
 
   "Declaration Controller" must {
-    //"return OK and the correct view for a GET" in {
-    //  mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-    //  val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-    //  val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-    //
-    //  val result = route(application, httpGETRequest(httpPathGET)).value
-    //
-    //  status(result) mustEqual OK
-    //  verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-    //
-    //  templateCaptor.getValue mustEqual templateToBeRendered
-    //  jsonCaptor.getValue must containJson(jsonToPassToTemplate)
-    //}
-    //
+    "return OK and the correct view for a GET" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRendered
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+
+    "return OK and the correct view for a GET for PSP" in {
+      mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(applicationPsp, httpGETRequest(httpPathGET)).value
+
+      status(result) mustEqual OK
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual templateToBeRenderedPsp
+      jsonCaptor.getValue must containJson(jsonToPassToTemplate)
+    }
+
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSA" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
@@ -274,6 +288,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 object DeclarationControllerSpec {
 
   private val templateToBeRendered = "declaration.njk"
+  private val templateToBeRenderedPsp = "pspDeclaration.njk"
   private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
   private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
