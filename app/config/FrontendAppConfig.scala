@@ -91,6 +91,8 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val schemeFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.schemeFinancialStatement")}"
 
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"
+  lazy val pspSchemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.pspSchemeDetails")}"
+
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
