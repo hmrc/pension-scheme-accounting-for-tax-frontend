@@ -38,11 +38,12 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
 
   override protected def routeMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
                                  (implicit request: DataRequest[AnyContent]): PartialFunction[Page, Call] = {
-    case ChargeTypePage             => chargeTypeNavigation(ua, srn, startDate, accessType, version)
-    case AFTSummaryPage             => aftSummaryNavigation(ua, srn, startDate, accessType, version)
-    case ConfirmSubmitAFTReturnPage => confirmSubmitNavigation(ua, srn, startDate, accessType, version)
-    case ConfirmSubmitAFTAmendmentPage => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
-    case DeclarationPage            => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
+    case ChargeTypePage                 => chargeTypeNavigation(ua, srn, startDate, accessType, version)
+    case AFTSummaryPage                 => aftSummaryNavigation(ua, srn, startDate, accessType, version)
+    case ConfirmSubmitAFTReturnPage     => confirmSubmitNavigation(ua, srn, startDate, accessType, version)
+    case ConfirmSubmitAFTAmendmentPage  => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+    case DeclarationPage                => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
+    case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
   }
 
   override protected def editRouteMap(ua: UserAnswers, srn: String, startDate: LocalDate, accessType: AccessType, version: Int)
