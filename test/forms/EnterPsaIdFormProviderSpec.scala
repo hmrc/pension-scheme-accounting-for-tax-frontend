@@ -23,7 +23,9 @@ class EnterPsaIdFormProviderSpec extends StringFieldBehaviours {
 
   private val psaIdRegex = "^A[0-9]{7}$"
 
-  private val form = new EnterPsaIdFormProvider()()
+  private val authorisingPsaId = "A1234567"
+
+  private val form = new EnterPsaIdFormProvider().apply(authorisingPSAID = Some(authorisingPsaId))
 
   ".value" must {
 
@@ -51,10 +53,17 @@ class EnterPsaIdFormProviderSpec extends StringFieldBehaviours {
       invalidError = FormError(fieldName, invalidKey, Seq(psaIdRegex))
     )
 
-    "give form error when psa ID is not correct for psp" in {
-      val incorrectValue = "A1234568"
-      val result = form.bind(Map(fieldName -> incorrectValue)).apply(fieldName)
-      result.errors mustEqual Seq(noMatchKey)
+    "give form error when psa ID is not same as authorising psa id for psp" in {
+      val nonMatchingValue = "A1234568"
+      val result = form.bind(Map(fieldName -> nonMatchingValue)).apply(fieldName)
+      result.errors mustEqual Seq(FormError(fieldName, noMatchKey, Nil))
+    }
+
+    "give no form error when there is no authorising PSA ID" in {
+      val validValue = "A1234568"
+      val form = new EnterPsaIdFormProvider().apply(authorisingPSAID = None)
+      val result = form.bind(Map(fieldName -> validValue)).apply(fieldName)
+      result.value mustBe Some(validValue)
     }
   }
 }

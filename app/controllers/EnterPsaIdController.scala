@@ -18,6 +18,7 @@ package controllers
 
 import java.time.LocalDate
 
+import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.EnterPsaIdFormProvider
@@ -49,13 +50,14 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                                         allowAccess: AllowAccessActionProvider,
                                         requireData: DataRequiredAction,
                                         formProvider: EnterPsaIdFormProvider,
+                                        schemeDetailsConnector: SchemeDetailsConnector,
                                         val controllerComponents: MessagesControllerComponents,
                                         renderer: Renderer)(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private val form = formProvider()
+  private val form = formProvider(authorisingPSAID = None)
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
@@ -86,6 +88,8 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
+
+        //schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map(_.authorisingPSAID)
 
         form
           .bindFromRequest()

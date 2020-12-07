@@ -69,13 +69,16 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     val url = config.pspSchemeDetailsUrl
     val schemeHc = hc.withExtraHeaders("srn" -> srn, "pspId" -> pspId)
 
-    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
-      response.status match {
-        case OK => UserAnswers(Json.parse(response.body))
-        case _ => handleErrorResponse("GET", url)(response)
-      }
-    } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to psp get scheme details", t)
+    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly) map { response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[SchemeDetails] match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case _ =>
+            handleErrorResponse("GET", url)(response)
+        }
     }
   }
 

@@ -52,7 +52,7 @@ class SchemeDetailsConnectorSpec
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       connector.getSchemeDetails(psaId, idNumber, "pstr").map(schemeDetails =>
-        schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status", Nil)
+        schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status", None)
       )
     }
 

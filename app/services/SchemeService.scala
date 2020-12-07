@@ -25,18 +25,29 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector) {
 
+  private def isPsaId(s:String) = s.length > 0 && s.charAt(0).isLetter
+
   def retrieveSchemeDetails(psaId: String, srn: String, schemeIdType: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
-    schemeDetailsConnector.getSchemeDetails(
-      psaId = psaId,
-      idNumber = srn,
-      schemeIdType = schemeIdType
-    ) map { schemeDetails =>
+    val futureSchemeDetails = if (isPsaId(psaId)) {
+      schemeDetailsConnector.getSchemeDetails(
+        psaId = psaId,
+        idNumber = srn,
+        schemeIdType = schemeIdType
+      )
+    } else {
+      schemeDetailsConnector.getPspSchemeDetails(
+        pspId = psaId,
+        srn = srn
+      )
+    }
+
+    futureSchemeDetails map { schemeDetails =>
       SchemeDetails(
         schemeName = schemeDetails.schemeName,
         pstr = schemeDetails.pstr,
         schemeStatus = schemeDetails.schemeStatus,
-        pspDetails = schemeDetails.pspDetails
+        authorisingPSAID = schemeDetails.authorisingPSAID
       )
     }
   }

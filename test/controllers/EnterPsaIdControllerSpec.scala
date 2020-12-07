@@ -24,8 +24,6 @@ import data.SampleData
 import data.SampleData._
 import forms.EnterPsaIdFormProvider
 import matchers.JsonMatchers
-import models.ChargeType.ChargeTypeAnnualAllowance
-import models.ChargeType
 import models.Enumerable
 import models.GenericViewModel
 import models.LocalDateBinder._
@@ -37,7 +35,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import pages.ChargeTypePage
+import pages.EnterPsaIdPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
@@ -90,7 +88,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
   "EnterPsaId Controller" when {
     "on a GET" must {
 
-      "return OK with the correct view and call the aft service" in {
+      "return OK with the correct view" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData())
 
@@ -107,83 +105,84 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         jsonCaptor.getValue must containJson(jsonToTemplate.apply(form))
       }
 
-      //"return OK and the correct view for a GET when the question has previously been answered" in {
-      //  val ua = SampleData.userAnswersWithSchemeName.set(ChargeTypePage, ChargeTypeAnnualAllowance).get
-      //
-      //  fakeDataSetupAction.setDataToReturn(Some(ua))
-      //  val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      //  val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-      //
-      //  val result = route(application, httpGETRequest(httpPathGETVersion)).value
-      //
-      //  status(result) mustEqual OK
-      //
-      //  verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      //
-      //  templateCaptor.getValue mustEqual template
-      //  jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(ChargeTypeAnnualAllowance)))
-      //}
+      "return OK and the correct view for a GET when the question has previously been answered" in {
 
+        val ua = SampleData.userAnswersWithSchemeName.set(EnterPsaIdPage, psaId).get
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(ua))
+        mutableFakeDataRetrievalAction.setSessionData(SampleData.sessionData())
+
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
+
+        status(result) mustEqual OK
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        templateCaptor.getValue mustEqual template
+        jsonCaptor.getValue must containJson(jsonToTemplate.apply(form.fill(psaId)))
+      }
     }
 
-    //"on a POST" must {
-    //  "Save data to user answers and redirect to next page when valid data is submitted" in {
-    //    mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
-    //    val expectedJson = Json.obj(ChargeTypePage.toString -> Json.toJson(ChargeTypeAnnualAllowance)(writes(ChargeType.enumerable)))
-    //
-    //    when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeTypePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
-    //
-    //    val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
-    //
-    //    val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-    //
-    //    status(result) mustEqual SEE_OTHER
-    //
-    //    verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
-    //
-    //    jsonCaptor.getValue must containJson(expectedJson)
-    //
-    //    redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-    //
-    //  }
-    //
-    //  "return a BAD REQUEST when invalid data is submitted" in {
-    //    val application = applicationBuilder(userAnswers = userAnswers).build()
-    //
-    //    val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
-    //
-    //    status(result) mustEqual BAD_REQUEST
-    //
-    //    verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
-    //
-    //  }
-    //
-    //  "redirect to Session Expired page for a POST when there is no data" in {
-    //    val application = applicationBuilder(userAnswers = None).build()
-    //
-    //    val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
-    //
-    //    status(result) mustEqual SEE_OTHER
-    //    redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-    //  }
-    //}
+    "on a POST" must {
+      "Save data to user answers and redirect to next page when valid data is submitted" in {
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
+        val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
+
+        when(mockCompoundNavigator.nextPage(Matchers.eq(EnterPsaIdPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(SampleData.dummyCall)
+
+        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+        status(result) mustEqual SEE_OTHER
+
+        verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+
+        jsonCaptor.getValue must containJson(expectedJson)
+
+        redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
+
+      }
+
+      "return a BAD REQUEST when invalid data is submitted" in {
+        val application = applicationBuilder(userAnswers = userAnswers).build()
+
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+
+        status(result) mustEqual BAD_REQUEST
+
+        verify(mockUserAnswersCacheConnector, times(0)).save(any(), any())(any(), any())
+
+      }
+
+      "redirect to Session Expired page for a POST when there is no data" in {
+        val application = applicationBuilder(userAnswers = None).build()
+
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+      }
+    }
   }
 }
 
 object EnterPsaIdControllerSpec {
   private val template = "enterPsaId.njk"
 
-  private def form = new EnterPsaIdFormProvider()()
+  private def form = new EnterPsaIdFormProvider().apply(authorisingPSAID = None)
 
   private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
 
   private def httpPathPOST: String = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
-    "value" -> Seq("A1111111")
+    "value" -> Seq(psaId)
   )
   private val valuesInvalid: Map[String, Seq[String]] = Map(
-    "value" -> Seq("Unknown Charge")
+    "value" -> Seq("invalid")
   )
   private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 }

@@ -23,10 +23,15 @@ import play.api.data.Form
 
 class EnterPsaIdFormProvider @Inject() extends Mappings with Constraints {
 
-  def apply(): Form[String] =
+  def apply(authorisingPSAID: Option[String]): Form[String] =
     Form(
       "value" ->  text("enterPsaId.error.required")
-        .verifying(regexp(psaIdRegex, "enterPsaId.error.invalid"))
+        .verifying(
+          firstError(
+            regexp(psaIdRegex, "enterPsaId.error.invalid"),
+            isEqual(authorisingPSAID, "enterPsaId.error.noMatch")
+          )
+        )
     )
 }
 

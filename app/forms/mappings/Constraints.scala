@@ -40,6 +40,13 @@ trait Constraints {
           .getOrElse(Valid)
     }
 
+  protected def isEqual(expectedValue:Option[String], errorKey: String): Constraint[String] =
+    Constraint {
+      case _ if expectedValue.isEmpty => Valid
+      case s if expectedValue.contains(s) => Valid
+      case _ => Invalid(errorKey)
+    }
+
   protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
 
   protected def minimumValue[A](minimum: A, errorKey: String)(implicit ev: Ordering[A]): Constraint[A] =
