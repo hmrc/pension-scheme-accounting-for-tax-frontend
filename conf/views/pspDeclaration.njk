@@ -19,10 +19,7 @@
         <p class="govuk-body">
           {{ messages("pspDeclaration.p1") }}
         </p>
-        <ul class="govuk-list govuk-list--bullet">
-          <li>{{ messages("pspDeclaration.li1") }}</li>
-          <li>{{ messages("pspDeclaration.li2") }}</li>
-        </ul>
+
         {{ govukButton({
             href: viewModel.submitUrl,
             attributes: {id: "submit"},

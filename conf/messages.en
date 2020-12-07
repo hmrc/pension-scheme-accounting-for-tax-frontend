@@ -1124,6 +1124,4 @@ enterPsaId.error.noMatch = Enter the correct pension scheme administrator ID
 
 pspDeclaration.title = Declaration
 pspDeclaration.heading = Declaration
-pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the
-pspDeclaration.li1 = pension scheme administrator approves the content and authorises you to
-pspDeclaration.li2 = submit this return.
+pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.
