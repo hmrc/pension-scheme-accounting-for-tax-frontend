@@ -30,6 +30,7 @@ class EnterPsaIdFormProviderSpec extends StringFieldBehaviours {
     val fieldName = "value"
     val requiredKey = "enterPsaId.error.required"
     val invalidKey = "enterPsaId.error.invalid"
+    val noMatchKey = "enterPsaId.error.noMatch"
 
     "bind valid data" in {
       val validValue = "A1234567"
@@ -49,5 +50,11 @@ class EnterPsaIdFormProviderSpec extends StringFieldBehaviours {
       invalidValues = Seq("11111111", "$5%d122s"),
       invalidError = FormError(fieldName, invalidKey, Seq(psaIdRegex))
     )
+
+    "give form error when psa ID is not correct for psp" in {
+      val incorrectValue = "A1234568"
+      val result = form.bind(Map(fieldName -> incorrectValue)).apply(fieldName)
+      result.errors mustEqual Seq(noMatchKey)
+    }
   }
 }
