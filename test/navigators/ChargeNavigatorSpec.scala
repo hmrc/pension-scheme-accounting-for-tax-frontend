@@ -83,7 +83,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt),
-          confirmSubmitAFTReturn(confirmSubmit = true))
+          confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(EnterPsaIdPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt),Some(SampleData.userAnswersWithSchemeNamePstrQuarter))
       )
     }
 
