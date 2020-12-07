@@ -16,30 +16,38 @@
 
 package forms
 
-import forms.behaviours.OptionFieldBehaviours
-import models.ChargeType
+import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class EnterPsaIdFormProviderSpec extends OptionFieldBehaviours {
+class EnterPsaIdFormProviderSpec extends StringFieldBehaviours {
 
-  val form = new ChargeTypeFormProvider()()
+  private val psaIdRegex = "^A[0-9]{7}$"
+
+  private val form = new EnterPsaIdFormProvider()()
 
   ".value" must {
 
     val fieldName = "value"
-    val requiredKey = "chargeType.error.required"
+    val requiredKey = "enterPsaId.error.required"
+    val invalidKey = "enterPsaId.error.invalid"
 
-    behave like optionsField[ChargeType](
-      form,
-      fieldName,
-      validValues  = ChargeType.values,
-      invalidError = FormError(fieldName, "error.invalid")
-    )
+    "bind valid data" in {
+      val validValue = "A1234567"
+      val result = form.bind(Map(fieldName -> validValue)).apply(fieldName)
+      result.value.value mustBe validValue
+    }
 
     behave like mandatoryField(
       form,
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
+    )
+
+    behave like fieldWithRegex(
+      form,
+      fieldName,
+      invalidValues = Seq("11111111", "$5%d122s"),
+      invalidError = FormError(fieldName, invalidKey, Seq(psaIdRegex))
     )
   }
 }
