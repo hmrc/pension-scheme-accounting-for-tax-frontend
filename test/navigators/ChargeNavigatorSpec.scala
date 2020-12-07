@@ -55,29 +55,55 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
     )
 
   "NormalMode" must {
-    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] =
+    def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
+      import controllers._
+      import controllers.routes._
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ChargeTypePage)(controllers.chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeShortService)),
-        row(ChargeTypePage)(controllers.chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLumpSumDeath)),
-        row(ChargeTypePage)(controllers.chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAuthSurplus)),
-        row(ChargeTypePage)(controllers.chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAnnualAllowance)),
-        row(ChargeTypePage)(controllers.chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeEMemberExists),
-        row(ChargeTypePage)(controllers.chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeDeRegistration)),
-        row(ChargeTypePage)(controllers.chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLifetimeAllowance)),
-        row(ChargeTypePage)(controllers.chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeDMemberExists),
-        row(ChargeTypePage)(controllers.chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeOverseasTransfer)),
-        row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
-        row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
-        row(ConfirmSubmitAFTReturnPage)(controllers.routes.EnterPsaIdController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ChargeTypePage)(chargeA.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeShortService)),
+        row(ChargeTypePage)(chargeB.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLumpSumDeath)),
+        row(ChargeTypePage)(chargeC.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAuthSurplus)),
+        row(ChargeTypePage)(chargeE.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeAnnualAllowance)),
+        row(ChargeTypePage)(chargeE.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeEMemberExists),
+        row(ChargeTypePage)(chargeF.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeDeRegistration)),
+        row(ChargeTypePage)(chargeD.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeLifetimeAllowance)),
+        row(ChargeTypePage)(chargeD.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeDMemberExists),
+        row(ChargeTypePage)(chargeG.routes.WhatYouWillNeedController.onPageLoad(srn, startDate, accessType, versionInt), optUA(ChargeTypeOverseasTransfer)),
+        row(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
+        row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad()),
+        row(ConfirmSubmitAFTReturnPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
         row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
-
         row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt))
       )
+    }
 
-    behave like navigatorWithRoutesForMode(NormalMode)(navigator, normalModeRoutes, srn, startDate, accessType, versionInt)
+    def normalModeRoutesPsp: TableFor3[Page, UserAnswers, Call] = {
+      import controllers.routes._
+      Table(
+        ("Id", "UserAnswers", "Next Page"),
+        row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt),
+          confirmSubmitAFTReturn(confirmSubmit = true))
+      )
+    }
+
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
+      normalModeRoutes,
+      srn,
+      startDate,
+      accessType,
+      versionInt,
+      request(pspId=None, psaId = Some(SampleData.psaId))
+    )
+
+    behave like navigatorWithRoutesForMode(NormalMode)(navigator,
+      normalModeRoutesPsp,
+      srn,
+      startDate,
+      accessType,
+      versionInt,
+      request(pspId=Some(SampleData.pspId), psaId = None)
+    )
   }
 
   "NormalMode for AFT Summary Page" must {
