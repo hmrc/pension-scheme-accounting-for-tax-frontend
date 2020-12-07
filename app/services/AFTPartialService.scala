@@ -18,10 +18,13 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
+import dateOrdering.orderingLocalDate
+import helpers.FormatHelper
+import models.financialStatement.SchemeFS
+
 import javax.inject.Inject
 import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
 import play.api.i18n.Messages
@@ -29,7 +32,7 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, Link, PspDashboardAftReturnsViewModel}
+import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,7 +68,7 @@ class AFTPartialService @Inject()(
                                            implicit
                                            hc: HeaderCarrier,
                                            messages: Messages
-                                         ): Future[PspDashboardAftReturnsViewModel] = {
+                                         ): Future[PspDashboardAftViewModel] = {
     schemeService.retrieveSchemeDetails(
       psaId = pspId,
       srn = srn,
@@ -93,12 +96,86 @@ class AFTPartialService @Inject()(
             getPastReturnsModelOpt(overview, srn).map(_.link)
           ).flatten
 
-        PspDashboardAftReturnsViewModel(
+        PspDashboardAftViewModel(
           subHeading = subHeading,
           links = links
         )
       }
     }
+  }
+
+  def retrievePspDashboardUpcomingAftCharges(schemeFs: Seq[SchemeFS], srn: String)
+                                            (implicit messages: Messages): PspDashboardAftViewModel = {
+
+    val upcomingCharges: Seq[SchemeFS] = schemeFs
+      .filter(_.dueDate.nonEmpty)
+      .filter(_.dueDate.get.isAfter(LocalDate.now()))
+
+    val pastCharges: Seq[SchemeFS] = schemeFs
+      .filter(_.dueDate.nonEmpty)
+      .filter(_.dueDate.get.isBefore(LocalDate.now()))
+
+    val total = upcomingCharges.map(_.amountDue).sum
+
+    val span =
+      if (upcomingCharges.map(_.dueDate).distinct.size == 1)
+        msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
+          .withArgs(upcomingCharges.map(_.dueDate).distinct
+            .flatten
+            .head
+            .format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+      else
+        msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+
+    val subHeading = Json.obj(
+      "total" -> s"${FormatHelper.formatCurrencyAmountAsString(total)}",
+      "span" -> span
+    )
+
+    val upcomingLinkText =
+      if (upcomingCharges.map(_.periodStartDate).distinct.size == 1)
+        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+          .withArgs(
+            upcomingCharges.map(_.periodStartDate)
+              .distinct
+              .head
+              .format(DateTimeFormatter.ofPattern("d MMMM")),
+            upcomingCharges.map(_.periodEndDate)
+              .distinct
+              .head
+              .format(DateTimeFormatter.ofPattern("d MMMM"))
+          )
+      else
+        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+
+    val startDate: LocalDate =
+      upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
+
+    val viewUpcomingLink: Option[Link] = Some(Link(
+      id = "upcoming-payments-and-charges",
+      url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
+      linkText = upcomingLinkText,
+      hiddenText = None
+    ))
+
+    val viewPastPaymentsAndChargesLink: Option[Link] =
+      if (pastCharges == Seq.empty)
+        None
+      else
+        Some(Link(
+          id = "past-payments-and-charges",
+          url = appConfig.paymentsAndChargesUrl.format(srn, "2020"),
+          linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+          hiddenText = None
+        ))
+
+
+    val links = Seq(viewUpcomingLink, viewPastPaymentsAndChargesLink).flatten
+
+    PspDashboardAftViewModel(
+      subHeading = Some(subHeading),
+      links = links
+    )
   }
 
   private def optionSubHeading(
@@ -110,9 +187,9 @@ class AFTPartialService @Inject()(
                                 implicit hc: HeaderCarrier,
                                 messages: Messages
                               ): Future[Option[JsObject]] = {
-    val startDate = inProgressReturns.head.periodStartDate.toString
-
     if (inProgressReturns.size == 1) {
+      val startDate = inProgressReturns.head.periodStartDate.toString
+
       aftCacheConnector.lockDetail(srn, startDate) flatMap {
         optLockDetail =>
           if (inProgressReturns.head.numberOfVersions == 1) {

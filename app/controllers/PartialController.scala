@@ -19,6 +19,8 @@ package controllers
 import config.FrontendAppConfig
 import connectors.{FinancialStatementConnector, SchemeDetailsConnector}
 import controllers.actions._
+import helpers.FormatHelper
+import models.financialStatement.SchemeFS
 
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -32,6 +34,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import scala.concurrent.{ExecutionContext, Future}
 
 class PartialController @Inject()(
@@ -122,17 +125,16 @@ class PartialController @Inject()(
           ) flatMap { schemeDetails =>
             financialStatementConnector.getSchemeFS(
               pstr = schemeDetails.pstr
-            ).flatMap { schemeFs =>
+            ) flatMap { schemeFs =>
               if (schemeFs.isEmpty) {
                 Future.successful(Ok(Html("")))
               } else {
-                println(s"\n\n\t${Json.prettyPrint(Json.toJson(
-                  schemeFs
-                    .filter(p => p.dueDate.nonEmpty && p.dueDate.get.isBefore(LocalDate.now()))
-                ))}\n\n")
+                val viewModel =
+                  aftPartialService.retrievePspDashboardUpcomingAftCharges(schemeFs, srn)
+
                 renderer.render(
                   template = "partials/pspDashboardUpcomingAftChargesCard.njk",
-                  Json.obj("upcomingCharges" -> Json.toJson(schemeFs))
+                  Json.obj("upcomingCharges" -> Json.toJson(viewModel))
                 ).map(Ok(_))
               }
             }

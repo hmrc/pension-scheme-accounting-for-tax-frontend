@@ -1042,7 +1042,13 @@ pspDashboardAftReturnsCard.inProgressReturns.link.single = View AFT return in pr
 pspDashboardAftReturnsCard.inProgressReturns.link.single.locked = View locked AFT return
 
 pspDashboardUpcomingAftChargesCard.h2 = Upcoming AFT charges
+pspDashboardUpcomingAftChargesCard.span.singleDueDate = Payment due by {0}:
+pspDashboardUpcomingAftChargesCard.span.multipleDueDate = Total amount due:
+pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = View payments and charges for {0} to {1}
+pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
+pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges = View past payments and charges
 
+paymentsAndChargesUpcoming.h1 = Upcoming payments and charges
 
 penaltiesPartial.linkText = View your penalties for 2020
 

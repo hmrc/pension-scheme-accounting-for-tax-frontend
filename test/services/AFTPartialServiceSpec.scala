@@ -33,7 +33,7 @@ import play.api.i18n.Messages
 import play.api.libs.json.Json
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, Link, PspDashboardAftReturnsViewModel}
+import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -376,8 +376,8 @@ object AFTPartialServiceSpec {
   def oneCompileZeroedOutModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
-  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "h3" -> "2 in progress",
         "span" -> "AFT returns:"
@@ -394,8 +394,8 @@ object AFTPartialServiceSpec {
                                                  h3: String,
                                                  span: String,
                                                  linkText: String
-                                               )(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+                                               )(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "span" -> span,
         "h3" -> h3
@@ -407,8 +407,8 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "h3" -> "3 in progress",
         "span" -> "AFT returns:"

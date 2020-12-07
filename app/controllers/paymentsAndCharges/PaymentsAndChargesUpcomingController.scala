@@ -31,24 +31,25 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargesController @Inject()(
-                                              override val messagesApi: MessagesApi,
-                                              identify: IdentifierAction,
-                                              val controllerComponents: MessagesControllerComponents,
-                                              config: FrontendAppConfig,
-                                              schemeService: SchemeService,
-                                              fsConnector: FinancialStatementConnector,
-                                              paymentsAndChargesService: PaymentsAndChargesService,
-                                              renderer: Renderer
-                                            )(implicit ec: ExecutionContext)
+class PaymentsAndChargesUpcomingController @Inject()(
+                                                      override val messagesApi: MessagesApi,
+                                                      identify: IdentifierAction,
+                                                      val controllerComponents: MessagesControllerComponents,
+                                                      config: FrontendAppConfig,
+                                                      schemeService: SchemeService,
+                                                      fsConnector: FinancialStatementConnector,
+                                                      paymentsAndChargesService: PaymentsAndChargesService,
+                                                      renderer: Renderer
+                                                    )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(srn: String, year: Int): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -58,23 +59,23 @@ class PaymentsAndChargesController @Inject()(
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
-              val schemePaymentsAndChargesForSelectedYear: Seq[SchemeFS] =
-                schemeFs.filter(_.periodStartDate.getYear == year)
+              val upcomingPaymentsAndCharges: Seq[SchemeFS] =
+                schemeFs.filter(_.periodStartDate.isAfter(startDate))
 
-              if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
+              if (upcomingPaymentsAndCharges.nonEmpty) {
 
-                val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year)
+                val upcomingPaymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear)
 
                 val json = Json.obj(
-                  fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
+                  fields = "upcomingPaymentsAndCharges" -> upcomingPaymentsAndChargesTables,
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+                renderer.render(template = "paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
+                Logger.warn(s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

@@ -1,13 +1,16 @@
-<div class="card" id="aft-returns">
+<div class="card" id="upcoming-aft-charges">
     <div class="card-body">
         <h2 class="card-heading heading-small">
             {{ messages("pspDashboardUpcomingAftChargesCard.h2") }}
         </h2>
-        {{ upcomingCharges }}
+        <h3 class="card-sub-heading">
+            <span class="font-xsmall">{{ upcomingCharges.subHeading.span }}</span>
+            <span class="font-large bold">{{ upcomingCharges.subHeading.total }}</span>
+        </h3>
     </div>
     <div class="card-action">
         <ul>
-            {% for link in aft.links %}
+            {% for link in upcomingCharges.links %}
                 <li>
                     <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
                 </li>
