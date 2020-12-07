@@ -16,7 +16,16 @@
 
 package controllers
 
+import config.FrontendAppConfig
+import connectors.SchemeDetailsConnector
+import connectors.cache.UserAnswersCacheConnector
+import controllers.actions.AllowAccessActionProvider
+import controllers.actions.DataRequiredAction
+import controllers.actions.DataRequiredActionImpl
 import controllers.actions.DataSetupAction
+import controllers.actions.FakeIdentifierAction
+import controllers.actions.FakeIdentifierActionPSP
+import controllers.actions.IdentifierAction
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.actions.MutableFakeDataSetupAction
 import controllers.base.ControllerSpecBase
@@ -28,7 +37,10 @@ import models.Enumerable
 import models.GenericViewModel
 import models.LocalDateBinder._
 import models.NormalMode
+import models.SchemeDetails
+import models.SchemeStatus
 import models.UserAnswers
+import navigators.CompoundNavigator
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -48,6 +60,7 @@ import play.api.test.Helpers.status
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.AFTService
+import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.AFTConstants.QUARTER_START_DATE
 
@@ -61,13 +74,33 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val mockAFTService = mock[AFTService]
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction
   private val fakeDataSetupAction: MutableFakeDataSetupAction = new MutableFakeDataSetupAction
+  private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
+
+  override def modules: Seq[GuiceableModule] = Seq(
+    bind[DataRequiredAction].to[DataRequiredActionImpl],
+    bind[NunjucksRenderer].toInstance(mockRenderer),
+    bind[FrontendAppConfig].toInstance(mockAppConfig),
+    bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
+    bind[CompoundNavigator].toInstance(mockCompoundNavigator),
+    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
+  )
 
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[AFTService].toInstance(mockAFTService),
-    bind[DataSetupAction].toInstance(fakeDataSetupAction)
+    bind[DataSetupAction].toInstance(fakeDataSetupAction),
+    bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
+    bind[IdentifierAction].to[FakeIdentifierAction]
+  )
+
+  val extraModulesPsp: Seq[GuiceableModule] = Seq[GuiceableModule](
+    bind[AFTService].toInstance(mockAFTService),
+    bind[DataSetupAction].toInstance(fakeDataSetupAction),
+    bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
+    bind[IdentifierAction].to[FakeIdentifierActionPSP]
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
   private val jsonToTemplate: Form[String] => JsObject = form => Json.obj(
     fields = "form" -> form,
@@ -77,12 +110,16 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
       schemeName = SampleData.schemeName)
   )
 
+  private def schemeDetails(authorisingPsaId:Option[String]) = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, authorisingPsaId)
+
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
+    reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig, mockSchemeDetailsConnector)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockSchemeDetailsConnector.getPspSchemeDetails(Matchers.eq(pspId), any())(any(), any()))
+      .thenReturn(Future.successful(schemeDetails(Some(psaId))))
   }
 
   "EnterPsaId Controller" when {
@@ -95,7 +132,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGETVersion)).value
+        val result = route(applicationPsp, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -114,7 +151,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpGETRequest(httpPathGETVersion)).value
+        val result = route(applicationPsp, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -126,7 +163,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
     }
 
     "on a POST" must {
-      "Save data to user answers and redirect to next page when valid data is submitted" in {
+      "for a logged-in PSP save data to user answers, call psp get scheme details and redirect to next page when valid data is submitted" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeName))
         val expectedJson = Json.obj(EnterPsaIdPage.toString -> psaId)
 
@@ -134,22 +171,21 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
 
         verify(mockUserAnswersCacheConnector, times(1)).save(any(), jsonCaptor.capture)(any(), any())
+        verify(mockSchemeDetailsConnector, times(1)).getPspSchemeDetails(any(), any())(any(), any())
 
         jsonCaptor.getValue must containJson(expectedJson)
 
         redirectLocation(result) mustBe Some(SampleData.dummyCall.url)
-
       }
 
       "return a BAD REQUEST when invalid data is submitted" in {
-        val application = applicationBuilder(userAnswers = userAnswers).build()
 
-        val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
         status(result) mustEqual BAD_REQUEST
 
@@ -158,9 +194,9 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
       }
 
       "redirect to Session Expired page for a POST when there is no data" in {
-        val application = applicationBuilder(userAnswers = None).build()
+        mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

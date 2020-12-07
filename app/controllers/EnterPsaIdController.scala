@@ -57,15 +57,15 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport
     with NunjucksSupport {
 
-  private val form = formProvider(authorisingPSAID = None)
+  private def form(authorisingPsaId: Option[String]) = formProvider(authorisingPSAID = authorisingPsaId)
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       DataRetrievals.retrieveSchemeName{ schemeName =>
         val preparedForm = request.userAnswers.get(EnterPsaIdPage) match {
-          case Some(value) => form.fill(value)
-          case None        => form
+          case Some(value) => form(authorisingPsaId=None).fill(value)
+          case None        => form(authorisingPsaId=None)
         }
 
         val viewModel = GenericViewModel(
@@ -88,10 +88,8 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
   def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
-
-        //schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map(_.authorisingPSAID)
-
-        form
+        schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map(_.authorisingPSAID).flatMap{ authorisingPsaId =>
+        form(authorisingPsaId=authorisingPsaId)
           .bindFromRequest()
           .fold(
             formWithErrors => {
@@ -117,6 +115,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
               } yield Redirect(navigator.nextPage(EnterPsaIdPage, mode, updatedAnswers, srn, startDate, accessType, version))
           )
+         }
       }
     }
 }
