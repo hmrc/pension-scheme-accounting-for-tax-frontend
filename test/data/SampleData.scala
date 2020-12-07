@@ -58,7 +58,7 @@ object SampleData {
   val chargeCDetails = ChargeCDetails(paymentDate = QUARTER_START_DATE,amountTaxDue = chargeAmount1)
   val chargeDDetails = ChargeDDetails(QUARTER_START_DATE, Option(chargeAmount1), Option(chargeAmount2))
   val chargeGDetails = models.chargeG.ChargeDetails(qropsReferenceNumber = "123456", qropsTransferDate = QUARTER_START_DATE)
-  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString)
+  val schemeDetails: SchemeDetails = SchemeDetails(schemeName, pstr, SchemeStatus.Open.toString, Nil)
   val version = "1"
   val versionInt = 1
 

@@ -35,7 +35,8 @@ class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector) {
       SchemeDetails(
         schemeName = schemeDetails.schemeName,
         pstr = schemeDetails.pstr,
-        schemeStatus = schemeDetails.schemeStatus
+        schemeStatus = schemeDetails.schemeStatus,
+        pspDetails = schemeDetails.pspDetails
       )
     }
   }

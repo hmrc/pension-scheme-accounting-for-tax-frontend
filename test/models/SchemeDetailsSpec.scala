@@ -17,12 +17,53 @@
 package models
 
 import org.scalatest.{FreeSpec, MustMatchers}
+import play.api.libs.json.JsArray
 import play.api.libs.json.Json
 
 class SchemeDetailsSpec extends FreeSpec with MustMatchers {
 
   "api reads " - {
     "must map correctly to SchemeDetails" in {
+
+      val pspDetails = Json.arr(
+        Json.obj(
+          "authorisingPSAID" -> "A2100005",
+          "id" -> "21000005"
+        ),
+        Json.obj(
+          "authorisingPSAID" -> "A2100007",
+          "id" -> "21000006"
+        )
+      )
+
+      val json = Json.obj(
+        "schemeName" -> "test scheme",
+        "pstr" -> "test pstr",
+        "schemeStatus" -> "Open",
+        "pspDetails" -> pspDetails
+      )
+
+      val result = json.as[SchemeDetails]
+
+      result.schemeName mustBe (json \ "schemeName").as[String]
+      result.pstr mustBe (json \ "pstr").as[String]
+      result.schemeStatus mustBe (json \ "schemeStatus").as[String]
+      result.pspDetails mustBe Seq(PspDetail("A2100005", "21000005"), PspDetail("A2100007", "21000006"))
+    }
+
+    "must map correctly to SchemeDetails where no pspDetails node" in {
+
+      val pspDetails = Json.arr(
+        Json.obj(
+          "authorisingPSAID" -> "A2100005",
+          "id" -> "21000005"
+        ),
+        Json.obj(
+          "authorisingPSAID" -> "A2100007",
+          "id" -> "21000006"
+        )
+      )
+
       val json = Json.obj(
         "schemeName" -> "test scheme",
         "pstr" -> "test pstr",
@@ -34,6 +75,7 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]
       result.schemeStatus mustBe (json \ "schemeStatus").as[String]
+      result.pspDetails mustBe Nil
     }
   }
 }

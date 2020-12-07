@@ -50,8 +50,11 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
       response =>
         response.status match {
           case OK =>
+            println( "\n>>>>>BEFORE:" + response.json)
             Json.parse(response.body).validate[SchemeDetails] match {
-              case JsSuccess(value, _) => value
+              case JsSuccess(value, _) =>
+              println( "\n>>>>>PARSED:" + value)
+                value
               case JsError(errors) => throw JsResultException(errors)
             }
           case _ =>
