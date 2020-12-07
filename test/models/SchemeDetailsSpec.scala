@@ -34,12 +34,12 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
         )
       )
 
-      val result = json.as[SchemeDetails]
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsp)
 
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]
       result.schemeStatus mustBe (json \ "schemeStatus").as[String]
-      result.authorisingPSAID mustBe authorisingPSA
+      result.authorisingPSAID mustBe Some(authorisingPSA)
     }
 
     "must map correctly to SchemeDetails where no pspDetails node" in {
@@ -50,7 +50,7 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
         "schemeStatus" -> "Open"
       )
 
-      val result = json.as[SchemeDetails]
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsa)
 
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]

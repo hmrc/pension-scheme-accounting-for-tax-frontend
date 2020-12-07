@@ -89,18 +89,10 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
     bind[AFTService].toInstance(mockAFTService),
     bind[DataSetupAction].toInstance(fakeDataSetupAction),
     bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
-    bind[IdentifierAction].to[FakeIdentifierAction]
-  )
-
-  val extraModulesPsp: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[AFTService].toInstance(mockAFTService),
-    bind[DataSetupAction].toInstance(fakeDataSetupAction),
-    bind[SchemeDetailsConnector].toInstance(mockSchemeDetailsConnector),
     bind[IdentifierAction].to[FakeIdentifierActionPSP]
   )
 
   val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val applicationPsp: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModulesPsp).build()
 
   private val jsonToTemplate: Form[String] => JsObject = form => Json.obj(
     fields = "form" -> form,
@@ -132,7 +124,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(applicationPsp, httpGETRequest(httpPathGETVersion)).value
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -151,7 +143,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(applicationPsp, httpGETRequest(httpPathGETVersion)).value
+        val result = route(application, httpGETRequest(httpPathGETVersion)).value
 
         status(result) mustEqual OK
 
@@ -171,7 +163,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesValid)).value
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
 
@@ -185,7 +177,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
       "return a BAD REQUEST when invalid data is submitted" in {
 
-        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesInvalid)).value
 
         status(result) mustEqual BAD_REQUEST
 
@@ -196,7 +188,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "redirect to Session Expired page for a POST when there is no data" in {
         mutableFakeDataRetrievalAction.setDataToReturn(Some(UserAnswers()))
 
-        val result = route(applicationPsp, httpPOSTRequest(httpPathPOST, valuesValid)).value
+        val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

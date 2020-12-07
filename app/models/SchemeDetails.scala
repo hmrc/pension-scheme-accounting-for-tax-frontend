@@ -25,13 +25,22 @@ case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String,
 
 object SchemeDetails {
 
-  implicit val reads: Reads[SchemeDetails] =
+  implicit val readsPsa: Reads[SchemeDetails] =
+    (
+      (JsPath \ "schemeName").read[String] and
+        (JsPath \ "pstr").read[String] and
+        (JsPath \ "schemeStatus").read[String]
+    )(
+      (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status, None)
+    )
+
+  implicit val readsPsp: Reads[SchemeDetails] =
     (
       (JsPath \ "schemeName").read[String] and
         (JsPath \ "pstr").read[String] and
         (JsPath \ "schemeStatus").read[String] and
-        (JsPath \ "pspDetails" \ "authorisingPSAID" ).readNullable[String]
-    )(
-      (schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, authorisingPSAID)
+        (JsPath \ "pspDetails" \ "authorisingPSAID" ).read[String]
+      )(
+      (schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, Some(authorisingPSAID))
     )
 }
