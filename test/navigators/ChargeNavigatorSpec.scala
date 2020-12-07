@@ -70,6 +70,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(controllers.chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
         row(ChargeTypePage)(controllers.routes.SessionExpiredController.onPageLoad()),
         row(ConfirmSubmitAFTReturnPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.EnterPsaIdController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
         row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
 
         row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt)),
