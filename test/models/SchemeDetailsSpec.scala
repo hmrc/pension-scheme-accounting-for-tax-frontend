@@ -39,7 +39,7 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]
       result.schemeStatus mustBe (json \ "schemeStatus").as[String]
-      result.authorisingPSAID mustBe authorisingPSA
+      result.authorisingPSAID mustBe Some(authorisingPSA)
     }
 
     "must map correctly to SchemeDetails where no pspDetails node" in {
