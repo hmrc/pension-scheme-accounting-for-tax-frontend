@@ -54,7 +54,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
       response =>
         response.status match {
           case OK =>
-            Json.parse(response.body).validate[SchemeDetails] match {
+            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsa) match {
               case JsSuccess(value, _) => value
               case JsError(errors) => throw JsResultException(errors)
             }
@@ -72,7 +72,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly) map { response =>
         response.status match {
           case OK =>
-            Json.parse(response.body).validate[SchemeDetails] match {
+            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsp) match {
               case JsSuccess(value, _) => value
               case JsError(errors) => throw JsResultException(errors)
             }

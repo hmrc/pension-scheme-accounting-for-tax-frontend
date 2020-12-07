@@ -34,7 +34,7 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
         )
       )
 
-      val result = json.as[SchemeDetails]
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsp)
 
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]
@@ -50,7 +50,7 @@ class SchemeDetailsSpec extends FreeSpec with MustMatchers {
         "schemeStatus" -> "Open"
       )
 
-      val result = json.as[SchemeDetails]
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsa)
 
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]

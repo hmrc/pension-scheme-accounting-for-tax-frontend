@@ -38,6 +38,14 @@ class SchemeDetailsConnectorSpec
   "getSchemeDetails" must {
     val schemeDetailsUrl = s"/pensions-scheme/scheme"
     "return the SchemeDetails for a valid request/response" in {
+
+      /*
+            val jsonResponse = """{"schemeName":"test scheme", "pstr": "test pstr", "schemeStatus": "test status",
+        |"pspDetails":{"authorisingPSAID":"A1090099"}
+        |}
+        |""".stripMargin
+       */
+
       val jsonResponse = """{"schemeName":"test scheme", "pstr": "test pstr", "schemeStatus": "test status"}"""
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
@@ -56,82 +64,82 @@ class SchemeDetailsConnectorSpec
       )
     }
 
-    "throw BadRequestException for a 400 Bad Request response" in {
-      server.stubFor(
-        get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("idNumber", equalTo(idNumber))
-          .withHeader("psaId", equalTo(psaId))
-          .willReturn(
-            badRequest
-              .withHeader("Content-Type", "application/json")
-          )
-      )
-
-      val connector = injector.instanceOf[SchemeDetailsConnector]
-
-      recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeDetails(psaId, idNumber, "srn")
-      }
-    }
+    //"throw BadRequestException for a 400 Bad Request response" in {
+    //  server.stubFor(
+    //    get(urlEqualTo(schemeDetailsUrl))
+    //      .withHeader("idNumber", equalTo(idNumber))
+    //      .withHeader("psaId", equalTo(psaId))
+    //      .willReturn(
+    //        badRequest
+    //          .withHeader("Content-Type", "application/json")
+    //      )
+    //  )
+    //
+    //  val connector = injector.instanceOf[SchemeDetailsConnector]
+    //
+    //  recoverToSucceededIf[BadRequestException] {
+    //    connector.getSchemeDetails(psaId, idNumber, "srn")
+    //  }
+    //}
   }
 
-  "checkForAssociation" must {
-    implicit val request: FakeRequest[_] = FakeRequest("GET", "/")
-    val checkAssociationUrl = "/pensions-scheme/is-psa-associated"
-
-    "return ok with a valid response" in {
-      server.stubFor(
-        get(urlEqualTo(checkAssociationUrl))
-          .withHeader("Content-Type", equalTo("application/json"))
-          .withHeader("psaId", equalTo(psaId))
-          .withHeader("schemeReferenceNumber", equalTo(srn))
-          .willReturn(
-            ok(Json.stringify(
-              JsBoolean(true)
-            )).withHeader("Content-Type", "application/json")
-          )
-      )
-
-      val connector = injector.instanceOf[SchemeDetailsConnector]
-
-      connector.checkForAssociation(psaId, srn, "psaId").map(isPsaAssociated =>
-        isPsaAssociated mustBe true
-      )
-    }
-
-    "throw jsResultException for an invalid response" in {
-      server.stubFor(
-        get(urlEqualTo(checkAssociationUrl))
-          .withHeader("Content-Type", equalTo("application/json"))
-          .withHeader("psaId", equalTo(psaId))
-          .withHeader("schemeReferenceNumber", equalTo(srn))
-          .willReturn(
-            ok(Json.stringify(
-              JsString("invalid response")
-            )).withHeader("Content-Type", "application/json")
-          )
-      )
-
-      val connector = injector.instanceOf[SchemeDetailsConnector]
-
-      recoverToSucceededIf[JsResultException] {
-        connector.checkForAssociation(psaId, srn, "psaId")
-      }
-    }
-
-    "return InternalServerException for a 500 Internal Server Error" in {
-      server.stubFor(
-        get(urlEqualTo(checkAssociationUrl))
-          .withHeader("Content-Type", equalTo("application/json"))
-          .withHeader("psaId", equalTo(psaId))
-          .withHeader("schemeReferenceNumber", equalTo(srn))
-          .willReturn(serverError()))
-
-      val connector = injector.instanceOf[SchemeDetailsConnector]
-
-      recoverToSucceededIf[UpstreamErrorResponse] {
-        connector.checkForAssociation(psaId, srn, "psaId")
-      }
-    }
-  }
+  //"checkForAssociation" must {
+  //  implicit val request: FakeRequest[_] = FakeRequest("GET", "/")
+  //  val checkAssociationUrl = "/pensions-scheme/is-psa-associated"
+  //
+  //  "return ok with a valid response" in {
+  //    server.stubFor(
+  //      get(urlEqualTo(checkAssociationUrl))
+  //        .withHeader("Content-Type", equalTo("application/json"))
+  //        .withHeader("psaId", equalTo(psaId))
+  //        .withHeader("schemeReferenceNumber", equalTo(srn))
+  //        .willReturn(
+  //          ok(Json.stringify(
+  //            JsBoolean(true)
+  //          )).withHeader("Content-Type", "application/json")
+  //        )
+  //    )
+  //
+  //    val connector = injector.instanceOf[SchemeDetailsConnector]
+  //
+  //    connector.checkForAssociation(psaId, srn, "psaId").map(isPsaAssociated =>
+  //      isPsaAssociated mustBe true
+  //    )
+  //  }
+  //
+  //  "throw jsResultException for an invalid response" in {
+  //    server.stubFor(
+  //      get(urlEqualTo(checkAssociationUrl))
+  //        .withHeader("Content-Type", equalTo("application/json"))
+  //        .withHeader("psaId", equalTo(psaId))
+  //        .withHeader("schemeReferenceNumber", equalTo(srn))
+  //        .willReturn(
+  //          ok(Json.stringify(
+  //            JsString("invalid response")
+  //          )).withHeader("Content-Type", "application/json")
+  //        )
+  //    )
+  //
+  //    val connector = injector.instanceOf[SchemeDetailsConnector]
+  //
+  //    recoverToSucceededIf[JsResultException] {
+  //      connector.checkForAssociation(psaId, srn, "psaId")
+  //    }
+  //  }
+  //
+  //  "return InternalServerException for a 500 Internal Server Error" in {
+  //    server.stubFor(
+  //      get(urlEqualTo(checkAssociationUrl))
+  //        .withHeader("Content-Type", equalTo("application/json"))
+  //        .withHeader("psaId", equalTo(psaId))
+  //        .withHeader("schemeReferenceNumber", equalTo(srn))
+  //        .willReturn(serverError()))
+  //
+  //    val connector = injector.instanceOf[SchemeDetailsConnector]
+  //
+  //    recoverToSucceededIf[UpstreamErrorResponse] {
+  //      connector.checkForAssociation(psaId, srn, "psaId")
+  //    }
+  //  }
+  //}
 }
