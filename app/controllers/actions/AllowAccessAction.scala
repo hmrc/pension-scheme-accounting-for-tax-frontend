@@ -61,11 +61,9 @@ class AllowAccessAction(
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
     if (isInvalidDate) {
-      println("\n\n invalid ")
       //todo redirect to new error page for invalid dates once it is created
       Future.successful(Option(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
     } else {
-      println("\n\n else ")
       request.userAnswers.get(SchemeStatusQuery) match {
         case Some(schemeStatus) =>
           if (!validStatuses.contains(schemeStatus)) {
