@@ -57,4 +57,9 @@ case class DataRequest[A] (
       case (_, Some(id)) => id.id
       case _ => throw IdNotFound()
     }
+  def submitterType:String = (psaId, pspId) match {
+    case (Some(_), None) => "PSA"
+    case (None, Some(_)) => "PSP"
+    case _ => throw IdNotFound()
+  }
 }
