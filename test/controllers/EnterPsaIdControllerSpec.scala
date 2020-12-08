@@ -23,7 +23,6 @@ import controllers.actions.AllowAccessActionProvider
 import controllers.actions.DataRequiredAction
 import controllers.actions.DataRequiredActionImpl
 import controllers.actions.DataSetupAction
-import controllers.actions.FakeIdentifierAction
 import controllers.actions.FakeIdentifierActionPSP
 import controllers.actions.IdentifierAction
 import controllers.actions.MutableFakeDataRetrievalAction
@@ -97,7 +96,7 @@ class EnterPsaIdControllerSpec extends ControllerSpecBase with NunjucksSupport w
   private val jsonToTemplate: Form[String] => JsObject = form => Json.obj(
     fields = "form" -> form,
     "viewModel" -> GenericViewModel(
-      submitUrl = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url,
+      submitUrl = controllers.routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, versionInt).url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName)
   )
@@ -202,9 +201,9 @@ object EnterPsaIdControllerSpec {
 
   private def form = new EnterPsaIdFormProvider().apply(authorisingPSAID = None)
 
-  private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(NormalMode, srn, startDate, accessType, versionInt).url
+  private def httpPathGETVersion: String = controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt).url
 
-  private def httpPathPOST: String = controllers.routes.EnterPsaIdController.onSubmit(NormalMode, srn, startDate, accessType, versionInt).url
+  private def httpPathPOST: String = controllers.routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, versionInt).url
 
   private val valuesValid: Map[String, Seq[String]] = Map(
     "value" -> Seq(psaId)

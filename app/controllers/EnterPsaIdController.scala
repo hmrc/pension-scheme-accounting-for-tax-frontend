@@ -26,9 +26,10 @@ import javax.inject.Inject
 import models.LocalDateBinder._
 import models.AccessType
 import models.GenericViewModel
-import models.Mode
+import models.NormalMode
 import navigators.CompoundNavigator
 import pages.EnterPsaIdPage
+import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
 import play.api.libs.json.Json
@@ -57,9 +58,9 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(authorisingPsaId: Option[String]) = formProvider(authorisingPSAID = authorisingPsaId)
+  private def form(authorisingPsaId: Option[String]):Form[String] = formProvider(authorisingPSAID = authorisingPsaId)
 
-  def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)).async { implicit request =>
 
       DataRetrievals.retrieveSchemeName{ schemeName =>
@@ -69,7 +70,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
         }
 
         val viewModel = GenericViewModel(
-          submitUrl = routes.EnterPsaIdController.onSubmit(mode, srn, startDate, accessType, version).url,
+          submitUrl = routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version).url,
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
@@ -85,7 +86,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
       }
     }
 
-  def onSubmit(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
+  def onSubmit(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData).async { implicit request =>
       DataRetrievals.retrieveSchemeName{ schemeName =>
         schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map(_.authorisingPSAID).flatMap{ authorisingPsaId =>
@@ -95,7 +96,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
             formWithErrors => {
 
               val viewModel = GenericViewModel(
-                submitUrl = routes.EnterPsaIdController.onSubmit(mode, srn, startDate, accessType, version).url,
+                submitUrl = routes.EnterPsaIdController.onSubmit(srn, startDate, accessType, version).url,
                 returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
                 schemeName = schemeName
               )
@@ -113,7 +114,7 @@ class EnterPsaIdController @Inject()(override val messagesApi: MessagesApi,
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.set(EnterPsaIdPage, value))
                 _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(EnterPsaIdPage, mode, updatedAnswers, srn, startDate, accessType, version))
+              } yield Redirect(navigator.nextPage(EnterPsaIdPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
           )
          }
       }

@@ -109,7 +109,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     ua.get(ConfirmSubmitAFTReturnPage) match {
       case Some(true) =>
         (request.psaId, request.pspId) match {
-          case (None, Some(_)) => controllers.routes.EnterPsaIdController.onPageLoad(NormalMode, srn, startDate, accessType, version)
+          case (None, Some(_)) => controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, version)
           case (Some(_), None) => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
           case _ =>  sessionExpiredPage
         }
