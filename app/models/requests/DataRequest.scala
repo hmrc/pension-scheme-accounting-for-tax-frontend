@@ -19,9 +19,14 @@ package models.requests
 import controllers.actions.IdNotFound
 import models.AccessMode
 import models.SessionData
-import play.api.mvc.{Request, WrappedRequest}
+import models.SchemeAdministratorType
+import models.SchemeAdministratorType.SchemeAdministratorTypePSA
+import models.SchemeAdministratorType.SchemeAdministratorTypePSP
+import play.api.mvc.Request
+import play.api.mvc.WrappedRequest
 import models.UserAnswers
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.PspId
 
 case class OptionalDataRequest[A] (
                                     request: Request[A],
@@ -51,15 +56,17 @@ case class DataRequest[A] (
     .exists(ld => ld.psaOrPspId.nonEmpty && ld.psaOrPspId.charAt(0).isDigit)
   def isLockedByPsa: Boolean = sessionData.lockDetail
     .exists(ld => ld.psaOrPspId.nonEmpty && ld.psaOrPspId.charAt(0).isLetter)
-  def idOrException: String =
+  def idOrException: String = {
     (psaId, pspId) match {
       case (Some(id), _) => id.id
       case (_, Some(id)) => id.id
       case _ => throw IdNotFound()
     }
-  def submitterType:String = (psaId, pspId) match {
-    case (Some(_), None) => "PSA"
-    case (None, Some(_)) => "PSP"
+  }
+
+  def schemeAdministratorType:SchemeAdministratorType = (psaId, pspId) match {
+    case (Some(_), None) => SchemeAdministratorTypePSA
+    case (None, Some(_)) => SchemeAdministratorTypePSP
     case _ => throw IdNotFound()
   }
 }
