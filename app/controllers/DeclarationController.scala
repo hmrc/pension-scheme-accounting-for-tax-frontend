@@ -23,6 +23,7 @@ import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.EmailConnector
+import models.SchemeAdministratorType._
 import connectors.EmailStatus
 import controllers.actions._
 import javax.inject.Inject
@@ -49,10 +50,11 @@ import play.api.mvc.AnyContent
 import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
+import utils.DateHelper.dateFormatterDMY
+import utils.DateHelper.dateFormatterStartDate
+import utils.DateHelper.formatSubmittedDate
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -74,7 +76,6 @@ class DeclarationController @Inject()(
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
-
   def onPageLoad(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] =
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
@@ -84,7 +85,12 @@ class DeclarationController @Inject()(
           returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
           schemeName = schemeName
         )
-        renderer.render(template = "declaration.njk", Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
+
+        val template = request.schemeAdministratorType match {
+          case SchemeAdministratorTypePSA => "declaration.njk"
+          case SchemeAdministratorTypePSP => "pspDeclaration.njk"
+        }
+        renderer.render(template, Json.obj(fields = "viewModel" -> viewModel)).map(Ok(_))
       }
     }
 
@@ -92,8 +98,9 @@ class DeclarationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen allowAccess(srn, startDate, None, version, accessType)
       andThen allowSubmission).async { implicit request =>
       DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, pstr, email, quarter, isAmendment, amendedVersion) =>
+        val declaration = Declaration(request.schemeAdministratorType.toString, request.idOrException, hasAgreed = true)
         for {
-          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, Declaration("PSA", request.idOrException, hasAgreed = true)))
+          answersWithDeclaration <- Future.fromTry(request.userAnswers.set(DeclarationPage, declaration))
           _ <- userAnswersCacheConnector.save(request.internalId, answersWithDeclaration.data)
           _ <- aftService.fileSubmitReturn(pstr, answersWithDeclaration)
           _ <- sendEmail(email, quarter, schemeName, isAmendment, amendedVersion)
@@ -131,7 +138,7 @@ class DeclarationController @Inject()(
       "AFTReturnSubmitted"
     }
 
-    emailConnector.sendEmail(requestId, PsaId(request.idOrException), journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(requestId, request.idOrException, journeyType, email, templateId, templateParams)
   }
 
   private def templateId(implicit request: DataRequest[_]): String ={

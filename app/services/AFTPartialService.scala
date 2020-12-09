@@ -110,9 +110,10 @@ class AFTPartialService @Inject()(
                                 implicit hc: HeaderCarrier,
                                 messages: Messages
                               ): Future[Option[JsObject]] = {
-    val startDate = inProgressReturns.head.periodStartDate.toString
+
 
     if (inProgressReturns.size == 1) {
+      val startDate = inProgressReturns.head.periodStartDate.toString
       aftCacheConnector.lockDetail(srn, startDate) flatMap {
         optLockDetail =>
           if (inProgressReturns.head.numberOfVersions == 1) {

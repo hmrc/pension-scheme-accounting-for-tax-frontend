@@ -20,14 +20,18 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.SchemeDetails
 import play.api.http.Status._
-import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
+import play.api.libs.json.JsError
+import play.api.libs.json.JsResultException
+import play.api.libs.json.JsSuccess
+import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.HttpResponseHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
@@ -50,7 +54,25 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
       response =>
         response.status match {
           case OK =>
-            Json.parse(response.body).validate[SchemeDetails] match {
+            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsa) match {
+              case JsSuccess(value, _) => value
+              case JsError(errors) => throw JsResultException(errors)
+            }
+          case _ =>
+            handleErrorResponse("GET", url)(response)
+        }
+    }
+  }
+
+  def getPspSchemeDetails(pspId: String, srn: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
+
+    val url = config.pspSchemeDetailsUrl
+    val schemeHc = hc.withExtraHeaders("srn" -> srn, "pspId" -> pspId)
+
+    http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly) map { response =>
+        response.status match {
+          case OK =>
+            Json.parse(response.body).validate[SchemeDetails](SchemeDetails.readsPsp) match {
               case JsSuccess(value, _) => value
               case JsError(errors) => throw JsResultException(errors)
             }
