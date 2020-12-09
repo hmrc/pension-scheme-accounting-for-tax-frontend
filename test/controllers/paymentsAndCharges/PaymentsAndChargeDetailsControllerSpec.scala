@@ -74,7 +74,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     super.beforeEach
     reset(mockSchemeService, mockFSConnector, mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
     when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any())).thenReturn(Nil)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))

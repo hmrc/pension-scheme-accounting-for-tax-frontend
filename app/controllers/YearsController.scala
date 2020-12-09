@@ -51,7 +51,11 @@ class YearsController @Inject()(
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+    schemeService.retrieveSchemeDetails(
+      psaId = request.idOrException,
+      srn = srn,
+      schemeIdType = "srn"
+    ) flatMap { schemeDetails =>
       val json = Json.obj(
         "srn" -> srn,
         "startDate" -> None,
@@ -69,7 +73,11 @@ class YearsController @Inject()(
       .bindFromRequest()
       .fold(
         formWithErrors =>
-          schemeService.retrieveSchemeDetails(request.psaId.id, srn).flatMap { schemeDetails =>
+          schemeService.retrieveSchemeDetails(
+            psaId = request.idOrException,
+            srn = srn,
+            schemeIdType = "srn"
+          ) flatMap { schemeDetails =>
             val json = Json.obj(
               fields = "srn" -> srn,
               "startDate" -> None,

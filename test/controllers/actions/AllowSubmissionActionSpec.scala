@@ -57,7 +57,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
 
         val ua: UserAnswers = UserAnswers().setOrException(QuarterPage, Quarter(QUARTER_START_DATE, QUARTER_END_DATE))
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), ua, SampleData.sessionData()))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result mustBe None
@@ -70,7 +70,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
         when(aftService.isSubmissionDisabled(any())).thenReturn(false)
         val action = new Harness(aftService, errorHandler)
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result.value mustBe BadRequest
@@ -85,7 +85,7 @@ class AllowSubmissionActionSpec extends ControllerSpecBase with ScalaFutures wit
 
         val action = new Harness(aftService, errorHandler)
 
-        val futureResult = action.callTransform(DataRequest(fakeRequest, "", PsaId(SampleData.psaId), UserAnswers(), SampleData.sessionData()))
+        val futureResult = action.callTransform(DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData()))
 
         whenReady(futureResult) { result =>
           result.value mustBe NotFound("Not Found")

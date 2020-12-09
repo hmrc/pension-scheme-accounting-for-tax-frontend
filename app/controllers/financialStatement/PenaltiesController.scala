@@ -56,10 +56,14 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
           "schemeName" -> args
         )
 
-      fsConnector.getPsaFS(request.psaId.id).flatMap {
+      fsConnector.getPsaFS(request.psaIdOrException.id).flatMap {
         psaFS =>
           if (identifier.matches(srnRegex)) {
-            schemeService.retrieveSchemeDetails(request.psaId.id, identifier) flatMap {
+            schemeService.retrieveSchemeDetails(
+              psaId = request.idOrException,
+              srn = identifier,
+              schemeIdType = "srn"
+            ) flatMap {
               schemeDetails =>
                 val filteredPsaFS: Seq[PsaFS] =
                   psaFS.filter(_.pstr == schemeDetails.pstr)
@@ -87,7 +91,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                 val pstrs: Seq[String] =
                   jsValue.as[Seq[PsaFS]].map(_.pstr)
 
-                penaltiesService.unassociatedSchemes(psaFS, year, request.psaId.id) flatMap {
+                penaltiesService.unassociatedSchemes(psaFS, year, request.psaIdOrException.id) flatMap {
                   filteredPsaFS =>
                     val penaltyTables: Future[Seq[JsObject]] =
                       penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {

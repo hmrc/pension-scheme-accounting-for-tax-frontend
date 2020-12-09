@@ -51,7 +51,7 @@ class SelectSchemeController @Inject()(
 
   def onPageLoad(year: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaId.id).flatMap {
+      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
@@ -69,7 +69,7 @@ class SelectSchemeController @Inject()(
 
   def onSubmit(year: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaId.id).flatMap {
+      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
           form(penaltySchemes).bindFromRequest().fold(
             formWithErrors => {

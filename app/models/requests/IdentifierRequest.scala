@@ -16,7 +16,27 @@
 
 package models.requests
 
+import controllers.actions.IdNotFound
 import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 
-case class IdentifierRequest[A] (request: Request[A], psaId: PsaId) extends WrappedRequest[A](request)
+case class IdentifierRequest[A](
+                                 request: Request[A],
+                                 psaId: Option[PsaId],
+                                 pspId: Option[PspId] = None
+                               )
+  extends WrappedRequest[A](request) {
+
+  def idOrException: String =
+    if (psaId.nonEmpty) psaId.get.id
+    else if (pspId.nonEmpty) pspId.get.id
+    else throw IdNotFound()
+
+  def psaIdOrException: PsaId =
+    if (psaId.nonEmpty) psaId.get
+    else throw IdNotFound()
+
+  def pspIdOrException: PspId =
+    if (pspId.nonEmpty) pspId.get
+    else throw IdNotFound()
+}

@@ -26,7 +26,7 @@ import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +38,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
 
   private val nameLockedBy = None
   private val sd = SessionData(sessionId, nameLockedBy, sessionAccessDataCompile)
-  private val request: IdentifierRequest[AnyContent] = IdentifierRequest(fakeRequest, PsaId(psaId))
+  private val request: IdentifierRequest[AnyContent] = IdentifierRequest(fakeRequest, Some(PsaId(psaId)), None)
   val id = s"$srn$startDate"
   class Harness extends DataRetrievalImpl(srn, QUARTER_START_DATE, dataCacheConnector) {
     def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
@@ -53,7 +53,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
         when(dataCacheConnector.getSessionData(eqTo(id))(any(), any())) thenReturn Future(None)
         val action = new Harness
 
-        val expectedResult = OptionalDataRequest(request, id, PsaId(psaId), None, None)
+        val expectedResult = OptionalDataRequest(request, id, Some(PsaId(psaId)), None, None, None)
         val futureResult = action.callTransform(request)
 
         whenReady(futureResult) { result =>
@@ -71,7 +71,7 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
         val action = new Harness
 
         val futureResult = action.callTransform(request)
-        val expectedResult = OptionalDataRequest(request, id, PsaId(psaId), Some(userAnswersWithSchemeName), Some(sd))
+        val expectedResult = OptionalDataRequest(request, id, Some(PsaId(psaId)), None, Some(userAnswersWithSchemeName), Some(sd))
 
         whenReady(futureResult) { result =>
           result.userAnswers.isDefined mustBe true

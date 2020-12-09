@@ -99,7 +99,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
       .thenReturn(Future.successful(penaltyTables))
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFSResponse))
-    when(mockSchemeService.retrieveSchemeDetails(any(), any())(any(), any()))
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open")))
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(play.twirl.api.Html("")))

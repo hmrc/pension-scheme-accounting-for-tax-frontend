@@ -127,7 +127,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     when(mockAppConfig.yourPensionSchemesUrl).thenReturn(testManagePensionsUrl.url)
     when(mockAppConfig.isFSEnabled).thenReturn(true)
     when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-    when(mockSchemeService.retrieveSchemeDetails(any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
+    when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 

@@ -32,13 +32,17 @@ import scala.concurrent.{ExecutionContext, Future}
 class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
-  def getSchemeDetails(psaId: String, schemeIdType: String, idNumber: String)
+  def getSchemeDetails(psaId: String, idNumber: String, schemeIdType: String)
                       (implicit headerCarrier: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
 
     val url = config.schemeDetailsUrl
 
     val headers: Seq[(String, String)] =
-      Seq(("schemeIdType", schemeIdType), ("idNumber", idNumber), ("PSAId", psaId))
+      Seq(
+        ("idNumber", idNumber),
+        ("schemeIdType", schemeIdType),
+        ("psaId", psaId)
+      )
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 
@@ -56,14 +60,20 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
     }
   }
 
-  def checkForAssociation(psaId: String, srn: String)
-                         (implicit headerCarrier: HeaderCarrier,
-                          ec: ExecutionContext, request: RequestHeader): Future[Boolean] = {
+  def checkForAssociation(
+                           psaId: String,
+                           srn: String,
+                           idType: String
+                         )(
+                           implicit headerCarrier: HeaderCarrier,
+                           ec: ExecutionContext,
+                           request: RequestHeader
+                         ): Future[Boolean] = {
 
     val url = config.checkAssociationUrl
 
     val headers: Seq[(String, String)] =
-      Seq(("psaId", psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
+      Seq((idType, psaId), ("schemeReferenceNumber", srn), ("Content-Type", "application/json"))
 
     implicit val hc: HeaderCarrier = headerCarrier.withExtraHeaders(headers: _*)
 

@@ -961,7 +961,7 @@ quarters.q2.label = 1 April to 30 June
 quarters.q3.label = 1 July to 30 September
 quarters.q4.label = 1 October to 31 December
 quarters.error.required = Select the quarter of {0} you are submitting an AFT return for
-quarters.lockedBy = - locked by {0}
+quarters.lockDetail = - locked by {0}
 quarters.hint.locked = You can view this return but you cannot make changes until it is unlocked
 quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
@@ -1024,11 +1024,23 @@ aftPartial.multipleInProgress.count = {0} in progress
 aftPartial.inProgress.forPeriod = AFT return for {0} to {1}
 aftPartial.view.change.past = View or change past AFT returns
 aftPartial.status.inProgress = In progress
-aftPartial.status.lockedBy = Locked by {0}
+aftPartial.status.lockDetail = Locked by {0}
 aftPartial.status.locked = Locked
 aftPartial.view.link = View
 aftPartial.view.hidden = in progress accounting for tax returns
 aftPartial.view.hidden.forPeriod = accounting for tax return for {0} to {1}
+
+pspDashboardAftReturnsPartial.h1 = Accounting for Tax returns
+pspDashboardAftReturnsPartial.span.single = AFT return {0} to {1}:
+pspDashboardAftReturnsPartial.h3.single = In progress
+pspDashboardAftReturnsPartial.h3.single.locked = Locked
+pspDashboardAftReturnsPartial.h3.single.lockedBy = Locked by {0}
+pspDashboardAftReturnsPartial.span.multiple = AFT returns:
+pspDashboardAftReturnsPartial.h3.multiple = {0} in progress
+pspDashboardAftReturnsPartial.inProgressReturns.link = View AFT returns in progress
+pspDashboardAftReturnsPartial.inProgressReturns.link.single = View AFT return in progress
+pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked = View locked AFT return
+
 
 penaltiesPartial.linkText = View your penalties for 2020
 

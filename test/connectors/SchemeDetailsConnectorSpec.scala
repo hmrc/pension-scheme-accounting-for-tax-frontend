@@ -24,12 +24,14 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
-class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
+class SchemeDetailsConnectorSpec
+  extends AsyncWordSpec
+    with MustMatchers
+    with WireMockHelper {
   override protected def portConfigKey: String = "microservice.services.pensions-scheme.port"
 
   private implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
   private val psaId = "0000"
-  private val schemeIdType = "pstr"
   private val srn = "test srn"
   private val idNumber = "00000000AA"
 
@@ -39,9 +41,9 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
       val jsonResponse = """{"schemeName":"test scheme", "pstr": "test pstr", "schemeStatus": "test status"}"""
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("schemeIdType", equalTo(schemeIdType))
           .withHeader("idNumber", equalTo(idNumber))
-          .withHeader("PSAId", equalTo(psaId))
+          .withHeader("psaId", equalTo(psaId))
+          .withHeader("schemeIdType", equalTo("pstr"))
           .willReturn(ok(jsonResponse)
             .withHeader("Content-Type", "application/json")
           )
@@ -49,7 +51,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.getSchemeDetails(psaId, schemeIdType, idNumber).map(schemeDetails =>
+      connector.getSchemeDetails(psaId, idNumber, "pstr").map(schemeDetails =>
         schemeDetails mustBe SchemeDetails("test scheme", "test pstr", "test status")
       )
     }
@@ -57,9 +59,8 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
     "throw BadRequestException for a 400 Bad Request response" in {
       server.stubFor(
         get(urlEqualTo(schemeDetailsUrl))
-          .withHeader("schemeIdType", equalTo(schemeIdType))
           .withHeader("idNumber", equalTo(idNumber))
-          .withHeader("PSAId", equalTo(psaId))
+          .withHeader("psaId", equalTo(psaId))
           .willReturn(
             badRequest
               .withHeader("Content-Type", "application/json")
@@ -69,7 +70,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getSchemeDetails(psaId, schemeIdType, idNumber)
+        connector.getSchemeDetails(psaId, idNumber, "srn")
       }
     }
   }
@@ -93,7 +94,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
 
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
-      connector.checkForAssociation(psaId, srn).map(isPsaAssociated =>
+      connector.checkForAssociation(psaId, srn, "psaId").map(isPsaAssociated =>
         isPsaAssociated mustBe true
       )
     }
@@ -114,7 +115,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[JsResultException] {
-        connector.checkForAssociation(psaId, srn)
+        connector.checkForAssociation(psaId, srn, "psaId")
       }
     }
 
@@ -129,7 +130,7 @@ class SchemeDetailsConnectorSpec extends AsyncWordSpec with MustMatchers with Wi
       val connector = injector.instanceOf[SchemeDetailsConnector]
 
       recoverToSucceededIf[UpstreamErrorResponse] {
-        connector.checkForAssociation(psaId, srn)
+        connector.checkForAssociation(psaId, srn, "psaId")
       }
     }
   }
