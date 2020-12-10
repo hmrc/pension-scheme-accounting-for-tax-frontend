@@ -129,7 +129,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType) =
           s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
           s"<span aria-hidden=true>$linkContent</span>" +
-          s"<span class=govuk-visually-hidden>$linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
+          s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
 
       val expectedStartDate = "2020-04-01"
 
