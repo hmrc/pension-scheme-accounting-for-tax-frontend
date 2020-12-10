@@ -16,17 +16,31 @@
 
 package models
 
+import play.api.libs.json.JsPath
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads, Writes}
+import play.api.libs.json.Reads._
+import play.api.libs.json.Reads
 
-case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String)
+case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String, authorisingPSAID: Option[String])
+
 object SchemeDetails {
-  implicit def apiReads: Reads[SchemeDetails] = (
-    (JsPath \ "schemeName").read[String] and
-      (JsPath \ "pstr").read[String] and
-      (JsPath \ "schemeStatus").read[String])(
-    (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status)
-  )
-  implicit lazy val writes: Writes[SchemeDetails] =
-    Json.writes[SchemeDetails]
+
+  implicit val readsPsa: Reads[SchemeDetails] =
+    (
+      (JsPath \ "schemeName").read[String] and
+        (JsPath \ "pstr").read[String] and
+        (JsPath \ "schemeStatus").read[String]
+    )(
+      (schemeName, pstr, status) => SchemeDetails(schemeName, pstr, status, None)
+    )
+
+  implicit val readsPsp: Reads[SchemeDetails] =
+    (
+      (JsPath \ "schemeName").read[String] and
+        (JsPath \ "pstr").read[String] and
+        (JsPath \ "schemeStatus").read[String] and
+        (JsPath \ "pspDetails" \ "authorisingPSAID" ).read[String]
+      )(
+      (schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, Some(authorisingPSAID))
+    )
 }

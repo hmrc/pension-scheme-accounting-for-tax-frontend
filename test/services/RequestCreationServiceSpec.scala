@@ -63,7 +63,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
   private val schemeStatus = "Open"
 
-  private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus)
+  private val schemeDetails = SchemeDetails(schemeName, pstr, schemeStatus, None)
 
   private def requestCreationService =
     new RequestCreationService(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector)

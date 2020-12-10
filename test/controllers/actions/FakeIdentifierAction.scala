@@ -20,6 +20,7 @@ import javax.inject.Inject
 import models.requests.IdentifierRequest
 import play.api.mvc._
 import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.PspId
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,6 +30,21 @@ class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends Ident
 
   override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
     block(IdentifierRequest(request, Some(PsaId(defaultPsaId))))
+  }
+
+  override def parser: BodyParser[AnyContent] =
+    bodyParsers.default
+
+  override protected def executionContext: ExecutionContext =
+    scala.concurrent.ExecutionContext.Implicits.global
+}
+
+class FakeIdentifierActionPSP @Inject()(bodyParsers: PlayBodyParsers) extends IdentifierAction {
+
+  private val defaultPspId: String = "20000000"
+
+  override def invokeBlock[A](request: Request[A], block: IdentifierRequest[A] => Future[Result]): Future[Result] = {
+    block(IdentifierRequest(request,None, Some(PspId(defaultPspId))))
   }
 
   override def parser: BodyParser[AnyContent] =

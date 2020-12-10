@@ -63,7 +63,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     super.beforeEach
     reset(mockSchemeService, mockRenderer, mockAppConfig, mockAuditService)
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any()))
-      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString)))
+      .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
     when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }

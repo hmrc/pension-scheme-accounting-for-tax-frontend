@@ -18,7 +18,9 @@ package forms.mappings
 
 import java.time.LocalDate
 
-import play.api.data.validation.{Constraint, Invalid, Valid}
+import play.api.data.validation.Constraint
+import play.api.data.validation.Invalid
+import play.api.data.validation.Valid
 import uk.gov.hmrc.domain.Nino
 import utils.DateHelper
 
@@ -27,6 +29,7 @@ trait Constraints {
   lazy val nameRegex: String = """^[a-zA-Z &`\-\'\.^]*$"""
   private val regexCrn = "^[A-Za-z0-9 -]{8}$"
   val addressLineRegex = """^[A-Za-z0-9 \-,.&'\/]{1,35}$"""
+  val psaIdRegex = "^A[0-9]{7}$"
 
   protected def firstError[A](constraints: Constraint[A]*): Constraint[A] =
     Constraint {
@@ -35,6 +38,13 @@ trait Constraints {
           .map(_.apply(input))
           .find(_ != Valid)
           .getOrElse(Valid)
+    }
+
+  protected def isEqual(expectedValue:Option[String], errorKey: String): Constraint[String] =
+    Constraint {
+      case _ if expectedValue.isEmpty => Valid
+      case s if expectedValue.contains(s) => Valid
+      case _ => Invalid(errorKey)
     }
 
   protected def postCode(errorKey: String): Constraint[String] = regexp(regexPostcode, errorKey)
