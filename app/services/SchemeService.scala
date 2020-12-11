@@ -21,21 +21,36 @@ import connectors.SchemeDetailsConnector
 import models.SchemeDetails
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector) {
+class SchemeService @Inject()(schemeDetailsConnector: SchemeDetailsConnector)  {
+
+  private val psaIdRegex = "^A[0-9]{7}$".r
+
+  private def isPsaId(s:String) = psaIdRegex.findFirstIn(s).isDefined
 
   def retrieveSchemeDetails(psaId: String, srn: String, schemeIdType: String)
                            (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[SchemeDetails] = {
-    schemeDetailsConnector.getSchemeDetails(
-      psaId = psaId,
-      idNumber = srn,
-      schemeIdType = schemeIdType
-    ) map { schemeDetails =>
+    val futureSchemeDetails = if (isPsaId(psaId)) {
+      schemeDetailsConnector.getSchemeDetails(
+        psaId = psaId,
+        idNumber = srn,
+        schemeIdType = schemeIdType
+      )
+    } else {
+      schemeDetailsConnector.getPspSchemeDetails(
+        pspId = psaId,
+        srn = srn
+      )
+    }
+
+    futureSchemeDetails map { schemeDetails =>
       SchemeDetails(
         schemeName = schemeDetails.schemeName,
         pstr = schemeDetails.pstr,
-        schemeStatus = schemeDetails.schemeStatus
+        schemeStatus = schemeDetails.schemeStatus,
+        authorisingPSAID = schemeDetails.authorisingPSAID
       )
     }
   }

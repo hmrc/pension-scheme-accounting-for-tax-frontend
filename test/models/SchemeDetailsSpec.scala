@@ -16,24 +16,46 @@
 
 package models
 
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
 import play.api.libs.json.Json
 
 class SchemeDetailsSpec extends FreeSpec with MustMatchers {
 
   "api reads " - {
     "must map correctly to SchemeDetails" in {
+      val authorisingPSA = "A2100005"
+      val json = Json.obj(
+        "schemeName" -> "test scheme",
+        "pstr" -> "test pstr",
+        "schemeStatus" -> "Open",
+        "pspDetails" -> Json.obj(
+          "authorisingPSAID" -> authorisingPSA
+        )
+      )
+
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsp)
+
+      result.schemeName mustBe (json \ "schemeName").as[String]
+      result.pstr mustBe (json \ "pstr").as[String]
+      result.schemeStatus mustBe (json \ "schemeStatus").as[String]
+      result.authorisingPSAID mustBe Some(authorisingPSA)
+    }
+
+    "must map correctly to SchemeDetails where no pspDetails node" in {
+
       val json = Json.obj(
         "schemeName" -> "test scheme",
         "pstr" -> "test pstr",
         "schemeStatus" -> "Open"
       )
 
-      val result = json.as[SchemeDetails]
+      val result = json.as[SchemeDetails](SchemeDetails.readsPsa)
 
       result.schemeName mustBe (json \ "schemeName").as[String]
       result.pstr mustBe (json \ "pstr").as[String]
       result.schemeStatus mustBe (json \ "schemeStatus").as[String]
+      result.authorisingPSAID mustBe None
     }
   }
 }

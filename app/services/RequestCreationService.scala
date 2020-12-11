@@ -145,10 +145,10 @@ class RequestCreationService @Inject()(
       case (Some(_), Some(_)) =>
         Future.successful(uaWithStatus)
       case _ =>
-        minimalPsaConnector.getMinimalPsaDetails.map { psaDetails =>
+        minimalPsaConnector.getMinimalPsaDetails.map { minimalDetails =>
           uaWithStatus
-            .setOrException(PSAEmailQuery, psaDetails.email)
-            .setOrException(PSANameQuery, psaDetails.name)
+            .setOrException(PSAEmailQuery, minimalDetails.email)
+            .setOrException(PSANameQuery, minimalDetails.name)
         }
     }
   }

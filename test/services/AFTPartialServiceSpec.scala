@@ -64,7 +64,7 @@ class AFTPartialServiceSpec
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open")))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
       whenReady(service.retrieveOptionAFTViewModel(srn, psaId, "srn")) {
         _ mustBe allTypesMultipleReturnsModel
@@ -140,7 +140,7 @@ class AFTPartialServiceSpec
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open")))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
       whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardAftReturnsViewModel

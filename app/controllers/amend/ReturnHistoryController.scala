@@ -97,7 +97,7 @@ class ReturnHistoryController @Inject()(
         Html(
           s"<a id= report-version-$version class=govuk-link href=${url(accessType, updatedVersion)}>" +
             s"<span aria-hidden=true>${messages(linkText)}</span>" +
-            s"<span class=govuk-visually-hidden>${messages(linkText)} " +
+            s"<span class=govuk-visually-hidden> ${messages(linkText)} " +
             s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
         )
       }

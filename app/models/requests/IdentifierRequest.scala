@@ -28,15 +28,21 @@ case class IdentifierRequest[A](
   extends WrappedRequest[A](request) {
 
   def idOrException: String =
-    if (psaId.nonEmpty) psaId.get.id
-    else if (pspId.nonEmpty) pspId.get.id
-    else throw IdNotFound()
+    (psaId, pspId) match {
+      case (Some(id), _) => id.id
+      case (_, Some(id)) => id.id
+      case _ => throw IdNotFound()
+    }
 
   def psaIdOrException: PsaId =
-    if (psaId.nonEmpty) psaId.get
-    else throw IdNotFound()
+    psaId match {
+      case Some(id) => id
+      case _ => throw IdNotFound()
+    }
 
   def pspIdOrException: PspId =
-    if (pspId.nonEmpty) pspId.get
-    else throw IdNotFound()
+    pspId match {
+      case Some(id) => id
+      case _ => throw IdNotFound()
+    }
 }

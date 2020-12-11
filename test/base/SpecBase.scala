@@ -45,12 +45,16 @@ trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
 
   protected implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
-  protected implicit def request(ua: UserAnswers = UserAnswers(), sessionAccessData: SessionAccessData = SampleData.sessionAccessDataCompile): DataRequest[AnyContent] =
+  protected implicit def request(ua: UserAnswers = UserAnswers(),
+    sessionAccessData: SessionAccessData = SampleData.sessionAccessDataCompile,
+    psaId: Option[String] = Some(SampleData.psaId),
+    pspId: Option[String] = Some(SampleData.pspId)
+  ): DataRequest[AnyContent] =
     DataRequest(
       request = fakeRequest,
       internalId = "",
-      psaId = Some(PsaId(SampleData.psaId)),
-      pspId = Some(PspId(SampleData.pspId)),
+      psaId = psaId.map(PsaId(_)),
+      pspId = pspId.map(PspId(_)),
       userAnswers = ua,
       sessionData = SampleData.sessionData(name = None, sessionAccessData = sessionAccessData)
     )

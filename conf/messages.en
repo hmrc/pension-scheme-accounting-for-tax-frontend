@@ -1124,3 +1124,13 @@ paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 selectScheme.title = Select a pension scheme
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
 selectScheme.error = Select a pension scheme
+
+enterPsaId.title = What is the pension scheme administrator’s ID?
+enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme
+enterPsaId.error.required = Enter the pension scheme administrator’s ID
+enterPsaId.error.invalid = Enter a pension scheme administrator ID using the letter A followed by 7 numbers
+enterPsaId.error.noMatch = Enter the correct pension scheme administrator ID
+
+pspDeclaration.title = Declaration
+pspDeclaration.heading = Declaration
+pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.

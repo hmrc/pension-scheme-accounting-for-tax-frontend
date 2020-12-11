@@ -21,17 +21,25 @@ import connectors.SchemeDetailsConnector
 import data.SampleData
 import org.mockito.Matchers
 import org.mockito.Matchers.any
+import org.mockito.Mockito.reset
 import org.mockito.Mockito.when
+import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures {
+class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
   private val mockSchemeDetailsConnector = mock[SchemeDetailsConnector]
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(mockSchemeDetailsConnector)
+  }
+
   "retrieveSchemeDetails" must {
-    "return scheme details" in {
+    "if a PSA id then return scheme details by calling psa get scheme details" in {
       when(
         mockSchemeDetailsConnector.getSchemeDetails(
           psaId = Matchers.eq(SampleData.psaId),
@@ -41,6 +49,20 @@ class SchemeServiceSpec extends SpecBase with MockitoSugar with ScalaFutures {
       ).thenReturn(Future.successful(SampleData.schemeDetails))
       val schemeService = new SchemeService(mockSchemeDetailsConnector)
       val result = schemeService.retrieveSchemeDetails(SampleData.psaId, SampleData.srn, "srn")
+      whenReady(result) { resultSchemeDetails =>
+        resultSchemeDetails mustBe SampleData.schemeDetails
+      }
+    }
+
+    "if a PSP id then return scheme details by calling psp get scheme details" in {
+      when(
+        mockSchemeDetailsConnector.getPspSchemeDetails(
+          pspId = Matchers.eq(SampleData.pspId),
+          srn = Matchers.eq(SampleData.srn)
+        )(any(), any())
+      ).thenReturn(Future.successful(SampleData.schemeDetails))
+      val schemeService = new SchemeService(mockSchemeDetailsConnector)
+      val result = schemeService.retrieveSchemeDetails(SampleData.pspId, SampleData.srn, "srn")
       whenReady(result) { resultSchemeDetails =>
         resultSchemeDetails mustBe SampleData.schemeDetails
       }
