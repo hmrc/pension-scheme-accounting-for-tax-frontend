@@ -32,6 +32,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
@@ -51,9 +52,10 @@ class AFTPartialServiceSpec
 
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val schemeService = mock[SchemeService]
+  private val paymentsAndChargesService = mock[PaymentsAndChargesService]
 
   def service: AFTPartialService =
-    new AFTPartialService(frontendAppConfig, schemeService, aftConnector, aftCacheConnector)
+    new AFTPartialService(frontendAppConfig, schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
   "retrieveOptionAFTViewModel after overviewApiEnablement" must {
     "return the correct model when overview api returns multiple returns in " +

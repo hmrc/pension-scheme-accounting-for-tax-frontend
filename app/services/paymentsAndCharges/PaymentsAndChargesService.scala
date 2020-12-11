@@ -247,7 +247,7 @@ class PaymentsAndChargesService @Inject()() {
       ))
   }
 
-  private def paymentsAndCreditsChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+  private def paymentsAndCreditsChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] =
     if (schemeFS.totalAmount - schemeFS.amountDue - schemeFS.stoodOverAmount > 0) {
       Seq(
         Row(
@@ -268,9 +268,8 @@ class PaymentsAndChargesService @Inject()() {
     } else {
       Nil
     }
-  }
 
-  private def stoodOverAmountChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
+  private def stoodOverAmountChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] =
     if (schemeFS.stoodOverAmount > 0) {
       Seq(
         Row(
@@ -287,7 +286,6 @@ class PaymentsAndChargesService @Inject()() {
     } else {
       Nil
     }
-  }
 
   private def totalAmountDueChargeDetailsRow(schemeFS: SchemeFS): Seq[SummaryList.Row] = {
     val amountDueKey: Content = (schemeFS.dueDate, schemeFS.amountDue > 0) match {

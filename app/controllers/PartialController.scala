@@ -128,7 +128,6 @@ class PartialController @Inject()(
             ) flatMap { schemeFs =>
               if (schemeFs.isEmpty) {
 
-                println(s"\n\n\n\tHERE\n\n\n")
                 Future.successful(Ok(Html("")))
               } else {
                 val viewModel =
