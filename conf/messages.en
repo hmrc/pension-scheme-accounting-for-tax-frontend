@@ -1048,7 +1048,8 @@ pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single = Vie
 pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple = View upcoming payments and charges
 pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges = View past payments and charges
 
-paymentsAndChargesUpcoming.h1 = Upcoming payments and charges
+paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
+paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
 
 penaltiesPartial.linkText = View your penalties for 2020
 

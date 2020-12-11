@@ -29,8 +29,10 @@ import javax.inject.Inject
 import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
+import utils.DateHelper
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
 
@@ -39,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
                                    schemeService: SchemeService,
+                                   paymentsAndChargesService: PaymentsAndChargesService,
                                    aftConnector: AFTConnector,
                                    aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
@@ -104,16 +107,14 @@ class AFTPartialService @Inject()(
     }
   }
 
-  def retrievePspDashboardUpcomingAftCharges(schemeFs: Seq[SchemeFS], srn: String)
-                                            (implicit messages: Messages): PspDashboardAftViewModel = {
+  def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
+                                                 (implicit messages: Messages): PspDashboardAftViewModel = {
 
-    val upcomingCharges: Seq[SchemeFS] = schemeFs
-      .filter(_.dueDate.nonEmpty)
-      .filter(_.dueDate.get.isAfter(LocalDate.now()))
+    val upcomingCharges: Seq[SchemeFS] =
+      paymentsAndChargesService.getUpcomingCharges(schemeFs)
 
     val pastCharges: Seq[SchemeFS] = schemeFs
-      .filter(_.dueDate.nonEmpty)
-      .filter(_.dueDate.get.isBefore(LocalDate.now()))
+      .filter(_.periodEndDate.isBefore(DateHelper.today))
 
     val total = upcomingCharges.map(_.amountDue).sum
 
@@ -132,42 +133,49 @@ class AFTPartialService @Inject()(
       "span" -> span
     )
 
-    val upcomingLinkText =
-      if (upcomingCharges.map(_.periodStartDate).distinct.size == 1)
-        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
-          .withArgs(
-            upcomingCharges.map(_.periodStartDate)
-              .distinct
-              .head
-              .format(DateTimeFormatter.ofPattern("d MMMM")),
-            upcomingCharges.map(_.periodEndDate)
-              .distinct
-              .head
-              .format(DateTimeFormatter.ofPattern("d MMMM"))
-          )
-      else
-        msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
 
-    val startDate: LocalDate =
-      upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
+    val viewUpcomingLink: Option[Link] = {
+      if (upcomingCharges == Seq.empty) {
+        None
+      } else {
+        val upcomingLinkText =
+          if (upcomingCharges.map(_.periodStartDate).distinct.size == 1)
+            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+              .withArgs(
+                upcomingCharges.map(_.periodStartDate)
+                  .distinct
+                  .head
+                  .format(DateTimeFormatter.ofPattern("d MMMM")),
+                upcomingCharges.map(_.periodEndDate)
+                  .distinct
+                  .head
+                  .format(DateTimeFormatter.ofPattern("d MMMM"))
+              )
+          else
+            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
 
-    val viewUpcomingLink: Option[Link] = Some(Link(
-      id = "upcoming-payments-and-charges",
-      url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
-      linkText = upcomingLinkText,
-      hiddenText = None
-    ))
+        val startDate: LocalDate =
+          upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
+        Some(Link(
+          id = "upcoming-payments-and-charges",
+          url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
+          linkText = upcomingLinkText,
+          hiddenText = None
+        ))
+      }
+    }
 
     val viewPastPaymentsAndChargesLink: Option[Link] =
-      if (pastCharges == Seq.empty)
+      if (pastCharges == Seq.empty) {
         None
-      else
+      } else {
         Some(Link(
           id = "past-payments-and-charges",
           url = appConfig.paymentsAndChargesUrl.format(srn, "2020"),
           linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
           hiddenText = None
         ))
+      }
 
 
     val links = Seq(viewUpcomingLink, viewPastPaymentsAndChargesLink).flatten

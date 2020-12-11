@@ -14,7 +14,7 @@
       <div class="govuk-grid-column-two-thirds">
 
         {{ hmrcPageHeading({
-          text: messages("paymentsAndChargesUpcoming.h1"),
+          text: heading,
           section: schemeName
         }) }}
 
@@ -22,7 +22,9 @@
 
         {% for paymentAndChargesTable in upcomingPaymentsAndCharges %}
             {% if paymentAndChargesTable.table.rows.length > 0 %}
-                <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
+                {% if upcomingPaymentsAndCharges.length > 1 %}
+                    <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
+                {% endif %}
                 {{ govukTable(paymentAndChargesTable.table) }}
             {% endif %}
         {% endfor %}

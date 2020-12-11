@@ -30,8 +30,10 @@ import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.Table
 
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,22 +62,60 @@ class PaymentsAndChargesUpcomingController @Inject()(
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
               val upcomingPaymentsAndCharges: Seq[SchemeFS] =
-                schemeFs.filter(_.periodStartDate.isAfter(startDate))
+                paymentsAndChargesService
+                  .getUpcomingCharges(schemeFs)
+                  .filter(_.periodStartDate.getYear == startDate.getYear)
 
               if (upcomingPaymentsAndCharges.nonEmpty) {
 
-                val upcomingPaymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear)
+                val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
+                  paymentsAndChargesService
+                    .getUpcomingPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate)
+
+                val tableWithoutPaymentStatusColumn: Seq[PaymentsAndChargesTable] =
+                  paymentsAndChargesTables map {
+                    table =>
+                      PaymentsAndChargesTable(
+                        caption = table.caption,
+                        table = Table(
+                          caption = table.table.caption,
+                          captionClasses = table.table.captionClasses,
+                          firstCellIsHeader = table.table.firstCellIsHeader,
+                          head = table.table.head.take(table.table.head.size - 1),
+                          rows = table.table.rows.map(p => p.take(p.size - 1)),
+                          classes = table.table.classes,
+                          attributes = table.table.attributes
+                        )
+                      )
+                  }
+
+                val heading =
+                  if (upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.size == 1)
+                    msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
+                      upcomingPaymentsAndCharges.map(_.periodStartDate)
+                        .distinct
+                        .head
+                        .format(DateTimeFormatter.ofPattern("d MMMM")),
+                      upcomingPaymentsAndCharges.map(_.periodEndDate)
+                        .distinct
+                        .head
+                        .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                    )
+                  else
+                    msg"paymentsAndChargesUpcoming.h1.multiplePeriod"
 
                 val json = Json.obj(
-                  fields = "upcomingPaymentsAndCharges" -> upcomingPaymentsAndChargesTables,
+                  "heading" -> heading,
+                  "upcomingPaymentsAndCharges" -> tableWithoutPaymentStatusColumn,
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
                 renderer.render(template = "paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}")
+                Logger.warn(
+                  s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}"
+                )
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

@@ -16,8 +16,6 @@
 
 package controllers.paymentsAndCharges
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
@@ -42,14 +40,15 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
-class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PaymentsAndChargesUpcomingControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
-  import PaymentsAndChargesControllerSpec._
+  import PaymentsAndChargesUpcomingControllerSpec._
 
-  private def httpPathGET(year: Int = year): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+  private def httpPathGET(startDate: String = startDate): String =
+    controllers.paymentsAndCharges.routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -71,24 +70,38 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService, mockFICacheConnector)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any(), any(), any())).thenReturn(Nil)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockFICacheConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+    reset(
+      mockSchemeService,
+      mockFinancialStatementConnector,
+      mockRenderer,
+      mockPaymentsAndChargesService,
+      mockFICacheConnector
+    )
+
+    when(mockAppConfig.managePensionsSchemeSummaryUrl)
+      .thenReturn(dummyCall.url)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(schemeDetails))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any(), any(), any()))
+      .thenReturn(Nil)
+    when(mockRenderer.render(any(), any())(any()))
+      .thenReturn(Future.successful(Html("")))
+    when(mockFICacheConnector.save(any())(any(), any()))
+      .thenReturn(Future.successful(Json.obj()))
   }
 
-  private def expectedJson: JsObject = Json.obj(
-    fields = "seqPaymentsAndChargesTable" -> Nil,
+  private def expectedJson(heading: String): JsObject = Json.obj(
+    "heading" -> heading,
+    "upcomingPaymentsAndCharges" -> Nil,
     "schemeName" -> schemeDetails.schemeName,
     "returnUrl" -> dummyCall.url
   )
 
-  "PaymentsAndChargesController" must {
+  "PaymentsAndChargesController for a GET" must {
 
-    "return OK and the correct view with filtered payments and charges information for a GET" in {
+    "return OK and the correct view with filtered payments and charges information for single period" in {
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
@@ -96,26 +109,42 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndCharges.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      jsonCaptor.getValue must containJson(expectedJson("Payments and charges for 1 October to 31 December 2020"))
     }
 
-    "redirect to Session Expired page when there is no data for the selected year for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET(year = 2022))).value
+    "return OK and the correct view with filtered payments and charges information for multiple periods" in {
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(schemeFSResponseMultiplePeriods))
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val result = route(application, httpGETRequest(httpPathGET())).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      jsonCaptor.getValue must containJson(expectedJson("Upcoming payments and charges"))
+    }
+
+    "redirect to Session Expired page when there is no data for the selected year" in {
+      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
+        .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
+      val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
   }
 }
 
-object PaymentsAndChargesControllerSpec {
-  private val year = 2020
+object PaymentsAndChargesUpcomingControllerSpec {
+  private val startDate = "2020-10-01"
   private val srn = "test-srn"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2020-02-15")),
+      dueDate = Some(LocalDate.parse("2021-02-15")),
       totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
@@ -125,9 +154,17 @@ object PaymentsAndChargesControllerSpec {
       periodEndDate = LocalDate.parse(endDate)
     )
   }
-  private val schemeFSResponse: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
-    createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")
+  private val schemeFSResponseSinglePeriod: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150185")
+  )
+
+  private val schemeFSResponseMultiplePeriods: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
+    createCharge(startDate = "2021-01-01", endDate = "2021-03-31", chargeReference = "XY002610150185")
   )
 }
+
+

@@ -127,10 +127,12 @@ class PartialController @Inject()(
               pstr = schemeDetails.pstr
             ) flatMap { schemeFs =>
               if (schemeFs.isEmpty) {
+
+                println(s"\n\n\n\tHERE\n\n\n")
                 Future.successful(Ok(Html("")))
               } else {
                 val viewModel =
-                  aftPartialService.retrievePspDashboardUpcomingAftCharges(schemeFs, srn)
+                  aftPartialService.retrievePspDashboardUpcomingAftChargesModel(schemeFs, srn)
 
                 renderer.render(
                   template = "partials/pspDashboardUpcomingAftChargesCard.njk",
