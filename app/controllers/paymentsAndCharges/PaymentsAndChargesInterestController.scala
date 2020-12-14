@@ -78,36 +78,38 @@ class PaymentsAndChargesInterestController @Inject()(
                   }
                 )
 
-              try {
-                (
-                  schemeFSGroupedAndSorted.find(_._1 == startDate),
-                  chargeRefsGroupedAndSorted.find(_._1 == startDate)
-                ) match {
-                  case (Some(dateSchemeFs), Some(chargeRefs)) =>
-                    dateSchemeFs._2.find(p => p.chargeReference == chargeRefs._2(index.toInt)) match {
-                      case Some(fs) =>
-                        renderer
-                          .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                            summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
-                          .map(Ok(_))
+              (
+                schemeFSGroupedAndSorted.find(_._1 == startDate),
+                chargeRefsGroupedAndSorted.find(_._1 == startDate)
+              ) match {
+                case (Some(dateSchemeFs), Some(dateChargeRefs)) =>
+                  val (_, seqSchemeFs) = dateSchemeFs
+                  val (_, seqChargeRefs) = dateChargeRefs
+                  try {
+                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+                      case Some(schemeFs) =>
+                        renderer.render(
+                          template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                          ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index)
+                        ).map(Ok(_))
                       case _ =>
                         Logger.warn(s"No Payments and Charge details " +
-                          s"found for the selected charge reference ${chargeRefs._2(index.toInt)}")
+                          s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
                         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
                     }
-                  case _ =>
-                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                }
-              } catch {
-                case _: IndexOutOfBoundsException =>
-                  Logger.warn(
-                    s"[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:"
-                  )
+                  } catch {
+                    case _: IndexOutOfBoundsException =>
+                      Logger.warn(
+                        "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
+                          s"index $startDate/$index of attempted"
+                      )
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+                case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }
       }
-
   }
 
   def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String)

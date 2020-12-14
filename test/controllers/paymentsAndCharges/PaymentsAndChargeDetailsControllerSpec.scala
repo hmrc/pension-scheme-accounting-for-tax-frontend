@@ -47,7 +47,12 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.Future
 
-class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach with RecoverMethods {
+class PaymentsAndChargeDetailsControllerSpec
+  extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with RecoverMethods {
 
   import PaymentsAndChargeDetailsControllerSpec._
 
@@ -73,11 +78,16 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockSchemeService, mockFSConnector, mockRenderer, mockPaymentsAndChargesService)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFSConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
-    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any())).thenReturn(Nil)
-    when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
+    when(mockAppConfig.managePensionsSchemeSummaryUrl)
+      .thenReturn(dummyCall.url)
+    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+      .thenReturn(Future.successful(schemeDetails))
+    when(mockFSConnector.getSchemeFS(any())(any(), any()))
+      .thenReturn(Future.successful(schemeFSResponse))
+    when(mockPaymentsAndChargesService.getChargeDetailsForSelectedCharge(any())(any()))
+      .thenReturn(Nil)
+    when(mockRenderer.render(any(), any())(any()))
+      .thenReturn(Future.successful(play.twirl.api.Html("")))
   }
 
   private def insetTextWithAmountDueAndInterest(schemeFS: SchemeFS, index: String): uk.gov.hmrc.viewmodels.Html = {
@@ -107,21 +117,25 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
     )
   }
 
-  private def expectedJson(schemeFS: SchemeFS,
-                           insetText: uk.gov.hmrc.viewmodels.Html,
-                           isPaymentOverdue: Boolean = false,
-                           isInCredit: Boolean = false,
-                           optHint: Option[String] = None): JsObject = {
+  private def expectedJson(
+                            schemeFS: SchemeFS,
+                            insetText: uk.gov.hmrc.viewmodels.Html,
+                            isPaymentOverdue: Boolean = false,
+                            isInCredit: Boolean = false,
+                            optHint: Option[String] = None
+                          ): JsObject = {
     val commonJson = Json.obj(
-
-      fields = "chargeDetailsList" -> Nil,
+      "chargeDetailsList" -> Nil,
       "tableHeader" -> messages("paymentsAndCharges.caption",
         schemeFS.periodStartDate.format(dateFormatterStartDate),
         schemeFS.periodEndDate.format(dateFormatterDMY)),
       "schemeName" -> schemeName,
       "chargeType" -> schemeFS.chargeType.toString,
       "chargeReferenceTextMessage" -> (if (isInCredit) {
-        messages("paymentsAndCharges.credit.information", s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
+        messages(
+          "paymentsAndCharges.credit.information",
+          s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}"
+        )
       }
       else {
         messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
@@ -133,7 +147,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
     )
     optHint match {
-      case Some(h) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      case Some(_) => commonJson ++ Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
       case _ => commonJson
     }
   }
@@ -146,8 +160,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
           (
             LocalDate.parse(QUARTER_START_DATE),
             Seq(
-              createChargeWithAmountDueAndInterest("XY002610150183"),
-              createChargeWithAmountDueAndInterest("XY002610150184")
+              createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
+              createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
             )
           )
         ))
@@ -158,9 +172,11 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       val result = route(application, httpGETRequest(httpPathGET(index = "1"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS, "1"), isPaymentOverdue = true)
       )
@@ -172,20 +188,24 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
           (
             LocalDate.parse(QUARTER_START_DATE),
             Seq(
-              createChargeWithAmountDueAndInterest("XY002610150188"),
-              createChargeWithAmountDueAndInterest("XY002610150189")
+              createChargeWithAmountDueAndInterestPayment("XY002610150188", interest = BigDecimal(0.00)),
+              createChargeWithAmountDueAndInterestPayment("XY002610150189", interest = BigDecimal(0.00))
             )
           )
         ))
 
-      val schemeFS = createChargeWithAmountDueAndInterestPayment(chargeReference = "XY002610150188", interest = BigDecimal(0.00))
+      val schemeFS = createChargeWithAmountDueAndInterestPayment(
+        chargeReference = "XY002610150188",
+        interest = BigDecimal(0.00)
+      )
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
@@ -206,7 +226,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, insetTextWithNoAmountDue(schemeFS)))
@@ -217,7 +238,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
-            Seq(createChargeWithAmountDueAndInterest("XY002610150187"))
+            Seq(createChargeWithAmountDueAndInterest("XY002610150187", interest = 0.00))
           )
         ))
       val schemeFS = createChargeWithAmountDueAndInterest(chargeReference = "XY002610150187", interest = 0.00)
@@ -226,7 +247,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html("")))
@@ -237,7 +259,7 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
         .thenReturn(Seq(
           (
             LocalDate.parse(QUARTER_START_DATE),
-            Seq(createChargeWithAmountDueAndInterest("XY002610150185"))
+            Seq(createChargeWithDeltaCredit("XY002610150185"))
           )
         ))
       val schemeFS = createChargeWithDeltaCredit(chargeReference = "XY002610150185")
@@ -246,7 +268,8 @@ class PaymentsAndChargeDetailsControllerSpec extends ControllerSpecBase with Nun
       val result = route(application, httpGETRequest(httpPathGET(index = "0"))).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
@@ -286,7 +309,11 @@ object PaymentsAndChargeDetailsControllerSpec {
       pstr = "24000040IN"
     )
 
-  private def createChargeWithAmountDueAndInterest(chargeReference: String, amountDue: BigDecimal = 0.00, interest: BigDecimal = 123.00): SchemeFS = {
+  private def createChargeWithAmountDueAndInterest(
+                                                    chargeReference: String,
+                                                    amountDue: BigDecimal = 0.00,
+                                                    interest: BigDecimal = 123.00
+                                                  ): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
@@ -301,7 +328,11 @@ object PaymentsAndChargeDetailsControllerSpec {
     )
   }
 
-  private def createChargeWithAmountDueAndInterestPayment(chargeReference: String, amountDue: BigDecimal = 0.00, interest: BigDecimal = 123.00): SchemeFS = {
+  private def createChargeWithAmountDueAndInterestPayment(
+                                                           chargeReference: String,
+                                                           amountDue: BigDecimal = 0.00,
+                                                           interest: BigDecimal = 123.00
+                                                         ): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN_INTEREST,

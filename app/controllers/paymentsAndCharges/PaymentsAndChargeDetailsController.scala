@@ -65,89 +65,52 @@ class PaymentsAndChargeDetailsController @Inject()(
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFS =>
-              buildSummaryList(
-                schemeFS = schemeFS,
-                startDate = startDate,
-                index = index,
-                schemeName = schemeDetails.schemeName,
-                srn = srn
-              )
+              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(schemeFS, startDate.getYear)
+
+              val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
+                schemeFSGroupedAndSorted.map(
+                  dateAndFs => {
+                    val (date, schemeFs) = dateAndFs
+                    (date, schemeFs.map(_.chargeReference))
+                  }
+                )
+
+              (
+                schemeFSGroupedAndSorted.find(_._1 == startDate),
+                chargeRefsGroupedAndSorted.find(_._1 == startDate)
+              ) match {
+                case (Some(dateSchemeFs), Some(dateChargeRefs)) =>
+                  val (_, seqSchemeFs) = dateSchemeFs
+                  val (_, seqChargeRefs) = dateChargeRefs
+                  try {
+                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+                      case Some(schemeFs) =>
+                        renderer.render(
+                          template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                          ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+                        ).map(Ok(_))
+                      case _ =>
+                        Logger.warn(
+                          s"No Payments and Charge details found for the " +
+                            s"selected charge reference ${seqChargeRefs(index.toInt)}"
+                        )
+                        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                    }
+                  } catch {
+                    case _: IndexOutOfBoundsException =>
+                      Logger.warn(
+                        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+                          s"index $startDate/$index of attempted"
+                      )
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+                case _ =>
+                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+              }
           }
       }
-  }
-
-  def onPageLoadUpcomingCharges(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
-    implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFS =>
-              buildSummaryList(
-                schemeFS = paymentsAndChargesService.getUpcomingCharges(schemeFS),
-                startDate = startDate,
-                index = index,
-                schemeName = schemeDetails.schemeName,
-                srn = srn
-              )
-          }
-      }
-  }
-
-  private def buildSummaryList(
-                                schemeFS: Seq[SchemeFS],
-                                startDate: LocalDate,
-                                index: String,
-                                schemeName: String,
-                                srn: String
-                              )(
-                                implicit request: IdentifierRequest[AnyContent]
-                              ): Future[Result] = {
-
-    val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
-      paymentsAndChargesService
-        .groupAndSortByStartDate(schemeFS, startDate.getYear)
-
-    val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
-      schemeFSGroupedAndSorted.map(
-        dateAndFs => {
-          val (date, schemeFs) = dateAndFs
-          (date, schemeFs.map(_.chargeReference))
-        }
-      )
-
-    try {
-      (
-        schemeFSGroupedAndSorted.find(_._1 == startDate),
-        chargeRefsGroupedAndSorted.find(_._1 == startDate)
-      ) match {
-        case (Some(dateSchemeFs), Some(chargeRefs)) =>
-          dateSchemeFs._2.find(p => p.chargeReference == chargeRefs._2(index.toInt)) match {
-            case Some(schemeFs) =>
-              renderer.render(
-                template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
-                ctx = summaryListData(srn, startDate, schemeFs, schemeName, index)
-              ).map(Ok(_))
-            case _ =>
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          }
-        case _ =>
-          Logger.warn(
-            s"No Payments and Charge details found for the selected charge reference ${chargeRefsGroupedAndSorted(index.toInt)}"
-          )
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      }
-    } catch {
-      case _: IndexOutOfBoundsException =>
-        Logger.warn(
-          s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
-            s"index $index of collection length ${chargeRefsGroupedAndSorted.length} attempted"
-        )
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
   }
 
   private def summaryListData(
@@ -187,17 +150,24 @@ class PaymentsAndChargeDetailsController @Inject()(
 
     val optHintText =
       if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
-        Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
+        Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      else
+        Json.obj()
 
     val isPaymentOverdue =
       (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
         && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
 
+    val tableHeader =
+      messages(
+        "paymentsAndCharges.caption",
+        schemeFS.periodStartDate.format(dateFormatterStartDate),
+        schemeFS.periodEndDate.format(dateFormatterDMY)
+      )
+
     Json.obj(
       "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
-      "tableHeader" -> messages("paymentsAndCharges.caption",
-        schemeFS.periodStartDate.format(dateFormatterStartDate),
-        schemeFS.periodEndDate.format(dateFormatterDMY)),
+      "tableHeader" -> tableHeader,
       "schemeName" -> schemeName,
       "chargeType" -> schemeFS.chargeType.toString,
       "chargeReferenceTextMessage" -> chargeReferenceTextMessage,

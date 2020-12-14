@@ -64,13 +64,12 @@ class PaymentsAndChargesUpcomingController @Inject()(
               val upcomingPaymentsAndCharges: Seq[SchemeFS] =
                 paymentsAndChargesService
                   .getUpcomingCharges(schemeFs)
-                  .filter(_.periodStartDate.getYear == startDate.getYear)
 
               if (upcomingPaymentsAndCharges.nonEmpty) {
 
                 val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
                   paymentsAndChargesService
-                    .getUpcomingPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate)
+                    .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear)
 
                 val tableWithoutPaymentStatusColumn: Seq[PaymentsAndChargesTable] =
                   paymentsAndChargesTables map {

@@ -43,7 +43,11 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PaymentsAndChargesUpcomingControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
+class PaymentsAndChargesUpcomingControllerSpec
+  extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach {
 
   import PaymentsAndChargesUpcomingControllerSpec._
 
@@ -102,34 +106,46 @@ class PaymentsAndChargesUpcomingControllerSpec extends ControllerSpecBase with N
     "return OK and the correct view with filtered payments and charges information for single period" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
+      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+        .thenReturn(schemeFSResponseSinglePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
-      jsonCaptor.getValue must containJson(expectedJson("Payments and charges for 1 October to 31 December 2020"))
+      jsonCaptor.getValue must containJson(
+        expectedJson("Payments and charges for 1 October to 31 December 2020")
+      )
     }
 
     "return OK and the correct view with filtered payments and charges information for multiple periods" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseMultiplePeriods))
+        .thenReturn(Future.successful(schemeFSResponseMultiplePeriod))
+      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+        .thenReturn(schemeFSResponseMultiplePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
       status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
-      jsonCaptor.getValue must containJson(expectedJson("Upcoming payments and charges"))
+      jsonCaptor.getValue must containJson(
+        expectedJson("Upcoming payments and charges")
+      )
     }
 
     "redirect to Session Expired page when there is no data for the selected year" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
+        .thenReturn(Future.successful(Seq.empty))
+      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+        .thenReturn(Seq.empty)
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
@@ -140,11 +156,16 @@ class PaymentsAndChargesUpcomingControllerSpec extends ControllerSpecBase with N
 object PaymentsAndChargesUpcomingControllerSpec {
   private val startDate = "2020-10-01"
   private val srn = "test-srn"
-  private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
+  private def createCharge(
+                            startDate: String,
+                            endDate: String,
+                            chargeReference: String,
+                            dueDate: Option[LocalDate] = Some(LocalDate.parse("2021-02-15"))
+                          ): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
       chargeType = PSS_AFT_RETURN,
-      dueDate = Some(LocalDate.parse("2021-02-15")),
+      dueDate = dueDate,
       totalAmount = 56432.00,
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
@@ -155,15 +176,39 @@ object PaymentsAndChargesUpcomingControllerSpec {
     )
   }
   private val schemeFSResponseSinglePeriod: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150185")
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150184"
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "AYU3494534632"
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150185"
+    )
   )
 
-  private val schemeFSResponseMultiplePeriods: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
-    createCharge(startDate = "2021-01-01", endDate = "2021-03-31", chargeReference = "XY002610150185")
+  private val schemeFSResponseMultiplePeriod: Seq[SchemeFS] = Seq(
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150184"
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "AYU3494534632"
+    ),
+    createCharge(
+      startDate = "2021-01-01",
+      endDate = "2021-03-31",
+      chargeReference = "XY002610150185"
+    )
   )
 }
 
