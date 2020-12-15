@@ -81,9 +81,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                 schemeFSGroupedAndSorted.find(_._1 == startDate),
                 chargeRefsGroupedAndSorted.find(_._1 == startDate)
               ) match {
-                case (Some(dateSchemeFs), Some(dateChargeRefs)) =>
-                  val (_, seqSchemeFs) = dateSchemeFs
-                  val (_, seqChargeRefs) = dateChargeRefs
+                case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
                   try {
                     seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
                       case Some(schemeFs) =>

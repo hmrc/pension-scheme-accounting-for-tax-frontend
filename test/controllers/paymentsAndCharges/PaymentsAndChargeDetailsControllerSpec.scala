@@ -17,7 +17,6 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
@@ -33,10 +32,12 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures.whenReady
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.mvc.Result
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -205,7 +206,7 @@ class PaymentsAndChargeDetailsControllerSpec
 
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      
+
       templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
@@ -288,6 +289,70 @@ class PaymentsAndChargeDetailsControllerSpec
 
       status(result) mustBe SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
+    }
+
+    "return charge details for XY002610150184 for startDate 2020-04-01 index 1" in {
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
+        .thenReturn(Seq(
+          (
+            LocalDate.parse("2020-01-01"),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150181", amountDue = 1234.00),
+              createChargeWithAmountDueAndInterest("XY002610150182", amountDue = 1234.00)
+            )
+          ),
+          (
+            LocalDate.parse("2020-04-01"),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
+              createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
+            )
+          )
+        ))
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val result = route(application, httpGETRequest(httpPathGET("2020-04-01", index = "1"))).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150184")
+    }
+
+    "return charge details for XY002610150181 for startDate 2020-01-01 index 0" in {
+      when(mockPaymentsAndChargesService.groupAndSortByStartDate(any(), any()))
+        .thenReturn(Seq(
+          (
+            LocalDate.parse("2020-01-01"),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150181", amountDue = 1234.00),
+              createChargeWithAmountDueAndInterest("XY002610150182", amountDue = 1234.00)
+            )
+          ),
+          (
+            LocalDate.parse("2020-04-01"),
+            Seq(
+              createChargeWithAmountDueAndInterest("XY002610150183", amountDue = 1234.00),
+              createChargeWithAmountDueAndInterest("XY002610150184", amountDue = 1234.00)
+            )
+          )
+        ))
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      val result = route(application, httpGETRequest(httpPathGET("2020-01-01", index = "0"))).value
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1))
+        .render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+
+      jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150181")
     }
   }
 }
