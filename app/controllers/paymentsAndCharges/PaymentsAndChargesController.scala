@@ -16,13 +16,9 @@
 
 package controllers.paymentsAndCharges
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
-import dateOrdering._
-import javax.inject.Inject
 import models.financialStatement.SchemeFS
 import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
 import play.api.Logger
@@ -35,16 +31,18 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargesController @Inject()(override val messagesApi: MessagesApi,
-                                             identify: IdentifierAction,
-                                             val controllerComponents: MessagesControllerComponents,
-                                             config: FrontendAppConfig,
-                                             schemeService: SchemeService,
-                                             fsConnector: FinancialStatementConnector,
-                                             paymentsAndChargesService: PaymentsAndChargesService,
-                                             renderer: Renderer
+class PaymentsAndChargesController @Inject()(
+                                              override val messagesApi: MessagesApi,
+                                              identify: IdentifierAction,
+                                              val controllerComponents: MessagesControllerComponents,
+                                              config: FrontendAppConfig,
+                                              schemeService: SchemeService,
+                                              fsConnector: FinancialStatementConnector,
+                                              paymentsAndChargesService: PaymentsAndChargesService,
+                                              renderer: Renderer
                                             )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport

@@ -20,14 +20,14 @@ import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsObject, OWrites, __}
 
-case class PspDashboardAftReturnsViewModel(
+case class PspDashboardAftViewModel(
                                             subHeading: Option[JsObject],
                                             links: Seq[Link] = Seq.empty
                                           )
 
-object PspDashboardAftReturnsViewModel {
+object PspDashboardAftViewModel {
 
-  implicit def writes(implicit messages: Messages): OWrites[PspDashboardAftReturnsViewModel] = (
+  implicit def writes(implicit messages: Messages): OWrites[PspDashboardAftViewModel] = (
     (__ \ "subHeading").writeNullable[JsObject] and
       (__ \ "links").write[Seq[Link]]
     ) { model => (model.subHeading, model.links) }

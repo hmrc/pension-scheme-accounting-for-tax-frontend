@@ -27,12 +27,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 class QuartersService @Inject()(
-                                config: FrontendAppConfig,
+                                 config: FrontendAppConfig,
                                  aftConnector: AFTConnector,
-                                userAnswersCacheConnector: UserAnswersCacheConnector
+                                 userAnswersCacheConnector: UserAnswersCacheConnector
                                ) extends CommonQuarters {
 
-  def getPastQuarters(pstr: String, year: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
+  def getPastQuarters(pstr: String, year: Int)
+                     (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).map { aftOverview =>
       if (aftOverview.nonEmpty) {
 
@@ -40,17 +41,18 @@ class QuartersService @Inject()(
           .filter(_.periodStartDate.getYear == year)
           .filter(_.submittedVersionAvailable)
           .map { overviewElement =>
-          val quarter = Quarters.getQuarter(overviewElement.periodStartDate)
-          val displayYear = aftOverview.filter(_.periodStartDate.getYear != year).distinct.isEmpty
+            val quarter = Quarters.getQuarter(overviewElement.periodStartDate)
+            val displayYear = aftOverview.filter(_.periodStartDate.getYear != year).distinct.isEmpty
             DisplayQuarter(quarter, displayYear, None, None)
-        }
+          }
       } else {
         Nil
       }
     }
   }
 
-  def getInProgressQuarters(srn: String, pstr: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
+  def getInProgressQuarters(srn: String, pstr: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
@@ -62,15 +64,27 @@ class QuartersService @Inject()(
               val quarter: Quarter = Quarters.getQuarter(overviewElement.periodStartDate)
               userAnswersCacheConnector.lockDetail(srn, overviewElement.periodStartDate).flatMap {
                 case Some(lockDetail) =>
-                  Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, Some(lockDetail.name), Some(LockedHint))))
+                  Future.successful(Seq(DisplayQuarter(
+                    quarter, displayYear = true, Some(lockDetail.name), Some(LockedHint)
+                  )))
                 case None =>
-                  if(overviewElement.numberOfVersions == 1) {
-                    aftConnector.getIsAftNonZero(pstr, overviewElement.periodStartDate.toString, "1").map {
-                      case true => Seq(DisplayQuarter(quarter, displayYear = true, None, Some(InProgressHint)))
-                      case _ => Nil
+                  if (overviewElement.numberOfVersions == 1) {
+                    aftConnector.getIsAftNonZero(
+                      pstr,
+                      overviewElement.periodStartDate.toString,
+                      "1"
+                    ).map {
+                      case true =>
+                        Seq(DisplayQuarter(
+                          quarter, displayYear = true, None, Some(InProgressHint)
+                        ))
+                      case _ =>
+                        Nil
                     }
                   } else {
-                    Future.successful(Seq(DisplayQuarter(quarter, displayYear = true, None, Some(InProgressHint))))
+                    Future.successful(Seq(DisplayQuarter(
+                      quarter, displayYear = true, None, Some(InProgressHint)
+                    )))
                   }
               }
             }
@@ -82,34 +96,51 @@ class QuartersService @Inject()(
     }
   }
 
-  def getStartQuarters(srn: String, pstr: String, year: Int)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
+  def getStartQuarters(srn: String, pstr: String, year: Int)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[DisplayQuarter]] = {
     aftConnector.getAftOverview(pstr).flatMap { aftOverview =>
       if (aftOverview.nonEmpty) {
 
-        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] =  availableQuarters(year)(config).map { x =>
-            val availableQuarter = getQuarter(x, year)
+        val displayQuarters: Seq[Future[Seq[DisplayQuarter]]] = availableQuarters(year)(config).map { x =>
+          val availableQuarter = getQuarter(x, year)
 
-              userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {
-                case Some(lockDetail) => Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint))))
-                case _ =>
-                  val overviewElementForAvailableQuarter = aftOverview.filter(_.periodStartDate == availableQuarter.startDate)
-                  if (overviewElementForAvailableQuarter.nonEmpty) {
-                    if(overviewElementForAvailableQuarter.head.submittedVersionAvailable) {
-                      Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(SubmittedHint))))
-                    } else {
-                       aftConnector.getIsAftNonZero(pstr, overviewElementForAvailableQuarter.head.periodStartDate.toString, "1").map {
-                        case true => Seq(DisplayQuarter(availableQuarter, displayYear = false, None, Some(InProgressHint)))
-                        case _ => Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None))
-                      }
-                    }
-                  } else {
-                    Future.successful(Seq(DisplayQuarter(availableQuarter, displayYear = false, None, None)))
+          userAnswersCacheConnector.lockDetail(srn, availableQuarter.startDate).flatMap {
+            case Some(lockDetail) =>
+              Future.successful(Seq(DisplayQuarter(
+                availableQuarter, displayYear = false, Some(lockDetail.name), Some(LockedHint)
+              )))
+            case _ =>
+              val overviewElementForAvailableQuarter =
+                aftOverview.filter(_.periodStartDate == availableQuarter.startDate)
+              if (overviewElementForAvailableQuarter.nonEmpty) {
+                if (overviewElementForAvailableQuarter.head.submittedVersionAvailable) {
+                  Future.successful(Seq(DisplayQuarter(
+                    availableQuarter, displayYear = false, None, Some(SubmittedHint)
+                  )))
+                } else {
+                  aftConnector.getIsAftNonZero(
+                    pstr, overviewElementForAvailableQuarter.head.periodStartDate.toString, "1"
+                  ).map {
+                    case true =>
+                      Seq(DisplayQuarter(
+                        availableQuarter, displayYear = false, None, Some(InProgressHint)
+                      ))
+                    case _ =>
+                      Seq(DisplayQuarter(
+                        availableQuarter, displayYear = false, None, None)
+                      )
                   }
+                }
+              } else {
+                Future.successful(Seq(DisplayQuarter(
+                  availableQuarter, displayYear = false, None, None)
+                ))
               }
           }
+        }
         Future.sequence(displayQuarters).map(_.flatten)
       } else {
-        val displayQuarters =  availableQuarters(year)(config).map { x =>
+        val displayQuarters = availableQuarters(year)(config).map { x =>
           val availableQuarter = getQuarter(x, year)
           DisplayQuarter(availableQuarter, displayYear = false, None, None)
         }

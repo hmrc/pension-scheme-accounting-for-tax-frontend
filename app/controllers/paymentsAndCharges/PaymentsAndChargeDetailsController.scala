@@ -17,15 +17,17 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
+
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.SchemeDetails
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
+import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -39,14 +41,15 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
-                                                   identify: IdentifierAction,
-                                                   val controllerComponents: MessagesControllerComponents,
-                                                   config: FrontendAppConfig,
-                                                   schemeService: SchemeService,
-                                                   fsConnector: FinancialStatementConnector,
-                                                   paymentsAndChargesService: PaymentsAndChargesService,
-                                                   renderer: Renderer
+class PaymentsAndChargeDetailsController @Inject()(
+                                                    override val messagesApi: MessagesApi,
+                                                    identify: IdentifierAction,
+                                                    val controllerComponents: MessagesControllerComponents,
+                                                    config: FrontendAppConfig,
+                                                    schemeService: SchemeService,
+                                                    fsConnector: FinancialStatementConnector,
+                                                    paymentsAndChargesService: PaymentsAndChargesService,
+                                                    renderer: Renderer
                                                   )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -61,39 +64,60 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
       ) flatMap {
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            seqSchemeFS =>
-              val chargeRefs: Seq[String] =
+            schemeFS =>
+              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
                 paymentsAndChargesService
-                  .groupAndSortByStartDate(seqSchemeFS, startDate.getYear)
-                  .flatMap(_._2)
-                  .map(_.chargeReference)
+                  .groupAndSortByStartDate(schemeFS, startDate.getYear)
 
-              try {
-                seqSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
-                  case Some(schemeFs) =>
-                    renderer.render(
-                      "paymentsAndCharges/paymentsAndChargeDetails.njk",
-                      summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
-                    )
-                      .map(Ok(_))
-                  case _ =>
-                    Logger.warn(s"No Payments and Charge details found for the selected charge reference ${chargeRefs(index.toInt)}")
-                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                }
-              } catch {
-                case _: IndexOutOfBoundsException =>
-                  Logger.warn(
-                    s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
-                      s"index $index of collection length ${chargeRefs.length} attempted"
-                  )
+              val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
+                schemeFSGroupedAndSorted.map(
+                  dateAndFs => {
+                    val (date, schemeFs) = dateAndFs
+                    (date, schemeFs.map(_.chargeReference))
+                  }
+                )
+
+              (
+                schemeFSGroupedAndSorted.find(_._1 == startDate),
+                chargeRefsGroupedAndSorted.find(_._1 == startDate)
+              ) match {
+                case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
+                  try {
+                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+                      case Some(schemeFs) =>
+                        renderer.render(
+                          template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                          ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+                        ).map(Ok(_))
+                      case _ =>
+                        Logger.warn(
+                          s"No Payments and Charge details found for the " +
+                            s"selected charge reference ${seqChargeRefs(index.toInt)}"
+                        )
+                        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                    }
+                  } catch {
+                    case _: IndexOutOfBoundsException =>
+                      Logger.warn(
+                        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+                          s"index $startDate/$index of attempted"
+                      )
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+                case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }
       }
   }
 
-  def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String, index: String)
-                     (implicit messages: Messages): JsObject = {
+  private def summaryListData(
+                               srn: String,
+                               startDate: LocalDate,
+                               schemeFS: SchemeFS,
+                               schemeName: String,
+                               index: String
+                             )(implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(_), true, true) =>
         Html(
@@ -115,24 +139,37 @@ class PaymentsAndChargeDetailsController @Inject()(override val messagesApi: Mes
         Html("")
     }
 
-    val optHintText = if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
-      Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint")) else Json.obj()
-
-    Json.obj(
-      fields = "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
-      "tableHeader" -> messages("paymentsAndCharges.caption",
-        schemeFS.periodStartDate.format(dateFormatterStartDate),
-        schemeFS.periodEndDate.format(dateFormatterDMY)),
-      "schemeName" -> schemeName,
-      "chargeType" -> schemeFS.chargeType.toString,
-      "chargeReferenceTextMessage" -> (if (schemeFS.totalAmount < 0) {
+    val chargeReferenceTextMessage =
+      if (schemeFS.totalAmount < 0)
         messages("paymentsAndCharges.credit.information",
           s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
-      } else {
+      else
         messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
-      }),
-      "isPaymentOverdue" -> (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
-        && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN)),
+
+    val optHintText =
+      if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
+        Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+      else
+        Json.obj()
+
+    val isPaymentOverdue =
+      (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
+        && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
+
+    val tableHeader =
+      messages(
+        "paymentsAndCharges.caption",
+        schemeFS.periodStartDate.format(dateFormatterStartDate),
+        schemeFS.periodEndDate.format(dateFormatterDMY)
+      )
+
+    Json.obj(
+      "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
+      "tableHeader" -> tableHeader,
+      "schemeName" -> schemeName,
+      "chargeType" -> schemeFS.chargeType.toString,
+      "chargeReferenceTextMessage" -> chargeReferenceTextMessage,
+      "isPaymentOverdue" -> isPaymentOverdue,
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
       "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),

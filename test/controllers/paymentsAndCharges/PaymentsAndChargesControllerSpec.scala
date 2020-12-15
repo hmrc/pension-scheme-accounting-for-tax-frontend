@@ -130,19 +130,4 @@ object PaymentsAndChargesControllerSpec {
     createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632"),
     createCharge(startDate = "2021-04-01", endDate = "2021-06-30", chargeReference = "XY002610150185")
   )
-
-  private val filteredSchemeFS: Seq[(LocalDate, Seq[SchemeFS])] = Seq(
-    (
-      LocalDate.parse("2020-01-01"),
-      Seq(
-        createCharge(startDate = "2020-01-01", endDate = "2020-03-31", chargeReference = "AYU3494534632")
-      )
-    ),
-    (
-      LocalDate.parse("2020-04-01"),
-      Seq(
-        createCharge(startDate = "2020-04-01", endDate = "2020-06-30", chargeReference = "XY002610150184")
-      )
-    )
-  )
 }

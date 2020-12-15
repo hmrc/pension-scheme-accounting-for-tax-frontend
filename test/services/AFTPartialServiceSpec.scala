@@ -18,11 +18,12 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models._
+import models.financialStatement.SchemeFS
+import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -31,9 +32,10 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
 import play.api.libs.json.Json
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, Link, PspDashboardAftReturnsViewModel}
+import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -50,13 +52,10 @@ class AFTPartialServiceSpec
 
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val schemeService = mock[SchemeService]
-
-  private val version1 = AFTVersion(1, LocalDate.now(), "submitted")
-  private val version2 = AFTVersion(2, LocalDate.now(), "submitted")
-  private val versions = Seq(version1, version2)
+  private val paymentsAndChargesService = mock[PaymentsAndChargesService]
 
   def service: AFTPartialService =
-    new AFTPartialService(frontendAppConfig, schemeService, aftConnector, aftCacheConnector)
+    new AFTPartialService(frontendAppConfig, schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
   "retrieveOptionAFTViewModel after overviewApiEnablement" must {
     "return the correct model when overview api returns multiple returns in " +
@@ -163,7 +162,7 @@ class AFTPartialServiceSpec
           locked = false,
           h3 = "In progress",
           span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single"
+          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single"
         )
       }
     }
@@ -181,7 +180,7 @@ class AFTPartialServiceSpec
           locked = true,
           h3 = "Locked by test-name",
           span = "AFT return 1 October to 31 December 2020:",
-          linkText = "pspDashboardAftReturnsPartial.inProgressReturns.link.single.locked"
+          linkText = "pspDashboardAftReturnsCard.inProgressReturns.link.single.locked"
         )
       }
     }
@@ -208,6 +207,107 @@ class AFTPartialServiceSpec
     }
   }
 
+  "retrievePspDashboardUpcomingAftCharges" must {
+    "return a model for a single period upcoming charges with no past charges" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod, srn) mustBe
+        PspDashboardAftViewModel(
+          subHeading = Some(Json.obj(
+            "total" -> "£3,087.15",
+            "span" -> "Payment due by 15 February 2021:"
+          )),
+          links = Seq(
+            Link(
+              id = "upcoming-payments-and-charges",
+              url = viewUpcomingChargesUrl,
+              linkText =
+                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+                  .withArgs("1 October", "31 December"),
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+
+    "return a model for multiple period upcoming charges with no past charges" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods, srn) mustBe
+        PspDashboardAftViewModel(
+          subHeading = Some(Json.obj(
+            "total" -> "£3,087.15",
+            "span" -> "Total amount due:"
+          )),
+          links = Seq(
+            Link(
+              id = "upcoming-payments-and-charges",
+              url = viewUpcomingChargesUrl,
+              linkText =
+                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+    "return a model for a single period upcoming charges with past charges" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+      val schemeFS = schemeFSResponseSinglePeriod ++ pastCharges
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
+        PspDashboardAftViewModel(
+          subHeading = Some(Json.obj(
+            "total" -> "£3,087.15",
+            "span" -> "Payment due by 15 February 2021:"
+          )),
+          links = Seq(
+            Link(
+              id = "upcoming-payments-and-charges",
+              url = viewUpcomingChargesUrl,
+              linkText =
+                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+                  .withArgs("1 October", "31 December"),
+              hiddenText = None
+            ),
+            Link(
+              id = "past-payments-and-charges",
+              url = viewPastChargesUrl,
+              linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+
+    "return a model for multiple period upcoming charges with past charges" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+      val schemeFS = schemeFSResponseMultiplePeriods ++ pastCharges
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
+        PspDashboardAftViewModel(
+          subHeading = Some(Json.obj(
+            "total" -> "£3,087.15",
+            "span" -> "Total amount due:"
+          )),
+          links = Seq(
+            Link(
+              id = "upcoming-payments-and-charges",
+              url = viewUpcomingChargesUrl,
+              linkText =
+                msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+              hiddenText = None
+            ),
+            Link(
+              id = "past-payments-and-charges",
+              url = viewPastChargesUrl,
+              linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+              hiddenText = None
+            )
+          )
+        )
+    }
+  }
 }
 
 object AFTPartialServiceSpec {
@@ -313,6 +413,8 @@ object AFTPartialServiceSpec {
   val returnHistoryUrl: String = s"$aftUrl/srn/previous-return/2020-10-01/amend-previous"
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
+  val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
+  val viewPastChargesUrl: String = s"$aftUrl/srn/2020/payments-and-charges"
 
   def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
@@ -376,14 +478,14 @@ object AFTPartialServiceSpec {
   def oneCompileZeroedOutModel(implicit messages: Messages): Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
-  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "h3" -> "2 in progress",
         "span" -> "AFT returns:"
       )),
       links = Seq(
-        multipleInProgressModel(3, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        multipleInProgressModel(3, "pspDashboardAftReturnsCard.inProgressReturns.link"),
         startModel,
         pastReturnsModel
       ).map(_.link)
@@ -394,8 +496,8 @@ object AFTPartialServiceSpec {
                                                  h3: String,
                                                  span: String,
                                                  linkText: String
-                                               )(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+                                               )(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "span" -> span,
         "h3" -> h3
@@ -407,15 +509,58 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftReturnsViewModel =
-    PspDashboardAftReturnsViewModel(
+  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
       subHeading = Option(Json.obj(
         "h3" -> "3 in progress",
         "span" -> "AFT returns:"
       )),
       links = Seq(
-        multipleInProgressModel(2, "pspDashboardAftReturnsPartial.inProgressReturns.link"),
+        multipleInProgressModel(2, "pspDashboardAftReturnsCard.inProgressReturns.link"),
         startModel
       ).map(_.link)
     )
+
+  private def createCharge(
+                            startDate: String,
+                            endDate: String,
+                            dueDate: Option[LocalDate] = Option(LocalDate.parse("2021-02-15")),
+                            chargeReference: String
+                          ): SchemeFS = {
+    SchemeFS(
+      chargeReference = chargeReference,
+      chargeType = PSS_AFT_RETURN,
+      dueDate = dueDate,
+      totalAmount = 56432.00,
+      outstandingAmount = 56049.08,
+      stoodOverAmount = 25089.08,
+      amountDue = 1029.05,
+      accruedInterestTotal = 0.00,
+      periodStartDate = LocalDate.parse(startDate),
+      periodEndDate = LocalDate.parse(endDate)
+    )
+  }
+
+  private val schemeFSResponseSinglePeriod: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150185")
+  )
+
+  private val schemeFSResponseMultiplePeriods: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
+    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
+    createCharge(
+      startDate = "2021-01-01",
+      endDate = "2021-03-31",
+      chargeReference = "XY002610150185",
+      dueDate = Option(LocalDate.parse("2021-05-15"))
+    )
+  )
+
+  private val pastCharges: Seq[SchemeFS] = Seq(
+    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "XY002610150185", dueDate = None),
+    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "AYU3494534636", dueDate = None),
+    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "XY002610150187", dueDate = None)
+  )
 }

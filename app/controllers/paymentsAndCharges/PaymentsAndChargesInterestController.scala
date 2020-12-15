@@ -17,11 +17,11 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
+
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
@@ -32,6 +32,7 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -40,13 +41,15 @@ import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargesInterestController @Inject()(override val messagesApi: MessagesApi,
-                                                     identify: IdentifierAction,
-                                                     val controllerComponents: MessagesControllerComponents,
-                                                     config: FrontendAppConfig,
-                                                     schemeService: SchemeService,
-                                                     fsConnector: FinancialStatementConnector,
-                                                     renderer: Renderer
+class PaymentsAndChargesInterestController @Inject()(
+                                                      override val messagesApi: MessagesApi,
+                                                      identify: IdentifierAction,
+                                                      val controllerComponents: MessagesControllerComponents,
+                                                      config: FrontendAppConfig,
+                                                      schemeService: SchemeService,
+                                                      paymentsAndChargesService: PaymentsAndChargesService,
+                                                      fsConnector: FinancialStatementConnector,
+                                                      renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -61,37 +64,50 @@ class PaymentsAndChargesInterestController @Inject()(override val messagesApi: M
       ) flatMap {
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            seqSchemeFS =>
+            schemeFS =>
 
-              val filteredSchemeFS =
-                seqSchemeFS.filter(_.periodStartDate.getYear == startDate.getYear)
+              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(schemeFS, startDate.getYear)
 
-              val chargeRefs: Seq[String] =
-                filteredSchemeFS.map(_.chargeReference)
+              val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
+                schemeFSGroupedAndSorted.map(
+                  dateAndFs => {
+                    val (date, schemeFs) = dateAndFs
+                    (date, schemeFs.map(_.chargeReference))
+                  }
+                )
 
-              try {
-                filteredSchemeFS.find(_.chargeReference == chargeRefs(index.toInt)) match {
-                  case Some(fs) =>
-                    renderer
-                      .render(template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                        summaryListData(srn, Some(fs), schemeDetails.schemeName, index))
-                      .map(Ok(_))
-                  case _ =>
-                    Logger.warn(s"No Payments and Charge details " +
-                      s"found for the selected charge reference ${chargeRefs(index.toInt)}")
-                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                }
-              } catch {
-                case _: IndexOutOfBoundsException =>
-                  Logger.warn(
-                    s"[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
-                      s"index $index of collection length ${chargeRefs.length} attempted"
-                  )
+              (
+                schemeFSGroupedAndSorted.find(_._1 == startDate),
+                chargeRefsGroupedAndSorted.find(_._1 == startDate)
+              ) match {
+                case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
+                  try {
+                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+                      case Some(schemeFs) =>
+                        renderer.render(
+                          template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                          ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index)
+                        ).map(Ok(_))
+                      case _ =>
+                        Logger.warn(s"No Payments and Charge details " +
+                          s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
+                        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                    }
+                  } catch {
+                    case _: IndexOutOfBoundsException =>
+                      Logger.warn(
+                        "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
+                          s"index $startDate/$index of attempted"
+                      )
+                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                  }
+                case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }
       }
-
   }
 
   def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String)
