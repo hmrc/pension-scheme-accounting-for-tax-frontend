@@ -16,42 +16,31 @@
 
 package controllers
 
-import java.time.ZonedDateTime
-import java.time.ZoneId
-import java.time.LocalDate
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.AccessType
-import models.GenericViewModel
+import models.{AccessType, GenericViewModel}
 import models.LocalDateBinder._
-import models.ValueChangeType.ChangeTypeDecrease
-import models.ValueChangeType.ChangeTypeIncrease
-import models.ValueChangeType.ChangeTypeSame
+import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.SummaryList
-import uk.gov.hmrc.viewmodels._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, dateFormatterSubmittedDate, formatSubmittedDate}
+import uk.gov.hmrc.viewmodels.{SummaryList, _}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -98,7 +87,7 @@ class ConfirmationController @Inject()(
           val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
 
           val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
-          val listSchemesUrl = config.yourPensionSchemesUrl
+
 
           val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
 
@@ -134,6 +123,11 @@ class ConfirmationController @Inject()(
           }
         }
     }
+
+  def listSchemesUrl(implicit request: DataRequest[AnyContent]): String = request.schemeAdministratorType match {
+    case SchemeAdministratorTypePSA => config.yourPensionSchemesUrl
+    case SchemeAdministratorTypePSP => config.yourPensionSchemesPspUrl
+  }
 
   private[controllers] def getRows(schemeName: String, quarterStartDate: String, quarterEndDate: String,
                                    submittedDate: String, amendedVersion: Option[Int]): Seq[SummaryList.Row] = {
