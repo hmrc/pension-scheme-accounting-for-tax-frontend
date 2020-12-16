@@ -69,46 +69,115 @@ class PaymentsAndChargeDetailsController @Inject()(
                 paymentsAndChargesService
                   .groupAndSortByStartDate(schemeFS, startDate.getYear)
 
-              val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
-                schemeFSGroupedAndSorted.map(
-                  dateAndFs => {
-                    val (date, schemeFs) = dateAndFs
-                    (date, schemeFs.map(_.chargeReference))
-                  }
-                )
-
-              (
-                schemeFSGroupedAndSorted.find(_._1 == startDate),
-                chargeRefsGroupedAndSorted.find(_._1 == startDate)
-              ) match {
-                case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
-                  try {
-                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
-                      case Some(schemeFs) =>
-                        renderer.render(
-                          template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
-                          ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
-                        ).map(Ok(_))
-                      case _ =>
-                        Logger.warn(
-                          s"No Payments and Charge details found for the " +
-                            s"selected charge reference ${seqChargeRefs(index.toInt)}"
-                        )
-                        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                    }
-                  } catch {
-                    case _: IndexOutOfBoundsException =>
-                      Logger.warn(
-                        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
-                          s"index $startDate/$index of attempted"
-                      )
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                  }
-                case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              }
+              buildPage(
+                schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
           }
       }
+  }
+
+  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            schemeFS =>
+              val upcomingSchemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(paymentsAndChargesService.getUpcomingCharges(schemeFS), startDate.getYear)
+
+              buildPage(
+                schemeFSGroupedAndSorted = upcomingSchemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
+          }
+      }
+  }
+
+  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            schemeFS =>
+              val overdueSchemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(paymentsAndChargesService.getOverdueCharges(schemeFS), startDate.getYear)
+
+              buildPage(
+                schemeFSGroupedAndSorted = overdueSchemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
+          }
+      }
+  }
+
+  private def buildPage(
+                         schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])],
+                         startDate: LocalDate,
+                         index: String,
+                         schemeDetails: SchemeDetails,
+                         srn: String
+                       )(
+                         implicit request: IdentifierRequest[AnyContent]
+                       ): Future[Result] = {
+
+    val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
+      schemeFSGroupedAndSorted.map(
+        dateAndFs => {
+          val (date, schemeFs) = dateAndFs
+          (date, schemeFs.map(_.chargeReference))
+        }
+      )
+
+    (
+      schemeFSGroupedAndSorted.find(_._1 == startDate),
+      chargeRefsGroupedAndSorted.find(_._1 == startDate)
+    ) match {
+      case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
+        try {
+          seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+            case Some(schemeFs) =>
+              renderer.render(
+                template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+              ).map(Ok(_))
+            case _ =>
+              Logger.warn(
+                s"No Payments and Charge details found for the " +
+                  s"selected charge reference ${seqChargeRefs(index.toInt)}"
+              )
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
+        } catch {
+          case _: IndexOutOfBoundsException =>
+            Logger.warn(
+              s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+                s"index $startDate/$index of attempted"
+            )
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
   }
 
   private def summaryListData(

@@ -19,6 +19,7 @@ package controllers.paymentsAndCharges
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
+import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFS
 import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
 import play.api.Logger
@@ -64,7 +65,8 @@ class PaymentsAndChargesController @Inject()(
               if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
 
                 val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService.getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year)
+                  paymentsAndChargesService
+                    .getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year, ChargeDetailsFilter.All)
 
                 val json = Json.obj(
                   fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,

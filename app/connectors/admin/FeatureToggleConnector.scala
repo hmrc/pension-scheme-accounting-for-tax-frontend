@@ -19,16 +19,13 @@ package connectors.admin
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.FeatureToggle
-import models.FeatureToggleName
 import play.api.Logger
 import play.api.http.Status._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.HttpResponseHelper
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
 class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {

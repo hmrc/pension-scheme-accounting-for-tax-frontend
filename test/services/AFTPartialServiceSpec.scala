@@ -213,7 +213,7 @@ class AFTPartialServiceSpec
 
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod, srn) mustBe
         PspDashboardAftViewModel(
-          subHeading = Some(Json.obj(
+          subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Payment due by 15 February 2021:"
           )),
@@ -236,7 +236,7 @@ class AFTPartialServiceSpec
 
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods, srn) mustBe
         PspDashboardAftViewModel(
-          subHeading = Some(Json.obj(
+          subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Total amount due:"
           )),
@@ -257,7 +257,7 @@ class AFTPartialServiceSpec
       val schemeFS = schemeFSResponseSinglePeriod ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
         PspDashboardAftViewModel(
-          subHeading = Some(Json.obj(
+          subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Payment due by 15 February 2021:"
           )),
@@ -286,7 +286,7 @@ class AFTPartialServiceSpec
       val schemeFS = schemeFSResponseMultiplePeriods ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
         PspDashboardAftViewModel(
-          subHeading = Some(Json.obj(
+          subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Total amount due:"
           )),
@@ -480,7 +480,7 @@ object AFTPartialServiceSpec {
 
   def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftViewModel =
     PspDashboardAftViewModel(
-      subHeading = Option(Json.obj(
+      subHeadings = Seq(Json.obj(
         "h3" -> "2 in progress",
         "span" -> "AFT returns:"
       )),
@@ -498,7 +498,7 @@ object AFTPartialServiceSpec {
                                                  linkText: String
                                                )(implicit messages: Messages): PspDashboardAftViewModel =
     PspDashboardAftViewModel(
-      subHeading = Option(Json.obj(
+      subHeadings = Seq(Json.obj(
         "span" -> span,
         "h3" -> h3
       )),
@@ -511,7 +511,7 @@ object AFTPartialServiceSpec {
 
   def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftViewModel =
     PspDashboardAftViewModel(
-      subHeading = Option(Json.obj(
+      subHeadings = Seq(Json.obj(
         "h3" -> "3 in progress",
         "span" -> "AFT returns:"
       )),

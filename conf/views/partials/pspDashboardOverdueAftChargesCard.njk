@@ -1,0 +1,29 @@
+<div class="card" id="overdue-aft-charges">
+    <div class="card-body">
+        <h2 class="card-heading heading-small">
+            {{ messages("pspDashboardOverdueAftChargesCard.h2") }}
+        </h2>
+        {% for subHeading in overdueCharges.subHeadings %}
+            <h3 class="card-sub-heading">
+                <span class="font-xsmall">{{ subHeading.span }}</span>
+                <span class="font-large bold">
+                    {{ subHeading.total }}
+                    {% if loop.index == 2 %}
+                        <span class="font-xsmall">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>
+                    {% endif %}
+                </span>
+            </h3>
+        {% endfor %}
+    </div>
+    <div class="card-action">
+        {% if overdueCharges.links %}
+        <ul>
+            {% for link in overdueCharges.links %}
+                <li>
+                    <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</div>

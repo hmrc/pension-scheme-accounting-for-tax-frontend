@@ -17,10 +17,10 @@
 package services.paymentsAndCharges
 
 import java.time.LocalDate
-
 import base.SpecBase
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
+import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
@@ -137,7 +137,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           val result = paymentsAndChargesService.getPaymentsAndCharges(
             srn,
             paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            2020
+            2020,
+            ChargeDetailsFilter.All
           )
 
           result mustBe expectedTable
@@ -152,7 +153,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        2020
+        2020,
+        ChargeDetailsFilter.All
       )
 
       result mustBe expectedTable
@@ -179,7 +181,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         paymentsAndChargesService.getPaymentsAndCharges(
           srn,
           paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00).head._2,
-          2020
+          2020,
+          ChargeDetailsFilter.All
         )
 
       result mustBe expectedTable

@@ -20,9 +20,9 @@
 
         <p class="govuk-body">{{ messages("paymentsAndCharges.reflect.charge.text") }}</p>
 
-        {% for paymentAndChargesTable in upcomingPaymentsAndCharges %}
+        {% for paymentAndChargesTable in overduePaymentsAndCharges %}
             {% if paymentAndChargesTable.table.rows.length > 0 %}
-                {% if upcomingPaymentsAndCharges.length > 1 %}
+                {% if overduePaymentsAndCharges.length > 1 %}
                     <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
                 {% endif %}
                 {{ govukTable(paymentAndChargesTable.table) }}
