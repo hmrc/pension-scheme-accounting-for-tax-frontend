@@ -211,7 +211,7 @@ class AFTPartialServiceSpec
     "return a model for a single period upcoming charges with no past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
 
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod, srn) mustBe
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
         PspDashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
@@ -234,7 +234,7 @@ class AFTPartialServiceSpec
     "return a model for multiple period upcoming charges with no past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
 
-      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods, srn) mustBe
+      service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
         PspDashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
@@ -254,7 +254,7 @@ class AFTPartialServiceSpec
 
     "return a model for a single period upcoming charges with past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFS = schemeFSResponseSinglePeriod ++ pastCharges
+      val schemeFS = schemeFSResponseSinglePeriod() ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
         PspDashboardAftViewModel(
           subHeadings = Seq(Json.obj(
@@ -283,7 +283,7 @@ class AFTPartialServiceSpec
 
     "return a model for multiple period upcoming charges with past charges" in {
       val service = app.injector.instanceOf[AFTPartialService]
-      val schemeFS = schemeFSResponseMultiplePeriods ++ pastCharges
+      val schemeFS = schemeFSResponseMultiplePeriods() ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
         PspDashboardAftViewModel(
           subHeadings = Seq(Json.obj(
@@ -302,6 +302,121 @@ class AFTPartialServiceSpec
               id = "past-payments-and-charges",
               url = viewPastChargesUrl,
               linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
+              hiddenText = None
+            )
+          )
+        )
+    }
+  }
+
+  "retrievePspDashboardOverdueAftCharges" must {
+    "return a model for a single period overdue charges with no interest accruing" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
+        PspDashboardAftViewModel(
+          subHeadings = Seq(
+            Json.obj(
+              "total" -> "£3,087.15",
+              "span" -> "Total overdue payments:"
+            ),
+            Json.obj(
+              "total" -> "£0.00",
+              "span" -> "Interest accruing:"
+            )
+          ),
+          links = Seq(
+            Link(
+              id = "overdue-payments-and-charges",
+              url = viewOverdueChargesUrl,
+              linkText =
+                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+                  .withArgs("1 October", "31 December"),
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+
+    "return a model for a single period overdue charges with interest accruing" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardOverdueAftChargesModel(
+        schemeFSResponseSinglePeriod(123.00), srn
+      ) mustBe
+        PspDashboardAftViewModel(
+          subHeadings = Seq(
+            Json.obj(
+              "total" -> "£3,087.15",
+              "span" -> "Total overdue payments:"
+            ),
+            Json.obj(
+              "total" -> "£369.00",
+              "span" -> "Interest accruing:"
+            )
+          ),
+          links = Seq(
+            Link(
+              id = "overdue-payments-and-charges",
+              url = viewOverdueChargesUrl,
+              linkText =
+                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+                  .withArgs("1 October", "31 December"),
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+    "return a model for a multiple periods overdue charges with no interest accruing" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
+        PspDashboardAftViewModel(
+          subHeadings = Seq(
+            Json.obj(
+              "total" -> "£3,087.15",
+              "span" -> "Total overdue payments:"
+            ),
+            Json.obj(
+              "total" -> "£0.00",
+              "span" -> "Interest accruing:"
+            )
+          ),
+          links = Seq(
+            Link(
+              id = "overdue-payments-and-charges",
+              url = viewOverdueChargesUrl,
+              linkText =
+                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+              hiddenText = None
+            )
+          )
+        )
+    }
+
+
+    "return a model for a multiple periods overdue charges with interest accruing" in {
+      val service = app.injector.instanceOf[AFTPartialService]
+
+      service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(123.00), srn) mustBe
+        PspDashboardAftViewModel(
+          subHeadings = Seq(Json.obj(
+            "total" -> "£3,087.15",
+            "span" -> "Total overdue payments:"
+          ),
+            Json.obj(
+              "total" -> "£369.00",
+              "span" -> "Interest accruing:"
+            )
+          ),
+          links = Seq(
+            Link(
+              id = "overdue-payments-and-charges",
+              url = viewOverdueChargesUrl,
+              linkText =
+                msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
               hiddenText = None
             )
           )
@@ -414,6 +529,7 @@ object AFTPartialServiceSpec {
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
+  val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
   val viewPastChargesUrl: String = s"$aftUrl/srn/2020/payments-and-charges"
 
   def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
@@ -525,7 +641,8 @@ object AFTPartialServiceSpec {
                             startDate: String,
                             endDate: String,
                             dueDate: Option[LocalDate] = Option(LocalDate.parse("2021-02-15")),
-                            chargeReference: String
+                            chargeReference: String,
+                            accruedInterestTotal: BigDecimal = 0.00
                           ): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,
@@ -535,32 +652,73 @@ object AFTPartialServiceSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = 1029.05,
-      accruedInterestTotal = 0.00,
+      accruedInterestTotal = accruedInterestTotal,
       periodStartDate = LocalDate.parse(startDate),
       periodEndDate = LocalDate.parse(endDate)
     )
   }
 
-  private val schemeFSResponseSinglePeriod: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150185")
+  private def schemeFSResponseSinglePeriod(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFS] = Seq(
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150184",
+      accruedInterestTotal = accruedInterestTotal
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "AYU3494534632",
+      accruedInterestTotal = accruedInterestTotal
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150185",
+      accruedInterestTotal = accruedInterestTotal
+    )
   )
 
-  private val schemeFSResponseMultiplePeriods: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "XY002610150184"),
-    createCharge(startDate = "2020-10-01", endDate = "2020-12-31", chargeReference = "AYU3494534632"),
+  private def schemeFSResponseMultiplePeriods(accruedInterestTotal: BigDecimal = 0.00): Seq[SchemeFS] = Seq(
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "XY002610150184",
+      accruedInterestTotal = accruedInterestTotal
+    ),
+    createCharge(
+      startDate = "2020-10-01",
+      endDate = "2020-12-31",
+      chargeReference = "AYU3494534632",
+      accruedInterestTotal = accruedInterestTotal
+    ),
     createCharge(
       startDate = "2021-01-01",
       endDate = "2021-03-31",
       chargeReference = "XY002610150185",
+      accruedInterestTotal = accruedInterestTotal,
       dueDate = Option(LocalDate.parse("2021-05-15"))
     )
   )
 
   private val pastCharges: Seq[SchemeFS] = Seq(
-    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "XY002610150185", dueDate = None),
-    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "AYU3494534636", dueDate = None),
-    createCharge(startDate = "2020-06-01", endDate = "2020-09-30", chargeReference = "XY002610150187", dueDate = None)
+    createCharge(
+      startDate = "2020-06-01",
+      endDate = "2020-09-30",
+      chargeReference = "XY002610150185",
+      dueDate = None
+    ),
+    createCharge(
+      startDate = "2020-06-01",
+      endDate = "2020-09-30",
+      chargeReference = "AYU3494534636",
+      dueDate = None
+    ),
+    createCharge(
+      startDate = "2020-06-01",
+      endDate = "2020-09-30",
+      chargeReference = "XY002610150187",
+      dueDate = None
+    )
   )
 }

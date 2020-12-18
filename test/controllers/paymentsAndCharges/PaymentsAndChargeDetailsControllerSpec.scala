@@ -16,7 +16,6 @@
 
 package controllers.paymentsAndCharges
 
-import java.time.LocalDate
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
@@ -32,12 +31,10 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures.whenReady
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, JsString, Json}
-import play.api.mvc.Result
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -46,6 +43,7 @@ import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class PaymentsAndChargeDetailsControllerSpec
