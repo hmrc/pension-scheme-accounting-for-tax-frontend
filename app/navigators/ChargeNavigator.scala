@@ -41,7 +41,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
     case ChargeTypePage                 => chargeTypeNavigation(ua, srn, startDate, accessType, version)
     case AFTSummaryPage                 => aftSummaryNavigation(ua, srn, startDate, accessType, version)
     case ConfirmSubmitAFTReturnPage     => confirmSubmitNavigation(ua, srn, startDate, accessType, version)
-    case ConfirmSubmitAFTAmendmentPage  => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+    case ConfirmSubmitAFTAmendmentPage  => confirmSubmitAmendmentNavigation(ua, srn, startDate, accessType, version)
     case DeclarationPage                => controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, version)
     case EnterPsaIdPage                 => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
   }
@@ -119,6 +119,14 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
       case _ => sessionExpiredPage
     }
   }
+
+  private def confirmSubmitAmendmentNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
+                                      accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]) =
+        (request.psaId, request.pspId) match {
+          case (None, Some(_)) => controllers.routes.EnterPsaIdController.onPageLoad(srn, startDate, accessType, version)
+          case (Some(_), None) => controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, version)
+          case _ =>  sessionExpiredPage
+        }
 
   private def aftSummaryNavigation(ua: UserAnswers, srn: String, startDate: LocalDate,
                                    accessType: AccessType, version: Int)(implicit request: DataRequest[AnyContent]): Call = {
