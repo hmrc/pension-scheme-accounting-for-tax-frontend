@@ -49,10 +49,10 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
     )
 
   private def confirmSubmitAFTReturn(confirmSubmit:Boolean):Option[UserAnswers] =
-    Option(
-      UserAnswers()
-        .setOrException(ConfirmSubmitAFTReturnPage, confirmSubmit)
-    )
+    Option(UserAnswers().setOrException(ConfirmSubmitAFTReturnPage, confirmSubmit))
+
+  private def confirmAmendAFTReturn(confirmAmend:Boolean):Option[UserAnswers] =
+    Option(UserAnswers().setOrException(ConfirmSubmitAFTAmendmentPage, confirmAmend))
 
   "NormalMode" must {
     def normalModeRoutes: TableFor3[Page, UserAnswers, Call] = {
@@ -82,9 +82,11 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
       import controllers.routes._
       Table(
         ("Id", "UserAnswers", "Next Page"),
-        row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt),
-          confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTAmendmentPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmAmendAFTReturn(confirmAmend = true)),
         row(EnterPsaIdPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt),Some(SampleData.userAnswersWithSchemeNamePstrQuarter))
+
+
       )
     }
 

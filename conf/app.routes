@@ -264,5 +264,4 @@ GET         /:srn/payments-and-charges/:startDate/upcoming-payments-and-charges 
 GET         /:srn/payments-and-charges/:startDate/overdue-payments-and-charges                                                                       controllers.paymentsAndCharges.PaymentsAndChargesOverdueController.onPageLoad(srn: String, startDate: String)
 
 GET         /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)
-
 POST        /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onSubmit(srn: String, startDate: String, accessType: AccessType, version: Int)
