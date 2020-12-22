@@ -299,7 +299,7 @@ object DeclarationControllerSpec {
   private val psaName = "test ltd"
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
   private val userAnswersWithPSTREmailQuarter: Option[UserAnswers] = userAnswers.map(
-    _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(PSANameQuery, psaName))
+    _.set(PSTRQuery, pstr).flatMap(_.set(EmailQuery, value = "psa@test.com")).flatMap(_.set(NameQuery, psaName))
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
