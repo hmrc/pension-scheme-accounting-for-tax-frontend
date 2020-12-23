@@ -47,7 +47,7 @@ import org.mockito.Mockito.when
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
-import pages.PSAEmailQuery
+import pages.EmailQuery
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.api.libs.json.JsObject
@@ -138,7 +138,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
+        set(EmailQuery, email).getOrElse(UserAnswers())))
 
       val result = route(application, request).value
       status(result) mustEqual OK
@@ -154,7 +154,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       val request = FakeRequest(GET, routes.ConfirmationController.onPageLoad(SampleData.srn, QUARTER_START_DATE, accessType, versionInt).url)
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(versionNumber, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
-      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(PSAEmailQuery, email)))
+      mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.setOrException(EmailQuery, email)))
 
       val result = route(application, request).value
       status(result) mustEqual OK
@@ -172,7 +172,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction
         .setDataToReturn(Some(
           userAnswersWithSchemeNamePstrQuarter
-            .setOrException(PSAEmailQuery, email)
+            .setOrException(EmailQuery, email)
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeDecrease)
         ))
 
@@ -192,7 +192,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction
         .setDataToReturn(Some(
           userAnswersWithSchemeNamePstrQuarter
-            .setOrException(PSAEmailQuery, email)
+            .setOrException(EmailQuery, email)
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeIncrease)
         ))
 
@@ -212,7 +212,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction
         .setDataToReturn(Some(
           userAnswersWithSchemeNamePstrQuarter
-            .setOrException(PSAEmailQuery, email)
+            .setOrException(EmailQuery, email)
             .setOrException(ConfirmSubmitAFTAmendmentValueChangeTypePage, ChangeTypeSame)
         ))
 
@@ -230,7 +230,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
+        set(EmailQuery, email).getOrElse(UserAnswers())))
 
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseWithDataForDifferentYear))
@@ -249,7 +249,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       mutableFakeDataRetrievalAction.setSessionData(SessionData("", None,
         SessionAccessData(SampleData.version.toInt, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)))
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter.
-        set(PSAEmailQuery, email).getOrElse(UserAnswers())))
+        set(EmailQuery, email).getOrElse(UserAnswers())))
       when(mockAppConfig.isFSEnabled).thenReturn(false)
       val result = route(application, request).value
       status(result) mustEqual OK

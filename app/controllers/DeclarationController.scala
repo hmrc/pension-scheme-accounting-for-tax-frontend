@@ -40,7 +40,7 @@ import models.ValueChangeType.ChangeTypeSame
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import pages.DeclarationPage
-import pages.PSANameQuery
+import pages.NameQuery
 import play.api.i18n.I18nSupport
 import play.api.i18n.Messages
 import play.api.i18n.MessagesApi
@@ -115,7 +115,7 @@ class DeclarationController @Inject()(
       hc: HeaderCarrier,
       messages: Messages): Future[EmailStatus] = {
     val requestId = hc.requestId.map(_.value).getOrElse(request.headers.get("X-Session-ID").getOrElse(""))
-    val psaName = request.userAnswers.getOrException(PSANameQuery)
+    val name = request.userAnswers.getOrException(NameQuery)
 
     val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
     val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
@@ -129,7 +129,7 @@ class DeclarationController @Inject()(
       "accountingPeriod" -> accountingPeriod,
       "dateSubmitted" -> submittedDate,
       "hmrcEmail" -> sendToEmailId,
-      "psaName" -> psaName
+      "psaName" -> name
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val journeyType = if (isAmendment) {

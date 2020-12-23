@@ -27,18 +27,18 @@ import utils.WireMockHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class MinimalPsaConnectorSpec
+class MinimalConnectorSpec
   extends AsyncWordSpec
     with MustMatchers
     with WireMockHelper {
 
-  import MinimalPsaConnector._
+  import MinimalConnector._
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
   private implicit lazy val req = IdentifierRequest(FakeRequest("GET", "/"), Some(PsaId("A2100005")), None)
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
-  private lazy val connector: MinimalPsaConnector = injector.instanceOf[MinimalPsaConnector]
+  private lazy val connector: MinimalConnector = injector.instanceOf[MinimalConnector]
   private val psaId = "test-psa"
   private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
   private val email = "test@test.com"
@@ -63,8 +63,8 @@ class MinimalPsaConnectorSpec
           )
       )
 
-      connector.getMinimalPsaDetails map {
-        _ mustBe MinimalPSA(email, isPsaSuspended = false, Some("test ltd"), None)
+      connector.getMinimalDetails map {
+        _ mustBe MinimalDetails(email, isPsaSuspended = false, Some("test ltd"), None)
       }
     }
 
@@ -77,8 +77,8 @@ class MinimalPsaConnectorSpec
           )
       )
 
-      connector.getMinimalPsaDetails map {
-        _ mustBe MinimalPSA(email, isPsaSuspended = true, Some("test ltd"), None)
+      connector.getMinimalDetails map {
+        _ mustBe MinimalDetails(email, isPsaSuspended = true, Some("test ltd"), None)
       }
     }
 
@@ -92,7 +92,7 @@ class MinimalPsaConnectorSpec
       )
 
       recoverToSucceededIf[BadRequestException] {
-        connector.getMinimalPsaDetails
+        connector.getMinimalDetails
       }
     }
   }
