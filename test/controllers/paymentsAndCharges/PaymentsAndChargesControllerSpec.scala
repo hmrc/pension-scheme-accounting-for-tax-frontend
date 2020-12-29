@@ -27,6 +27,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.mockito.{ArgumentCaptor, Matchers}
@@ -72,7 +73,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService, mockFICacheConnector)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any(), any(), any())).thenReturn(Nil)

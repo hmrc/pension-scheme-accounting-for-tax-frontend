@@ -17,6 +17,7 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
@@ -32,12 +33,10 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures.whenReady
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, JsString, Json}
-import play.api.mvc.Result
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -79,7 +78,7 @@ class PaymentsAndChargeDetailsControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockSchemeService, mockFSConnector, mockRenderer, mockPaymentsAndChargesService)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl)
+    when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))

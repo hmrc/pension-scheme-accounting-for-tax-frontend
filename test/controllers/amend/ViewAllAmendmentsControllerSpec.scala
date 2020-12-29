@@ -26,6 +26,7 @@ import matchers.JsonMatchers
 import models.AmendedChargeStatus.Updated
 import models.ChargeType.ChargeTypeDeRegistration
 import models.LocalDateBinder.localDateToString
+import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{AccessMode, GenericViewModel}
 import org.mockito.ArgumentCaptor
@@ -65,7 +66,7 @@ class ViewAllAmendmentsControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockAmendmentHelper, mockAFTConnector, mockRenderer)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAmendmentHelper.getAllAmendments(any(), any(), any())(any(), any())).thenReturn(allAmendments)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

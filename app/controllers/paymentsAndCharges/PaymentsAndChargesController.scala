@@ -69,7 +69,7 @@ class PaymentsAndChargesController @Inject()(
                 val json = Json.obj(
                   fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
                   "schemeName" -> schemeDetails.schemeName,
-                  "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+                  "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                 )
                 renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 

@@ -26,6 +26,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -65,7 +66,7 @@ class AFTLoginControllerSpec extends ControllerSpecBase with NunjucksSupport wit
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockAppConfig, mockAuditService, mockSchemeService)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.minimumYear).thenReturn(2020)
     mutableFakeDataRetrievalAction.setViewOnly(false)
     when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
