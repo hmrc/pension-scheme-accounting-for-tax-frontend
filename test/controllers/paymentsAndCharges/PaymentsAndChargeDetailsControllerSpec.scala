@@ -77,7 +77,7 @@ class PaymentsAndChargeDetailsControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockSchemeService, mockFSConnector, mockRenderer, mockPaymentsAndChargesService)
-    when(mockAppConfig.managePensionsSchemeSummaryUrl)
+    when(mockAppConfig.schemeDashboardUrl(any(), any()))
       .thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))

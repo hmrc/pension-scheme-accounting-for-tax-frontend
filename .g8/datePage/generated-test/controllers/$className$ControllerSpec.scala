@@ -57,7 +57,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "return OK and the correct view for a GET" in {
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
@@ -90,7 +90,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "populate the view correctly on a GET when the question has previously been answered" in {
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = Some(userAnswersWithSchemeName))
@@ -132,7 +132,7 @@ class $className$ControllerSpec extends ControllerSpecBase with MockitoSugar wit
 
     "redirect to the next page when valid data is submitted" in {
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any(), any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any())).thenReturn(onwardRoute)
 

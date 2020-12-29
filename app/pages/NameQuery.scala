@@ -18,9 +18,9 @@ package pages
 
 import play.api.libs.json.JsPath
 
-case object PSANameQuery extends QuestionPage[String] {
+case object NameQuery extends QuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "psaName"
+  override def toString: String = "loggedInPersonName"
 }

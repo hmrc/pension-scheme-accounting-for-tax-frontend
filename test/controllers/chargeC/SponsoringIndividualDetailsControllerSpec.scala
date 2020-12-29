@@ -37,6 +37,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 
 class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with MockitoSugar
   with NunjucksSupport with JsonMatchers with OptionValues with TryValues {
@@ -77,7 +78,7 @@ class SponsoringIndividualDetailsControllerSpec extends ControllerSpecBase with 
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
   "SponsoringIndividualDetails Controller" must {

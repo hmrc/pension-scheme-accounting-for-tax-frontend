@@ -22,6 +22,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData._
 import forms.amend.AmendYearsFormProvider
 import matchers.JsonMatchers
+import models.requests.IdentifierRequest
 import models.{AmendYears, Enumerable, GenericViewModel, SchemeDetails, SchemeStatus, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -78,7 +79,7 @@ class AmendYearsControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(Seq(overview1, overview2, overview3)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
   }

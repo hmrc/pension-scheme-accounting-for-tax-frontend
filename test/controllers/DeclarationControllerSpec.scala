@@ -16,40 +16,34 @@
 
 package controllers
 
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime}
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailSent, EmailConnector}
+import connectors.{EmailConnector, EmailSent}
 import controllers.actions._
 import controllers.base.ControllerSpecBase
-import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
-import models.Declaration
 import models.LocalDateBinder._
-import models.ValueChangeType.ChangeTypeDecrease
-import models.ValueChangeType.ChangeTypeIncrease
-import models.ValueChangeType.ChangeTypeSame
-import models.{SessionAccessData, GenericViewModel, UserAnswers, Quarter, AccessMode}
+import models.requests.IdentifierRequest
+import models.{Declaration, GenericViewModel, Quarter, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor, Mockito}
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Matchers, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
-import utils.DateHelper.{dateFormatterSubmittedDate, dateFormatterStartDate, dateFormatterDMY, formatSubmittedDate}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
 import scala.concurrent.Future
 
@@ -100,7 +94,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     super.beforeEach
     Mockito.reset(mockRenderer, mockEmailConnector, mockAFTService, mockUserAnswersCacheConnector, mockCompoundNavigator)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.amendAftReturnDecreaseTemplateIdId).thenReturn(amendAftReturnDecreaseTemplateIdId)
     when(mockAppConfig.amendAftReturnNoChangeTemplateIdId).thenReturn(amendAftReturnNoChangeTemplateIdId)
     when(mockAppConfig.amendAftReturnIncreaseTemplateIdId).thenReturn(amendAftReturnIncreaseTemplateIdId)
@@ -299,7 +293,7 @@ object DeclarationControllerSpec {
   private val psaName = "test ltd"
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)
   private val userAnswersWithPSTREmailQuarter: Option[UserAnswers] = userAnswers.map(
-    _.set(PSTRQuery, pstr).flatMap(_.set(PSAEmailQuery, value = "psa@test.com")).flatMap(_.set(PSANameQuery, psaName))
+    _.set(PSTRQuery, pstr).flatMap(_.set(EmailQuery, value = "psa@test.com")).flatMap(_.set(NameQuery, psaName))
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
   private val jsonToPassToTemplate = Json.obj(
     fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,

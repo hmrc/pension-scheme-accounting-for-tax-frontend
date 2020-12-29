@@ -20,8 +20,8 @@ import java.time.LocalDate
 
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.{AFTConnector, MinimalPsaConnector}
-import connectors.MinimalPsaConnector.MinimalPSA
+import connectors.{AFTConnector, MinimalConnector}
+import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
 import models.{AFTOverview, AFTVersion, AccessMode, SchemeDetails, SessionAccessData, SessionData, UserAnswers}
@@ -46,7 +46,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockMinimalPsaConnector: MinimalPsaConnector = mock[MinimalPsaConnector]
+  private val mockMinimalPsaConnector: MinimalConnector = mock[MinimalConnector]
   private val mockAppConfig: FrontendAppConfig = mock[FrontendAppConfig]
 
   private val psaIdInstance = PsaId(psaId)
@@ -75,8 +75,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockMinimalPsaConnector.getMinimalPsaDetails(any(), any(), any()))
-      .thenReturn(Future.successful(MinimalPSA(email, isPsaSuspended = false, None, None)))
+    when(mockMinimalPsaConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, None, None)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
