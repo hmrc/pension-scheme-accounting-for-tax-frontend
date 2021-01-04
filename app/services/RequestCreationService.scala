@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, MinimalPsaConnector}
+import connectors.{AFTConnector, MinimalConnector}
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
@@ -38,7 +38,7 @@ class RequestCreationService @Inject()(
                                         aftConnector: AFTConnector,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,
                                         schemeService: SchemeService,
-                                        minimalPsaConnector: MinimalPsaConnector
+                                        minimalConnector: MinimalConnector
                                       ) {
 
 
@@ -87,7 +87,7 @@ class RequestCreationService @Inject()(
     for {
       schemeDetails <- schemeService.retrieveSchemeDetails(psaId, srn, "srn")
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(Quarters.getQuarter(startDate).endDate))
-      uaWithMinPsaDetails <- updateMinimalPsaDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
+      uaWithMinPsaDetails <- updateMinimalDetailsInUa(ua.getOrElse(UserAnswers()), schemeDetails.schemeStatus)
       updatedUA <- updateUserAnswersWithAFTDetails(version, schemeDetails, startDate, accessType, uaWithMinPsaDetails, seqAFTOverview)
       sessionAccessData <- createSessionAccessData(version, seqAFTOverview, srn, startDate)
       userAnswers <- userAnswersCacheConnector.saveAndLock(
@@ -132,7 +132,7 @@ class RequestCreationService @Inject()(
     }
   }
 
-  private def updateMinimalPsaDetailsInUa[A](
+  private def updateMinimalDetailsInUa[A](
                                               ua: UserAnswers,
                                               schemeStatus: String
                                             )(
@@ -141,14 +141,14 @@ class RequestCreationService @Inject()(
                                               request: IdentifierRequest[A]
                                             ): Future[UserAnswers] = {
     val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
-    (uaWithStatus.get(PSAEmailQuery), uaWithStatus.get(PSANameQuery)) match {
+    (uaWithStatus.get(EmailQuery), uaWithStatus.get(NameQuery)) match {
       case (Some(_), Some(_)) =>
         Future.successful(uaWithStatus)
       case _ =>
-        minimalPsaConnector.getMinimalPsaDetails.map { minimalDetails =>
+        minimalConnector.getMinimalDetails.map { minimalDetails =>
           uaWithStatus
-            .setOrException(PSAEmailQuery, minimalDetails.email)
-            .setOrException(PSANameQuery, minimalDetails.name)
+            .setOrException(EmailQuery, minimalDetails.email)
+            .setOrException(NameQuery, minimalDetails.name)
         }
     }
   }

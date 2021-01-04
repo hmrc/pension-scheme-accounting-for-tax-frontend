@@ -22,7 +22,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
 import models.requests.DataRequest
-import models.{AccessType, Draft, Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
+import models.{AccessType, Index, MemberDetails, Quarter, SponsoringEmployerType, YearRange}
 import pages._
 import pages.chargeC._
 import pages.chargeD.ChargeDetailsPage
@@ -51,7 +51,7 @@ object DataRetrievals {
 
   def retrieveSchemeNameWithEmailAndQuarter(block: (String, String, Quarter) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
-    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(PSAEmailQuery), request.userAnswers.get(QuarterPage)) match {
+    (request.userAnswers.get(SchemeNameQuery), request.userAnswers.get(EmailQuery), request.userAnswers.get(QuarterPage)) match {
       case (Some(schemeName), Some(email), Some(quarter)) => block(schemeName, email, quarter)
       case _                                              => Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
@@ -60,7 +60,7 @@ object DataRetrievals {
   def retrievePSAAndSchemeDetailsWithAmendment(block: (String, String, String, Quarter, Boolean, Int) => Future[Result])(
       implicit request: DataRequest[AnyContent]): Future[Result] = {
     val ua = request.userAnswers
-    (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(PSAEmailQuery), ua.get(QuarterPage)) match {
+    (ua.get(SchemeNameQuery), ua.get(PSTRQuery), ua.get(EmailQuery), ua.get(QuarterPage)) match {
       case (Some(schemeName), Some(pstr), Some(email), Some(quarter)) =>
         block(schemeName, pstr, email, quarter, request.isAmendment, request.aftVersion)
       case _ =>
