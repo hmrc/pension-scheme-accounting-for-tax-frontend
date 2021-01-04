@@ -21,14 +21,18 @@ import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
-import models.{AFTOverview, AFTVersion, JourneyType, UserAnswers}
+import models.AFTOverview
+import models.AFTVersion
+import models.JourneyType
+import models.UserAnswers
 import org.scalatest._
 import play.api.http.Status
-import play.api.libs.json.{JsBoolean, JsNumber, Json}
+import play.api.libs.json.JsBoolean
+import play.api.libs.json.JsNumber
+import play.api.libs.json.Json
 import uk.gov.hmrc.http._
-import utils.{DateHelper, WireMockHelper}
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import utils.DateHelper
+import utils.WireMockHelper
 
 class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
