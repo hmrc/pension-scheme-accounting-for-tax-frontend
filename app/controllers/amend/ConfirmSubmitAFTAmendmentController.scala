@@ -82,7 +82,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
           },
           value =>
             if (!value) {
-              userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.managePensionsSchemeSummaryUrl.format(srn))
+              userAnswersCacheConnector.removeAll(request.internalId).map { _ => Redirect(config.schemeDashboardUrl(request).format(srn))
               }
             } else {
               for {
@@ -109,7 +109,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
         val isCompilable = seqOverview.exists(_.compiledVersionAvailable == true)
 
         if (accessType == Draft && !isCompilable) {
-          Future.successful(Redirect(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))))
+          Future.successful(Redirect(Call("GET", config.schemeDashboardUrl(request).format(srn))))
         } else {
           aftConnector.getAFTDetails(pstr, startDate, aftVersion = s"$previousVersion").flatMap { previousVersionJsValue =>
             val (currentTotalAmountUK, currentTotalAmountNonUK) = amendmentHelper.getTotalAmount(ua)
@@ -123,7 +123,7 @@ class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: Me
             flatMap{ _ =>
               val viewModel = GenericViewModel(
                 submitUrl = routes.ConfirmSubmitAFTAmendmentController.onSubmit(srn, startDate, accessType, version).url,
-                returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+                returnUrl = config.schemeDashboardUrl(request).format(srn),
                 schemeName = schemeName
               )
 

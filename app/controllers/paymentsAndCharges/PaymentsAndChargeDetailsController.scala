@@ -17,11 +17,11 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
-
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SchemeDetails
@@ -35,6 +35,7 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
@@ -158,7 +159,7 @@ class PaymentsAndChargeDetailsController @Inject()(
             case Some(schemeFs) =>
               renderer.render(
                 template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
-                ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index)
+                ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
               Logger.warn(
@@ -180,13 +181,9 @@ class PaymentsAndChargeDetailsController @Inject()(
     }
   }
 
-  private def summaryListData(
-                               srn: String,
-                               startDate: LocalDate,
-                               schemeFS: SchemeFS,
-                               schemeName: String,
-                               index: String
-                             )(implicit messages: Messages): JsObject = {
+  private def summaryListData(srn: String, startDate: LocalDate, schemeFS: SchemeFS, schemeName: String,
+                              index: String, psaId: Option[PsaId], pspId: Option[PspId])
+                             (implicit messages: Messages): JsObject = {
     val htmlInsetText = (schemeFS.dueDate, schemeFS.accruedInterestTotal > 0, schemeFS.amountDue > 0) match {
       case (Some(_), true, true) =>
         Html(
@@ -208,43 +205,45 @@ class PaymentsAndChargeDetailsController @Inject()(
         Html("")
     }
 
-    val chargeReferenceTextMessage =
-      if (schemeFS.totalAmount < 0)
-        messages("paymentsAndCharges.credit.information",
-          s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
-      else
-        messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
-
-    val optHintText =
-      if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00))
-        Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
-      else
-        Json.obj()
-
-    val isPaymentOverdue =
-      (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
-        && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
-
-    val tableHeader =
-      messages(
-        "paymentsAndCharges.caption",
-        schemeFS.periodStartDate.format(dateFormatterStartDate),
-        schemeFS.periodEndDate.format(dateFormatterDMY)
-      )
-
     Json.obj(
       "chargeDetailsList" -> paymentsAndChargesService.getChargeDetailsForSelectedCharge(schemeFS),
-      "tableHeader" -> tableHeader,
+      "tableHeader" -> tableHeader(schemeFS),
       "schemeName" -> schemeName,
       "chargeType" -> schemeFS.chargeType.toString,
-      "chargeReferenceTextMessage" -> chargeReferenceTextMessage,
-      "isPaymentOverdue" -> isPaymentOverdue,
+      "chargeReferenceTextMessage" -> chargeReferenceTextMessage(schemeFS),
+      "isPaymentOverdue" -> isPaymentOverdue(schemeFS),
       "insetText" -> htmlInsetText,
       "interest" -> schemeFS.accruedInterestTotal,
-      "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+      "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn),
       "returnHistoryURL" -> controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, startDate).url
-    ) ++ optHintText
+    ) ++ optHintText(schemeFS)
 
   }
+
+  def chargeReferenceTextMessage(schemeFS: SchemeFS)(implicit messages: Messages): String =
+    if (schemeFS.totalAmount < 0) {
+      messages("paymentsAndCharges.credit.information",
+        s"${FormatHelper.formatCurrencyAmountAsString(schemeFS.totalAmount.abs)}")
+    } else {
+      messages("paymentsAndCharges.chargeDetails.chargeReference", schemeFS.chargeReference)
+    }
+
+  def optHintText(schemeFS: SchemeFS)(implicit messages: Messages): JsObject =
+    if (schemeFS.chargeType == PSS_AFT_RETURN_INTEREST && schemeFS.amountDue == BigDecimal(0.00)) {
+      Json.obj("hintText" -> messages("paymentsAndCharges.interest.hint"))
+    } else {
+      Json.obj()
+    }
+
+  def isPaymentOverdue(schemeFS: SchemeFS): Boolean =
+    (schemeFS.amountDue > 0 && schemeFS.accruedInterestTotal > 0
+      && (schemeFS.chargeType == PSS_AFT_RETURN || schemeFS.chargeType == PSS_OTC_AFT_RETURN))
+
+  def tableHeader(schemeFS: SchemeFS)(implicit messages: Messages): String =
+    messages(
+      "paymentsAndCharges.caption",
+      schemeFS.periodStartDate.format(dateFormatterStartDate),
+      schemeFS.periodEndDate.format(dateFormatterDMY)
+    )
 
 }

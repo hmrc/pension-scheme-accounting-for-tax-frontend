@@ -22,7 +22,8 @@ import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.requests.IdentifierRequest
+import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
@@ -73,7 +74,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
     super.beforeEach
     Mockito.reset(mockUserAnswersCacheConnector, mockRenderer)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
   private val userAnswers: Option[UserAnswers] = Some(userAnswersWithSchemeName)

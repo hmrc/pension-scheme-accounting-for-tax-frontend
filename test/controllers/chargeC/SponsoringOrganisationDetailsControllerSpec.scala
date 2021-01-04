@@ -23,6 +23,7 @@ import forms.chargeC.SponsoringOrganisationDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.chargeC.SponsoringOrganisationDetails
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -77,7 +78,7 @@ class SponsoringOrganisationDetailsControllerSpec extends ControllerSpecBase wit
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
 

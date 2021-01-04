@@ -30,6 +30,7 @@ import models.ChargeType
 import models.Enumerable
 import models.GenericViewModel
 import models.UserAnswers
+import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.mockito.ArgumentCaptor
@@ -87,7 +88,7 @@ class ChargeTypeControllerSpec extends ControllerSpecBase with NunjucksSupport w
     reset(mockUserAnswersCacheConnector, mockRenderer, mockAFTService, mockAppConfig)
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(),any(),any())(any(), any())).thenReturn(Future.successful(schemeDetails))
   }
 
