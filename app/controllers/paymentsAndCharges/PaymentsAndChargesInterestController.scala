@@ -17,15 +17,17 @@
 package controllers.paymentsAndCharges
 
 import java.time.LocalDate
+
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
-
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.SchemeDetails
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN_INTEREST}
+import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
@@ -33,6 +35,7 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -70,47 +73,118 @@ class PaymentsAndChargesInterestController @Inject()(
                 paymentsAndChargesService
                   .groupAndSortByStartDate(schemeFS, startDate.getYear)
 
-              val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
-                schemeFSGroupedAndSorted.map(
-                  dateAndFs => {
-                    val (date, schemeFs) = dateAndFs
-                    (date, schemeFs.map(_.chargeReference))
-                  }
-                )
-
-              (
-                schemeFSGroupedAndSorted.find(_._1 == startDate),
-                chargeRefsGroupedAndSorted.find(_._1 == startDate)
-              ) match {
-                case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
-                  try {
-                    seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
-                      case Some(schemeFs) =>
-                        renderer.render(
-                          template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
-                          ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index)
-                        ).map(Ok(_))
-                      case _ =>
-                        Logger.warn(s"No Payments and Charge details " +
-                          s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
-                        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                    }
-                  } catch {
-                    case _: IndexOutOfBoundsException =>
-                      Logger.warn(
-                        "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
-                          s"index $startDate/$index of attempted"
-                      )
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                  }
-                case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              }
+              buildPage(
+                schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
           }
       }
   }
 
-  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String)
+  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            schemeFS =>
+
+              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(paymentsAndChargesService.getUpcomingCharges(schemeFS), startDate.getYear)
+
+              buildPage(
+                schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
+          }
+      }
+  }
+
+  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      schemeService.retrieveSchemeDetails(
+        psaId = request.idOrException,
+        srn = srn,
+        schemeIdType = "srn"
+      ) flatMap {
+        schemeDetails =>
+          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
+            schemeFS =>
+
+              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
+                paymentsAndChargesService
+                  .groupAndSortByStartDate(paymentsAndChargesService.getOverdueCharges(schemeFS), startDate.getYear)
+
+              buildPage(
+                schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
+                startDate = startDate,
+                index = index,
+                schemeDetails = schemeDetails,
+                srn = srn
+              )
+          }
+      }
+  }
+
+  private def buildPage(
+                         schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])],
+                         startDate: LocalDate,
+                         index: String,
+                         schemeDetails: SchemeDetails,
+                         srn: String
+                       )(
+                         implicit request: IdentifierRequest[AnyContent]
+                       ): Future[Result] = {
+    val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
+      schemeFSGroupedAndSorted.map(
+        dateAndFs => {
+          val (date, schemeFs) = dateAndFs
+          (date, schemeFs.map(_.chargeReference))
+        }
+      )
+
+    (
+      schemeFSGroupedAndSorted.find(_._1 == startDate),
+      chargeRefsGroupedAndSorted.find(_._1 == startDate)
+    ) match {
+      case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
+        try {
+          seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
+            case Some(schemeFs) =>
+              renderer.render(
+                template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index, request.psaId, request.pspId)
+              ).map(Ok(_))
+            case _ =>
+              Logger.warn(s"No Payments and Charge details " +
+                s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
+              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          }
+        } catch {
+          case _: IndexOutOfBoundsException =>
+            Logger.warn(
+              "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
+                s"index $startDate/$index of attempted"
+            )
+            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
+      case _ =>
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  def summaryListData(srn: String, filteredSchemeFs: Option[SchemeFS], schemeName: String, index: String,
+                      psaId: Option[PsaId], pspId: Option[PspId])
                      (implicit messages: Messages): JsObject = {
     filteredSchemeFs match {
       case Some(schemeFS) =>
@@ -130,7 +204,7 @@ class PaymentsAndChargesInterestController @Inject()(
           "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
             .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url,
-          "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+          "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)
         )
       case _ =>
         Json.obj()

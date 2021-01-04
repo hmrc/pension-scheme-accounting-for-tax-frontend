@@ -31,16 +31,16 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import scala.concurrent.ExecutionContext
 
 class AFTLoginController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    val controllerComponents: MessagesControllerComponents,
-    auditService: AuditService,
-    schemeService: SchemeService,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                    override val messagesApi: MessagesApi,
+                                    identify: IdentifierAction,
+                                    val controllerComponents: MessagesControllerComponents,
+                                    auditService: AuditService,
+                                    schemeService: SchemeService,
+                                    config: FrontendAppConfig)
+                                  (implicit ec: ExecutionContext)
+                                    extends FrontendBaseController
+                                    with I18nSupport
+                                    with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     val defaultYear = StartYears.minYear(config)

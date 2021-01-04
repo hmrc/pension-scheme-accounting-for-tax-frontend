@@ -24,6 +24,7 @@ import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.{GenericViewModel, NormalMode, UserAnswers}
 import models.chargeA.ChargeDetails
+import models.requests.IdentifierRequest
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -78,7 +79,7 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with NunjucksSuppor
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockCompoundNavigator.nextPage(Matchers.eq(ChargeDetailsPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
   }
 

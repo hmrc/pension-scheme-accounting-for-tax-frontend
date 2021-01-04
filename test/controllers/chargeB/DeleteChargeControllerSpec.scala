@@ -22,6 +22,7 @@ import data.SampleData._
 import forms.DeleteFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -70,7 +71,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
   "DeleteCharge Controller" must {
 
     "return OK and the correct view for a GET" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
       mutableFakeDataRetrievalAction.setDataToReturn(Some(userAnswersWithSchemeNamePstrQuarter))
@@ -96,7 +97,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
     }
 
     "redirect to the next page when valid data is submitted and re-submit the data to DES with the charge deleted" in {
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())) thenReturn Future.successful(Json.obj())
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeleteChargePage), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
@@ -118,7 +119,7 @@ class DeleteChargeControllerSpec extends ControllerSpecBase with ScalaFutures
 
     "return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(onwardRoute.url)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(onwardRoute.url)
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockDeleteAFTChargeService.deleteAndFileAFTReturn(any(), any())(any(), any(), any())).thenReturn(Future.successful(()))
 

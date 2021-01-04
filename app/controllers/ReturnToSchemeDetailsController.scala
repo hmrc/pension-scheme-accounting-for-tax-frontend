@@ -20,10 +20,9 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.{IdNotFound, IdentifierAction}
+import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.AccessType
-import models.requests.IdentifierRequest
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -41,14 +40,8 @@ class ReturnToSchemeDetailsController @Inject()(
 
   def returnToSchemeDetails(srn: String, startDate: LocalDate, accessType: AccessType, version: Int): Action[AnyContent] = identify.async { implicit request =>
     val id = s"$srn$startDate"
-    userAnswersCacheConnector.removeAll(id).map(_ => Redirect(schemeDashboardUrl(srn)))
+    userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn)))
   }
 
-  def schemeDashboardUrl(srn: String)(implicit request: IdentifierRequest[AnyContent]): String =
-    (request.psaId, request.pspId) match {
-    case (Some(_), None) => config.managePensionsSchemeSummaryUrl.format(srn)
-    case (None, Some(_)) => config.managePensionsSchemePspUrl.format(srn)
-    case _ => throw IdNotFound()
-  }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,16 +43,16 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class PaymentsAndChargesUpcomingControllerSpec
+class PaymentsAndChargesOverdueControllerSpec
   extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
     with BeforeAndAfterEach {
 
-  import PaymentsAndChargesUpcomingControllerSpec._
+  import PaymentsAndChargesOverdueControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, startDate).url
+    controllers.paymentsAndCharges.routes.PaymentsAndChargesOverdueController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -96,7 +96,7 @@ class PaymentsAndChargesUpcomingControllerSpec
 
   private def expectedJson(heading: String): JsObject = Json.obj(
     "heading" -> heading,
-    "upcomingPaymentsAndCharges" -> Nil,
+    "overduePaymentsAndCharges" -> Nil,
     "schemeName" -> schemeDetails.schemeName,
     "returnUrl" -> dummyCall.url
   )
@@ -106,7 +106,7 @@ class PaymentsAndChargesUpcomingControllerSpec
     "return OK and the correct view with filtered payments and charges information for single period" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+      when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(schemeFSResponseSinglePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -116,7 +116,7 @@ class PaymentsAndChargesUpcomingControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesOverdue.njk"
       jsonCaptor.getValue must containJson(
         expectedJson("Payments and charges for 1 October to 31 December 2020")
       )
@@ -125,7 +125,7 @@ class PaymentsAndChargesUpcomingControllerSpec
     "return OK and the correct view with filtered payments and charges information for multiple periods" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseMultiplePeriod))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+      when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(schemeFSResponseMultiplePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -135,16 +135,16 @@ class PaymentsAndChargesUpcomingControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesOverdue.njk"
       jsonCaptor.getValue must containJson(
-        expectedJson("Upcoming payments and charges")
+        expectedJson("Overdue payments and charges")
       )
     }
 
     "redirect to Session Expired page when there is no data for the selected year" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(Seq.empty))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+      when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(Seq.empty)
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value
       status(result) mustEqual SEE_OTHER
@@ -153,7 +153,7 @@ class PaymentsAndChargesUpcomingControllerSpec
   }
 }
 
-object PaymentsAndChargesUpcomingControllerSpec {
+object PaymentsAndChargesOverdueControllerSpec {
   private val startDate = "2020-10-01"
   private val srn = "test-srn"
   private def createCharge(
@@ -211,5 +211,7 @@ object PaymentsAndChargesUpcomingControllerSpec {
     )
   )
 }
+
+
 
 

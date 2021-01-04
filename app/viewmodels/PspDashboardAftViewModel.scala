@@ -21,15 +21,15 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsObject, OWrites, __}
 
 case class PspDashboardAftViewModel(
-                                            subHeading: Option[JsObject],
-                                            links: Seq[Link] = Seq.empty
-                                          )
+                                     subHeadings: Seq[JsObject],
+                                     links: Seq[Link] = Seq.empty
+                                   )
 
 object PspDashboardAftViewModel {
 
   implicit def writes(implicit messages: Messages): OWrites[PspDashboardAftViewModel] = (
-    (__ \ "subHeading").writeNullable[JsObject] and
+    (__ \ "subHeadings").write[Seq[JsObject]] and
       (__ \ "links").write[Seq[Link]]
-    ) { model => (model.subHeading, model.links) }
+    ) { model => (model.subHeadings, model.links) }
 }
 

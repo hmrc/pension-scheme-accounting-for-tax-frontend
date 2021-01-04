@@ -18,6 +18,7 @@ package controllers
 
 import controllers.base.ControllerSpecBase
 import data.SampleData
+import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -38,7 +39,7 @@ class ReturnToSchemeDetailsControllerSpec extends ControllerSpecBase {
 
     "release lock and redirect to scheme summary page" in {
       when(mockUserAnswersCacheConnector.removeAll(any())(any(), any())).thenReturn(Future.successful(Ok))
-      when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
+      when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(frontendAppConfig.managePensionsSchemeSummaryUrl)
       val argCaptor = ArgumentCaptor.forClass(classOf[String])
       val result =
         route(application, FakeRequest(GET, controllers.routes.ReturnToSchemeDetailsController.

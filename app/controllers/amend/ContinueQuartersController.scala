@@ -22,6 +22,7 @@ import controllers.actions._
 import forms.QuartersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{Draft, GenericViewModel, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -123,10 +124,10 @@ class ContinueQuartersController @Inject()(
     }
   }
 
-  private def viewModel(srn: String, schemeName: String): GenericViewModel =
+  private def viewModel(srn: String, schemeName: String)(implicit request: IdentifierRequest[_]): GenericViewModel =
     GenericViewModel(
       submitUrl = routes.ContinueQuartersController.onSubmit(srn).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
       schemeName = schemeName
     )
 

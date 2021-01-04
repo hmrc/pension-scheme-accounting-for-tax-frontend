@@ -16,20 +16,18 @@
 
 package controllers
 
-import audit.AuditService
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.YearsFormProvider
 import javax.inject.Inject
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, StartYears, Year}
-import navigators.CompoundNavigator
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AFTService, SchemeService}
+import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -91,10 +89,10 @@ class YearsController @Inject()(
       )
   }
 
-  private def viewModel(schemeName: String, srn: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.YearsController.onSubmit(srn).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
       schemeName = schemeName
     )
   }

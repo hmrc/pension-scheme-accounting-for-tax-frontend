@@ -19,6 +19,7 @@ package services.paymentsAndCharges
 import controllers.chargeB.{routes => _}
 import dateOrdering._
 import helpers.FormatHelper._
+import models.ChargeDetailsFilter
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType._
@@ -43,7 +44,8 @@ class PaymentsAndChargesService @Inject()() {
   def getPaymentsAndCharges(
                              srn: String,
                              schemeFS: Seq[SchemeFS],
-                             year: Int
+                             year: Int,
+                             chargeDetailsFilter: ChargeDetailsFilter
                            )(
                              implicit messages: Messages,
                              ec: ExecutionContext,
@@ -61,12 +63,31 @@ class PaymentsAndChargesService @Inject()() {
               val onlyAFTAndOTCChargeTypes: Boolean =
                 details.chargeType == PSS_AFT_RETURN || details.chargeType == PSS_OTC_AFT_RETURN
 
-              val redirectChargeDetailsUrl: String =
-                controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                  .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
-                  .url
+              val redirectChargeDetailsUrl: String = {
+                chargeDetailsFilter match {
+                  case ChargeDetailsFilter.Upcoming =>
+                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                      .onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                      .url
+                  case ChargeDetailsFilter.Overdue =>
+                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                      .onPageLoadOverdue(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                      .url
+                  case _ =>
+                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                      .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                      .url
+                }
+              }
 
-              paymentsAndChargesDetails(onlyAFTAndOTCChargeTypes, details, srn, chargeRefs, redirectChargeDetailsUrl)
+              paymentsAndChargesDetails(
+                onlyAFTAndOTCChargeTypes = onlyAFTAndOTCChargeTypes,
+                details = details,
+                srn = srn,
+                chargeRefs = chargeRefs,
+                redirectChargeDetailsUrl = redirectChargeDetailsUrl,
+                chargeDetailsFilter = chargeDetailsFilter
+              )
           }
 
         mapToTable(
@@ -88,18 +109,41 @@ class PaymentsAndChargesService @Inject()() {
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isAfter(DateHelper.today))
 
+  def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
+    schemeFS
+      .filter(_.dueDate.nonEmpty)
+      .filter(_.dueDate.get.isBefore(DateHelper.today))
+
   private def paymentsAndChargesDetails(
                                          onlyAFTAndOTCChargeTypes: Boolean,
                                          details: SchemeFS,
                                          srn: String,
                                          chargeRefs: Seq[String],
-                                         redirectChargeDetailsUrl: String
+                                         redirectChargeDetailsUrl: String,
+                                         chargeDetailsFilter: ChargeDetailsFilter
                                        )(implicit messages: Messages): Seq[PaymentsAndChargesDetails] = {
     (onlyAFTAndOTCChargeTypes, details.amountDue > 0) match {
 
       case (true, true) if details.accruedInterestTotal > 0 =>
         val interestChargeType =
           if (details.chargeType == PSS_AFT_RETURN) PSS_AFT_RETURN_INTEREST else PSS_OTC_AFT_RETURN_INTEREST
+
+        val redirectUrl =
+          chargeDetailsFilter match {
+            case ChargeDetailsFilter.Upcoming =>
+              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                .onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                .url
+            case ChargeDetailsFilter.Overdue =>
+              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                .onPageLoadOverdue(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                .url
+            case _ =>
+              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
+                .url
+          }
+
         Seq(
           PaymentsAndChargesDetails(
             chargeType = details.chargeType.toString,
@@ -114,9 +158,7 @@ class PaymentsAndChargesService @Inject()() {
             chargeReference = messages("paymentsAndCharges.chargeReference.toBeAssigned"),
             amountDue = s"${formatCurrencyAmountAsString(details.accruedInterestTotal)}",
             status = InterestIsAccruing,
-            redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-              .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
-              .url,
+            redirectUrl = redirectUrl,
             visuallyHiddenText = messages("paymentsAndCharges.interest.visuallyHiddenText")
           )
         )

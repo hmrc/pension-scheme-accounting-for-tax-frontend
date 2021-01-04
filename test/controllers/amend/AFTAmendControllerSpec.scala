@@ -24,6 +24,7 @@ import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
+import models.requests.IdentifierRequest
 import models.{Enumerable, SchemeDetails, SchemeStatus}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
@@ -64,7 +65,7 @@ class AFTAmendControllerSpec extends ControllerSpecBase with NunjucksSupport wit
     reset(mockSchemeService, mockRenderer, mockAppConfig, mockAuditService)
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails("Big Scheme", "pstr", SchemeStatus.Open.toString, None)))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     mutableFakeDataRetrievalAction.setViewOnly(false)
   }
 

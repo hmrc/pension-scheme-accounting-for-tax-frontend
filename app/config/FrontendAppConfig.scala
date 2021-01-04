@@ -21,9 +21,11 @@ import java.time.format.DateTimeFormatter
 
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
+import models.requests.{DataRequest, IdentifierRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -94,6 +96,16 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val pspSchemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.pspSchemeDetails")}"
 
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
+
+  def schemeDashboardUrl(request: DataRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+  def schemeDashboardUrl(request: IdentifierRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+  def schemeDashboardUrl(psaId: Option[PsaId], pspId: Option[PspId]): String =
+    (psaId, pspId) match {
+      case (Some(_), None) => managePensionsSchemeSummaryUrl
+      case (None, Some(_)) => managePensionsSchemePspUrl
+      case _ => managePensionsSchemeSummaryUrl
+    }
+
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
   lazy val managePensionsSchemePspUrl: String = loadConfig("urls.psp.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
@@ -117,6 +129,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val aftAmendUrl: String = s"${configuration.get[String](path = "urls.partials.aftAmendLink")}"
   lazy val paymentsAndChargesUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesLink")}"
   lazy val paymentsAndChargesUpcomingUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesUpcomingLink")}"
+  lazy val paymentsAndChargesOverdueUrl: String = s"${configuration.get[String](path = "urls.partials.paymentsAndChargesOverdueLink")}"
 
   lazy val listOfSchemesUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.listOfSchemes")}"
   lazy val listOfSchemesIFUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.if-listOfSchemes")}"

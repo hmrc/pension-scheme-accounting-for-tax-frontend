@@ -24,6 +24,7 @@ import javax.inject.Inject
 import models.AmendYears
 import models.GenericViewModel
 import models.Year
+import models.requests.IdentifierRequest
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.i18n.MessagesApi
@@ -88,10 +89,10 @@ class AmendYearsController @Inject()(
 
   private def form(years: Seq[Int]): Form[Year] = formProvider(years)
 
-  private def viewModel(schemeName: String, srn: String): GenericViewModel = {
+  private def viewModel(schemeName: String, srn: String)(implicit request: IdentifierRequest[_]): GenericViewModel = {
     GenericViewModel(
       submitUrl = routes.AmendYearsController.onSubmit(srn).url,
-      returnUrl = config.managePensionsSchemeSummaryUrl.format(srn),
+      returnUrl = config.schemeDashboardUrl(request).format(srn),
       schemeName = schemeName
     )
   }

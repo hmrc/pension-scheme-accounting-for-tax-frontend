@@ -25,6 +25,7 @@ import forms.AddMembersFormProvider
 import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -109,7 +110,7 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
   }
 
   private def ua: UserAnswers = userAnswersWithSchemeNamePstrQuarter

@@ -23,6 +23,7 @@ import data.SampleData.{dummyCall, srn, startDate, userAnswersWithSchemeNameAndI
 import forms.chargeC.SponsoringEmployerAddressResultsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.requests.IdentifierRequest
 import models.{GenericViewModel, NormalMode, TolerantAddress, UserAnswers}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
@@ -111,7 +112,7 @@ class SponsoringEmployerAddressResultsControllerSpec extends ControllerSpecBase
     super.beforeEach
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockAppConfig.validCountryCodes).thenReturn(Seq("UK"))
   }
 

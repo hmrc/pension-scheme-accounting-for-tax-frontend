@@ -17,7 +17,7 @@
 package controllers.amend
 
 import connectors.AFTConnector
-import controllers.actions.{AllowSubmissionAction, MutableFakeDataRetrievalAction, FakeAllowSubmissionAction}
+import controllers.actions.{AllowSubmissionAction, FakeAllowSubmissionAction, MutableFakeDataRetrievalAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
@@ -25,26 +25,25 @@ import forms.ConfirmSubmitAFTReturnFormProvider
 import helpers.AmendmentHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeSame
-import models.{AccessMode, GenericViewModel, AFTOverview, UserAnswers}
+import models.requests.DataRequest
+import models.{AFTOverview, AccessMode, GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, never, when, verify}
+import org.mockito.Mockito.{never, times, verify, when}
 import org.mockito.{ArgumentCaptor, Mockito}
-import pages.ConfirmSubmitAFTAmendmentPage
-import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
+import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
+import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
 
 import scala.concurrent.Future
 
@@ -92,7 +91,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     super.beforeEach
     Mockito.reset(mockUserAnswersCacheConnector, mockRenderer, mockAmendmentHelper, mockAFTConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockAppConfig.managePensionsSchemeSummaryUrl).thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
     when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())(any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))

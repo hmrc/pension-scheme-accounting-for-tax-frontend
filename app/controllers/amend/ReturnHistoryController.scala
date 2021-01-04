@@ -20,8 +20,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
-import connectors.{AFTConnector, FinancialStatementConnector}
 import connectors.cache.UserAnswersCacheConnector
+import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
@@ -33,12 +33,11 @@ import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
-import uk.gov.hmrc.viewmodels.Content
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -77,7 +76,7 @@ class ReturnHistoryController @Inject()(
         "startDate" -> Some(startDate),
         "quarterStart" -> startDate.format(dateFormatterStartDate),
         "quarterEnd" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
-        "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn),
+        "returnUrl" -> config.schemeDashboardUrl(request).format(srn),
         "schemeName" -> schemeDetails.schemeName
       ) ++ table ++ paymentJson
     }

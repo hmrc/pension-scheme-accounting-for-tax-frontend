@@ -28,6 +28,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
+import services.paymentsAndCharges.PaymentsAndChargesService
 import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
@@ -43,6 +44,7 @@ class PartialController @Inject()(
                                    val controllerComponents: MessagesControllerComponents,
                                    schemeService: SchemeService,
                                    financialStatementConnector: FinancialStatementConnector,
+                                   paymentsAndChargesService: PaymentsAndChargesService,
                                    aftPartialService: AFTPartialService,
                                    renderer: Renderer,
                                    config: FrontendAppConfig
@@ -127,15 +129,48 @@ class PartialController @Inject()(
               pstr = schemeDetails.pstr
             ) flatMap { schemeFs =>
               if (schemeFs.isEmpty) {
-
                 Future.successful(Ok(Html("")))
               } else {
                 val viewModel =
                   aftPartialService.retrievePspDashboardUpcomingAftChargesModel(schemeFs, srn)
-
                 renderer.render(
                   template = "partials/pspDashboardUpcomingAftChargesCard.njk",
-                  Json.obj("upcomingCharges" -> Json.toJson(viewModel))
+                  ctx = Json.obj("upcomingCharges" -> Json.toJson(viewModel))
+                ).map(Ok(_))
+              }
+            }
+          }
+        case _ =>
+          Future.failed(
+            new BadRequestException("Bad Request with missing parameters idNumber")
+          )
+      }
+  }
+
+  def pspDashboardOverdueAftChargesPartial(): Action[AnyContent] = identify.async {
+    implicit request =>
+      val idNumber = request.headers.get("idNumber")
+
+      idNumber match {
+        case Some(srn) =>
+          schemeService.retrieveSchemeDetails(
+            psaId = request.idOrException,
+            srn = srn,
+            schemeIdType = "srn"
+          ) flatMap { schemeDetails =>
+            financialStatementConnector.getSchemeFS(
+              pstr = schemeDetails.pstr
+            ) flatMap { schemeFs =>
+              val overdueCharges =
+                paymentsAndChargesService.getOverdueCharges(schemeFs)
+              if (overdueCharges.isEmpty) {
+                Future.successful(Ok(Html("")))
+              } else {
+                val viewModel =
+                  aftPartialService.retrievePspDashboardOverdueAftChargesModel(overdueCharges, srn)
+                renderer.render(
+                  template = "partials/pspDashboardOverdueAftChargesCard.njk",
+                  ctx = Json.obj("overdueCharges" -> Json.toJson(viewModel))
                 ).map(Ok(_))
               }
             }

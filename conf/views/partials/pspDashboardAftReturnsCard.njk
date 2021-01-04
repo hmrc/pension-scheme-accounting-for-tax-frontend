@@ -3,12 +3,12 @@
         <h2 class="card-heading heading-small">
             {{ messages("pspDashboardAftReturnsCard.h2") }}
         </h2>
-        {% if aft.subHeading %}
+        {% for subHeading in aft.subHeadings %}
             <h3 class="card-sub-heading bold">
-                <span class="font-xsmall">{{ aft.subHeading.span }}</span>
-                {{ aft.subHeading.h3 }}
+                <span class="font-xsmall">{{ subHeading.span }}</span>
+                {{ subHeading.h3 }}
             </h3>
-        {% endif %}
+        {% endfor %}
     </div>
     <div class="card-action">
         <ul>
