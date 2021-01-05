@@ -16,8 +16,7 @@
 
 package models
 
-import org.scalatest.FreeSpec
-import org.scalatest.MustMatchers
+import org.scalatest.{FreeSpec, MustMatchers}
 import play.api.libs.json.Json
 
 class SchemeDetailsSpec extends FreeSpec with MustMatchers {

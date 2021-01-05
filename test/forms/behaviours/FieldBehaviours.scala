@@ -20,7 +20,7 @@ import forms.FormSpec
 import generators.Generators
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.data.{Form, FormError}
+import play.api.data.{FormError, Form}
 
 trait FieldBehaviours extends FormSpec with ScalaCheckPropertyChecks with Generators {
 

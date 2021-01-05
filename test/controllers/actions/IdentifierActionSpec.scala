@@ -25,15 +25,15 @@ import org.mockito.Mockito
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import play.api.mvc.{Action, AnyContent, BodyParsers}
+import play.api.mvc.{AnyContent, BodyParsers, Action}
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, _}
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class IdentifierActionSpec
   extends ControllerSpecBase {

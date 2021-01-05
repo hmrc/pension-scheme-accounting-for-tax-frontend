@@ -20,14 +20,14 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Deleted, Updated}
+import models.AmendedChargeStatus.{Updated, Deleted}
 import models.ChargeType.ChargeTypeLifetimeAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, Member, MemberDetails, UserAnswers}
+import models.{Member, AmendedChargeStatus, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach

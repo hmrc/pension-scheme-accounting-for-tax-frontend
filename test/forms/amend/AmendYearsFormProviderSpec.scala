@@ -19,7 +19,7 @@ package forms.amend
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{AmendYears, Year}
+import models.{Year, AmendYears}
 import play.api.data.FormError
 
 class AmendYearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {

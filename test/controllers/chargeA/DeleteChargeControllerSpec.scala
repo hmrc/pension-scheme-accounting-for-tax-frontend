@@ -25,8 +25,8 @@ import models.LocalDateBinder._
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.{times, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,7 +35,7 @@ import pages.chargeD.MemberDetailsPage
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html

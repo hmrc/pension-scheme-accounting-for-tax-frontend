@@ -18,15 +18,10 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import models.AccessMode
-import models.SessionAccessData
-import models.SessionData
-import models.UserAnswers
-import models.requests.IdentifierRequest
-import models.requests.OptionalDataRequest
+import models.{AccessMode, SessionAccessData, SessionData, UserAnswers}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class MutableFakeDataRetrievalAction extends DataRetrievalAction {
   private var dataToReturn: Option[UserAnswers] = None

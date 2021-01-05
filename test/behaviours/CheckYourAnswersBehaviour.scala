@@ -23,12 +23,12 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.UserAnswers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.Mockito.{times, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor, Mockito}
 import pages.Page
 import play.api.Application
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json, Writes}
+import play.api.libs.json.{Writes, Json, JsObject}
 import play.api.test.Helpers.{redirectLocation, route, status, _}
 import play.twirl.api.Html
 import uk.gov.hmrc.viewmodels.NunjucksSupport

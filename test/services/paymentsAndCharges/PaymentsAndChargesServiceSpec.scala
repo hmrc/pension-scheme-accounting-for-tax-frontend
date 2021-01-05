@@ -21,22 +21,22 @@ import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
+import models.financialStatement.{SchemeFSChargeType, SchemeFS}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverdue, InterestIsAccruing, NoStatus}
+import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentAndChargeStatus}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
-
 import java.time.LocalDate
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PaymentsAndChargesServiceSpec

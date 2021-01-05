@@ -16,39 +16,27 @@
 
 package controllers.actions
 
-import connectors.AFTConnector
-import connectors.SchemeDetailsConnector
+import connectors.{AFTConnector, SchemeDetailsConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.accessType
-import data.SampleData.versionInt
-import data.SampleData._
+import data.SampleData.{accessType, versionInt, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.Open
-import models.SchemeStatus.Rejected
-import models.SchemeStatus.WoundUp
+import models.SchemeStatus.{Open, Rejected, WoundUp}
 import models.requests.DataRequest
-import models.AccessMode
-import models.LockDetail
-import models.SessionAccessData
-import models.SessionData
-import models.UserAnswers
+import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.AnyContent
-import play.api.mvc.Result
+import play.api.mvc.{AnyContent, Result}
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 

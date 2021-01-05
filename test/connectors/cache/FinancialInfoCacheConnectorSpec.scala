@@ -21,8 +21,7 @@ import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpException
+import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
 import utils.WireMockHelper
 
 class FinancialInfoCacheConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper with OptionValues with RecoverMethods {

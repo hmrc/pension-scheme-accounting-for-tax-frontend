@@ -22,7 +22,7 @@ import base.SpecBase
 import controllers._
 import controllers.chargeB.{routes => _}
 import data.SampleData
-import data.SampleData.{accessType, sessionAccessDataCompile, version, versionInt}
+import data.SampleData.{version, versionInt, sessionAccessDataCompile, accessType}
 import models.ChargeType.{ChargeTypeAnnualAllowance, _}
 import models.LocalDateBinder._
 import models.chargeA.{ChargeDetails => ChargeADetails}
@@ -30,17 +30,16 @@ import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
 import models.requests.DataRequest
 import models.{AccessMode, ChargeType, SessionAccessData, UserAnswers}
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.scalatest.{MustMatchers, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers.GET
 import play.twirl.api.{Html => TwirlHtml}
-import uk.gov.hmrc.viewmodels.Html
 import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels._
+import uk.gov.hmrc.viewmodels.{Html, _}
 
 class AFTSummaryHelperSpec extends SpecBase with MustMatchers with MockitoSugar with BeforeAndAfterEach {
 

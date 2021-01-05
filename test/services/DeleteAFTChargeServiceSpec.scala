@@ -21,9 +21,8 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
 import data.SampleData._
 import helpers.DeleteChargeHelper
-import models.LockDetail
 import models.requests.DataRequest
-import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
+import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._

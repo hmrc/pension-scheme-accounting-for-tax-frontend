@@ -19,8 +19,8 @@ package pages.chargeC
 import java.time.LocalDate
 
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
-import models.{MemberDetails, UserAnswers}
+import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
+import models.{UserAnswers, MemberDetails}
 import pages.behaviours.PageBehaviours
 
 class WhichTypeOfSponsoringEmployerPageSpec extends PageBehaviours {

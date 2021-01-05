@@ -19,7 +19,7 @@ package forms.chargeF
 import base.SpecBase
 import forms.behaviours._
 import play.api.data.FormError
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
 import utils.DateHelper.dateFormatterDMY
 
 class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with BigDecimalFieldBehaviours {

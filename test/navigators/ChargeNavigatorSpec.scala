@@ -20,11 +20,11 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{ChargeType, NormalMode, Quarter, UserAnswers}
-import org.scalatest.prop.{TableFor3, TableFor5}
+import models.{Quarter, NormalMode, ChargeType, UserAnswers}
+import org.scalatest.prop.{TableFor5, TableFor3}
 import pages._
 import play.api.mvc.Call
 import utils.AFTConstants._

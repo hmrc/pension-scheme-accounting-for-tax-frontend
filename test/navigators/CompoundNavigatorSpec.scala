@@ -19,12 +19,12 @@ package navigators
 import java.time.LocalDate
 
 import base.SpecBase
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{NormalMode, AccessType, UserAnswers}
 import pages.Page
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.collection.JavaConverters._

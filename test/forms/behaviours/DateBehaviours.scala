@@ -20,7 +20,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 import org.scalacheck.Gen
-import play.api.data.{Form, FormError}
+import play.api.data.{FormError, Form}
 
 trait DateBehaviours extends FieldBehaviours {
 

@@ -19,9 +19,9 @@ package navigators
 import config.FrontendAppConfig
 import controllers.chargeC.routes._
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, SponsoringEmployerType, UserAnswers}
+import models.{NormalMode, SponsoringEmployerType, CheckMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.chargeC._
 import pages.{Page, chargeA, chargeB}

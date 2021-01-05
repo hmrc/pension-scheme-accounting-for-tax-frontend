@@ -22,19 +22,15 @@ import base.SpecBase
 import connectors.AFTConnector
 import data.SampleData
 import data.SampleData._
-import models.JourneyType
-import models.LockDetail
-import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
+import models.{SessionAccessData, JourneyType, UserAnswers, SessionData, AccessMode, LockDetail}
 import models.requests.{DataRequest, OptionalDataRequest}
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.AFTStatusQuery
-import play.api.libs.json.JsObject
 import play.api.mvc.{Results, AnyContentAsEmpty}
 import uk.gov.hmrc.domain.PsaId
 import utils.DateHelper

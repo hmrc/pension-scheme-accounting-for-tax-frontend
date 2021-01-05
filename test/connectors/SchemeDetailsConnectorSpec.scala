@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.SchemeDetails
 import org.scalatest.{AsyncWordSpec, MustMatchers}
-import play.api.libs.json.{JsBoolean, JsResultException, JsString, Json}
+import play.api.libs.json.{JsString, JsBoolean, Json, JsResultException}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.http._
 import utils.WireMockHelper

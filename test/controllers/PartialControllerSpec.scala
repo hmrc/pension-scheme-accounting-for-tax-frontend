@@ -38,9 +38,7 @@ import services.{AFTPartialService, SchemeService}
 import services.AFTPartialServiceSpec._
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.Await
 import scala.concurrent.Future
-import scala.concurrent.duration.Duration
 
 class PartialControllerSpec
   extends ControllerSpecBase

@@ -27,7 +27,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import pages.QuarterPage
 import play.api.mvc.Result
-import play.api.mvc.Results.{BadRequest, NotFound}
+import play.api.mvc.Results.{NotFound, BadRequest}
 import services.AFTService
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._

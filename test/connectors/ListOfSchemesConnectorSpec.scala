@@ -19,17 +19,11 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models.FeatureToggle.Disabled
 import models.FeatureToggleName.IntegrationFrameworkListSchemes
-import models.ListOfSchemes
-import models.ListSchemeDetails
-import models.SchemeStatus
+import models.{ListOfSchemes, ListSchemeDetails, SchemeStatus}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.reset
-import org.mockito.Mockito.when
-import org.scalatest.BeforeAndAfterEach
+import org.mockito.Mockito.{reset, when}
 import org.scalatestplus.mockito.MockitoSugar.mock
-import org.scalatest.AsyncWordSpec
-import org.scalatest.MustMatchers
-import org.scalatest.OptionValues
+import org.scalatest.{BeforeAndAfterEach, AsyncWordSpec, MustMatchers, OptionValues}
 import play.api.http.Status._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule

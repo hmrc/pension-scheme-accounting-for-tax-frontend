@@ -19,9 +19,8 @@ package services
 import base.SpecBase
 import data.SampleData.sessionId
 import helpers.DeleteChargeHelper
-import models.AmendedChargeStatus
 import models.requests.DataRequest
-import models.{SessionAccessData, CheckMode, UserAnswers, NormalMode, SessionData, AccessMode}
+import models.{SessionAccessData, CheckMode, UserAnswers, NormalMode, AmendedChargeStatus, SessionData, AccessMode}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}

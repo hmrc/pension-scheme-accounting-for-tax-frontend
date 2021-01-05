@@ -16,14 +16,11 @@
 
 package forms.chargeG
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import base.SpecBase
-import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
+import forms.behaviours.{StringFieldBehaviours, DateBehaviours}
 import models.chargeG.ChargeDetails
 import play.api.data.FormError
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 

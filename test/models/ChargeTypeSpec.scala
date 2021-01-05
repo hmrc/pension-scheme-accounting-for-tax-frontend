@@ -19,8 +19,8 @@ package models
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
-import play.api.libs.json.{JsError, JsString, Json}
+import org.scalatest.{OptionValues, FreeSpec, MustMatchers}
+import play.api.libs.json.{JsString, Json}
 
 class ChargeTypeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with OptionValues {
 

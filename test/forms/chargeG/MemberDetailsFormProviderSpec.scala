@@ -18,7 +18,7 @@ package forms.chargeG
 
 import java.time.LocalDate
 
-import forms.behaviours.{DateBehaviours, StringFieldBehaviours}
+import forms.behaviours.{StringFieldBehaviours, DateBehaviours}
 import models.chargeG.MemberDetails
 import play.api.data.FormError
 import utils.AFTConstants.MIN_DATE

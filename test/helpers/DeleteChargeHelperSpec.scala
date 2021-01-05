@@ -16,11 +16,11 @@
 
 package helpers
 
-import data.SampleData.{chargeEDetails, memberDetails, userAnswersWithSchemeNamePstrQuarter}
+import data.SampleData.{memberDetails, chargeEDetails, userAnswersWithSchemeNamePstrQuarter}
 import models.UserAnswers
 import models.chargeA.ChargeDetails
 import models.chargeB.ChargeBDetails
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.{OptionValues, FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeA.{ShortServiceRefundQuery, ChargeDetailsPage => chargeADetailsPage}
 import pages.chargeB.{ChargeBDetailsPage, SpecialDeathBenefitsQuery}
@@ -29,7 +29,7 @@ import pages.chargeD.{ChargeDetailsPage => chargeDDetailsPage}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import pages.chargeF.{DeregistrationQuery, ChargeDetailsPage => chargeFDetailsPage}
 import pages.chargeG.ChargeAmountsPage
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 
 class DeleteChargeHelperSpec extends FreeSpec with MustMatchers with OptionValues with MockitoSugar with Results {

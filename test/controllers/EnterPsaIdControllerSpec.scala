@@ -19,29 +19,16 @@ package controllers
 import config.FrontendAppConfig
 import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
-import controllers.actions.AllowAccessActionProvider
-import controllers.actions.DataRequiredAction
-import controllers.actions.DataRequiredActionImpl
-import controllers.actions.DataSetupAction
-import controllers.actions.FakeIdentifierActionPSP
-import controllers.actions.IdentifierAction
-import controllers.actions.MutableFakeDataRetrievalAction
-import controllers.actions.MutableFakeDataSetupAction
+import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import forms.EnterPsaIdFormProvider
 import matchers.JsonMatchers
-import models.Enumerable
-import models.GenericViewModel
 import models.LocalDateBinder._
-import models.NormalMode
-import models.SchemeDetails
-import models.SchemeStatus
-import models.UserAnswers
+import models.{GenericViewModel, SchemeStatus, UserAnswers, SchemeDetails, Enumerable}
 import navigators.CompoundNavigator
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -51,12 +38,9 @@ import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
-import play.api.test.Helpers.route
-import play.api.test.Helpers.status
-import play.api.test.Helpers._
+import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer

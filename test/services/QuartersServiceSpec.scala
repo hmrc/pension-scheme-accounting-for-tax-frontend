@@ -22,8 +22,7 @@ import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.LockDetail
-import models.{DisplayQuarter, InProgressHint, AFTOverview, SubmittedHint, LockedHint}
+import models.{DisplayQuarter, InProgressHint, AFTOverview, SubmittedHint, LockDetail, LockedHint}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._

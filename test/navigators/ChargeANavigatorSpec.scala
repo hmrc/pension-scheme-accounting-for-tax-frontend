@@ -16,13 +16,13 @@
 
 package navigators
 
-import controllers.chargeA.routes.{ChargeDetailsController, CheckYourAnswersController}
-import data.SampleData.{accessType, versionInt}
+import controllers.chargeA.routes.{CheckYourAnswersController, ChargeDetailsController}
+import data.SampleData.{versionInt, accessType}
 import models.LocalDateBinder._
-import models.{CheckMode, NormalMode, UserAnswers}
+import models.{NormalMode, CheckMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
-import pages.chargeA.{ChargeDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}
+import pages.chargeA.{CheckYourAnswersPage, ChargeDetailsPage, WhatYouWillNeedPage}
 import play.api.mvc.Call
 import utils.AFTConstants.QUARTER_START_DATE
 

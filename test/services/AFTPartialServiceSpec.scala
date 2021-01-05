@@ -18,6 +18,7 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -35,9 +36,9 @@ import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
+import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTPartialServiceSpec
   extends SpecBase

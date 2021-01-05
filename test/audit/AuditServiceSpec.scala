@@ -19,7 +19,7 @@ package audit
 import config.FrontendAppConfig
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, when, verify}
 import org.scalatest._
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.inject.bind

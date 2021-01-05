@@ -19,7 +19,7 @@ package generators
 import org.scalacheck.Arbitrary
 import pages._
 import pages.chargeC._
-import pages.chargeE.{AnnualAllowanceYearPage, DeleteMemberPage, MemberDetailsPage}
+import pages.chargeE.{AnnualAllowanceYearPage, MemberDetailsPage, DeleteMemberPage}
 import pages.chargeF.ChargeDetailsPage
 
 trait PageGenerators {

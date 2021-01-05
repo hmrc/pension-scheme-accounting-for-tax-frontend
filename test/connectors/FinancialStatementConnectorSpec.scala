@@ -20,12 +20,8 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.financialStatement.PsaFSChargeType.AFT_INITIAL_LFP
-import models.financialStatement.PsaFSChargeType.OTC_6_MONTH_LPP
-import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType
-import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json

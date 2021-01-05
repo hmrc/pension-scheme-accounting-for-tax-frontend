@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import config.FrontendAppConfig
 import org.mockito.Mockito.when
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
+import org.scalatest.{MustMatchers, WordSpec, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
 import utils.DateHelper
 

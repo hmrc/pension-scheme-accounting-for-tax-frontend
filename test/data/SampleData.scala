@@ -21,13 +21,13 @@ import java.time.format.DateTimeFormatter
 
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.{SponsoringOrganisationDetails, SponsoringEmployerAddress, ChargeCDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.{DisplayQuarter, InProgressHint, AFTOverview, SessionAccessData, SchemeStatus, UserAnswers, Quarter, Draft, SessionData, SubmittedHint, SchemeDetails, MemberDetails, AccessMode, LockDetail, LockedHint}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
