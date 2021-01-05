@@ -31,12 +31,12 @@ import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.Table
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, ExecutionContext}
 
 class PaymentsAndChargesOverdueController @Inject()(
                                                       override val messagesApi: MessagesApi,
