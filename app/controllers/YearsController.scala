@@ -58,7 +58,7 @@ class YearsController @Inject()(
         "srn" -> srn,
         "startDate" -> None,
         "form" -> form(config),
-        "radios" -> StartYears.radios(form(config))(implicitly, config),
+        "radios" -> StartYears.radios(form(config))(config),
         "viewModel" -> viewModel(schemeDetails.schemeName, srn)
       )
 
@@ -80,7 +80,7 @@ class YearsController @Inject()(
               fields = "srn" -> srn,
               "startDate" -> None,
               "form" -> formWithErrors,
-              "radios" -> StartYears.radios(formWithErrors)(implicitly, config),
+              "radios" -> StartYears.radios(formWithErrors)(config),
               "viewModel" -> viewModel(schemeDetails.schemeName, srn)
             )
             renderer.render(template = "years.njk", json).map(BadRequest(_))

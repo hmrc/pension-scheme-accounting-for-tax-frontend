@@ -92,7 +92,7 @@ class ConfirmSubmitAFTAmendmentControllerSpec extends ControllerSpecBase with Nu
     Mockito.reset(mockUserAnswersCacheConnector, mockRenderer, mockAmendmentHelper, mockAFTConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): DataRequest[_])).thenReturn(dummyCall.url)
-    when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())(any())).thenReturn(Nil)
+    when(mockAmendmentHelper.amendmentSummaryRows(any(), any(), any(), any())).thenReturn(Nil)
     when(mockAmendmentHelper.getTotalAmount(any())).thenReturn((BigDecimal(2000.00), BigDecimal(40000.00)))
     when(mockAFTConnector.getAFTDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockAFTConnector.getAftOverview(any(), any(), any())(any(), any())).thenReturn(Future.successful(

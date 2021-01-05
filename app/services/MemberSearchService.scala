@@ -41,8 +41,8 @@ class MemberSearchService @Inject()(
 
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit messages: Messages,
-                                                                                     request: DataRequest[AnyContent]): Seq[MemberRow] = {
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
+    request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean = { member =>
       if (searchTextUpper.matches(ninoRegex)) {

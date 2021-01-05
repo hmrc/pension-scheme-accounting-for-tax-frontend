@@ -31,7 +31,7 @@ class CYAChargeCHelper(srn: String, startDate: LocalDate, accessType: AccessType
 
   def chargeCEmployerDetails(index: Int,
                              sponsorDetails: Either[models.MemberDetails, SponsoringOrganisationDetails]
-                            )(implicit messages: Messages): Seq[Row] =
+                            ): Seq[Row] =
     sponsorDetails.fold(
       individual => chargeCIndividualDetails(index, individual),
       organisation => chargeCOrganisationDetails(index, organisation)

@@ -19,7 +19,7 @@ package services
 import com.google.inject.Inject
 import helpers.DeleteChargeHelper
 import models.requests.DataRequest
-import models.{AmendedChargeStatus, Mode, NormalMode, UserAnswers}
+import models.{Mode, NormalMode, AmendedChargeStatus, UserAnswers}
 import pages.QuestionPage
 import play.api.libs.json._
 import play.api.mvc.AnyContent
@@ -53,8 +53,8 @@ class UserAnswersService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
   }
 
   /* Use this for deleting a member-based charge */
-  def removeMemberBasedCharge[A](page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal)(implicit request: DataRequest[AnyContent],
-                                                                                                writes: Writes[A]): Try[UserAnswers] =
+  def removeMemberBasedCharge[A](page: QuestionPage[A], totalAmount: UserAnswers => BigDecimal)(implicit
+    request: DataRequest[AnyContent]): Try[UserAnswers] =
     updateChargeTotalIfChargeExists(
       removeZeroOrUpdateAmendmentStatuses(request.userAnswers, page, request.aftVersion),
       page,

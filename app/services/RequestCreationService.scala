@@ -110,8 +110,7 @@ class RequestCreationService @Inject()(
                                           startDate: LocalDate
                                         )(
                                           implicit hc: HeaderCarrier,
-                                          ec: ExecutionContext,
-                                          request: IdentifierRequest[A]
+                                          ec: ExecutionContext
                                         ): Future[SessionAccessData] = {
     userAnswersCacheConnector.lockDetail(srn, startDate).map { optionLockDetail =>
       val maxVersion = seqAFTOverview.headOption.map(_.numberOfVersions).getOrElse(0)

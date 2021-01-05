@@ -18,7 +18,6 @@ package controllers.chargeE
 
 import java.time.LocalDate
 
-import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.DataRetrievals
 import controllers.actions._
@@ -29,7 +28,7 @@ import models.{YearRange, GenericViewModel, AccessType, Mode, Index}
 import navigators.CompoundNavigator
 import pages.chargeE.AnnualAllowanceYearPage
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
@@ -49,13 +48,12 @@ class AnnualAllowanceYearController @Inject()(override val messagesApi: Messages
                                               requireData: DataRequiredAction,
                                               formProvider: YearRangeFormProvider,
                                               val controllerComponents: MessagesControllerComponents,
-                                              config: FrontendAppConfig,
                                               renderer: Renderer)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  def form()(implicit messages: Messages): Form[YearRange] =
+  def form: Form[YearRange] =
     formProvider("annualAllowanceYear.error.required")
 
   def onPageLoad(mode: Mode, srn: String, startDate: LocalDate, accessType: AccessType, version: Int, index: Index): Action[AnyContent] =

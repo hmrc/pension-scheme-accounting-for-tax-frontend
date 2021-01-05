@@ -86,7 +86,7 @@ class PaymentsAndChargesOverdueControllerSpec
       .thenReturn(dummyCall.url)
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(schemeDetails))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any(), any(), any()))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any()))
       .thenReturn(Nil)
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))

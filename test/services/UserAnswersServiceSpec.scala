@@ -80,7 +80,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
         .setOrException(MemberPage2, pageValue)
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers)))
 
       whenReady(resultFuture) { result =>
         result.get(MemberPage) mustBe Some("value")
@@ -93,7 +93,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       "deleted if version is 1 and is not last charge and member is last member" in {
       val userAnswers = UserAnswers().setOrException(MemberPage, pageValue)
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers)))
 
       whenReady(resultFuture) { result =>
         result.get(MemberPage) mustBe None
@@ -109,7 +109,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       when(mockDeleteChargeHelper.isLastCharge(any())).thenReturn(true)
       when(mockDeleteChargeHelper.zeroOutLastCharge(any())).thenReturn(userAnswersAfterZeroedOut)
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(userAnswers)))
 
       whenReady(resultFuture) { result =>
         result.get(MemberPage) mustBe Some(pageValueAfterZeroedOut)
@@ -120,7 +120,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
     "FOR AMENDMENT - set amended version, member version to null, status to Deleted and the page value" +
       " for a member level charge if version is 2 for a member being deleted and member AFT version is 1" in {
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(status=AmendedChargeStatus.Deleted.toString), version = 2), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(status=AmendedChargeStatus.Deleted.toString), version = 2)))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -139,7 +139,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       " for a member level charge if version is 2 and member added in this version and " +
       "member is not last member in charge" in {
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUaTwoMembers(2), version = 2), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUaTwoMembers(2), version = 2)))
 
       whenReady(resultFuture){ _ mustBe UserAnswers(Json.obj(
         "chargeType" -> Json.obj(
@@ -158,7 +158,7 @@ class UserAnswersServiceSpec extends SpecBase with MockitoSugar with ScalaFuture
       " for a member level charge if version is 2 and member added in this version and " +
       " is not last charge and member is last member in charge" in {
       val resultFuture = Future.fromTry(service
-        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(2), version = 2), implicitly))
+        .removeMemberBasedCharge(MemberPage, total)(dataRequest(memberUa(2), version = 2)))
 
       whenReady(resultFuture){ _ mustBe UserAnswers()
       }

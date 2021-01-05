@@ -19,7 +19,6 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
-import play.api.i18n.Messages
 import play.api.libs.json.{JsString, Writes, JsValue}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -60,7 +59,7 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
   def values(implicit config: FrontendAppConfig): Seq[Year] = (minYear to currentYear).reverse.map(Year(_))
 
-  def radios(form: Form[_])(implicit messages: Messages, config: FrontendAppConfig): Seq[Radios.Item] = {
+  def radios(form: Form[_])(implicit config: FrontendAppConfig): Seq[Radios.Item] = {
     Radios(form("value"), values.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
@@ -72,7 +71,7 @@ object AmendYears extends CommonYears with Enumerable.Implicits {
 
   def values(years: Seq[Int]): Seq[Year] = years.map(x => Year(x))
 
-  def radios(form: Form[_], years: Seq[Int])(implicit messages: Messages): Seq[Radios.Item] = {
+  def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
     Radios(form("value"), years.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 

@@ -23,15 +23,15 @@ import javax.inject.Inject
 import models.PenaltySchemes
 import models.financialStatement.PsaFS
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,
@@ -46,8 +46,7 @@ class SelectSchemeController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def form(schemes: Seq[PenaltySchemes])
-                  (implicit messages: Messages): Form[PenaltySchemes] = formProvider(schemes)
+  private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
   def onPageLoad(year: String): Action[AnyContent] = identify.async {
     implicit request =>

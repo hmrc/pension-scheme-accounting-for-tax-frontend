@@ -128,7 +128,7 @@ class SponsoringEmployerAddressSearchController @Inject()(override val messagesA
       }
   }
 
-  protected def formWithError(message: String)(implicit request: DataRequest[AnyContent]): Form[String] = {
+  protected def formWithError(message: String): Form[String] = {
     form.withError("value", message)
   }
 }

@@ -328,7 +328,7 @@ class AFTPartialService @Inject()(
    */
 
   private def getStartReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String)
-                                  (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+                                  (implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
 
     val startLink: Option[AFTViewModel] = Some(AFTViewModel(None, None,
       Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
@@ -366,8 +366,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String)
-                                    (implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
@@ -423,7 +422,7 @@ class AFTPartialService @Inject()(
                                               endDate: LocalDate,
                                               overview: AFTOverview,
                                               linkText: Text
-                                            )(implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+                                            )(implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(lockDetail) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
@@ -458,8 +457,7 @@ class AFTPartialService @Inject()(
                                                  inProgressReturns: Seq[AFTOverview],
                                                  linkText: Text
                                                )(
-                                                 implicit hc: HeaderCarrier,
-                                                 messages: Messages
+                                                 implicit hc: HeaderCarrier
                                                ): Future[Option[AFTViewModel]] = {
 
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
@@ -520,8 +518,7 @@ class AFTPartialService @Inject()(
                                                          endDate: LocalDate,
                                                          overview: AFTOverview
                                                        )(
-                                                         implicit hc: HeaderCarrier,
-                                                         messages: Messages
+                                                         implicit hc: HeaderCarrier
                                                        ): Future[Option[Link]] = {
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(_) =>
@@ -552,8 +549,7 @@ class AFTPartialService @Inject()(
                                                            pstr: String,
                                                            inProgressReturns: Seq[AFTOverview]
                                                          )(
-                                                           implicit hc: HeaderCarrier,
-                                                           messages: Messages
+                                                           implicit hc: HeaderCarrier
                                                          ): Future[Option[Link]] = {
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
 

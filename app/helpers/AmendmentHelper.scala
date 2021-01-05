@@ -19,7 +19,6 @@ import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import models.AmendedChargeStatus.{Updated, Deleted, Unknown, Added}
 import models.ChargeType.{ChargeTypeShortService, ChargeTypeLumpSumDeath, ChargeTypeDeRegistration}
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{ChargeType, AmendedChargeStatus, UserAnswers}
 import pages.QuestionPage
@@ -28,7 +27,6 @@ import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
 import play.api.libs.json.{Reads, JsResultException, JsValue}
-import play.api.mvc.AnyContent
 import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -56,8 +54,7 @@ class AmendmentHelper @Inject()(
     (amountUK, amountNonUK)
   }
 
-  def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int)(
-      implicit messages: Messages): Seq[Row] = {
+  def amendmentSummaryRows(currentTotalAmount: BigDecimal, previousTotalAmount: BigDecimal, currentVersion: Int, previousVersion: Int): Seq[Row] = {
     val differenceAmount = currentTotalAmount - previousTotalAmount
     if (previousTotalAmount == 0 && currentTotalAmount == 0) {
       Nil
@@ -87,8 +84,7 @@ class AmendmentHelper @Inject()(
     }
   }
 
-  def getAllAmendments(currentUa: UserAnswers, previousUa: UserAnswers, version: Int)(implicit request: DataRequest[AnyContent],
-                                                                        messages: Messages): Seq[ViewAmendmentDetails] = {
+  def getAllAmendments(currentUa: UserAnswers, previousUa: UserAnswers, version: Int)(implicit messages: Messages): Seq[ViewAmendmentDetails] = {
 
     val allAmendmentsChargeA =
       amendmentsForSchemeLevelCharges(currentUa, previousUa, ChargeTypeShortService, Some("numberOfMembers"), ChargeADetailsPage)

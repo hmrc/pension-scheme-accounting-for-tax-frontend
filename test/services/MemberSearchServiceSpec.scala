@@ -121,7 +121,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
 
-      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C", accessType, versionInt)(implicitly, fakeDataRequest) mustBe
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest) mustBe
         searchResultsMemberDetailsChargeD("Bill Bloggs", "CS121212C", BigDecimal("55.55"), removeLink = false)
     }
   }

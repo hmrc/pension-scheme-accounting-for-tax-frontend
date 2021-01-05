@@ -40,7 +40,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     srn: String,
     startDate: LocalDate,
     accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
+    version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeAnnualAllowance,
       totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
@@ -77,7 +77,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     srn: String,
     startDate: LocalDate,
     accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
+    version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeOverseasTransfer,
       totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),

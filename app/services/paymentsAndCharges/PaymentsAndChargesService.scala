@@ -26,7 +26,6 @@ import models.financialStatement.SchemeFSChargeType._
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverdue, InterestIsAccruing, NoStatus}
 import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentsAndChargesDetails}
 import play.api.i18n.Messages
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, SummaryList, Content, _}
@@ -38,8 +37,6 @@ import java.time.LocalDate
 
 import javax.inject.Inject
 
-import scala.concurrent.ExecutionContext
-
 class PaymentsAndChargesService @Inject()() {
 
   def getPaymentsAndCharges(
@@ -47,11 +44,7 @@ class PaymentsAndChargesService @Inject()() {
                              schemeFS: Seq[SchemeFS],
                              year: Int,
                              chargeDetailsFilter: ChargeDetailsFilter
-                           )(
-                             implicit messages: Messages,
-                             ec: ExecutionContext,
-                             hc: HeaderCarrier
-                           ): Seq[PaymentsAndChargesTable] =
+                           )(implicit messages: Messages): Seq[PaymentsAndChargesTable] =
     groupAndSortByStartDate(schemeFS, year) map {
       startDateAndFS =>
         val (_, schemeFs) = startDateAndFS
