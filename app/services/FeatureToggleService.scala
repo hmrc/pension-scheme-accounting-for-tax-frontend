@@ -17,13 +17,11 @@
 package services
 
 import connectors.admin.FeatureToggleConnector
-import javax.inject.Inject
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 import models._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FeatureToggleService @Inject()(featureToggleConnector:FeatureToggleConnector) {

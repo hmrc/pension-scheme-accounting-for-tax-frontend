@@ -23,13 +23,13 @@ import connectors.SchemeDetailsConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import javax.inject.Inject
-import models.{AccessType, GenericViewModel, NormalMode}
+import models.{NormalMode, GenericViewModel, AccessType}
 import navigators.CompoundNavigator
 import pages.SchemeNameQuery
 import pages.chargeD.WhatYouWillNeedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 

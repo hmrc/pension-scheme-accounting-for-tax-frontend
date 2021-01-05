@@ -18,28 +18,22 @@ package controllers.actions
 
 import java.time.LocalDate
 
-import com.google.inject.ImplementedBy
-import com.google.inject.Inject
-import connectors.AFTConnector
-import connectors.SchemeDetailsConnector
+import com.google.inject.{ImplementedBy, Inject}
+import connectors.{AFTConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.Deregistered
-import models.SchemeStatus.Open
-import models.SchemeStatus.WoundUp
+import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
 import models.AccessType
 import pages._
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
-import play.api.mvc.ActionFilter
-import play.api.mvc.Result
+import play.api.mvc.{ActionFilter, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import utils.DateHelper
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessAction(
                          srn: String,

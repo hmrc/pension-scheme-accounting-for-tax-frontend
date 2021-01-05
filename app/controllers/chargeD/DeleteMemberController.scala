@@ -26,19 +26,19 @@ import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, Index, NormalMode, UserAnswers}
+import models.{GenericViewModel, UserAnswers, AccessType, NormalMode, Index}
 import navigators.CompoundNavigator
-import pages.chargeD.{DeleteMemberPage, MemberDetailsPage}
+import pages.chargeD.{MemberDetailsPage, DeleteMemberPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
-import services.{ChargeDService, DeleteAFTChargeService, UserAnswersService}
+import services.{UserAnswersService, ChargeDService, DeleteAFTChargeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DeleteMemberController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,

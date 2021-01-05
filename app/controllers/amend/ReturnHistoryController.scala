@@ -21,25 +21,25 @@ import java.time.format.DateTimeFormatter
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, FinancialStatementConnector}
+import connectors.{FinancialStatementConnector, AFTConnector}
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTOverview, AFTVersion, AccessType, Draft, Quarters, Submission}
+import models.{AFTOverview, Quarters, AFTVersion, Submission, AccessType, Draft}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc.{Call, AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ReturnHistoryController @Inject()(
                                          schemeService: SchemeService,

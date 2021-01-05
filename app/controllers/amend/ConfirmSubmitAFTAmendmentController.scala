@@ -28,18 +28,18 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, Draft, GenericViewModel, NormalMode, Quarters, UserAnswers, ValueChangeType}
+import models.{Quarters, GenericViewModel, UserAnswers, AccessType, NormalMode, Draft, ValueChangeType}
 import navigators.CompoundNavigator
 import pages.{ConfirmSubmitAFTAmendmentPage, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ConfirmSubmitAFTAmendmentController @Inject()(override val messagesApi: MessagesApi,
                                                     userAnswersCacheConnector: UserAnswersCacheConnector,

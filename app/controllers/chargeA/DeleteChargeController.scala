@@ -25,19 +25,19 @@ import controllers.actions._
 import forms.DeleteFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, GenericViewModel, AccessType, UserAnswers}
 import navigators.CompoundNavigator
-import pages.chargeA.{DeleteChargePage, ShortServiceRefundQuery}
+import pages.chargeA.{ShortServiceRefundQuery, DeleteChargePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.libs.json.Json
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
-import services.{DeleteAFTChargeService, UserAnswersService}
+import services.{UserAnswersService, DeleteAFTChargeService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DeleteChargeController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,

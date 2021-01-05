@@ -22,7 +22,7 @@ import pages.chargeA.ShortServiceRefundQuery
 import pages.chargeB.SpecialDeathBenefitsQuery
 import pages.chargeF.DeregistrationQuery
 import play.api.libs.json.Reads._
-import play.api.libs.json.{JsObject, Json, Reads, __, _}
+import play.api.libs.json.{__, Reads, Json, JsObject, _}
 
 import scala.annotation.tailrec
 

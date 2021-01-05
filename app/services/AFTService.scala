@@ -24,7 +24,7 @@ import javax.inject.Singleton
 import models.requests.DataRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
-import models.{UserAnswers, JourneyType}
+import models.{JourneyType, UserAnswers}
 import pages.AFTStatusQuery
 
 import scala.concurrent.{Future, ExecutionContext}

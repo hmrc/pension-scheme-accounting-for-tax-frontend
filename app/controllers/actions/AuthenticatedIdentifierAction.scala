@@ -25,11 +25,11 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 trait IdentifierAction
   extends ActionBuilder[IdentifierRequest, AnyContent]

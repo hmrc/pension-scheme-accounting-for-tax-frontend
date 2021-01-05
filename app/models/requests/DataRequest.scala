@@ -20,7 +20,7 @@ import controllers.actions.IdNotFound
 import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
 import play.api.mvc.{Request, WrappedRequest}
 import models.{AccessMode, SessionData, SchemeAdministratorType, UserAnswers}
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 
 case class OptionalDataRequest[A] (
                                     request: Request[A],

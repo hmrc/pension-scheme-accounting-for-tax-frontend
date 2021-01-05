@@ -25,21 +25,21 @@ import forms.AddMembersFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, GenericViewModel, NormalMode, Quarter}
+import models.{Quarter, NormalMode, GenericViewModel, AccessType}
 import navigators.CompoundNavigator
 import pages.chargeC.AddEmployersPage
-import pages.{QuarterPage, SchemeNameQuery, ViewOnlyAccessiblePage}
+import pages.{SchemeNameQuery, QuarterPage, ViewOnlyAccessiblePage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.ChargeCService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AddEmployersController @Inject()(override val messagesApi: MessagesApi,
                                        userAnswersCacheConnector: UserAnswersCacheConnector,

@@ -30,7 +30,7 @@ import play.api.mvc.Call
 import play.twirl.api.{Html => TwirlHtml}
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{SummaryList, Html, _}
+import uk.gov.hmrc.viewmodels.{Html, SummaryList, _}
 
 class AFTSummaryHelper extends NunjucksSupport {
 

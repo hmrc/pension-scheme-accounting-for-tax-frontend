@@ -24,14 +24,14 @@ import connectors.{AFTConnector, MinimalConnector}
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.requests.{IdentifierRequest, OptionalDataRequest}
-import models.{AFTOverview, AccessMode, AccessType, Draft, Quarters, SchemeDetails, SessionAccessData, UserAnswers}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
+import models.{AFTOverview, SessionAccessData, Quarters, UserAnswers, AccessType, Draft, SchemeDetails, AccessMode}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 @Singleton
 class RequestCreationService @Inject()(

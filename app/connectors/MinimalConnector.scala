@@ -26,7 +26,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import utils.HttpResponseHelper
 import play.api.http.Status._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {

@@ -18,11 +18,8 @@ package services
 
 import com.google.inject.Inject
 import helpers.DeleteChargeHelper
-import models.AmendedChargeStatus
 import models.requests.DataRequest
-import models.Mode
-import models.NormalMode
-import models.UserAnswers
+import models.{AmendedChargeStatus, Mode, NormalMode, UserAnswers}
 import pages.QuestionPage
 import play.api.libs.json._
 import play.api.mvc.AnyContent

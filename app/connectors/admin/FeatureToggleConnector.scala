@@ -21,11 +21,11 @@ import config.FrontendAppConfig
 import models.FeatureToggle
 import play.api.Logger
 import play.api.http.Status._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import utils.HttpResponseHelper
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 import scala.util.Failure
 
 class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {

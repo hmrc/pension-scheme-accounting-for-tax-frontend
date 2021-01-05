@@ -24,7 +24,7 @@ import play.api.mvc.{ActionRefiner, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DataRequiredActionImpl @Inject()(implicit val executionContext: ExecutionContext) extends DataRequiredAction {
 

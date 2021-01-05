@@ -18,25 +18,25 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
 import models.financialStatement.SchemeFS
-
 import javax.inject.Inject
-import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
+import models.{AFTOverview, Quarters, Draft, SchemeDetails, LockDetail}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,

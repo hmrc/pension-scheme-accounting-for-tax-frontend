@@ -26,9 +26,9 @@ import helpers.AmendmentHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessMode, AccessType, AmendedChargeStatus, Draft, GenericViewModel, UserAnswers}
+import models.{GenericViewModel, UserAnswers, AccessType, Draft, AmendedChargeStatus}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc._
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController

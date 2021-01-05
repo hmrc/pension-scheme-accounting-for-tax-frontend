@@ -26,26 +26,20 @@ import forms.chargeF.ChargeDetailsFormProvider
 import helpers.DeleteChargeHelper
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Mode, Quarters, SessionData}
+import models.{Mode, GenericViewModel, Quarters, AccessType}
 import models.chargeF.ChargeDetails
 import navigators.CompoundNavigator
 import pages.chargeF.ChargeDetailsPage
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.DateInput
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

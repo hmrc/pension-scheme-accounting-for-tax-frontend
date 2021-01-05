@@ -18,8 +18,8 @@ package viewmodels
 
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Json, _}
-import uk.gov.hmrc.viewmodels.{Content, Html, Text, WithContent}
+import play.api.libs.json._
+import uk.gov.hmrc.viewmodels.{Html, Text, Content, WithContent}
 import viewmodels.Table.Cell
 
 final case class Table(caption: Option[String] = None,

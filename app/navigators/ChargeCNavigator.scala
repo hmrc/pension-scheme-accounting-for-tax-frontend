@@ -26,10 +26,10 @@ import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.SponsoringEmployerType._
 import models.requests.DataRequest
-import models.{AccessType, CheckMode, NormalMode, UserAnswers}
+import models.{NormalMode, AccessType, CheckMode, UserAnswers}
 import pages.Page
 import pages.chargeC.{SponsoringEmployerAddressSearchPage, _}
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import services.ChargeCService
 class ChargeCNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,

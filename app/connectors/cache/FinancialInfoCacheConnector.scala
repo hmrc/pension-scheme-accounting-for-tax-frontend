@@ -19,14 +19,14 @@ package connectors.cache
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import play.api.http.Status._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{Json, JsValue}
 import play.api.libs.ws.WSClient
 import play.api.mvc.Result
 import play.api.mvc.Results._
 import uk.gov.hmrc.crypto.PlainText
-import uk.gov.hmrc.http.{HeaderCarrier, HttpException}
+import uk.gov.hmrc.http.{HttpException, HeaderCarrier}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class FinancialInfoCacheConnector @Inject()(
                                                config: FrontendAppConfig,

@@ -25,20 +25,20 @@ import controllers.actions._
 import forms.chargeD.ChargeDetailsFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AccessType, GenericViewModel, Index, Mode, Quarters}
+import models.{Quarters, GenericViewModel, AccessType, Mode, Index}
 import models.chargeD.ChargeDDetails
 import navigators.CompoundNavigator
 import pages.chargeD.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.UserAnswersService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class ChargeDetailsController @Inject()(override val messagesApi: MessagesApi,
                                         userAnswersCacheConnector: UserAnswersCacheConnector,

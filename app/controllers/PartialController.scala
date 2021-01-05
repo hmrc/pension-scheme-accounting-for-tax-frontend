@@ -17,15 +17,12 @@
 package controllers
 
 import config.FrontendAppConfig
-import connectors.{FinancialStatementConnector, SchemeDetailsConnector}
+import connectors.FinancialStatementConnector
 import controllers.actions._
-import helpers.FormatHelper
-import models.financialStatement.SchemeFS
-
 import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
@@ -34,9 +31,7 @@ import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class PartialController @Inject()(
                                    identify: IdentifierAction,

@@ -25,10 +25,10 @@ import controllers.chargeG.routes._
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{NormalMode, AccessType, UserAnswers}
 import pages.Page
 import pages.chargeG.{AddMembersPage, _}
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import services.ChargeGService
 class ChargeGNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper,
