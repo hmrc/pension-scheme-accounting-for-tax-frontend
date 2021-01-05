@@ -17,7 +17,6 @@
 package controllers.chargeG
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
@@ -25,22 +24,22 @@ import data.SampleData._
 import forms.chargeG.ChargeDetailsFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.{GenericViewModel, NormalMode, UserAnswers}
+import models.{NormalMode, GenericViewModel, UserAnswers}
 import models.chargeG.ChargeDetails
 import models.requests.IdentifierRequest
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, when, verify}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.data.Form
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Call}
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc.{Call, AnyContentAsFormUrlEncoded, AnyContentAsEmpty}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, DateInput}
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
 import utils.DateHelper
 
 import scala.concurrent.Future
@@ -49,11 +48,8 @@ class ChargeDetailsControllerSpec extends ControllerSpecBase with MockitoSugar w
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction).build()
   private val formProvider = new ChargeDetailsFormProvider()
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   private val startDate = LocalDate.parse(QUARTER_START_DATE)
   private val endDate = LocalDate.parse(QUARTER_END_DATE)
-  private val dynamicErrorMsg: String = s"The date of the transfer into the QROPS must be between" +
-    s"${startDate.format(dateFormatter)} and ${endDate.format(dateFormatter)}"
 
   private def form: Form[ChargeDetails] = formProvider(startDate, endDate)
 

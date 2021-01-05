@@ -18,10 +18,10 @@ package controllers.actions
 
 import connectors.{AFTConnector, SchemeDetailsConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{accessType, versionInt, _}
+import data.SampleData.{versionInt, accessType, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{Open, Rejected, WoundUp}
+import models.SchemeStatus.{Rejected, Open, WoundUp}
 import models.requests.DataRequest
 import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
 import org.mockito.Matchers
@@ -30,13 +30,13 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{AnyContent, Result}
+import play.api.mvc.{Result, AnyContent}
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
@@ -69,7 +69,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any(), any()))
+      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
       val testHarness = new TestHarness(page = Some(ViewOnlyAccessiblePage))
@@ -87,7 +87,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val expectedResult: Result =
         Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
 
-      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any(), any()))
+      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
       val testHarness = new TestHarness()
@@ -119,7 +119,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Wound-up but there is no association" in {
       val ua = userAnswersWithSchemeName
         .setOrException(SchemeStatusQuery, WoundUp)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any(), any()))
+      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(false))
 
       val errorResult = Ok("error")
@@ -135,7 +135,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the AFT summary page when the PSA is not suspended and current page is charge type page and view only" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, WoundUp)
-      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any(), any()))
+      when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
       val expectedResult = Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))

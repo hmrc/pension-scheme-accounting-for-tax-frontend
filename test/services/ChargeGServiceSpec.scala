@@ -26,7 +26,6 @@ import models.AmendedChargeStatus.{Updated, Deleted}
 import models.ChargeType.ChargeTypeOverseasTransfer
 import models.LocalDateBinder._
 import models.chargeG.MemberDetails
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{Member, AmendedChargeStatus, UserAnswers}
 import org.mockito.Matchers.any
@@ -34,8 +33,6 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeG.{MemberAFTVersionPage, MemberDetailsPage, ChargeAmountsPage, MemberStatusPage}
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -79,7 +76,6 @@ class ChargeGServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllOverseasTransferAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
 
     "return all the amendments for overseas transfer charge" in {
       val expectedRows = Seq(

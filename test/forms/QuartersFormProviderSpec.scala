@@ -27,7 +27,6 @@ import play.api.data.FormError
 class QuartersFormProviderSpec extends SpecBase with OptionFieldBehaviours {
 
   implicit val config: FrontendAppConfig = frontendAppConfig
-  private val testYear = 2021
   private val errorKey = "quarters.error.required"
   val quarters: Seq[Quarter] = Seq(q22020, q32020, q42020, q12021)
   val form = new QuartersFormProvider()(errorKey, quarters)

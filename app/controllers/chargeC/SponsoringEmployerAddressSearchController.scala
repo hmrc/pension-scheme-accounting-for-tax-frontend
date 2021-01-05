@@ -27,7 +27,6 @@ import controllers.actions._
 import forms.chargeC.SponsoringEmployerAddressSearchFormProvider
 import javax.inject.Inject
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.{Mode, GenericViewModel, AccessType, Index}
 import navigators.CompoundNavigator
 import pages.chargeC.SponsoringEmployerAddressSearchPage

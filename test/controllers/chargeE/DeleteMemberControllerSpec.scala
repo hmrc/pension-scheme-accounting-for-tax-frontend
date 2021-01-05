@@ -23,18 +23,18 @@ import forms.DeleteFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, UserAnswers}
+import models.GenericViewModel
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.Mockito.{times, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.scalatest.{OptionValues, TryValues}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.PSTRQuery
-import pages.chargeE.{MemberDetailsPage, TotalChargeAmountPage}
+import pages.chargeE.{TotalChargeAmountPage, MemberDetailsPage}
 import play.api.Application
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -69,9 +69,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
   private def userAnswers = userAnswersWithSchemeNamePstrQuarter
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
-
-  private val answers: UserAnswers = userAnswers
-    .set(PSTRQuery, pstr).success.value
 
   "DeleteMember Controller" must {
 

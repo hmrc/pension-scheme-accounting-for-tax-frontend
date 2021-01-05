@@ -47,7 +47,7 @@ class AFTPartialService @Inject()(
                                  )(implicit ec: ExecutionContext) {
 
   def retrieveOptionAFTViewModel(srn: String, psaId: String, schemeIdType: String)
-                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] =
+                                (implicit hc: HeaderCarrier): Future[Seq[AFTViewModel]] =
     schemeService.retrieveSchemeDetails(
       psaId = psaId,
       srn = srn,
@@ -391,8 +391,7 @@ class AFTPartialService @Inject()(
                                          linkText: Text = msg"aftPartial.view.link"
                                        )(
                                          implicit
-                                         hc: HeaderCarrier,
-                                         messages: Messages
+                                         hc: HeaderCarrier
                                        ): Future[Option[AFTViewModel]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
@@ -487,8 +486,7 @@ class AFTPartialService @Inject()(
                                                         pstr: String
                                                       )(
                                                         implicit
-                                                        hc: HeaderCarrier,
-                                                        messages: Messages
+                                                        hc: HeaderCarrier
                                                       ): Future[Option[Link]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 

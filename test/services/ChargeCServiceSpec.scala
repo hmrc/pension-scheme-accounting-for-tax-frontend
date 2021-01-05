@@ -28,7 +28,7 @@ import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, Employer, UserAnswers, MemberDetails}
+import models.{Employer, AmendedChargeStatus, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
@@ -108,8 +108,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllAuthSurplusAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
-
     "return all the amendments for auth surplus charge" in {
       val expectedAmendments = Seq(
         ViewAmendmentDetails(

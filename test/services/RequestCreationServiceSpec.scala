@@ -52,7 +52,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val psaIdInstance = PsaId(psaId)
 
   private val sessionId = "session id"
-  private val internalId = s"$srn$startDate"
 
   private val nameLockedBy = None
   private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)

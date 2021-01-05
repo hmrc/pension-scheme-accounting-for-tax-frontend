@@ -16,34 +16,34 @@
 
 package controllers
 
-import java.time.{ZoneId, ZonedDateTime}
+import java.time.{ZonedDateTime, ZoneId}
 
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{EmailConnector, EmailSent}
+import connectors.{EmailSent, EmailConnector}
 import controllers.actions._
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Declaration, GenericViewModel, Quarter, UserAnswers}
+import models.{Quarter, GenericViewModel, Declaration, UserAnswers}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers, Mockito}
+import org.mockito.Mockito.{times, when, verify}
+import org.mockito.{Matchers, ArgumentCaptor, Mockito}
 import org.scalatestplus.mockito.MockitoSugar
 import pages._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.AFTService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
-import utils.AFTConstants.{QUARTER_END_DATE, QUARTER_START_DATE}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
+import utils.AFTConstants.{QUARTER_START_DATE, QUARTER_END_DATE}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY, formatSubmittedDate}
 
 import scala.concurrent.Future
 
@@ -280,11 +280,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
 }
 
 object DeclarationControllerSpec {
-
-  private val templateToBeRendered = "declaration.njk"
   private val templateToBeRenderedPsp = "pspDeclaration.njk"
-  private def httpPathGET: String = controllers.routes.DeclarationController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt).url
-  private def httpPathOnSubmit: String = controllers.routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url
   private val emailParamsCaptor = ArgumentCaptor.forClass(classOf[Map[String, String]])
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val journeyTypeCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -295,11 +291,6 @@ object DeclarationControllerSpec {
   private val userAnswersWithPSTREmailQuarter: Option[UserAnswers] = userAnswers.map(
     _.set(PSTRQuery, pstr).flatMap(_.set(EmailQuery, value = "psa@test.com")).flatMap(_.set(NameQuery, psaName))
       .flatMap(_.set(QuarterPage, quarter)).getOrElse(UserAnswers()))
-  private val jsonToPassToTemplate = Json.obj(
-    fields = "viewModel" -> GenericViewModel(submitUrl = routes.DeclarationController.onSubmit(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
-      schemeName = schemeName)
-  )
   private val amendAftReturnDecreaseTemplateIdId = "pods_aft_amended_return_decrease"
   private val amendAftReturnNoChangeTemplateIdId = "pods_aft_amended_return_no_change"
   private val amendAftReturnIncreaseTemplateIdId = "pods_aft_amended_return_increase"

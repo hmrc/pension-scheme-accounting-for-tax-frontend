@@ -53,7 +53,7 @@ class AFTServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach 
   implicit val request: OptionalDataRequest[AnyContentAsEmpty.type] =
     OptionalDataRequest(fakeRequest, internalId, Some(psaId), None, Some(emptyUserAnswers), Some(sessionData))
 
-  private def dataRequest(ua: UserAnswers = UserAnswers()): DataRequest[AnyContentAsEmpty.type] =
+  private def dataRequest(ua: UserAnswers): DataRequest[AnyContentAsEmpty.type] =
     DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, sessionData)
 
   override def beforeEach: Unit = {

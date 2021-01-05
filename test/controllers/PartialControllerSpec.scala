@@ -95,7 +95,7 @@ class PartialControllerSpec
             srn = any(),
             psaId = any(),
             schemeIdType = any()
-          )(any(), any())
+          )(any())
         ).thenReturn(Future.successful(allTypesMultipleReturnsModel))
 
         val result = route(application, httpGETRequest(aftPartial)).value

@@ -26,7 +26,6 @@ import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverd
 import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentAndChargeStatus}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -36,8 +35,6 @@ import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
 import java.time.LocalDate
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class PaymentsAndChargesServiceSpec
   extends SpecBase
@@ -338,7 +335,7 @@ object PaymentsAndChargesServiceSpec {
     )
   )
 
-  private def originalAmountRow(implicit messages: Messages): Seq[SummaryList.Row] = {
+  private def originalAmountRow: Seq[SummaryList.Row] = {
     Seq(
       Row(
         key = Key(msg"paymentsAndCharges.chargeDetails.originalChargeAmount", classes = Seq("govuk-!-padding-left-0", "govuk-!-width-three-quarters")),

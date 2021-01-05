@@ -26,7 +26,6 @@ import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.chargeA.{ChargeDetails => ChargeADetails}
 import models.chargeB.ChargeBDetails
 import models.chargeF.{ChargeDetails => ChargeFDetails}
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{chargeA, AmendedChargeStatus, UserAnswers}
 import org.mockito.Matchers.any
@@ -41,9 +40,7 @@ import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberStatusPage 
 import pages.chargeE.{ChargeDetailsPage => ChargeEDetailsPage, MemberStatusPage => MemberEStatusPage, MemberDetailsPage => MemberEDetailsPage, MemberAFTVersionPage => MemberEAFTVersionPage}
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import pages.chargeG.{ChargeAmountsPage, MemberStatusPage => MemberGStatusPage, MemberDetailsPage => MemberGDetailsPage, MemberAFTVersionPage => MemberGAFTVersionPage}
-import play.api.mvc.AnyContent
 import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -118,10 +115,7 @@ class AmendmentHelperSpec extends SpecBase with MockitoSugar with BeforeAndAfter
   }
 
   "getAllAmendments" when {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
-
     "called with chargeA" must {
-
       "return all the added amendments" in {
         val currentUa = UserAnswers().setOrException(ChargeADetailsPage, ChargeADetails(2, Some(100.00), Some(200.00), 300.00))
         val previousUa = UserAnswers()

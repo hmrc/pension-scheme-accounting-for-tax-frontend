@@ -20,7 +20,6 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import models.SchemeDetails
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.libs.json.{JsString, JsBoolean, Json, JsResultException}
-import play.api.test.FakeRequest
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
@@ -76,7 +75,6 @@ class SchemeDetailsConnectorSpec
   }
 
   "checkForAssociation" must {
-    implicit val request: FakeRequest[_] = FakeRequest("GET", "/")
     val checkAssociationUrl = "/pensions-scheme/is-psa-associated"
 
     "return ok with a valid response" in {

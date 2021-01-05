@@ -69,7 +69,7 @@ class AllowAccessAction(
                 case (_, Some(_)) => "pspId"
                 case _ => throw new Exception("Unable to get ID from request")
               }
-            schemeDetailsConnector.checkForAssociation(request.idOrException, srn, idType)(hc, implicitly, request).flatMap {
+            schemeDetailsConnector.checkForAssociation(request.idOrException, srn, idType)(hc, implicitly).flatMap {
               case true =>
                 associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
               case _ =>

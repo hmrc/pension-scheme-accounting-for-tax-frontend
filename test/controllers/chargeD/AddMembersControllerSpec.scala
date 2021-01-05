@@ -56,8 +56,6 @@ class AddMembersControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
-  private val cssQuarterWidth = "govuk-!-width-one-quarter"
-
   private def table: JsObject = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(

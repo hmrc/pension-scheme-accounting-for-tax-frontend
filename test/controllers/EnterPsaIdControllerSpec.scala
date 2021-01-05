@@ -195,5 +195,4 @@ object EnterPsaIdControllerSpec {
   private val valuesInvalid: Map[String, Seq[String]] = Map(
     "value" -> Seq("invalid")
   )
-  private val userAnswers: Option[UserAnswers] = Some(SampleData.userAnswersWithSchemeName)
 }

@@ -25,7 +25,6 @@ import helpers.{DeleteChargeHelper, FormatHelper}
 import models.AmendedChargeStatus.{Deleted, Added}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
-import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
 import models.{Member, AmendedChargeStatus, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
@@ -33,8 +32,6 @@ import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberDetailsPage, MemberStatusPage}
-import play.api.mvc.AnyContent
-import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
@@ -74,7 +71,6 @@ class ChargeEServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllAnnualAllowanceAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
 
     "return all the amendments for annual allowance charge" in {
       val expectedRows = Seq(

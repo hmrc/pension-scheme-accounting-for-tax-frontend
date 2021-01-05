@@ -60,9 +60,6 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
 
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
 
-  private val cssQuarterWidth = "govuk-!-width-one-quarter"
-  private val cssHalfWidth = "govuk-!-width-one-half"
-
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(

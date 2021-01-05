@@ -277,7 +277,6 @@ object UserAnswersServiceSpec {
 
   private val pageValue: String = "value"
   private val total: UserAnswers => BigDecimal = _ => BigDecimal(100.00)
-  private val totalZero: UserAnswers => BigDecimal = _ => BigDecimal(0.00)
 
   private def sessionData(version: Int): SessionData =
     SessionData(sessionId, None, SessionAccessData(version, AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false))
@@ -301,7 +300,7 @@ object UserAnswersServiceSpec {
       "amendedVersion" -> version)
   ))
 
-  private def memberUaTwoMembers(version: Int = 1, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
+  private def memberUaTwoMembers(version: Int, status: String = AmendedChargeStatus.Added.toString): UserAnswers = UserAnswers(Json.obj(
     "chargeType" -> Json.obj(
       "members" -> Json.arr(
         Json.obj(

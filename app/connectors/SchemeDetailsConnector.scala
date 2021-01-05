@@ -21,7 +21,6 @@ import config.FrontendAppConfig
 import models.SchemeDetails
 import play.api.http.Status._
 import play.api.libs.json.{Json, JsError, JsSuccess, JsResultException}
-import play.api.mvc.RequestHeader
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -84,8 +83,7 @@ class SchemeDetailsConnector @Inject()(http: HttpClient, config: FrontendAppConf
                            idType: String
                          )(
                            implicit headerCarrier: HeaderCarrier,
-                           ec: ExecutionContext,
-                           request: RequestHeader
+                           ec: ExecutionContext
                          ): Future[Boolean] = {
 
     val url = config.checkAssociationUrl
