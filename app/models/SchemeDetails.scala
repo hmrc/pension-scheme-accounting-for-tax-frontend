@@ -16,10 +16,9 @@
 
 package models
 
-import play.api.libs.json.JsPath
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.Reads
+import play.api.libs.json.{JsPath, Reads}
 
 case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String, authorisingPSAID: Option[String])
 

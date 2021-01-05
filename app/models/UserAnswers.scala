@@ -19,7 +19,7 @@ package models
 import pages._
 import play.api.libs.json._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Failure, Try}
 
 final case class UserAnswers(
                               data: JsObject = Json.obj()

@@ -17,7 +17,6 @@
 package forms.mappings
 
 import play.api.data.Mapping
-import play.api.data.validation.{Constraint, Valid}
 
 trait CrnMapping extends Mappings with Transforms {
 

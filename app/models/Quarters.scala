@@ -16,7 +16,7 @@
 
 package models
 
-import java.time.{LocalDate, Month}
+import java.time.{Month, LocalDate}
 
 import config.FrontendAppConfig
 import play.api.data.Form
@@ -25,7 +25,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Text, _}
 import utils.DateHelper._
 import viewmodels.Radios.Radio
-import viewmodels.{Hint, LabelClasses, Radios}
+import viewmodels.{Radios, Hint, LabelClasses}
 
 import scala.language.implicitConversions
 

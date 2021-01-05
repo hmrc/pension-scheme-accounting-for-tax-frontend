@@ -20,7 +20,7 @@ package models
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json.{JsString, JsValue, Writes}
+import play.api.libs.json.{JsString, Writes, JsValue}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper

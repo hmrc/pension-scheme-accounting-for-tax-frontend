@@ -17,20 +17,20 @@
 package helpers
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
-import models.AmendedChargeStatus.{Added, Deleted, Unknown, Updated}
-import models.ChargeType.{ChargeTypeDeRegistration, ChargeTypeLumpSumDeath, ChargeTypeShortService}
+import models.AmendedChargeStatus.{Updated, Deleted, Unknown, Added}
+import models.ChargeType.{ChargeTypeShortService, ChargeTypeLumpSumDeath, ChargeTypeDeRegistration}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AmendedChargeStatus, ChargeType, UserAnswers}
+import models.{ChargeType, AmendedChargeStatus, UserAnswers}
 import pages.QuestionPage
 import pages.chargeA.{ChargeDetailsPage => ChargeADetailsPage}
 import pages.chargeB.ChargeBDetailsPage
 import pages.chargeF.{ChargeDetailsPage => ChargeFDetailsPage}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsResultException, JsValue, Reads}
+import play.api.libs.json.{Reads, JsResultException, JsValue}
 import play.api.mvc.AnyContent
-import services.{ChargeCService, ChargeDService, ChargeEService, ChargeGService}
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import services.{ChargeDService, ChargeEService, ChargeGService, ChargeCService}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 

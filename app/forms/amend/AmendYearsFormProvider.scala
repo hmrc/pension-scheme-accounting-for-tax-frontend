@@ -18,7 +18,7 @@ package forms.amend
 
 import forms.mappings.Mappings
 import javax.inject.Inject
-import models.{AmendYears, Year}
+import models.{Year, AmendYears}
 import play.api.data.Form
 
 class AmendYearsFormProvider @Inject() extends Mappings {

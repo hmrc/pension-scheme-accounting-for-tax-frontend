@@ -23,20 +23,21 @@ import models.ChargeDetailsFilter
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType._
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.viewModels.paymentsAndCharges.{PaymentsAndChargesDetails, PaymentsAndChargesTable}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverdue, InterestIsAccruing, NoStatus}
+import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentsAndChargesDetails}
 import play.api.i18n.Messages
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
+import uk.gov.hmrc.viewmodels.{Html, SummaryList, Content, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import viewmodels.Table
 import viewmodels.Table.Cell
-
 import java.time.LocalDate
+
 import javax.inject.Inject
+
 import scala.concurrent.ExecutionContext
 
 class PaymentsAndChargesService @Inject()() {

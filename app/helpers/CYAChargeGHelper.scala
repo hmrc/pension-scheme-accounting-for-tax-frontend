@@ -22,7 +22,7 @@ import models.{AccessType, CheckMode}
 import models.LocalDateBinder._
 import models.chargeG.{ChargeAmounts, MemberDetails}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 

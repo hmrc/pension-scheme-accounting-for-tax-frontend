@@ -18,7 +18,7 @@ package models.requests
 
 import controllers.actions.IdNotFound
 import play.api.mvc.{Request, WrappedRequest}
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 
 case class IdentifierRequest[A](
                                  request: Request[A],

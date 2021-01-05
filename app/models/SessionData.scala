@@ -16,10 +16,8 @@
 
 package models
 
-import play.api.libs.json.Reads
-import play.api.libs.json.Writes
 import play.api.libs.functional.syntax._
-import play.api.libs.json._
+import play.api.libs.json.{Reads, Writes, _}
 
 import scala.language.implicitConversions
 

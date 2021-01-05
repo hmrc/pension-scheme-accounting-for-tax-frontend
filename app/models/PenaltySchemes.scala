@@ -19,8 +19,9 @@ package models
 import play.api.data.Form
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels.Radios.{Item, Radio}
+import uk.gov.hmrc.viewmodels.Radios.{Radio, Item}
 import uk.gov.hmrc.viewmodels.Text.Literal
+
 import scala.language.implicitConversions
 
 case class PenaltySchemes(name: Option[String], pstr: String, srn: Option[String])

@@ -21,14 +21,13 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import connectors.AFTConnector
 import javax.inject.Singleton
-import models.UserAnswers
 import models.requests.DataRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.DateHelper
-import models.JourneyType
+import models.{UserAnswers, JourneyType}
 import pages.AFTStatusQuery
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 @Singleton
 class AFTService @Inject()(

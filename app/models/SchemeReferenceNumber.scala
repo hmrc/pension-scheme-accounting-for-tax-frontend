@@ -18,6 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.PathBindable
+
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 import config.Constants._

@@ -16,7 +16,6 @@
 
 package pages
 
-import models.UserAnswers
-import queries.{Gettable, Settable}
+import queries.{Settable, Gettable}
 
 trait QuestionPage[A] extends Page with Gettable[A] with Settable[A]

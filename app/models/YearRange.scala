@@ -16,8 +16,7 @@
 
 package models
 
-import java.time.LocalDate
-import java.time.Month
+import java.time.{LocalDate, Month}
 
 import play.api.data.Form
 import play.api.i18n.Messages

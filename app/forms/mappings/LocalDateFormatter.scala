@@ -21,7 +21,7 @@ import java.time.LocalDate
 import play.api.data.FormError
 import play.api.data.format.Formatter
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Failure, Try}
 
 private[mappings] class LocalDateFormatter(
                                             invalidKey: String,

@@ -17,7 +17,7 @@
 package forms
 
 import forms.mappings.Mappings
-import models.{Quarters, Quarter}
+import models.{Quarter, Quarters}
 import play.api.data.Form
 
 class QuartersFormProvider extends Mappings {

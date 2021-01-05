@@ -18,7 +18,6 @@ package models
 
 import play.api.data.Form
 import play.api.i18n.Messages
-import play.api.libs.json._
 import uk.gov.hmrc.viewmodels._
 
 sealed trait SponsoringEmployerType

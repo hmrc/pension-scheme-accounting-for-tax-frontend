@@ -19,7 +19,7 @@ package forms
 import config.FrontendAppConfig
 import forms.mappings.Mappings
 import javax.inject.Inject
-import models.{StartYears, Year}
+import models.{Year, StartYears}
 import play.api.data.Form
 
 class YearsFormProvider @Inject() extends Mappings {
