@@ -19,8 +19,6 @@ package models
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, Writes, _}
 
-import scala.language.implicitConversions
-
 case class SessionAccessData(version: Int, accessMode: AccessMode, areSubmittedVersionsAvailable:Boolean)
 
 case class SessionData(sessionId: String, lockDetail: Option[LockDetail], sessionAccessData: SessionAccessData) {

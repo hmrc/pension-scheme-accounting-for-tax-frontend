@@ -31,8 +31,6 @@ import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
 
-import scala.language.implicitConversions
-
 @Singleton
 class MemberSearchService @Inject()(
                                      chargeDService: ChargeDService,
