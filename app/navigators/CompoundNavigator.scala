@@ -20,10 +20,10 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import models.requests.DataRequest
-import models.{AccessType, Mode, UserAnswers}
+import models.{Mode, AccessType, UserAnswers}
 import pages.Page
 import play.api.Logger
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 
 import scala.collection.JavaConverters._
 

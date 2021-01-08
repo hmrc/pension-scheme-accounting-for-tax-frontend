@@ -16,10 +16,10 @@
 
 package navigators
 
-import controllers.chargeB.routes.{ChargeDetailsController, CheckYourAnswersController}
+import controllers.chargeB.routes.{CheckYourAnswersController, ChargeDetailsController}
 import controllers.routes.AFTSummaryController
-import data.SampleData.{accessType, versionInt}
-import models.{CheckMode, NormalMode, UserAnswers}
+import data.SampleData.{versionInt, accessType}
+import models.{NormalMode, CheckMode, UserAnswers}
 import org.scalatest.prop.TableFor3
 import pages.Page
 import pages.chargeB.{ChargeBDetailsPage, CheckYourAnswersPage, WhatYouWillNeedPage}

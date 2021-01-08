@@ -24,14 +24,13 @@ import models.AccessMode.PageAccessModeCompile
 import models.ChargeType._
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, UserAnswers}
+import models.{ChargeType, AccessType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.mvc.Call
 import play.twirl.api.{Html => TwirlHtml}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{SummaryList, _}
-import uk.gov.hmrc.viewmodels.Html
+import uk.gov.hmrc.viewmodels.{Html, SummaryList, _}
 
 class AFTSummaryHelper extends NunjucksSupport {
 
@@ -41,7 +40,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     srn: String,
     startDate: LocalDate,
     accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
+    version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeAnnualAllowance,
       totalAmount = ua.get(pages.chargeE.TotalChargeAmountPage).getOrElse(BigDecimal(0)),
@@ -78,7 +77,7 @@ class AFTSummaryHelper extends NunjucksSupport {
     srn: String,
     startDate: LocalDate,
     accessType: AccessType,
-    version: Int)(implicit messages:Messages): Seq[SummaryDetails] = Seq(
+    version: Int): Seq[SummaryDetails] = Seq(
     SummaryDetails(
       chargeType = ChargeTypeOverseasTransfer,
       totalAmount = ua.get(pages.chargeG.TotalChargeAmountPage).getOrElse(BigDecimal(0)),

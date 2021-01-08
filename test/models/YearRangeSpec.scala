@@ -21,13 +21,10 @@ import java.time.LocalDate
 import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import org.scalatest.AsyncWordSpec
-import org.scalatest.MustMatchers
-import org.scalatest.OptionValues
+import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.JsString
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import utils.DateHelper
 
 class YearRangeSpec

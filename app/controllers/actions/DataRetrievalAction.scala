@@ -22,13 +22,13 @@ import com.google.inject.ImplementedBy
 import connectors.cache.UserAnswersCacheConnector
 import javax.inject.Inject
 import models.UserAnswers
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
 import play.api.libs.json.JsObject
 import play.api.mvc.ActionTransformer
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class DataRetrievalImpl(
                          srn: String,

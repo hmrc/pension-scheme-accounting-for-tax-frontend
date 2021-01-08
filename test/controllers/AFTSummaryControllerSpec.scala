@@ -25,8 +25,8 @@ import helpers.{AFTSummaryHelper, FormatHelper}
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AccessMode, GenericViewModel, MemberDetails, Quarter, UserAnswers}
-import org.mockito.{ArgumentCaptor, Matchers}
+import models.{GenericViewModel, UserAnswers, Quarter, MemberDetails, AccessMode}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -35,18 +35,17 @@ import play.api.data.Form
 import play.api.i18n.Messages
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Call
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.{Html => TwirlHtml}
 import services.MemberSearchService.MemberRow
-import services.{AFTService, MemberSearchService, SchemeService}
-import uk.gov.hmrc.viewmodels.Html
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import services.{AFTService, SchemeService, MemberSearchService}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import utils.AFTConstants.QUARTER_END_DATE
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import scala.concurrent.Future
 
@@ -255,7 +254,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
       "display search results when Search is triggered and not display view amendments link" in {
         val searchResult: Seq[MemberRow] = searchResultsMemberDetailsChargeD(SampleData.memberDetails, BigDecimal("83.44"))
 
-        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any(), any()))
+        when(mockMemberSearchService.search(any(), any(), any(), any(), any(), any())(any()))
           .thenReturn(searchResult)
 
         mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
@@ -269,7 +268,7 @@ class AFTSummaryControllerSpec extends ControllerSpecBase with NunjucksSupport w
 
         status(result) mustEqual OK
 
-        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"), any(), any())(any(), any())
+        verify(mockMemberSearchService, times(1)).search(any(), any(), any(), Matchers.eq("Search"), any(), any())(any())
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
         templateCaptor.getValue mustBe templateToBeRendered
 

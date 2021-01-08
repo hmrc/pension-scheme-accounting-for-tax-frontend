@@ -18,7 +18,7 @@ package viewmodels
 
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{OWrites, __}
+import play.api.libs.json.{__, OWrites}
 import uk.gov.hmrc.viewmodels.Text
 
 case class AFTViewModel(period: Option[Text], status: Option[Text], link: Link)

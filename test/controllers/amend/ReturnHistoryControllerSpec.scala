@@ -18,21 +18,21 @@ package controllers.amend
 
 import java.time.LocalDate
 
-import connectors.{AFTConnector, FinancialStatementConnector}
+import connectors.{FinancialStatementConnector, AFTConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission}
+import models.{AFTOverview, AFTVersion, Submission, AccessType, Draft}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{times, when, verify}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsArray, Json, JsObject}
 import play.api.mvc.Results._
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html

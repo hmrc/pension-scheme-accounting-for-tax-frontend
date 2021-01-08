@@ -21,9 +21,8 @@ import connectors.cache.UserAnswersCacheConnector
 import data.SampleData
 import data.SampleData._
 import helpers.DeleteChargeHelper
-import models.LockDetail
 import models.requests.DataRequest
-import models.{AccessMode, SessionData, SessionAccessData, UserAnswers}
+import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -45,7 +44,7 @@ class DeleteAFTChargeServiceSpec extends SpecBase with ScalaFutures with BeforeA
   private def sessionData(version: Int) = SessionData(s"id", Some(LockDetail("name", psaId)), sessionAccessData(version))
   private val emptyUserAnswers = UserAnswers()
 
-  private def dataRequest(ua: UserAnswers = UserAnswers(), version: Int): DataRequest[AnyContent] =
+  private def dataRequest(ua: UserAnswers, version: Int): DataRequest[AnyContent] =
     DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, ua, sessionData(version))
 
   private val deleteChargeService = new DeleteAFTChargeService(mockAFTService, mockUserAnswersCacheConnector, mockDeleteChargeHelper)

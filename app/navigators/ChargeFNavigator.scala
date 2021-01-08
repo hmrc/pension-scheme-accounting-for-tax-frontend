@@ -24,10 +24,10 @@ import connectors.cache.UserAnswersCacheConnector
 import helpers.DeleteChargeHelper
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{AccessType, NormalMode, UserAnswers}
+import models.{NormalMode, AccessType, UserAnswers}
 import pages.Page
-import pages.chargeF.{ChargeDetailsPage, CheckYourAnswersPage, DeleteChargePage, WhatYouWillNeedPage}
-import play.api.mvc.{AnyContent, Call}
+import pages.chargeF.{CheckYourAnswersPage, ChargeDetailsPage, WhatYouWillNeedPage, DeleteChargePage}
+import play.api.mvc.{Call, AnyContent}
 class ChargeFNavigator @Inject()(val dataCacheConnector: UserAnswersCacheConnector,
                                  deleteChargeHelper: DeleteChargeHelper, config: FrontendAppConfig) extends Navigator {
 

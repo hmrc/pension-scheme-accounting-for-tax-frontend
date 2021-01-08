@@ -19,7 +19,7 @@ package forms
 import base.SpecBase
 import config.FrontendAppConfig
 import forms.behaviours.OptionFieldBehaviours
-import models.{StartYears, Year}
+import models.{Year, StartYears}
 import play.api.data.FormError
 
 class YearsFormProviderSpec extends SpecBase with OptionFieldBehaviours {

@@ -22,11 +22,10 @@ import helpers.DeleteChargeHelper
 import javax.inject.Singleton
 import models.UserAnswers
 import models.requests.DataRequest
-import pages.QuestionPage
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 @Singleton
 class DeleteAFTChargeService @Inject()(

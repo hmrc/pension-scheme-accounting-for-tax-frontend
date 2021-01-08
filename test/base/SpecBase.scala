@@ -26,10 +26,8 @@ import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.Injector
 import play.api.mvc.AnyContent
 import play.api.test.FakeRequest
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 import uk.gov.hmrc.http.HeaderCarrier
-
-import scala.language.implicitConversions
 
 trait SpecBase extends PlaySpec with GuiceOneAppPerSuite {
 

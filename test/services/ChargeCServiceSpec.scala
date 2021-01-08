@@ -20,21 +20,20 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus
-import models.AmendedChargeStatus.{Added, Updated}
+import models.AmendedChargeStatus.{Updated, Added}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{Employer, MemberDetails, UserAnswers}
+import models.{Employer, AmendedChargeStatus, UserAnswers, MemberDetails}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import pages.chargeC.{ChargeCDetailsPage, SponsoringIndividualDetailsPage, SponsoringOrganisationDetailsPage, WhichTypeOfSponsoringEmployerPage, _}
+import pages.chargeC.{SponsoringOrganisationDetailsPage, ChargeCDetailsPage, WhichTypeOfSponsoringEmployerPage, SponsoringIndividualDetailsPage, _}
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
@@ -109,8 +108,6 @@ class ChargeCServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterE
   }
 
   "getAllAuthSurplusAmendments" must {
-    implicit val dataRequest: DataRequest[AnyContent] = DataRequest(fakeRequest, "", Some(PsaId(SampleData.psaId)), None, UserAnswers(), SampleData.sessionData())
-
     "return all the amendments for auth surplus charge" in {
       val expectedAmendments = Seq(
         ViewAmendmentDetails(

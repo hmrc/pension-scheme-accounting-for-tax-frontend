@@ -18,9 +18,7 @@ package models.financialStatement
 
 import java.time.LocalDate
 
-import models.WithName
-import play.api.libs.functional.syntax._
-import play.api.libs.json.{Format, JsPath, Json, Reads}
+import play.api.libs.json.{Format, Json}
 
 case class PsaFS(chargeReference: String,
                  chargeType: PsaFSChargeType,

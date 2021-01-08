@@ -21,10 +21,9 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.TryValues
 import pages._
-import pages.chargeC._
 import pages.chargeE.DeleteMemberPage
 import pages.chargeF.ChargeDetailsPage
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{Json, JsValue}
 
 trait UserAnswersGenerator extends TryValues {
   self: Generators =>

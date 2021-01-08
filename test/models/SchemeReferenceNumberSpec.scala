@@ -18,7 +18,7 @@ package models
 
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
-import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
+import org.scalatest.{MustMatchers, WordSpec, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.PathBindable
 

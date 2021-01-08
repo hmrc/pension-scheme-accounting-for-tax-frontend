@@ -21,24 +21,18 @@ import connectors.AFTConnector
 import controllers.actions._
 import forms.amend.AmendYearsFormProvider
 import javax.inject.Inject
-import models.AmendYears
-import models.GenericViewModel
-import models.Year
+import models.{AmendYears, GenericViewModel, Year}
 import models.requests.IdentifierRequest
 import play.api.data.Form
-import play.api.i18n.I18nSupport
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class AmendYearsController @Inject()(
                                       override val messagesApi: MessagesApi,

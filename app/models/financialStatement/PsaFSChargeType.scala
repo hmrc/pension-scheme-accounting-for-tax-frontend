@@ -16,7 +16,7 @@
 
 package models.financialStatement
 
-import models.{Enumerable, WithName}
+import models.{WithName, Enumerable}
 
 sealed trait PsaFSChargeType
 

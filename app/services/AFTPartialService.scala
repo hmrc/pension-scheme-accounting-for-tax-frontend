@@ -18,25 +18,25 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
 import models.financialStatement.SchemeFS
-
 import javax.inject.Inject
-import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
+import models.{AFTOverview, Quarters, Draft, SchemeDetails, LockDetail}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
@@ -47,7 +47,7 @@ class AFTPartialService @Inject()(
                                  )(implicit ec: ExecutionContext) {
 
   def retrieveOptionAFTViewModel(srn: String, psaId: String, schemeIdType: String)
-                                (implicit hc: HeaderCarrier, messages: Messages): Future[Seq[AFTViewModel]] =
+                                (implicit hc: HeaderCarrier): Future[Seq[AFTViewModel]] =
     schemeService.retrieveSchemeDetails(
       psaId = psaId,
       srn = srn,
@@ -328,7 +328,7 @@ class AFTPartialService @Inject()(
    */
 
   private def getStartReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String)
-                                  (implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+                                  (implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
 
     val startLink: Option[AFTViewModel] = Some(AFTViewModel(None, None,
       Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
@@ -366,8 +366,7 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String)
-                                    (implicit hc: HeaderCarrier, messages: Messages): Option[AFTViewModel] = {
+  private def getPastReturnsModelOpt(overview: Seq[AFTOverview], srn: String): Option[AFTViewModel] = {
     val pastReturns = overview.filter(!_.compiledVersionAvailable)
 
     if (pastReturns.nonEmpty) {
@@ -392,8 +391,7 @@ class AFTPartialService @Inject()(
                                          linkText: Text = msg"aftPartial.view.link"
                                        )(
                                          implicit
-                                         hc: HeaderCarrier,
-                                         messages: Messages
+                                         hc: HeaderCarrier
                                        ): Future[Option[AFTViewModel]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
@@ -423,7 +421,7 @@ class AFTPartialService @Inject()(
                                               endDate: LocalDate,
                                               overview: AFTOverview,
                                               linkText: Text
-                                            )(implicit hc: HeaderCarrier, messages: Messages): Future[Option[AFTViewModel]] = {
+                                            )(implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(lockDetail) => Some(AFTViewModel(
         Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
@@ -458,8 +456,7 @@ class AFTPartialService @Inject()(
                                                  inProgressReturns: Seq[AFTOverview],
                                                  linkText: Text
                                                )(
-                                                 implicit hc: HeaderCarrier,
-                                                 messages: Messages
+                                                 implicit hc: HeaderCarrier
                                                ): Future[Option[AFTViewModel]] = {
 
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
@@ -489,8 +486,7 @@ class AFTPartialService @Inject()(
                                                         pstr: String
                                                       )(
                                                         implicit
-                                                        hc: HeaderCarrier,
-                                                        messages: Messages
+                                                        hc: HeaderCarrier
                                                       ): Future[Option[Link]] = {
     val inProgressReturns = overview.filter(_.compiledVersionAvailable)
 
@@ -520,8 +516,7 @@ class AFTPartialService @Inject()(
                                                          endDate: LocalDate,
                                                          overview: AFTOverview
                                                        )(
-                                                         implicit hc: HeaderCarrier,
-                                                         messages: Messages
+                                                         implicit hc: HeaderCarrier
                                                        ): Future[Option[Link]] = {
     aftCacheConnector.lockDetail(srn, startDate.toString).map {
       case Some(_) =>
@@ -552,8 +547,7 @@ class AFTPartialService @Inject()(
                                                            pstr: String,
                                                            inProgressReturns: Seq[AFTOverview]
                                                          )(
-                                                           implicit hc: HeaderCarrier,
-                                                           messages: Messages
+                                                           implicit hc: HeaderCarrier
                                                          ): Future[Option[Link]] = {
     retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
 

@@ -16,7 +16,7 @@
 
 package controllers.amend
 
-import audit.{AuditService, StartAmendAFTAuditEvent}
+import audit.{StartAmendAFTAuditEvent, AuditService}
 import connectors.AFTConnector
 import controllers.actions.MutableFakeDataRetrievalAction
 import org.mockito.ArgumentCaptor
@@ -25,7 +25,7 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{Enumerable, SchemeDetails, SchemeStatus}
+import models.{SchemeDetails, SchemeStatus, Enumerable}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalatest.BeforeAndAfterEach

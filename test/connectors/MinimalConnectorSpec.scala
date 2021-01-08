@@ -25,8 +25,6 @@ import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class MinimalConnectorSpec
   extends AsyncWordSpec
     with MustMatchers
@@ -39,7 +37,6 @@ class MinimalConnectorSpec
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
   private lazy val connector: MinimalConnector = injector.instanceOf[MinimalConnector]
-  private val psaId = "test-psa"
   private val minimalPsaDetailsUrl = "/pension-administrator/get-minimal-psa"
   private val email = "test@test.com"
 

@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import data.SampleData
-import data.SampleData.{accessType, versionInt}
+import data.SampleData.{versionInt, accessType}
 import helpers.FormatHelper
 import models.requests.DataRequest
 import models.{AccessMode, Member, UserAnswers}
@@ -33,9 +33,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.{AnyContent, Results}
+import play.api.mvc.{Results, AnyContent}
 import services.MemberSearchService.MemberRow
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 
 class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
@@ -121,7 +121,7 @@ class MemberSearchServiceSpec extends SpecBase with ScalaFutures with BeforeAndA
     "return valid results with no remove link when read only" in {
       val fakeDataRequest: DataRequest[AnyContent] = request(sessionAccessData = SampleData.sessionAccessData(accessMode = AccessMode.PageAccessModeViewOnly))
 
-      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C", accessType, versionInt)(implicitly, fakeDataRequest) mustBe
+      memberSearchService.search(emptyUserAnswers, srn, startDate, "CS121212C", accessType, versionInt)(fakeDataRequest) mustBe
         searchResultsMemberDetailsChargeD("Bill Bloggs", "CS121212C", BigDecimal("55.55"), removeLink = false)
     }
   }

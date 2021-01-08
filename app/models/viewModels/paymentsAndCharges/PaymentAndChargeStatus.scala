@@ -15,7 +15,7 @@
  */
 
 package models.viewModels.paymentsAndCharges
-import models.{Enumerable, WithName}
+import models.{WithName, Enumerable}
 
 sealed trait PaymentAndChargeStatus
 

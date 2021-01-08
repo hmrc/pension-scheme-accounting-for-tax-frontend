@@ -20,15 +20,15 @@ import java.time.LocalDate
 
 import com.google.inject.Inject
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
+import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
 import models.ChargeType.ChargeTypeAnnualAllowance
 import models.LocalDateBinder._
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, Member, MemberDetails, UserAnswers}
+import models.{Member, AccessType, UserAnswers, MemberDetails}
 import pages.chargeE.{ChargeDetailsPage, MemberAFTVersionPage, MemberStatusPage}
 import play.api.i18n.Messages
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import services.AddMembersService.mapChargeXMembersToTable
 import viewmodels.Table
 

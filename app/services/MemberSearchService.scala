@@ -22,16 +22,14 @@ import com.google.inject.Inject
 import helpers.FormatHelper
 import javax.inject.Singleton
 import models.requests.DataRequest
-import models.{AccessType, ChargeType, Member, UserAnswers}
+import models.{ChargeType, Member, AccessType, UserAnswers}
 import play.api.i18n.Messages
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{Json, Writes, _}
+import play.api.libs.json.{Writes, Json, _}
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row, Action}
 import uk.gov.hmrc.viewmodels.Text.{Literal, Message}
 import uk.gov.hmrc.viewmodels._
-
-import scala.language.implicitConversions
 
 @Singleton
 class MemberSearchService @Inject()(
@@ -43,8 +41,8 @@ class MemberSearchService @Inject()(
 
   import MemberSearchService._
 
-  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit messages: Messages,
-                                                                                     request: DataRequest[AnyContent]): Seq[MemberRow] = {
+  def search(ua: UserAnswers, srn: String, startDate: LocalDate, searchText: String, accessType: AccessType, version: Int)(implicit
+    request: DataRequest[AnyContent]): Seq[MemberRow] = {
     val searchTextUpper = searchText.toUpperCase
     val searchFunc: MemberSummary => Boolean = { member =>
       if (searchTextUpper.matches(ninoRegex)) {

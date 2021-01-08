@@ -29,21 +29,21 @@ import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RET
 import models.financialStatement.{PsaFS, SchemeFS}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, reset, when, verify}
 import org.scalatest._
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsString, Json, JsObject}
 import play.api.test.Helpers.{route, _}
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import java.time.LocalDate
+
 import scala.concurrent.Future
 
 class PaymentsAndChargeDetailsControllerSpec
@@ -394,7 +394,7 @@ object PaymentsAndChargeDetailsControllerSpec {
   private def createChargeWithAmountDueAndInterestPayment(
                                                            chargeReference: String,
                                                            amountDue: BigDecimal = 0.00,
-                                                           interest: BigDecimal = 123.00
+                                                           interest: BigDecimal
                                                          ): SchemeFS = {
     SchemeFS(
       chargeReference = chargeReference,

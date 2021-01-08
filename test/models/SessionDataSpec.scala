@@ -17,9 +17,7 @@
 package models
 
 import data.SampleData
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.MustMatchers
-import org.scalatest.WordSpec
+import org.scalatest.{BeforeAndAfterEach, MustMatchers, WordSpec}
 import org.scalatestplus.mockito.MockitoSugar
 
 class SessionDataSpec extends WordSpec with MustMatchers with MockitoSugar with BeforeAndAfterEach {

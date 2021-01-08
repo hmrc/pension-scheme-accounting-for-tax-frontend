@@ -28,8 +28,6 @@ import play.api.libs.json.{JsBoolean, JsNumber, Json}
 import uk.gov.hmrc.http._
 import utils.{DateHelper, WireMockHelper}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()

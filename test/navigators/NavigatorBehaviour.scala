@@ -25,8 +25,7 @@ import org.scalatest.MustMatchers
 import org.scalatest.prop.{TableFor5, TableFor3}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.Page
-import play.api.mvc.AnyContent
-import play.api.mvc.Call
+import play.api.mvc.{AnyContent, Call}
 import utils.DateHelper
 
 trait NavigatorBehaviour extends SpecBase with MustMatchers with ScalaCheckPropertyChecks {

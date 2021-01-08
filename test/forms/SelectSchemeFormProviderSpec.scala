@@ -18,10 +18,8 @@ package forms
 
 import base.SpecBase
 import config.FrontendAppConfig
-import data.SampleData._
 import forms.behaviours.OptionFieldBehaviours
-import models.{PenaltySchemes, Quarter, QuarterType}
-import models.Quarters._
+import models.PenaltySchemes
 import play.api.data.FormError
 
 class SelectSchemeFormProviderSpec extends SpecBase with OptionFieldBehaviours {

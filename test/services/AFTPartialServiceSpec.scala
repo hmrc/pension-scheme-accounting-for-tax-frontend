@@ -18,6 +18,7 @@ package services
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -30,14 +31,13 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.i18n.Messages
 import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{AFTViewModel, Link, PspDashboardAftViewModel}
+import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class AFTPartialServiceSpec
   extends SpecBase
@@ -438,10 +438,9 @@ object AFTPartialServiceSpec {
   private val psaId = "A0000000"
   private val pspId = "20000000"
   private val name = "test-name"
-  private val date = "2020-01-01"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
 
-  def lockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
+  def lockedAftModel: Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.lockDetail".withArgs(name)),
@@ -453,7 +452,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  def unlockedEmptyAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
+  def unlockedEmptyAftModel: Seq[AFTViewModel] = Seq(
     AFTViewModel(
       None,
       None,
@@ -464,7 +463,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  def lockedAftModelWithNoVersion(implicit messages: Messages): Seq[AFTViewModel] = Seq(
+  def lockedAftModelWithNoVersion: Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.lockDetail".withArgs(name)),
@@ -476,7 +475,7 @@ object AFTPartialServiceSpec {
     )
   )
 
-  def inProgressUnlockedAftModel(implicit messages: Messages): Seq[AFTViewModel] = Seq(
+  def inProgressUnlockedAftModel: Seq[AFTViewModel] = Seq(
     AFTViewModel(
       Some(msg"aftPartial.inProgress.forPeriod".withArgs(formattedStartDate, formattedEndDate)),
       Some(msg"aftPartial.status.inProgress"),
@@ -532,18 +531,17 @@ object AFTPartialServiceSpec {
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
   val viewPastChargesUrl: String = s"$aftUrl/srn/2020/payments-and-charges"
 
-  def startModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
+  def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
       linkText = msg"aftPartial.start.link"))
 
-  def pastReturnsModel(implicit messages: Messages): AFTViewModel = AFTViewModel(None, None,
+  def pastReturnsModel: AFTViewModel = AFTViewModel(None, None,
     Link(
       id = "aftAmendLink",
       url = amendUrl,
       linkText = msg"aftPartial.view.change.past"))
 
-  def multipleInProgressModel(count: Int, linkText: String = "aftPartial.view.link")
-                             (implicit messages: Messages): AFTViewModel =
+  def multipleInProgressModel(count: Int, linkText: String = "aftPartial.view.link"): AFTViewModel =
     AFTViewModel(
       Some(msg"aftPartial.multipleInProgress.text"),
       Some(msg"aftPartial.multipleInProgress.count".withArgs(count)),
@@ -554,8 +552,7 @@ object AFTPartialServiceSpec {
         hiddenText = Some(msg"aftPartial.view.hidden"))
     )
 
-  def oneInProgressModel(locked: Boolean, linkText: String = "aftPartial.view.link")
-                        (implicit messages: Messages): AFTViewModel = AFTViewModel(
+  def oneInProgressModel(locked: Boolean, linkText: String = "aftPartial.view.link"): AFTViewModel = AFTViewModel(
     Some(msg"aftPartial.inProgress.forPeriod".withArgs("1 October", "31 December 2020")),
     if (locked) {
       Some(msg"aftPartial.status.lockDetail".withArgs(name))
@@ -572,29 +569,29 @@ object AFTPartialServiceSpec {
   val noInProgress = Seq(overviewApril20, overviewJuly20)
   val oneInProgress = Seq(overviewApril20, overviewOctober20)
 
-  def allTypesMultipleReturnsModel(implicit messages: Messages): Seq[AFTViewModel] =
+  def allTypesMultipleReturnsModel: Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel, pastReturnsModel)
 
-  def noInProgressModel(implicit messages: Messages): Seq[AFTViewModel] =
+  def noInProgressModel: Seq[AFTViewModel] =
     Seq(startModel, pastReturnsModel)
 
-  def oneInProgressModelLocked(implicit messages: Messages): Seq[AFTViewModel] =
+  def oneInProgressModelLocked: Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = true), startModel, pastReturnsModel)
 
-  def oneInProgressModelNotLocked(implicit messages: Messages): Seq[AFTViewModel] =
+  def oneInProgressModelNotLocked: Seq[AFTViewModel] =
     Seq(oneInProgressModel(locked = false), startModel, pastReturnsModel)
 
-  def oneCompileZeroedOut(implicit messages: Messages): Seq[AFTOverview] =
+  def oneCompileZeroedOut: Seq[AFTOverview] =
     Seq(
       overviewApril20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
       overviewJuly20.copy(numberOfVersions = 1, compiledVersionAvailable = true),
       overviewOctober20.copy(numberOfVersions = 2, compiledVersionAvailable = true)
     )
 
-  def oneCompileZeroedOutModel(implicit messages: Messages): Seq[AFTViewModel] =
+  def oneCompileZeroedOutModel: Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
-  def pspDashboardAftReturnsViewModel(implicit messages: Messages): PspDashboardAftViewModel =
+  def pspDashboardAftReturnsViewModel: PspDashboardAftViewModel =
     PspDashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "2 in progress",
@@ -612,7 +609,7 @@ object AFTPartialServiceSpec {
                                                  h3: String,
                                                  span: String,
                                                  linkText: String
-                                               )(implicit messages: Messages): PspDashboardAftViewModel =
+                                               ): PspDashboardAftViewModel =
     PspDashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> span,
@@ -625,7 +622,7 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneCompileZeroedOutModel(implicit messages: Messages): PspDashboardAftViewModel =
+  def pspDashboardOneCompileZeroedOutModel: PspDashboardAftViewModel =
     PspDashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "3 in progress",

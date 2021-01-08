@@ -17,10 +17,10 @@
 package models
 
 import play.api.data.Form
-import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.Radios
-import uk.gov.hmrc.viewmodels.Radios.{Item, Radio}
+import uk.gov.hmrc.viewmodels.Radios.{Radio, Item}
 import uk.gov.hmrc.viewmodels.Text.Literal
+
 import scala.language.implicitConversions
 
 case class PenaltySchemes(name: Option[String], pstr: String, srn: Option[String])
@@ -29,7 +29,7 @@ object PenaltySchemes extends Enumerable.Implicits {
 
   def values(schemes: Seq[PenaltySchemes]): Seq[String] = schemes.map(_.pstr)
 
-  def radios(form: Form[_], schemes: Seq[PenaltySchemes])(implicit messages: Messages): Seq[Item] = {
+  def radios(form: Form[_], schemes: Seq[PenaltySchemes]): Seq[Item] = {
     val radio: Seq[Radio] = schemes.map { scheme =>
       if (scheme.name.isDefined) {
         Radios.Radio(Literal(s"${scheme.name.getOrElse("")} (${scheme.pstr})"), scheme.pstr)

@@ -21,14 +21,14 @@ import java.time.LocalDate
 import com.google.inject.ImplementedBy
 import javax.inject.Inject
 import models.AccessType
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
 import pages.Page
 import play.api.mvc.ActionTransformer
 import services.RequestCreationService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 
 class DataSetupImpl(

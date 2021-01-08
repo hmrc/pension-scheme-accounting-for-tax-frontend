@@ -25,7 +25,7 @@ import models.requests.{DataRequest, IdentifierRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
-import uk.gov.hmrc.domain.{PsaId, PspId}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -44,8 +44,6 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   private def getConfigString(key: String) = servicesConfig.getConfString(key, throw new Exception(s"Could not find config '$key'"))
 
   lazy val contactHost: String = baseUrl("contact-frontend")
-
-  private val contactFormServiceIdentifier = "pensionSchemeAccountingForTaxFrontend"
 
   lazy val appName: String = configuration.get[String](path = "appName")
   val analyticsToken: String = configuration.get[String](s"google-analytics.token")

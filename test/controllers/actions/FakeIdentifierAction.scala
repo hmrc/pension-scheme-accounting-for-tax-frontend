@@ -19,10 +19,9 @@ package controllers.actions
 import javax.inject.Inject
 import models.requests.IdentifierRequest
 import play.api.mvc._
-import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.domain.PspId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class FakeIdentifierAction @Inject()(bodyParsers: PlayBodyParsers) extends IdentifierAction {
 

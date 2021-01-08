@@ -20,9 +20,9 @@ import java.time.LocalDate
 
 import data.SampleData
 import models.{SessionData, UserAnswers}
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.requests.{OptionalDataRequest, IdentifierRequest}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 import SampleData._
 
 class FakeDataRetrievalAction(json: Option[UserAnswers],

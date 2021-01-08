@@ -17,8 +17,6 @@
 package models
 
 import play.api.data.Form
-import play.api.i18n.Messages
-import play.api.libs.json._
 import uk.gov.hmrc.viewmodels._
 
 sealed trait SponsoringEmployerType
@@ -33,8 +31,7 @@ object SponsoringEmployerType extends Enumerable.Implicits {
     SponsoringEmployerTypeOrganisation
   )
 
-  def radios(form: Form[_])(implicit messages: Messages): Seq[Radios.Item] = {
-
+  def radios(form: Form[_]): Seq[Radios.Item] = {
     val field = form("value")
     val items = Seq(
       Radios.Radio(msg"chargeC.whichTypeOfSponsoringEmployer.individual", SponsoringEmployerTypeIndividual.toString),

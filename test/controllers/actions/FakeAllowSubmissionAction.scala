@@ -20,8 +20,7 @@ import models.requests.DataRequest
 import play.api.mvc.Result
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class FakeAllowSubmissionAction extends AllowSubmissionAction {
   override protected def executionContext: ExecutionContext = global

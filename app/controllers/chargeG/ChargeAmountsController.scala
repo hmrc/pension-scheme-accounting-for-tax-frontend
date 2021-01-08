@@ -23,18 +23,18 @@ import controllers.actions._
 import forms.chargeG.ChargeAmountsFormProvider
 import javax.inject.Inject
 import models.chargeG.ChargeAmounts
-import models.{AccessType, GenericViewModel, Index, Mode, SessionData, UserAnswers}
+import models.{Mode, GenericViewModel, AccessType, Index}
 import navigators.CompoundNavigator
-import pages.chargeG.{ChargeAmountsPage, MemberDetailsPage}
+import pages.chargeG.{MemberDetailsPage, ChargeAmountsPage}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 import java.time.LocalDate
 
 import models.LocalDateBinder._

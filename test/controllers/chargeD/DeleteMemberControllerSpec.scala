@@ -69,9 +69,6 @@ class DeleteMemberControllerSpec extends ControllerSpecBase with MockitoSugar wi
     .set(MemberDetailsPage(0), memberDetails).success.value
     .set(MemberDetailsPage(1), memberDetails).success.value
 
-  private val answers: UserAnswers = userAnswers
-    .set(PSTRQuery, pstr).success.value
-
   "DeleteMember Controller" must {
 
     "return OK and the correct view for a GET" in {

@@ -24,12 +24,12 @@ import connectors.{AFTConnector, MinimalConnector}
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.UserAnswersCacheConnector
 import data.SampleData._
-import models.{AFTOverview, AFTVersion, AccessMode, SchemeDetails, SessionAccessData, SessionData, UserAnswers}
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{AFTOverview, SessionAccessData, AFTVersion, SessionData, SchemeDetails, AccessMode}
+import models.requests.IdentifierRequest
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when, _}
-import org.scalatest.{BeforeAndAfterEach, MustMatchers}
+import org.scalatest.{MustMatchers, BeforeAndAfterEach}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import pages.{AFTSummaryPage, ChargeTypePage}
@@ -52,7 +52,6 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
   private val psaIdInstance = PsaId(psaId)
 
   private val sessionId = "session id"
-  private val internalId = s"$srn$startDate"
 
   private val nameLockedBy = None
   private val sessionAccessDataCompile = SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeCompile, areSubmittedVersionsAvailable = false)

@@ -16,9 +16,7 @@
 
 package forms.behaviours
 
-import play.api.data.{Form, FormError}
-
-import scala.math.BigDecimal.RoundingMode
+import play.api.data.{FormError, Form}
 
 trait BigDecimalFieldBehaviours extends FieldBehaviours {
 

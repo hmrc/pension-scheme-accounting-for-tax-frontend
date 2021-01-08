@@ -21,17 +21,17 @@ import java.time.LocalDate
 import com.google.inject.Inject
 import controllers.chargeB.{routes => _}
 import helpers.{DeleteChargeHelper, FormatHelper}
-import models.AmendedChargeStatus.{Unknown, amendedChargeStatus}
+import models.AmendedChargeStatus.{amendedChargeStatus, Unknown}
 import models.ChargeType.ChargeTypeAuthSurplus
 import models.LocalDateBinder._
 import models.SponsoringEmployerType.SponsoringEmployerTypeIndividual
 import models.requests.DataRequest
 import models.viewModels.ViewAmendmentDetails
-import models.{AccessType, Employer, UserAnswers}
+import models.{Employer, AccessType, UserAnswers}
 import pages.chargeC._
 import play.api.i18n.Messages
 import play.api.libs.json.JsArray
-import play.api.mvc.{AnyContent, Call}
+import play.api.mvc.{Call, AnyContent}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import viewmodels.Table

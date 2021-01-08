@@ -21,10 +21,10 @@ import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.{Quarters, CommonQuarters, DisplayQuarter, InProgressHint, LockedHint, Quarter, SubmittedHint}
+import models.{DisplayQuarter, InProgressHint, Quarters, Quarter, SubmittedHint, CommonQuarters, LockedHint}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class QuartersService @Inject()(
                                  config: FrontendAppConfig,

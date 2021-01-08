@@ -18,7 +18,7 @@ package models.chargeF
 
 import java.time.LocalDate
 
-import play.api.libs.json.{Format, Json, Reads, Writes}
+import play.api.libs.json.{Format, Json}
 
 case class ChargeDetails(deRegistrationDate: LocalDate, totalAmount: BigDecimal)
 

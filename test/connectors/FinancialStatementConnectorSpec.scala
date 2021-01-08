@@ -20,16 +20,13 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
-import models.financialStatement.PsaFSChargeType.{OTC_6_MONTH_LPP, AFT_INITIAL_LFP}
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.financialStatement.{PsaFS, SchemeFSChargeType, PsaFSChargeType, SchemeFS}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
+import models.financialStatement.{PsaFS, PsaFSChargeType, SchemeFS, SchemeFSChargeType}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class FinancialStatementConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelper {
 

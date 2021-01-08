@@ -18,7 +18,7 @@ package forms.chargeD
 
 import java.time.LocalDate
 
-import forms.mappings.{Constraints, Formatters, Mappings}
+import forms.mappings.{Formatters, Constraints, Mappings}
 import javax.inject.Inject
 import models.chargeD.ChargeDDetails
 import play.api.data.Form

@@ -17,16 +17,10 @@
 package models.requests
 
 import controllers.actions.IdNotFound
-import models.AccessMode
-import models.SessionData
-import models.SchemeAdministratorType
-import models.SchemeAdministratorType.SchemeAdministratorTypePSA
-import models.SchemeAdministratorType.SchemeAdministratorTypePSP
-import play.api.mvc.Request
-import play.api.mvc.WrappedRequest
-import models.UserAnswers
-import uk.gov.hmrc.domain.PsaId
-import uk.gov.hmrc.domain.PspId
+import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
+import play.api.mvc.{Request, WrappedRequest}
+import models.{AccessMode, SessionData, SchemeAdministratorType, UserAnswers}
+import uk.gov.hmrc.domain.{PspId, PsaId}
 
 case class OptionalDataRequest[A] (
                                     request: Request[A],

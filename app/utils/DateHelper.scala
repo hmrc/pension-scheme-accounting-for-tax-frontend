@@ -16,7 +16,7 @@
 
 package utils
 
-import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import java.time.{ZonedDateTime, LocalDate}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
