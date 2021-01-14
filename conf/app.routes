@@ -239,7 +239,6 @@ GET         /:srn/new-return/:year/select-quarter                               
 POST        /:srn/new-return/:year/select-quarter                                                                                                    controllers.QuartersController.onSubmit(srn: String, year: String)
 
 
-GET         /:srn/aft-partial                                                                                                                        controllers.PartialController.aftPartial(srn: String)
 GET         /penalties-partial                                                                                                                       controllers.financialStatement.PenaltiesPartialController.penaltiesPartial
 
 GET         /:year/select-a-scheme                                                                                                                   controllers.financialStatement.SelectSchemeController.onPageLoad(year: String)
@@ -248,10 +247,10 @@ POST        /:year/select-a-scheme                                              
 GET         /:year/:identifier/penalties                                                                                                             controllers.financialStatement.PenaltiesController.onPageLoad(year: String, identifier: String)
 GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                   controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
 
-GET         /:srn/payments-and-charges-partial                                                                                                       controllers.PartialController.paymentsAndChargesPartial(srn: String)
-GET         /psp-dashboard-aft-returns-card                                                                                                          controllers.PartialController.pspDashboardAftReturnsPartial()
-GET         /psp-dashboard-upcoming-aft-charges-card                                                                                                 controllers.PartialController.pspDashboardUpcomingAftChargesPartial()
-GET         /psp-dashboard-overdue-aft-charges-card                                                                                                  controllers.PartialController.pspDashboardOverdueAftChargesPartial()
+GET         /psp-dashboard-aft-returns-card                                                                                                          controllers.partials.PspSchemeDashboardPartialsController.pspDashboardAftReturnsPartial()
+GET         /psp-dashboard-upcoming-aft-charges-card                                                                                                 controllers.partials.PspSchemeDashboardPartialsController.pspDashboardUpcomingAftChargesPartial()
+GET         /psp-dashboard-overdue-aft-charges-card                                                                                                  controllers.partials.PspSchemeDashboardPartialsController.pspDashboardOverdueAftChargesPartial()
+GET         /:srn/psa-scheme-dashboard-cards                                                                                                         controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn: String)
 
 GET         /:srn/:year/payments-and-charges                                                                                                         controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
 GET         /:srn/payments-and-charges/:startDate/:index/charge-details                                                                              controllers.paymentsAndCharges.PaymentsAndChargeDetailsController.onPageLoad(srn: String, startDate: String, index: String)

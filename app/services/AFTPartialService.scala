@@ -46,22 +46,6 @@ class AFTPartialService @Inject()(
                                    aftCacheConnector: UserAnswersCacheConnector
                                  )(implicit ec: ExecutionContext) {
 
-  def retrieveOptionAFTViewModel(srn: String, psaId: String, schemeIdType: String)
-                                (implicit hc: HeaderCarrier): Future[Seq[AFTViewModel]] =
-    schemeService.retrieveSchemeDetails(
-      psaId = psaId,
-      srn = srn,
-      schemeIdType = schemeIdType
-    ) flatMap { schemeDetails =>
-      for {
-        overview <- aftConnector.getAftOverview(schemeDetails.pstr)
-        inProgressReturnsOpt <- getInProgressReturnsModel(overview, srn, schemeDetails.pstr)
-        startReturnsOpt <- getStartReturnsModel(overview, srn, schemeDetails.pstr)
-      } yield {
-        Seq(inProgressReturnsOpt, startReturnsOpt, getPastReturnsModelOpt(overview, srn)).flatten
-      }
-    }
-
   def retrievePspDashboardAftReturnsModel(
                                            srn: String,
                                            pspId: String,
@@ -322,37 +306,7 @@ class AFTPartialService @Inject()(
     )
   }
 
-  /* Returns a start link if:
-      1. Return has not been initiated for any of the quarters that are valid for starting a return OR
-      2. Any of the returns in their first compile have been zeroed out due to deletion of all charges
-   */
 
-  private def getStartReturnsModel(overview: Seq[AFTOverview], srn: String, pstr: String)
-                                  (implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
-
-    val startLink: Option[AFTViewModel] = Some(AFTViewModel(None, None,
-      Link(id = "aftLoginLink", url = appConfig.aftLoginUrl.format(srn),
-        linkText = msg"aftPartial.start.link")))
-
-    val isReturnNotInitiatedForAnyQuarter: Boolean = {
-      val aftValidYears = aftConnector.aftOverviewStartDate.getYear to aftConnector.aftOverviewEndDate.getYear
-      aftValidYears.flatMap { year =>
-        Quarters.availableQuarters(year)(appConfig).map { quarter =>
-          !overview.map(_.periodStartDate).contains(Quarters.getQuarter(quarter, year).startDate)
-        }
-      }.contains(true)
-    }
-
-    if (isReturnNotInitiatedForAnyQuarter) {
-      Future.successful(startLink)
-    } else {
-
-      retrieveZeroedOutReturns(overview, pstr).map {
-        case zeroedReturns if zeroedReturns.nonEmpty => startLink //if any returns in first compile are zeroed out, display start link
-        case _ => None
-      }
-    }
-  }
 
   /* Returns a seq of the aftReturns in their first compile have been zeroed out due to deletion of all charges
   */
@@ -380,103 +334,6 @@ class AFTPartialService @Inject()(
       ))
     } else {
       None
-    }
-  }
-
-
-  private def getInProgressReturnsModel(
-                                         overview: Seq[AFTOverview],
-                                         srn: String,
-                                         pstr: String,
-                                         linkText: Text = msg"aftPartial.view.link"
-                                       )(
-                                         implicit
-                                         hc: HeaderCarrier
-                                       ): Future[Option[AFTViewModel]] = {
-    val inProgressReturns = overview.filter(_.compiledVersionAvailable)
-
-    if (inProgressReturns.size == 1) {
-      val startDate: LocalDate = inProgressReturns.head.periodStartDate
-      val endDate: LocalDate = Quarters.getQuarter(startDate).endDate
-
-      if (inProgressReturns.head.numberOfVersions == 1) {
-        aftConnector.getIsAftNonZero(pstr, startDate.toString, "1").flatMap {
-          case true => modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head, linkText)
-          case _ => Future.successful(None)
-        }
-      } else {
-        modelForSingleInProgressReturn(srn, startDate, endDate, inProgressReturns.head, linkText)
-      }
-
-    } else if (inProgressReturns.nonEmpty) {
-      modelForMultipleInProgressReturns(srn, pstr, inProgressReturns, linkText)
-    } else {
-      Future.successful(None)
-    }
-  }
-
-  private def modelForSingleInProgressReturn(
-                                              srn: String,
-                                              startDate: LocalDate,
-                                              endDate: LocalDate,
-                                              overview: AFTOverview,
-                                              linkText: Text
-                                            )(implicit hc: HeaderCarrier): Future[Option[AFTViewModel]] = {
-    aftCacheConnector.lockDetail(srn, startDate.toString).map {
-      case Some(lockDetail) => Some(AFTViewModel(
-        Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
-        if (lockDetail.name.nonEmpty) {
-          Some(msg"aftPartial.status.lockDetail".withArgs(lockDetail.name))
-        }
-        else {
-          Some(msg"aftPartial.status.locked")
-        },
-        Link(id = "aftSummaryLink",
-          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = linkText,
-          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
-        )
-      ))
-      case _ => Some(AFTViewModel(
-        Some(msg"aftPartial.inProgress.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY))),
-        Some(msg"aftPartial.status.inProgress"),
-        Link(
-          id = "aftSummaryLink",
-          url = appConfig.aftSummaryPageUrl.format(srn, startDate, Draft, overview.numberOfVersions),
-          linkText = linkText,
-          hiddenText = Some(msg"aftPartial.view.hidden.forPeriod".withArgs(startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)))
-        )
-      ))
-    }
-  }
-
-  private def modelForMultipleInProgressReturns(
-                                                 srn: String,
-                                                 pstr: String,
-                                                 inProgressReturns: Seq[AFTOverview],
-                                                 linkText: Text
-                                               )(
-                                                 implicit hc: HeaderCarrier
-                                               ): Future[Option[AFTViewModel]] = {
-
-    retrieveZeroedOutReturns(inProgressReturns, pstr).map { zeroedReturns =>
-
-      val countInProgress: Int = inProgressReturns.size - zeroedReturns.size
-
-      if (countInProgress > 0) {
-        Some(AFTViewModel(
-          Some(msg"aftPartial.multipleInProgress.text"),
-          Some(msg"aftPartial.multipleInProgress.count".withArgs(countInProgress)),
-          Link(
-            id = "aftContinueInProgressLink",
-            url = appConfig.aftContinueReturnUrl.format(srn),
-            linkText = linkText,
-            hiddenText = Some(msg"aftPartial.view.hidden")
-          )
-        ))
-      } else {
-        None
-      }
     }
   }
 
