@@ -17,6 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
+import models.SchemeAdministratorType
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
 import uk.gov.hmrc.domain.PsaId
@@ -47,8 +48,15 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
-        }
+        connector.sendEmail(
+          SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId,
+          testPsaId.id,
+          journeyType,
+          testEmailAddress,
+          testTemplate,
+          Map.empty
+        ).map{ result => result mustBe EmailSent}
       }
     }
 
@@ -61,7 +69,8 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
 
@@ -72,7 +81,8 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }

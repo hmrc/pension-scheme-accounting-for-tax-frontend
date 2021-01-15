@@ -27,7 +27,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Quarter, GenericViewModel, Declaration, UserAnswers}
+import models.{SchemeAdministratorType, GenericViewModel, UserAnswers, Quarter, Declaration}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, when, verify}
@@ -143,7 +143,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSA" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -160,6 +160,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
+        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSA),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)
@@ -171,7 +172,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
     "Save data to user answers, file AFT Return, send an email and redirect to next page when on submit declaration by PSP" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswersWithPSTREmailQuarter)
       val uaCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
-      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
+      when(mockEmailConnector.sendEmail(any(), any(), any(), any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(EmailSent))
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(Matchers.eq(DeclarationPage), any(), any(), any(), any(), any(), any())(any())).thenReturn(dummyCall)
       when(mockAFTService.fileSubmitReturn(any(), uaCaptor.capture())(any(), any(), any())).thenReturn(Future.successful(()))
@@ -188,6 +189,7 @@ class DeclarationControllerSpec extends ControllerSpecBase with MockitoSugar wit
         hasAgreed = true
       ))
       verify(mockEmailConnector, times(1)).sendEmail(
+        Matchers.eq(SchemeAdministratorType.SchemeAdministratorTypePSP),
         any(), any(), journeyTypeCaptor.capture(), any(), templateCaptor.capture(), emailParamsCaptor.capture())(any(), any())
 
       redirectLocation(result) mustBe Some(dummyCall.url)

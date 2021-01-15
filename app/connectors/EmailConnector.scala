@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.SendEmailRequest
+import models.{SendEmailRequest, SchemeAdministratorType}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{Json, JsValue}
@@ -40,14 +40,16 @@ class EmailConnector @Inject()(
                                 http: HttpClient,
                                 crypto: ApplicationCrypto
                               ) {
-  private def callBackUrl(requestId: String, journeyType: String, psaOrPspId: String, email: String): String = {
-    val encryptedPsaId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
+  private def callBackUrl(submittedBy:String, requestId: String, journeyType: String, psaOrPspId: String, email: String): String = {
+    val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
 
-    appConfig.aftEmailCallback(journeyType, requestId, encryptedEmail, encryptedPsaId)
+    appConfig.aftEmailCallback(submittedBy, journeyType, requestId, encryptedEmail, encryptedPsaOrPspId)
   }
 
+  //scalastyle:off parameter.number
   def sendEmail(
+                 schemeAdministratorType: SchemeAdministratorType,
                  requestId: String,
                  psaOrPspId: String,
                  journeyType: String,
@@ -58,7 +60,7 @@ class EmailConnector @Inject()(
     val emailServiceUrl = s"${appConfig.emailApiUrl}/hmrc/email"
 
     val sendEmailReq = SendEmailRequest(List(emailAddress), templateName, templateParams, appConfig.emailSendForce,
-      callBackUrl(requestId, journeyType, psaOrPspId, emailAddress))
+      callBackUrl(schemeAdministratorType.toString, requestId, journeyType, psaOrPspId, emailAddress))
 
     val jsonData = Json.toJson(sendEmailReq)
 

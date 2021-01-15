@@ -138,7 +138,7 @@ class DeclarationController @Inject()(
       "AFTReturnSubmitted"
     }
 
-    emailConnector.sendEmail(requestId, request.idOrException, journeyType, email, templateId, templateParams)
+    emailConnector.sendEmail(request.schemeAdministratorType, requestId, request.idOrException, journeyType, email, templateId, templateParams)
   }
 
   private def templateId(implicit request: DataRequest[_]): String ={
