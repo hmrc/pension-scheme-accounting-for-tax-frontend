@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{SendEmailRequest, SchemeAdministratorType}
+import models.{SendEmailRequest, SchemeAdministratorType, JourneyType}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.{Json, JsValue}
@@ -40,8 +40,13 @@ class EmailConnector @Inject()(
                                 http: HttpClient,
                                 crypto: ApplicationCrypto
                               ) {
-  private def callBackUrl(schemeAdministratorType: SchemeAdministratorType,
-    requestId: String, journeyType: String, psaOrPspId: String, email: String): String = {
+  private def callBackUrl(
+    schemeAdministratorType: SchemeAdministratorType,
+    requestId: String,
+    journeyType: JourneyType.Value,
+    psaOrPspId: String,
+    email: String
+  ): String = {
     val encryptedPsaOrPspId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
 
@@ -53,7 +58,7 @@ class EmailConnector @Inject()(
                  schemeAdministratorType: SchemeAdministratorType,
                  requestId: String,
                  psaOrPspId: String,
-                 journeyType: String,
+                 journeyType: JourneyType.Value,
                  emailAddress: String,
                  templateName: String,
                  templateParams: Map[String, String]

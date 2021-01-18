@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
-import models.SchemeAdministratorType
+import models.{JourneyType, SchemeAdministratorType}
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
 import uk.gov.hmrc.domain.PsaId
@@ -34,7 +34,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
 
   private val testEmailAddress = "test@test.com"
   private val testTemplate = "testTemplate"
-  private val journeyType = "AFTReturnSubmitted"
+  private val journeyType = JourneyType.AFT_SUBMIT_RETURN
 
   private lazy val connector = injector.instanceOf[EmailConnector]
 

@@ -20,6 +20,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.LocalDate
 
+import audit.{AFTReturnEmailAuditEvent, AuditService, StartNewAFTAuditEvent}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import connectors.EmailConnector
@@ -27,13 +28,10 @@ import models.SchemeAdministratorType._
 import connectors.EmailStatus
 import controllers.actions._
 import javax.inject.Inject
+import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.AccessType
-import models.Declaration
-import models.GenericViewModel
-import models.NormalMode
-import models.Quarter
+import models.{GenericViewModel, JourneyType, AccessType, Quarter, NormalMode, Declaration}
 import models.ValueChangeType.ChangeTypeDecrease
 import models.ValueChangeType.ChangeTypeIncrease
 import models.ValueChangeType.ChangeTypeSame
@@ -72,7 +70,8 @@ class DeclarationController @Inject()(
     val controllerComponents: MessagesControllerComponents,
     config: FrontendAppConfig,
     renderer: Renderer,
-    emailConnector: EmailConnector
+    emailConnector: EmailConnector,
+    auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -133,12 +132,16 @@ class DeclarationController @Inject()(
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val journeyType = if (isAmendment) {
-      "AFTAmendmentSubmitted"
+      AFT_SUBMIT_AMEND //"AFTAmendmentSubmitted"
     } else {
-      "AFTReturnSubmitted"
+      AFT_SUBMIT_RETURN //"AFTReturnSubmitted"
     }
 
     emailConnector.sendEmail(request.schemeAdministratorType, requestId, request.idOrException, journeyType, email, templateId, templateParams)
+      .map{ emailStatus =>
+        auditService.sendEvent(AFTReturnEmailAuditEvent(request.idOrException, journeyType, request.schemeAdministratorType, email))
+        emailStatus
+      }
   }
 
   private def templateId(implicit request: DataRequest[_]): String ={

@@ -21,7 +21,7 @@ import java.time.format.DateTimeFormatter
 
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
-import models.SchemeAdministratorType
+import models.{SchemeAdministratorType, JourneyType}
 import models.requests.{DataRequest, IdentifierRequest}
 import play.api.Configuration
 import play.api.i18n.Lang
@@ -75,12 +75,12 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val emailSendForce: Boolean = configuration.getOptional[Boolean]("email.force").getOrElse(false)
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
   def aftEmailCallback(schemeAdministratorType: SchemeAdministratorType,
-    journeyType: String,
+    journeyType: JourneyType.Value,
     requestId: String,
     encryptedEmail: String,
     encryptedPsaId: String
   ) = s"$aftUrl${configuration.get[String](path = "urls.emailCallback")
-      .format(schemeAdministratorType.toString, journeyType, requestId, encryptedEmail, encryptedPsaId)}"
+      .format(schemeAdministratorType.toString, journeyType.toString, requestId, encryptedEmail, encryptedPsaId)}"
 
   lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend" +
     ".schemesOverview")).url
