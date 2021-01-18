@@ -132,9 +132,9 @@ class DeclarationController @Inject()(
     ) ++ (if (isAmendment) Map("submissionNumber" -> s"$amendedVersion") else Map.empty)
 
     val journeyType = if (isAmendment) {
-      AFT_SUBMIT_AMEND //"AFTAmendmentSubmitted"
+      AFT_SUBMIT_AMEND
     } else {
-      AFT_SUBMIT_RETURN //"AFTReturnSubmitted"
+      AFT_SUBMIT_RETURN
     }
 
     emailConnector.sendEmail(request.schemeAdministratorType, requestId, request.idOrException, journeyType, email, templateId, templateParams)
