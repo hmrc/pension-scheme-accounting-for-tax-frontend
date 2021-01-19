@@ -22,7 +22,7 @@ import play.api.libs.json._
 
 case class CardSubHeadingParam(
                                 subHeadingParam: String,
-                                subHeadingParamClasses: String,
+                                subHeadingParamClasses: String
                               )
 
 object CardSubHeadingParam {
