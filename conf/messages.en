@@ -1017,11 +1017,11 @@ return.to.submission = Return to total return for submission {0}
 allAmendments.view.changes.draft.link = View changes made in this draft
 allAmendments.view.changes.submission.link = View changes made in this submission
 
-aftPartial.h1 = Accounting for Tax (AFT) returns
+aftPartial.head = Accounting for Tax returns
 aftPartial.start.link = Start a new AFT return
-aftPartial.multipleInProgress.text = AFT returns
+aftPartial.multipleInProgress.text = AFT returns:
 aftPartial.multipleInProgress.count = {0} in progress
-aftPartial.inProgress.forPeriod = AFT return for {0} to {1}
+aftPartial.inProgress.forPeriod = AFT return for {0} to {1}:
 aftPartial.view.change.past = View or change past AFT returns
 aftPartial.status.inProgress = In progress
 aftPartial.status.lockDetail = Locked by {0}
