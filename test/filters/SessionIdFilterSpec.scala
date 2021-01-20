@@ -96,6 +96,8 @@ class SessionIdFilterSpec extends FreeSpec with MustMatchers with OptionValues w
 
       val body = contentAsJson(result)
 
+      println(s"\n\n\n$body\n\n")
+
       (body \ "fromHeader").as[String] mustEqual s"session-$sessionId"
       (body \ "fromSession").as[String] mustEqual s"session-$sessionId"
 

@@ -51,7 +51,7 @@ import play.api.mvc.MessagesControllerComponents
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.DateHelper.dateFormatterDMY
 import utils.DateHelper.dateFormatterStartDate
 import utils.DateHelper.formatSubmittedDate

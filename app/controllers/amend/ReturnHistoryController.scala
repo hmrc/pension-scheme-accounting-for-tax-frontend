@@ -32,7 +32,7 @@ import play.api.mvc.{Call, AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}

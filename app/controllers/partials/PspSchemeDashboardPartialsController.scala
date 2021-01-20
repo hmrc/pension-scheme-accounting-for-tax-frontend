@@ -28,7 +28,7 @@ import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.http.BadRequestException
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}

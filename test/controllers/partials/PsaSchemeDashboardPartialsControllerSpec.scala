@@ -29,7 +29,7 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -38,10 +38,17 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class PsaSchemeDashboardPartialsControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
-    with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
+class PsaSchemeDashboardPartialsControllerSpec
+  extends ControllerSpecBase
+    with NunjucksSupport
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with Enumerable.Implicits
+    with Results
+    with ScalaFutures {
 
   import services.PsaSchemePartialServiceSpec._
+
   private def getPartial: String = routes.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn).url
 
   private val mockPsaSchemePartialService: PsaSchemePartialService = mock[PsaSchemePartialService]
@@ -54,10 +61,6 @@ class PsaSchemeDashboardPartialsControllerSpec extends ControllerSpecBase with N
       bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-
-  private val cardsPartialJson: JsObject =
-    Json.obj("cards" -> Json.toJson(allTypesMultipleReturnsModel))
-
 
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])

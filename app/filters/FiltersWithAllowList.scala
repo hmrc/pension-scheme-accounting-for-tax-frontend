@@ -18,10 +18,10 @@ package filters
 
 import javax.inject.Inject
 import play.api.http.DefaultHttpFilters
-import uk.gov.hmrc.play.bootstrap.filters.FrontendFilters
+import uk.gov.hmrc.play.bootstrap.frontend.filters.{AllowlistFilter, FrontendFilters}
 
-class FiltersWithWhitelist @Inject()(
+class FiltersWithAllowList @Inject()(
                                       frontendFilters: FrontendFilters,
-                                      whitelistFilter: WhitelistFilter,
+                                      allowListFilter: AllowlistFilter,
                                       sessionIdFilter: SessionIdFilter
-                                    ) extends DefaultHttpFilters(frontendFilters.filters :+ whitelistFilter :+ sessionIdFilter: _*)
+                                    ) extends DefaultHttpFilters(frontendFilters.filters :+ allowListFilter :+ sessionIdFilter: _*)

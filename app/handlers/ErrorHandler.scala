@@ -17,27 +17,26 @@
 package handlers
 
 import config.FrontendAppConfig
-import javax.inject.{Inject, Singleton}
-import play.api.{PlayException, Logger}
 import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.http.HttpErrorHandler
 import play.api.http.Status._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import play.api.mvc.{Results, Result, RequestHeader}
+import play.api.mvc.{RequestHeader, Result, Results}
+import play.api.{Logger, PlayException}
 import renderer.Renderer
-import uk.gov.hmrc.play.bootstrap.http.ApplicationException
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 // NOTE: There should be changes to bootstrap to make this easier, the API in bootstrap should allow a `Future[Html]` rather than just an `Html`
 @Singleton
 class ErrorHandler @Inject()(
-    renderer: Renderer,
-    val messagesApi: MessagesApi,
-    config: FrontendAppConfig
-)(implicit ec: ExecutionContext) extends HttpErrorHandler with I18nSupport {
+                              renderer: Renderer,
+                              val messagesApi: MessagesApi,
+                              config: FrontendAppConfig
+                            )(implicit ec: ExecutionContext) extends HttpErrorHandler with I18nSupport {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
@@ -46,9 +45,9 @@ class ErrorHandler @Inject()(
     statusCode match {
       case BAD_REQUEST =>
         renderer.render("badRequest.njk").map(BadRequest(_))
-      case NOT_FOUND   =>
+      case NOT_FOUND =>
         renderer.render("notFound.njk", Json.obj("yourPensionSchemesUrl" -> config.yourPensionSchemesUrl)).map(NotFound(_))
-      case _           =>
+      case _ =>
         renderer.render("error.njk", Json.obj()).map {
           content =>
             Results.Status(statusCode)(content)
@@ -79,8 +78,10 @@ class ErrorHandler @Inject()(
         |! %sInternal server error, for (%s) [%s] ->
         | """.stripMargin.format(ex match {
         case p: PlayException => "@" + p.id + " - "
-        case _                => ""
+        case _ => ""
       }, request.method, request.uri),
       ex
     )
 }
+
+case class ApplicationException(result: Result, message: String) extends Exception(message)

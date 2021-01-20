@@ -36,7 +36,7 @@ import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}

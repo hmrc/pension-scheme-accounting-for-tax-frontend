@@ -35,7 +35,7 @@ import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.ChargeEService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.dateFormatterDMY
 
