@@ -17,17 +17,17 @@
 package controllers
 
 import java.time.{LocalDate, ZoneId, ZonedDateTime}
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import javax.inject.Inject
-import models.{AccessType, GenericViewModel}
+import controllers.paymentsAndCharges.routes._
+import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
 import models.LocalDateBinder._
 import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
 import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import models.requests.DataRequest
+import models.{AccessType, GenericViewModel}
 import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
@@ -36,12 +36,14 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.SchemeService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{SummaryList, _}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
+import java.time.{LocalDate, ZoneId, ZonedDateTime}
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmationController @Inject()(
@@ -61,7 +63,10 @@ class ConfirmationController @Inject()(
   extends FrontendBaseController
     with I18nSupport {
 
-  private def checkIfFinancialInfoLinkDisplayable(srn:String, year:Int)(implicit request: DataRequest[AnyContent]):Future[Boolean] = {
+  private val logger = Logger(classOf[ConfirmationController])
+
+  private def checkIfFinancialInfoLinkDisplayable(srn: String, year: Int)
+                                                 (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
     if (config.isFSEnabled) {
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -69,7 +74,8 @@ class ConfirmationController @Inject()(
         schemeIdType = "srn"
       ) flatMap { schemeDetails =>
         fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate.getYear == year))
-      } recover { case e => Logger.error("Exception (not rendered to user) when checking for financial information", e)
+      } recover { case e =>
+        logger.error("Exception (not rendered to user) when checking for financial information", e)
         false
       }
     } else {
@@ -82,45 +88,52 @@ class ConfirmationController @Inject()(
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
         val year = startDate.getYear
-        DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment { (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
-          val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
-          val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
+        DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment {
+          (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
+            val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
+            val quarterEndDate = quarter.endDate.format(dateFormatterDMY)
 
-          val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
+            val submittedDate = formatSubmittedDate(ZonedDateTime.now(ZoneId.of("Europe/London")))
 
 
-          val rows = getRows(schemeName, quarterStartDate, quarterEndDate, submittedDate, if(isAmendment) Some(amendedVersion) else None)
+            val rows = getRows(
+              schemeName = schemeName,
+              quarterStartDate = quarterStartDate,
+              quarterEndDate = quarterEndDate,
+              submittedDate = submittedDate,
+              amendedVersion = if (isAmendment) Some(amendedVersion) else None
+            )
 
-          checkIfFinancialInfoLinkDisplayable(srn, year).flatMap{ isFinancialInfoLinkDisplayable =>
-            val optViewPaymentsUrl =
-              if (isFinancialInfoLinkDisplayable) {
-                Json.obj(
-                "viewPaymentsUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+            checkIfFinancialInfoLinkDisplayable(srn, year).flatMap { isFinancialInfoLinkDisplayable =>
+              val optViewPaymentsUrl =
+                if (isFinancialInfoLinkDisplayable) {
+                  Json.obj(
+                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, year).url
+                  )
+                } else {
+                  Json.obj()
+                }
+
+              val json = Json.obj(
+                fields = "srn" -> srn,
+                "panelHtml" -> confirmationPanelText.toString(),
+                "email" -> email,
+                "isAmendment" -> isAmendment,
+                "list" -> rows,
+                "pensionSchemesUrl" -> listSchemesUrl,
+                "viewModel" -> GenericViewModel(
+                  submitUrl = SignOutController.signOut(srn, Some(startDate)).url,
+                  returnUrl = ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
+                  schemeName = schemeName
                 )
-              } else {
-                Json.obj()
-              }
+              ) ++ optViewPaymentsUrl
 
-            val json = Json.obj(
-              fields = "srn" -> srn,
-              "panelHtml" -> confirmationPanelText.toString(),
-              "email" -> email,
-              "isAmendment" -> isAmendment,
-              "list" -> rows,
-              "pensionSchemesUrl" -> listSchemesUrl,
-              "viewModel" -> GenericViewModel(
-                submitUrl = controllers.routes.SignOutController.signOut(srn, Some(startDate)).url,
-                returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version).url,
-                schemeName = schemeName
-              )
-            ) ++ optViewPaymentsUrl
-
-            renderer.render(getView, json).flatMap { viewHtml =>
-              userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
-                Ok(viewHtml)
+              renderer.render(getView, json).flatMap { viewHtml =>
+                userAnswersCacheConnector.removeAll(request.internalId).map { _ =>
+                  Ok(viewHtml)
+                }
               }
             }
-          }
         }
     }
 
@@ -146,7 +159,7 @@ class ConfirmationController @Inject()(
         value = Value(Literal(submittedDate), classes = Nil),
         actions = Nil
       )
-    ) ++ amendedVersion.map{ vn =>
+    ) ++ amendedVersion.map { vn =>
       Seq(
         Row(
           key = Key(msg"confirmation.table.submission.number.label", classes = Seq("govuk-!-font-weight-regular")),
@@ -158,14 +171,14 @@ class ConfirmationController @Inject()(
   }
 
   private def confirmationPanelText(implicit messages: Messages): Html = {
-   Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
+    Html(s"""<span class="heading-large govuk-!-font-weight-bold">${messages("confirmation.aft.return.panel.text")}</span>""")
   }
 
-  private def getView(implicit request: DataRequest[AnyContent]): String ={
-    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match{
-      case (true,Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
-      case (true,Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
-      case (true,Some(ChangeTypeSame)) => "confirmationNoChange.njk"
+  private def getView(implicit request: DataRequest[AnyContent]): String = {
+    (request.isAmendment, request.userAnswers.get(ConfirmSubmitAFTAmendmentValueChangeTypePage)) match {
+      case (true, Some(ChangeTypeDecrease)) => "confirmationAmendDecrease.njk"
+      case (true, Some(ChangeTypeIncrease)) => "confirmationAmendIncrease.njk"
+      case (true, Some(ChangeTypeSame)) => "confirmationNoChange.njk"
       case _ => "confirmation.njk"
     }
   }

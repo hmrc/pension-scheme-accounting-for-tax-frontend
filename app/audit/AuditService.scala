@@ -25,24 +25,26 @@ import uk.gov.hmrc.play.audit.AuditExtensions._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.DataEvent
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 
 class AuditService @Inject()(
                               config: FrontendAppConfig,
                               connector: AuditConnector
-                            ){
+                            ) {
+  private val logger = Logger(classOf[AuditService])
 
-  def sendEvent[T <: AuditEvent](event: T)(implicit
-                                           rh: RequestHeader,
-                                           ec: ExecutionContext): Unit = {
+  def sendEvent[T <: AuditEvent](event: T)
+                                (implicit rh: RequestHeader, ec: ExecutionContext): Unit = {
 
     implicit def toHc(request: RequestHeader): AuditHeaderCarrier =
-    auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
+      auditHeaderCarrier(HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session)))
+
 
     val details = rh.toAuditDetails() ++ event.details
-    Logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
+    logger.debug(s"[AuditService][sendEvent] sending ${event.auditType}")
+
     val result: Future[AuditResult] = connector.sendEvent(
       DataEvent(
         auditSource = config.appName,
@@ -56,8 +58,8 @@ class AuditService @Inject()(
     )
 
     result.onComplete {
-      case Success(_) => Logger.debug(s"[AuditService][sendEvent] successfully sent ${event.auditType}")
-      case Failure(e) => Logger.error(s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
+      case Success(_) => logger.debug(s"[AuditService][sendEvent] successfully sent ${event.auditType}")
+      case Failure(e) => logger.error(s"[AuditService][sendEvent] failed to send event ${event.auditType}", e)
     }
   }
 }

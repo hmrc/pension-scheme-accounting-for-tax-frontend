@@ -16,46 +16,32 @@
 
 package controllers
 
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.LocalDate
+import java.time.{ZoneId, ZonedDateTime, LocalDate}
 
-import audit.{AFTReturnEmailAuditEvent, AuditService, StartNewAFTAuditEvent}
+import audit.{AFTReturnEmailAuditEvent, AuditService}
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.EmailConnector
 import models.SchemeAdministratorType._
-import connectors.EmailStatus
+import connectors.{EmailConnector, EmailStatus}
 import controllers.actions._
 import javax.inject.Inject
-import models.JourneyType.{AFT_SUBMIT_AMEND, AFT_SUBMIT_RETURN}
+import models.JourneyType.{AFT_SUBMIT_RETURN, AFT_SUBMIT_AMEND}
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{GenericViewModel, JourneyType, AccessType, Quarter, NormalMode, Declaration}
-import models.ValueChangeType.ChangeTypeDecrease
-import models.ValueChangeType.ChangeTypeIncrease
-import models.ValueChangeType.ChangeTypeSame
+import models.{GenericViewModel, AccessType, Quarter, NormalMode, Declaration}
+import models.ValueChangeType.{ChangeTypeDecrease, ChangeTypeIncrease, ChangeTypeSame}
 import navigators.CompoundNavigator
-import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
-import pages.DeclarationPage
-import pages.NameQuery
-import play.api.i18n.I18nSupport
-import play.api.i18n.Messages
-import play.api.i18n.MessagesApi
+import pages.{ConfirmSubmitAFTAmendmentValueChangeTypePage, DeclarationPage, NameQuery}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.AFTService
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.DateHelper.dateFormatterDMY
-import utils.DateHelper.dateFormatterStartDate
-import utils.DateHelper.formatSubmittedDate
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate, formatSubmittedDate}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class DeclarationController @Inject()(
     override val messagesApi: MessagesApi,

@@ -35,7 +35,7 @@ import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import play.twirl.api.Html
 import renderer.Renderer
 import services._
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 

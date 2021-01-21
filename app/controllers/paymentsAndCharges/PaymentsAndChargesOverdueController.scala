@@ -29,7 +29,7 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -51,6 +51,8 @@ class PaymentsAndChargesOverdueController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[PaymentsAndChargesOverdueController])
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
@@ -95,7 +97,7 @@ class PaymentsAndChargesOverdueController @Inject()(
                 renderer.render(template = "paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(
+                logger.warn(
                   s"No Overdue Payments and Charges returned for the selected year ${startDate.getYear}"
                 )
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

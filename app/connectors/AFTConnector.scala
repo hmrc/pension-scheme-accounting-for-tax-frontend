@@ -26,7 +26,7 @@ import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import utils.{DateHelper, HttpResponseHelper}
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -34,6 +34,8 @@ import scala.util.Failure
 
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
+
+  private val logger = Logger(classOf[AFTConnector])
 
   def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
@@ -46,7 +48,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to post aft return", t)
+      case Failure(t: Throwable) => logger.warn("Unable to post aft return", t)
     }
   }
 
@@ -60,7 +62,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
         case _ => handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get aft details", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get aft details", t)
     }
   }
 
@@ -93,7 +95,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get list of versions", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get list of versions", t)
     }
   }
 
@@ -117,7 +119,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get aft overview", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get aft overview", t)
     }
   }
 

@@ -26,8 +26,7 @@ import play.api.http.Status._
 import play.api.libs.json.{JsError, JsResultException, JsSuccess, Json}
 import services.FeatureToggleService
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,11 +41,16 @@ trait ListOfSchemesConnector {
 }
 
 @Singleton
-class ListOfSchemesConnectorImpl @Inject()(http: HttpClient,
-  config: FrontendAppConfig,
-  featureToggleService:FeatureToggleService) extends ListOfSchemesConnector {
+class ListOfSchemesConnectorImpl @Inject()(
+                                            http: HttpClient,
+                                            config: FrontendAppConfig,
+                                            featureToggleService: FeatureToggleService
+                                          ) extends ListOfSchemesConnector {
 
-  override def getListOfSchemes(psaId: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
+  private val logger = Logger(classOf[ListOfSchemesConnectorImpl])
+
+  override def getListOfSchemes(psaId: String)
+                               (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[HttpResponse, ListOfSchemes]] = {
     featureToggleService.get(IntegrationFrameworkListSchemes).flatMap {
       case Enabled(IntegrationFrameworkListSchemes) =>
         val (url, schemeHc) = (config.listOfSchemesIFUrl, hc.withExtraHeaders("idType" -> "psaid", "idValue" -> psaId))
@@ -73,7 +77,7 @@ class ListOfSchemesConnectorImpl @Inject()(http: HttpClient,
             case JsError(errors) => throw JsResultException(errors)
           }
         case _ =>
-          Logger.error(response.body)
+          logger.error(response.body)
           Left(response)
       }
     }

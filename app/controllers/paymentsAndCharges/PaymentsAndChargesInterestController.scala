@@ -36,7 +36,7 @@ import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
@@ -57,6 +57,8 @@ class PaymentsAndChargesInterestController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -166,13 +168,13 @@ class PaymentsAndChargesInterestController @Inject()(
                 ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
-              Logger.warn(s"No Payments and Charge details " +
+              logger.warn(s"No Payments and Charge details " +
                 s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
         } catch {
           case _: IndexOutOfBoundsException =>
-            Logger.warn(
+            logger.warn(
               "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
                 s"index $startDate/$index of attempted"
             )

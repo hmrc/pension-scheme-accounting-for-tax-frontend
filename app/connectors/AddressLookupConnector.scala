@@ -23,13 +23,15 @@ import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json.Reads
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpResponse, HttpException, HeaderCarrier}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpException, HttpResponse}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
-class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConfig){
-  def addressLookupByPostCode(postCode: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TolerantAddress]] = {
+class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConfig) {
+  private val logger = Logger(classOf[AddressLookupConnector])
+
+  def addressLookupByPostCode(postCode: String)
+                             (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[TolerantAddress]] = {
     val schemeHc = hc.withExtraHeaders("X-Hmrc-Origin" -> "PODS")
 
     val addressLookupUrl = s"${config.addressLookUp}/v2/uk/addresses?postcode=$postCode"
@@ -39,7 +41,9 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
     http.GET[HttpResponse](addressLookupUrl)(implicitly, schemeHc, implicitly) flatMap {
       case response if response.status equals OK => Future.successful {
         response.json.as[Seq[TolerantAddress]]
-          .filterNot(a=>a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.addressLine3.isEmpty && a.addressLine4.isEmpty)
+          .filterNot(
+            a => a.addressLine1.isEmpty && a.addressLine2.isEmpty && a.addressLine3.isEmpty && a.addressLine4.isEmpty
+          )
       }
       case response =>
         val message = s"Address Lookup failed with status ${response.status} Response body :${response.body}"
@@ -49,7 +53,7 @@ class AddressLookupConnector @Inject()(http: HttpClient, config: FrontendAppConf
 
   private def logExceptions: PartialFunction[Throwable, Future[Seq[TolerantAddress]]] = {
     case t: Throwable =>
-      Logger.error("Exception in AddressLookup", t)
+      logger.error("Exception in AddressLookup", t)
       Future.failed(t)
   }
 }

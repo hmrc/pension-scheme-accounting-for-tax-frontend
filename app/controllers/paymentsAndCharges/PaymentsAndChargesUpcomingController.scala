@@ -29,7 +29,7 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewmodels.Table
 
@@ -51,6 +51,8 @@ class PaymentsAndChargesUpcomingController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[PaymentsAndChargesUpcomingController])
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
@@ -112,7 +114,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
                 renderer.render(template = "paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(
+                logger.warn(
                   s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}"
                 )
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

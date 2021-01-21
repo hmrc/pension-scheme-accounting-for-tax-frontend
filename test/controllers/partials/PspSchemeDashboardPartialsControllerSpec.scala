@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.partials
 
 import connectors.FinancialStatementConnector
 import controllers.base.ControllerSpecBase
@@ -30,17 +30,17 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.{AFTPartialService, SchemeService}
 import services.AFTPartialServiceSpec._
+import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class PartialControllerSpec
+class PspSchemeDashboardPartialsControllerSpec
   extends ControllerSpecBase
     with NunjucksSupport
     with JsonMatchers
@@ -49,11 +49,7 @@ class PartialControllerSpec
     with Results
     with ScalaFutures {
 
-  private def aftPartial: String = controllers.routes.PartialController.aftPartial(srn).url
-
-  private def paymentsAndChargesPartial: String = controllers.routes.PartialController.paymentsAndChargesPartial(srn).url
-
-  private def pspDashboardAftReturnsPartial: String = controllers.routes.PartialController.pspDashboardAftReturnsPartial().url
+  private def pspDashboardAftReturnsPartial: String = routes.PspSchemeDashboardPartialsController.pspDashboardAftReturnsPartial().url
 
   private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -66,10 +62,6 @@ class PartialControllerSpec
     )
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val aftPartialJson: JsObject =
-    Json.obj("aftModels" -> Json.toJson(allTypesMultipleReturnsModel))
-  private val paymentsAndChargesPartialJson: JsObject =
-    Json.obj("redirectUrl" -> dummyCall.url)
   private val pspDashboardAftReturnsPartialJson: JsObject =
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -87,51 +79,6 @@ class PartialControllerSpec
   }
 
   "Partial Controller" when {
-    "aftPartial" must {
-
-      "return the html with information received from overview api" in {
-        when(
-          mockAftPartialService.retrieveOptionAFTViewModel(
-            srn = any(),
-            psaId = any(),
-            schemeIdType = any()
-          )(any())
-        ).thenReturn(Future.successful(allTypesMultipleReturnsModel))
-
-        val result = route(application, httpGETRequest(aftPartial)).value
-
-        status(result) mustEqual OK
-
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "partials/overview.njk"
-
-        jsonCaptor.getValue must containJson(aftPartialJson)
-      }
-    }
-
-    "paymentsAndChargesPartial" must {
-
-      "return the html with the information from payments and charges partial" in {
-        val result = route(application, httpGETRequest(paymentsAndChargesPartial)).value
-
-        status(result) mustEqual OK
-
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "partials/paymentsAndCharges.njk"
-
-        jsonCaptor.getValue must containJson(paymentsAndChargesPartialJson)
-      }
-
-      "not render the fin info section when there are no payments or charges" in {
-        when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(Seq.empty))
-        val result = route(application, httpGETRequest(paymentsAndChargesPartial)).value
-
-        status(result) mustEqual OK
-        verify(mockRenderer, times(0)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-      }
-    }
 
     "pspDashboardAftReturnsPartial" must {
       "return the html with the information for AFT returns" in {

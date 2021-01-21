@@ -36,7 +36,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.{UserAnswersService, ChargeCService, DeleteAFTChargeService}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
 
 import scala.concurrent.{Future, ExecutionContext}

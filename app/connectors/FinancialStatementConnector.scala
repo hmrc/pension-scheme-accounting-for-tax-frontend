@@ -22,7 +22,7 @@ import models.financialStatement.{PsaFS, SchemeFSChargeType, PsaFSChargeType, Sc
 import play.api.http.Status._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import utils.HttpResponseHelper
 
 import scala.concurrent.{Future, ExecutionContext}

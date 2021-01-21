@@ -29,7 +29,7 @@ import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
@@ -48,6 +48,8 @@ class PaymentsAndChargesController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[PaymentsAndChargesController])
 
   def onPageLoad(srn: String, year: Int): Action[AnyContent] = identify.async {
     implicit request =>
@@ -76,7 +78,7 @@ class PaymentsAndChargesController @Inject()(
                 renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
+                logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

@@ -1,0 +1,27 @@
+
+{% for card in cards %}
+    <div class="card" id="card.id">
+        <div class="card-body">
+            <h2 class="card-heading heading-small">
+                {{ card.heading }}
+            </h2>
+            {% for subHead in card.subHeadings %}
+                <h3 class="{{ subHead.subHeadingClasses }}">
+                    {{ subHead.subHeading }}
+                    {% for subHeadParams in subHead.subHeadingParams %}
+                        <span class="{{subHeadParams.subHeadingParamClasses}}">{{ subHeadParams.subHeadingParam }}</span>
+                    {% endfor %}
+                </h3>
+            {% endfor %}
+        </div>
+        <div class="card-action">
+            <ul>
+                {% for link in card.links %}
+                    <li>
+                        <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endfor %}
