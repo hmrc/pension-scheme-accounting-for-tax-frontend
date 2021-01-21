@@ -58,6 +58,8 @@ class PaymentsAndChargesInterestController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
+  private val logger = Logger(classOf[PaymentsAndChargesInterestController])
+
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
       schemeService.retrieveSchemeDetails(
@@ -166,13 +168,13 @@ class PaymentsAndChargesInterestController @Inject()(
                 ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
-              Logger.warn(s"No Payments and Charge details " +
+              logger.warn(s"No Payments and Charge details " +
                 s"found for the selected charge reference ${seqChargeRefs(index.toInt)}")
               Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
         } catch {
           case _: IndexOutOfBoundsException =>
-            Logger.warn(
+            logger.warn(
               "[paymentsAndCharges.PaymentsAndChargesInterestController][IndexOutOfBoundsException]:" +
                 s"index $startDate/$index of attempted"
             )

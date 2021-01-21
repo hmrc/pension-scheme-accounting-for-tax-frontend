@@ -16,39 +16,42 @@
 
 package controllers.financialStatement
 
-import java.time.LocalDate
-
+import config.Constants._
 import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.IdentifierAction
-import javax.inject.Inject
 import models.Quarters.getQuarter
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
+import models.financialStatement.PsaFS
+import models.requests.IdentifierRequest
+import play.api.Logger
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-import config.Constants._
-import connectors.cache.FinancialInfoCacheConnector
-import models.financialStatement.PsaFS
-import play.api.Logger
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ChargeDetailsController @Inject()(identify: IdentifierAction,
-                                        override val messagesApi: MessagesApi,
-                                        val controllerComponents: MessagesControllerComponents,
-                                        fsConnector: FinancialStatementConnector,
-                                        fiCacheConnector: FinancialInfoCacheConnector,
-                                        penaltiesService: PenaltiesService,
-                                        schemeService: SchemeService,
-                                        renderer: Renderer
+class ChargeDetailsController @Inject()(
+                                         identify: IdentifierAction,
+                                         override val messagesApi: MessagesApi,
+                                         val controllerComponents: MessagesControllerComponents,
+                                         fsConnector: FinancialStatementConnector,
+                                         fiCacheConnector: FinancialInfoCacheConnector,
+                                         penaltiesService: PenaltiesService,
+                                         schemeService: SchemeService,
+                                         renderer: Renderer
                                        )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[ChargeDetailsController])
 
   def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -61,15 +64,6 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
               try {
                 psaFS.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)) match {
                   case Some(fs) =>
-                    val commonJson = Json.obj(
-                      "heading" -> heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
-                      "isOverdue" -> penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-                      "period" -> msg"penalties.period".withArgs(startDate.format(dateFormatterStartDate),
-                        getQuarter(startDate).endDate.format(dateFormatterDMY)),
-                      "chargeReference" -> fs.chargeReference,
-                      "list" -> penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
-                    )
-
                     if (filteredPsaFS.nonEmpty) {
                       if (identifier.matches(srnRegex)) {
                         schemeService.retrieveSchemeDetails(
@@ -81,14 +75,14 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
                             val json = Json.obj(
                               "schemeAssociated" -> true,
                               "schemeName" -> schemeDetails.schemeName
-                            ) ++ commonJson
+                            ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
 
                             renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
                         }
                       } else {
                         val json = Json.obj(
                           "schemeAssociated" -> false
-                        ) ++ commonJson
+                        ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
 
                         renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
                       }
@@ -100,7 +94,7 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
                 }
               } catch {
                 case _: IndexOutOfBoundsException =>
-                  Logger.warn(
+                  logger.warn(
                     s"[financialStatement.ChargeDetailsController][IndexOutOfBoundsException]:" +
                       s"index $chargeReferenceIndex of collection length ${chargeRefs.length} attempted"
                   )
@@ -112,6 +106,29 @@ class ChargeDetailsController @Inject()(identify: IdentifierAction,
 
       }
   }
+
+  private def commonJson(
+                          fs: PsaFS,
+                          psaFS: Seq[PsaFS],
+                          chargeRefs: Seq[String],
+                          chargeReferenceIndex: String,
+                          startDate: LocalDate
+                        )(implicit request: IdentifierRequest[AnyContent]): JsObject =
+    Json.obj(
+      "heading" ->
+        heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
+      "isOverdue" ->
+        penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "period" ->
+        Messages("penalties.period",
+          startDate.format(dateFormatterStartDate),
+          getQuarter(startDate).endDate.format(dateFormatterDMY)
+        ),
+      "chargeReference" ->
+        fs.chargeReference,
+      "list" ->
+        penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
+    )
 
   private val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s
 }

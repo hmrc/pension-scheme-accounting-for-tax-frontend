@@ -21,13 +21,12 @@ import config.FrontendAppConfig
 import models.SendEmailRequest
 import play.api.Logger
 import play.api.http.Status._
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait EmailStatus
 
@@ -40,6 +39,8 @@ class EmailConnector @Inject()(
                                 http: HttpClient,
                                 crypto: ApplicationCrypto
                               ) {
+  private val logger = Logger(classOf[EmailConnector])
+
   private def callBackUrl(requestId: String, journeyType: String, psaOrPspId: String, email: String): String = {
     val encryptedPsaId = crypto.QueryParameterCrypto.encrypt(PlainText(psaOrPspId)).value
     val encryptedEmail = crypto.QueryParameterCrypto.encrypt(PlainText(email)).value
@@ -65,10 +66,10 @@ class EmailConnector @Inject()(
     http.POST[JsValue, HttpResponse](emailServiceUrl, jsonData).map { response =>
       response.status match {
         case ACCEPTED =>
-          Logger.debug(s"Email sent successfully for $journeyType")
+          logger.debug(s"Email sent successfully for $journeyType")
           EmailSent
         case status =>
-          Logger.warn(s"Sending Email failed for $journeyType with response status $status")
+          logger.warn(s"Sending Email failed for $journeyType with response status $status")
           EmailNotSent
       }
     } recoverWith logExceptions
@@ -76,7 +77,7 @@ class EmailConnector @Inject()(
 
   private def logExceptions: PartialFunction[Throwable, Future[EmailStatus]] = {
     case t: Throwable =>
-      Logger.warn("Unable to connect to Email Service", t)
+      logger.warn("Unable to connect to Email Service", t)
       Future.successful(EmailNotSent)
   }
 }

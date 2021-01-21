@@ -16,13 +16,10 @@
 
 package controllers.paymentsAndCharges
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.SchemeDetails
 import models.financialStatement.SchemeFS
@@ -40,6 +37,8 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 
+import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargeDetailsController @Inject()(
@@ -55,6 +54,8 @@ class PaymentsAndChargeDetailsController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
+
+  private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
@@ -162,7 +163,7 @@ class PaymentsAndChargeDetailsController @Inject()(
                 ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
-              Logger.warn(
+              logger.warn(
                 s"No Payments and Charge details found for the " +
                   s"selected charge reference ${seqChargeRefs(index.toInt)}"
               )
@@ -170,7 +171,7 @@ class PaymentsAndChargeDetailsController @Inject()(
           }
         } catch {
           case _: IndexOutOfBoundsException =>
-            Logger.warn(
+            logger.warn(
               s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
                 s"index $startDate/$index of attempted"
             )
