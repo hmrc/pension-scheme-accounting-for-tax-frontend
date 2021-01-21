@@ -166,7 +166,6 @@ object PsaSchemePartialServiceSpec {
   private val dueDate = "2021-02-15"
   private val startDt: String = LocalDate.parse(startDate).format(dateFormatterStartDate)
   private val endDt: String = LocalDate.parse(endDate).format(dateFormatterDMY)
-  private val dateFormatterYMD: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
   val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")
   private val srn = "srn"
   private val pstr = "pstr"

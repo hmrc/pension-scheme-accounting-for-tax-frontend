@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import models.requests.IdentifierRequest
 import play.api.libs.json._
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import utils.HttpResponseHelper
 import play.api.http.Status._
