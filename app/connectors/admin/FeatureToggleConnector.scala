@@ -21,25 +21,28 @@ import config.FrontendAppConfig
 import models.FeatureToggle
 import play.api.Logger
 import play.api.http.Status._
-import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import utils.HttpResponseHelper
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
 
-class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig) extends HttpResponseHelper {
-  def get(name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FeatureToggle] = {
+class FeatureToggleConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
+  extends HttpResponseHelper {
+  private val logger = Logger(classOf[FeatureToggleConnector])
+
+  def get(name: String)
+         (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FeatureToggle] = {
     val endPoint = config.featureToggleUrl(name)
     http.GET[HttpResponse](endPoint) map {
       response =>
         response.status match {
-        case OK => response.json.as[FeatureToggle]
-        case _ => handleErrorResponse("GET", endPoint)(response)
-      }
+          case OK => response.json.as[FeatureToggle]
+          case _ => handleErrorResponse("GET", endPoint)(response)
+        }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get toggle value", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get toggle value", t)
     }
   }
 }

@@ -49,6 +49,8 @@ class PaymentsAndChargesController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
+  private val logger = Logger(classOf[PaymentsAndChargesController])
+
   def onPageLoad(srn: String, year: Int): Action[AnyContent] = identify.async {
     implicit request =>
       schemeService.retrieveSchemeDetails(
@@ -76,7 +78,7 @@ class PaymentsAndChargesController @Inject()(
                 renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
-                Logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
+                logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

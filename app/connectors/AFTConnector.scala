@@ -35,6 +35,8 @@ import scala.util.Failure
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   extends HttpResponseHelper {
 
+  private val logger = Logger(classOf[AFTConnector])
+
   def fileAFTReturn(pstr: String, answers: UserAnswers, journeyType: JourneyType.Name)
                    (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
     val url = config.aftFileReturn.format(journeyType.toString)
@@ -46,7 +48,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           case _ => handleErrorResponse("POST", url)(response)
         }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to post aft return", t)
+      case Failure(t: Throwable) => logger.warn("Unable to post aft return", t)
     }
   }
 
@@ -60,7 +62,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
         case _ => handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get aft details", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get aft details", t)
     }
   }
 
@@ -93,7 +95,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get list of versions", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get list of versions", t)
     }
   }
 
@@ -117,7 +119,7 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
           handleErrorResponse("GET", url)(response)
       }
     } andThen {
-      case Failure(t: Throwable) => Logger.warn("Unable to get aft overview", t)
+      case Failure(t: Throwable) => logger.warn("Unable to get aft overview", t)
     }
   }
 

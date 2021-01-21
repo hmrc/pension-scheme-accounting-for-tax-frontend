@@ -36,7 +36,11 @@ class ErrorHandler @Inject()(
                               renderer: Renderer,
                               val messagesApi: MessagesApi,
                               config: FrontendAppConfig
-                            )(implicit ec: ExecutionContext) extends HttpErrorHandler with I18nSupport {
+                            )(implicit ec: ExecutionContext)
+  extends HttpErrorHandler
+    with I18nSupport {
+
+  private val logger = Logger(classOf[ErrorHandler])
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String = ""): Future[Result] = {
 
@@ -72,7 +76,7 @@ class ErrorHandler @Inject()(
   }
 
   private def logError(request: RequestHeader, ex: Throwable): Unit =
-    Logger.error(
+    logger.error(
       """
         |
         |! %sInternal server error, for (%s) [%s] ->

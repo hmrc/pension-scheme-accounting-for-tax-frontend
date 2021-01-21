@@ -25,11 +25,11 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.domain.{PspId, PsaId}
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait IdentifierAction
   extends ActionBuilder[IdentifierRequest, AnyContent]
@@ -42,6 +42,8 @@ class AuthenticatedIdentifierAction @Inject()(
                                              )(implicit val executionContext: ExecutionContext)
   extends IdentifierAction
     with AuthorisedFunctions {
+
+  private val logger = Logger(classOf[AuthenticatedIdentifierAction])
 
   override def invokeBlock[A](
                                request: Request[A],
@@ -59,7 +61,7 @@ class AuthenticatedIdentifierAction @Inject()(
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
       case e: AuthorisationException =>
-        Logger.warn(s"Authorization Failed with error $e")
+        logger.warn(s"Authorization Failed with error $e")
         Redirect(routes.UnauthorisedController.onPageLoad())
     }
   }

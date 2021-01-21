@@ -34,10 +34,10 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   import MinimalConnector._
 
   def getMinimalDetails[A](
-                               implicit hc: HeaderCarrier,
-                               ec: ExecutionContext,
-                               request: IdentifierRequest[A]
-                             ): Future[MinimalDetails] = {
+                            implicit hc: HeaderCarrier,
+                            ec: ExecutionContext,
+                            request: IdentifierRequest[A]
+                          ): Future[MinimalDetails] = {
 
     val hcWithId: HeaderCarrier =
       (request.psaId, request.pspId) match {
@@ -65,10 +65,12 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
 
 object MinimalConnector {
 
-  case class MinimalDetails(email: String,
-                            isPsaSuspended: Boolean,
-                            organisationName: Option[String],
-                            individualDetails: Option[IndividualDetails]) {
+  case class MinimalDetails(
+                             email: String,
+                             isPsaSuspended: Boolean,
+                             organisationName: Option[String],
+                             individualDetails: Option[IndividualDetails]
+                           ) {
 
     def name: String = {
       individualDetails
