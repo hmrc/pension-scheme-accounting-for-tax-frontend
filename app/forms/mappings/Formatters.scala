@@ -30,7 +30,6 @@ trait Formatters extends Transforms with Constraints {
   private[mappings] val postcodeRegexp = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
   private[mappings] val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
   private[mappings] val decimalRegexp = """^-?(\d*\.\d*)$"""
-  private[mappings] val decimal2DPRegexp = """^-?(\d*\.\d{2})$"""
 
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] =
     new Formatter[Option[String]] {
@@ -159,7 +158,6 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def bigDecimal2DPFormatter(requiredKey: String,
                                                invalidKey: String,
-                                               decimalKey: String,
                                                args: Seq[String] = Seq.empty): Formatter[BigDecimal] =
     new Formatter[BigDecimal] {
 
@@ -172,8 +170,6 @@ trait Formatters extends Transforms with Constraints {
           .right.flatMap {
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(BigDecimal(s)) match {
               case Success(x) => Right(x)
@@ -187,7 +183,6 @@ trait Formatters extends Transforms with Constraints {
 
   private[mappings] def optionBigDecimal2DPFormatter(requiredKey: String,
                                                      invalidKey: String,
-                                                     decimalKey: String,
                                                      args: Seq[String] = Seq.empty): Formatter[Option[BigDecimal]] =
     new Formatter[Option[BigDecimal]] {
 
@@ -202,8 +197,6 @@ trait Formatters extends Transforms with Constraints {
             Right(None)
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
-            Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(Option(BigDecimal(s))) match {
               case Success(x) => Right(x)

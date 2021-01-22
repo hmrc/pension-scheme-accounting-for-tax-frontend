@@ -31,8 +31,7 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     behave like bigDecimalField(
       form = form,
       fieldName = amountTransferredKey,
-      nonNumericError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.invalid", "test name")),
-      decimalsError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.decimal", "test name"))
+      nonNumericError = FormError(amountTransferredKey, messages(s"$amountTransferredKey.error.invalid", "test name"))
     )
 
     behave like bigDecimalFieldWithMinimum(
@@ -55,8 +54,7 @@ class ChargeAmountsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     behave like bigDecimalField(
       form = form,
       fieldName = amountTaxDueKey,
-      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid"),
-      decimalsError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.decimal")
+      nonNumericError = FormError(amountTaxDueKey, s"$amountTaxDueKey.error.invalid")
     )
 
     behave like bigDecimalFieldWithMinimum(

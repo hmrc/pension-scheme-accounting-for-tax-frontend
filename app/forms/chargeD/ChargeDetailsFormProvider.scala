@@ -57,8 +57,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt55Percent"),
         optionBigDecimal2DP(
           requiredKey = messages("chargeD.amountTaxDue.error.required", "25"),
-          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25"),
-          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "25")
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "25")
         ).verifying(
           maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "25")),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "25"))
@@ -68,8 +67,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints with
         otherFieldEmptyOrZeroOrBothFieldsNonEmptyAndNotZero(otherField = "taxAt25Percent"),
         optionBigDecimal2DP(
           requiredKey = messages("chargeD.amountTaxDue.error.required", "55"),
-          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55"),
-          decimalKey = messages("chargeD.amountTaxDue.error.decimal", "55")
+          invalidKey = messages("chargeD.amountTaxDue.error.invalid", "55")
         ).verifying(
           maximumValueOption[BigDecimal](BigDecimal("99999999999.99"), messages("chargeD.amountTaxDue.error.maximum", "55")),
           minimumValueOption[BigDecimal](minimumChargeValueAllowed, messages("chargeD.amountTaxDue.error.invalid", "55"))

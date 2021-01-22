@@ -41,8 +41,7 @@ class ChargeDetailsFormProvider @Inject() extends Mappings with Constraints {
       ),
       "amountTaxDue" -> bigDecimal2DP(
         requiredKey = "chargeF.amountTaxDue.error.required",
-        invalidKey = "chargeF.amountTaxDue.error.invalid",
-        decimalKey = "chargeF.amountTaxDue.error.decimal"
+        invalidKey = "chargeF.amountTaxDue.error.invalid"
       ).verifying(
         maximumValue[BigDecimal](BigDecimal("99999999999.99"), "chargeF.amountTaxDue.error.maximum"),
         minimumValue[BigDecimal](minimumChargeValueAllowed, "chargeF.amountTaxDue.error.minimum")

@@ -56,8 +56,7 @@ class ChargeDetailsFormProviderSpec extends IntFieldBehaviours with BigDecimalFi
     behave like bigDecimalField(
       form = form,
       fieldName = amountTaxDueKey,
-      nonNumericError = FormError(amountTaxDueKey, "totalTaxDue.error.invalid"),
-      decimalsError = FormError(amountTaxDueKey, "totalTaxDue.error.decimal")
+      nonNumericError = FormError(amountTaxDueKey, "totalTaxDue.error.invalid")
     )
 
     behave like bigDecimalFieldWithMinimum(

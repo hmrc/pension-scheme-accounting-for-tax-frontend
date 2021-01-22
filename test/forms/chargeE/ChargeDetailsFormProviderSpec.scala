@@ -61,8 +61,7 @@ class ChargeDetailsFormProviderSpec extends DateBehaviours with BigDecimalFieldB
     behave like bigDecimalField(
       form = form,
       fieldName = chargeAmountKey,
-      nonNumericError = FormError(chargeAmountKey, s"$chargeAmountKey.error.invalid"),
-      decimalsError = FormError(chargeAmountKey, s"$chargeAmountKey.error.decimal")
+      nonNumericError = FormError(chargeAmountKey, s"$chargeAmountKey.error.invalid")
     )
 
     behave like bigDecimalFieldWithMinimum(
