@@ -17,6 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock.{urlEqualTo, _}
+import models.{JourneyType, SchemeAdministratorType}
 import org.scalatest.{AsyncWordSpec, MustMatchers}
 import play.api.http.Status
 import uk.gov.hmrc.domain.PsaId
@@ -33,7 +34,7 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
 
   private val testEmailAddress = "test@test.com"
   private val testTemplate = "testTemplate"
-  private val journeyType = "AFTReturnSubmitted"
+  private val journeyType = JourneyType.AFT_SUBMIT_RETURN
 
   private lazy val connector = injector.instanceOf[EmailConnector]
 
@@ -47,8 +48,15 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailSent
-        }
+        connector.sendEmail(
+          SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId,
+          testPsaId.id,
+          journeyType,
+          testEmailAddress,
+          testTemplate,
+          Map.empty
+        ).map{ result => result mustBe EmailSent}
       }
     }
 
@@ -61,7 +69,8 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
           )
         )
 
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
 
@@ -72,7 +81,8 @@ class EmailConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHe
               .withHeader("Content-Type", "application/json")
           )
         )
-        connector.sendEmail(requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
+        connector.sendEmail(SchemeAdministratorType.SchemeAdministratorTypePSA,
+          requestId, testPsaId.id, journeyType, testEmailAddress, testTemplate, Map.empty).map { result => result mustBe EmailNotSent
         }
       }
     }
