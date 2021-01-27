@@ -34,12 +34,21 @@ trait BigDecimalFieldBehaviours extends FieldBehaviours {
       }
     }
 
-    "must not bind decimals that are not 2 dp" in {
+    "must not bind decimals that are greater than 2 dp" in {
 
       forAll(decimals -> "decimal") {
         decimal =>
           val result = form.bind(Map(fieldName -> decimal)).apply(fieldName)
           result.errors mustEqual Seq(decimalsError)
+      }
+    }
+
+    "must bind integers greater than zero" in {
+      forAll(intsAboveValue(0) -> "intAboveMax") {
+        i: Int =>
+          val result = form.bind(Map(fieldName -> i.toString)).apply(fieldName)
+          result.errors mustBe Seq.empty
+          result.value mustBe Some(BigDecimal(i).toString)
       }
     }
   }
