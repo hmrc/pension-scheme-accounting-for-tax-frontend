@@ -72,7 +72,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       }
     }
 
-    "not bind decimals that are not 2 dp" in {
+    "not bind decimals that are more than 2 dp" in {
       forAll(decimals -> "decimal") {
         decimal: String =>
           val result = form.bind(chargeADetails(lowerTax = decimal))
