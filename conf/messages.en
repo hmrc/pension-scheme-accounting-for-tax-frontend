@@ -174,7 +174,7 @@ chargeA.numberOfMembers.error.maximum = The number of members who received a sho
 
 chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the total amount of tax due at 20%
 chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
-chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must be whole numbers like 123 or must include pence, like 123.45
 chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £99999999999.99 or less
 chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £{0} or more
 
