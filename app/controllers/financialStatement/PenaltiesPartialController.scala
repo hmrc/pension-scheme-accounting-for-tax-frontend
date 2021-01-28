@@ -20,17 +20,15 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import javax.inject.Inject
-import play.api.i18n.I18nSupport
-import play.api.i18n.MessagesApi
+import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.Action
-import play.api.mvc.AnyContent
-import play.api.mvc.MessagesControllerComponents
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 
 class PenaltiesPartialController @Inject()(
                                                 identify: IdentifierAction,
@@ -38,7 +36,8 @@ class PenaltiesPartialController @Inject()(
                                                 val controllerComponents: MessagesControllerComponents,
                                                 fsConnector: FinancialStatementConnector,
                                                 renderer: Renderer,
-                                                config: FrontendAppConfig
+                                                config: FrontendAppConfig,
+                                                aftPartialService: AFTPartialService
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -47,9 +46,16 @@ class PenaltiesPartialController @Inject()(
   def penaltiesPartial: Action[AnyContent] = identify.async { implicit request =>
 
     fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
-      val json = Json.obj("displayLink" -> Json.toJson(psaFS.nonEmpty),
-      "viewPenaltiesUrl" -> config.viewPenaltiesUrl)
-      renderer.render(template = "partials/penalties.njk", json).map(Ok(_))
+      val result = if (psaFS.isEmpty) {
+        Future.successful(play.twirl.api.Html(""))
+      } else {
+        val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS)
+        renderer.render(
+          template = "partials/penalties.njk",
+          ctx = Json.obj("viewModel" -> Json.toJson(viewModel))
+        )
+      }
+      result.map(Ok(_))
     }
   }
 }

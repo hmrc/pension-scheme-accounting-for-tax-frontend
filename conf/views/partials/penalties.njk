@@ -1,8 +1,20 @@
-{% if displayLink %}
-    <li>
-         <a class="govuk-link" id="aft-penalties-id" href="{{ viewPenaltiesUrl }}">
-           {{ messages("penaltiesPartial.linkText") }}
-         </a>
-    </li>
-{% endif %}
-
+<div class="card" id="penalties">
+    <div class="card-body">
+        <h2 class="card-heading heading-small">
+            {{ messages("psaPenaltiesCard.h2") }}
+        </h2>
+        {% for subHeading in viewModel.subHeadings %}
+            <h3 class="card-sub-heading">
+                <span class="font-xsmall">{{ subHeading.span }}</span>
+                <span class="font-large bold">
+                    {{ subHeading.total }}
+                </span>
+            </h3>
+        {% endfor %}
+    </div>
+    <div class="card-action">
+        {% for link in viewModel.links %}
+            <a id="{{ link.id }}" href="{{ link.url }}">{{ link.linkText }}</a>
+        {% endfor %}
+    </div>
+</div>

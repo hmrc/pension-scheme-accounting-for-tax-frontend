@@ -24,7 +24,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
-import models.financialStatement.SchemeFS
+import models.financialStatement.{SchemeFS, PsaFS}
 import javax.inject.Inject
 import models.{AFTOverview, Quarters, Draft, SchemeDetails, LockDetail}
 import play.api.i18n.Messages
@@ -422,5 +422,52 @@ class AFTPartialService @Inject()(
         None
       }
     }
+  }
+
+  private def getUpcomingCharges(psaFS: Seq[PsaFS]): Seq[PsaFS] =
+    psaFS
+      .filter(_.dueDate.nonEmpty)
+      .filter(_.dueDate.get.isAfter(DateHelper.today))
+
+  def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
+    (implicit messages: Messages): PspDashboardAftViewModel = {
+
+    val subHeadingPaymentDue = {
+      val upcomingCharges: Seq[PsaFS] = getUpcomingCharges(psaFs)
+      val totalUpcoming = upcomingCharges.map(_.amountDue).sum
+      val span =
+        if (upcomingCharges.map(_.dueDate).distinct.size == 1)
+          msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
+            .withArgs(upcomingCharges.map(_.dueDate).distinct
+              .flatten
+              .head
+              .format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+        else
+          msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+      Json.obj(
+        "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
+        "span" -> span
+      )
+    }
+
+    val subHeadingTotalOverduePayments = {
+      val totalOverdue: BigDecimal = psaFs.map(_.amountDue).sum
+      Json.obj(
+        "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
+        "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
+      )
+    }
+
+    PspDashboardAftViewModel(
+      subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
+      links = Seq(
+        Link(
+          id = "aft-penalties-id",
+          url = appConfig.viewPenaltiesUrl,
+          linkText = msg"psaPenaltiesCard.viewPenalties",
+          hiddenText = None
+        )
+      )
+    )
   }
 }
