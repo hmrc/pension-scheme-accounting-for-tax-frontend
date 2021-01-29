@@ -36,7 +36,7 @@ import play.twirl.api.Html
 import services.AFTPartialService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
-import viewmodels.{Link, PspDashboardAftViewModel}
+import viewmodels.{Link, DashboardAftViewModel}
 
 import scala.concurrent.Future
 
@@ -58,7 +58,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
   def application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val templateToBeRendered = "partials/penalties.njk"
-  private val jsonToPassToTemplate: PspDashboardAftViewModel => JsObject = display => Json.obj("viewModel" -> Json.toJson(display))
+  private val jsonToPassToTemplate: DashboardAftViewModel => JsObject = display => Json.obj("viewModel" -> Json.toJson(display))
 
   def dashboardViewModel = {
     val subheadings =
@@ -79,7 +79,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         linkText = Message("psaPenaltiesCard.viewPenalties"),
         hiddenText = None)
     )
-    PspDashboardAftViewModel(subHeadings = subheadings, links = links)
+    DashboardAftViewModel(subHeadings = subheadings, links = links)
   }
 
 

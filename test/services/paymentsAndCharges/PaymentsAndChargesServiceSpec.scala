@@ -257,7 +257,7 @@ class PaymentsAndChargesServiceSpec
     }
   }
 
-  "getUpcomingCharges" must {
+  "getUpcomingChargesScheme" must {
     "only return charges with a dueDate in the future" in {
       DateHelper.setDate(Some(LocalDate.of(2020, 6, 1)))
 
@@ -266,8 +266,9 @@ class PaymentsAndChargesServiceSpec
         createCharge(PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
       )
 
-      paymentsAndChargesService.getUpcomingCharges(charges).size mustBe 1
-      paymentsAndChargesService.getUpcomingCharges(charges).head.chargeType mustBe PSS_OTC_AFT_RETURN
+      val result = paymentsAndChargesService.extractUpcomingCharges[SchemeFS](charges, _.dueDate)
+      result.size mustBe 1
+      result.head.chargeType mustBe PSS_OTC_AFT_RETURN
     }
   }
 

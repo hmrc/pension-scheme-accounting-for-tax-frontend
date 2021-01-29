@@ -24,7 +24,7 @@ import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
 import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
-import models.financialStatement.{SchemeFS, PsaFS}
+import models.financialStatement.{PsaFS, SchemeFS}
 import javax.inject.Inject
 import models.{AFTOverview, Quarters, Draft, SchemeDetails, LockDetail}
 import play.api.i18n.Messages
@@ -34,7 +34,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
-import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
+import viewmodels.{Link, AFTViewModel, DashboardAftViewModel}
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -55,7 +55,7 @@ class AFTPartialService @Inject()(
                                            implicit
                                            hc: HeaderCarrier,
                                            messages: Messages
-                                         ): Future[PspDashboardAftViewModel] = {
+                                         ): Future[DashboardAftViewModel] = {
     schemeService.retrieveSchemeDetails(
       psaId = pspId,
       srn = srn,
@@ -83,7 +83,7 @@ class AFTPartialService @Inject()(
             getPastReturnsModelOpt(overview, srn).map(_.link)
           ).flatten
 
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = subHeading,
           links = links
         )
@@ -92,10 +92,10 @@ class AFTPartialService @Inject()(
   }
 
   def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
-                                                 (implicit messages: Messages): PspDashboardAftViewModel = {
+                                                 (implicit messages: Messages): DashboardAftViewModel = {
 
     val upcomingCharges: Seq[SchemeFS] =
-      paymentsAndChargesService.getUpcomingCharges(schemeFs)
+      paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
 
     val pastCharges: Seq[SchemeFS] = schemeFs
       .filter(_.periodEndDate.isBefore(DateHelper.today))
@@ -164,14 +164,14 @@ class AFTPartialService @Inject()(
 
     val links = Seq(viewUpcomingLink, viewPastPaymentsAndChargesLink).flatten
 
-    PspDashboardAftViewModel(
+    DashboardAftViewModel(
       subHeadings = Seq(subHeading),
       links = links
     )
   }
 
   def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
-                                                (implicit messages: Messages): PspDashboardAftViewModel = {
+                                                (implicit messages: Messages): DashboardAftViewModel = {
 
     val totalOverdue: BigDecimal =
       schemeFs.map(_.amountDue).sum
@@ -221,7 +221,7 @@ class AFTPartialService @Inject()(
       }
     }
 
-    PspDashboardAftViewModel(
+    DashboardAftViewModel(
       subHeadings = Seq(subHeadingTotal, subHeadingInterestAccruing),
       links = Seq(viewOverdueLink).flatten
     )
@@ -424,16 +424,12 @@ class AFTPartialService @Inject()(
     }
   }
 
-  private def getUpcomingCharges(psaFS: Seq[PsaFS]): Seq[PsaFS] =
-    psaFS
-      .filter(_.dueDate.nonEmpty)
-      .filter(_.dueDate.get.isAfter(DateHelper.today))
-
   def retrievePsaPenaltiesCardModel(psaFs: Seq[PsaFS])
-    (implicit messages: Messages): PspDashboardAftViewModel = {
+    (implicit messages: Messages): DashboardAftViewModel = {
 
     val subHeadingPaymentDue = {
-      val upcomingCharges: Seq[PsaFS] = getUpcomingCharges(psaFs)
+      val upcomingCharges: Seq[PsaFS] =
+        paymentsAndChargesService.extractUpcomingCharges[PsaFS](psaFs, _.dueDate)
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
       val span =
         if (upcomingCharges.map(_.dueDate).distinct.size == 1)
@@ -458,7 +454,7 @@ class AFTPartialService @Inject()(
       )
     }
 
-    PspDashboardAftViewModel(
+    DashboardAftViewModel(
       subHeadings = Seq(subHeadingPaymentDue, subHeadingTotalOverduePayments),
       links = Seq(
         Link(
