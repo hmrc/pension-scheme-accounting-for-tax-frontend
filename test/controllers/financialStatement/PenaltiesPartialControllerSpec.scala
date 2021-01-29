@@ -33,6 +33,7 @@ import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import services.AFTPartialService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import uk.gov.hmrc.viewmodels.Text.Message
 import viewmodels.{Link, PspDashboardAftViewModel}
@@ -46,22 +47,50 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  val mockAFTPartialService: AFTPartialService = mock[AFTPartialService]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
-      bind[FinancialStatementConnector].toInstance(mockFSConnector)
+      bind[FinancialStatementConnector].toInstance(mockFSConnector),
+      bind[AFTPartialService].toInstance(mockAFTPartialService)
     )
 
-  val application: Application = applicationBuilder(extraModules = extraModules).build()
+  def application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val templateToBeRendered = "partials/penalties.njk"
   private val jsonToPassToTemplate: PspDashboardAftViewModel => JsObject = display => Json.obj("viewModel" -> Json.toJson(display))
+
+  def dashboardViewModel = {
+    val subheadings =
+      Seq(
+        Json.obj(
+          "total" -> "£1,029.05",
+          "span" -> "Total amount due:"
+        ),
+        Json.obj(
+          "total" -> "£2,058.10",
+          "span" -> "Total overdue payments:"
+        )
+      )
+
+    //controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,
+    val links = Seq(
+      Link(id = "aft-penalties-id",
+        url = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
+        linkText = Message("psaPenaltiesCard.viewPenalties"),
+        hiddenText = None)
+    )
+    PspDashboardAftViewModel(subHeadings = subheadings, links = links)
+  }
+
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockFSConnector, mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFSResponse))
+    when(mockAFTPartialService.retrievePsaPenaltiesCardModel(any())(any()))
+      .thenReturn(dashboardViewModel)
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -82,34 +111,13 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRendered
-/*
-"viewModel":{"subHeadings":[{"total":"£0.00","span":"Total amount due:"},{"total":"£2,058.10","span":"Total overdue payments:"}],
-"links":[{"id":"aft-penalties-id","url":"http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
-"linkText":"View your penalties for 2020"}]}
- */
-        val expectedSubheadings =
-          Seq(
-            Json.obj(
-              "total" -> "£0.00",
-              "span" -> "Total amount due:"
-            ),
-            Json.obj(
-              "total" -> "£2,058.10",
-              "span" -> "Total overdue payments:"
-            )
-          )
 
-        //controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,
-        def expectedLinks = Seq(
-          Link(id = "aft-penalties-id",
-            url = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
-            linkText = Message("psaPenaltiesCard.viewPenalties"),
-            hiddenText = None)
-        )
 
-        def expectedViewModel = PspDashboardAftViewModel(subHeadings = expectedSubheadings, links = expectedLinks)
 
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(expectedViewModel))
+        println( "\n>>ACT=" + jsonCaptor.getValue)
+        println( "\n>>exp=" + jsonToPassToTemplate(dashboardViewModel))
+
+        jsonCaptor.getValue must containJson(jsonToPassToTemplate(dashboardViewModel))
       }
 
       "return empty html when empty sequence is received from PSA financial statement api" in {

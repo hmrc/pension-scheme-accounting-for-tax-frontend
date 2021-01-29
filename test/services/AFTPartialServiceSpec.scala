@@ -54,6 +54,11 @@ class AFTPartialServiceSpec
   private val schemeService = mock[SchemeService]
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
 
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
+  }
+
   def service: AFTPartialService =
     new AFTPartialService(frontendAppConfig, schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
@@ -81,6 +86,9 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
+
       whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = false,
@@ -98,6 +106,9 @@ class AFTPartialServiceSpec
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
+
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
       whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
@@ -123,6 +134,9 @@ class AFTPartialServiceSpec
           .thenReturn(Future.successful(false))
         when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
+
+        when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
         whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
           _ mustBe pspDashboardOneCompileZeroedOutModel
