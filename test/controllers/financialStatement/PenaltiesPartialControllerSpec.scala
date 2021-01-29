@@ -73,10 +73,9 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         )
       )
 
-    //controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,
     val links = Seq(
       Link(id = "aft-penalties-id",
-        url = "http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
+        url = controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,//"http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
         linkText = Message("psaPenaltiesCard.viewPenalties"),
         hiddenText = None)
     )
@@ -111,19 +110,10 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRendered
-
-
-
-        println( "\n>>ACT=" + jsonCaptor.getValue)
-        println( "\n>>exp=" + jsonToPassToTemplate(dashboardViewModel))
-
         jsonCaptor.getValue must containJson(jsonToPassToTemplate(dashboardViewModel))
       }
 
-      "return empty html when empty sequence is received from PSA financial statement api" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      "don't attempt to render template when empty sequence is received from PSA financial statement api" in {
         when(mockFSConnector.getPsaFS(any())(any(), any()))
           .thenReturn(Future.successful(Seq.empty))
 
