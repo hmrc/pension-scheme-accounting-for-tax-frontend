@@ -173,14 +173,14 @@ chargeA.numberOfMembers.error.nonNumeric = The number of members who received a 
 chargeA.numberOfMembers.error.maximum = The number of members who received a short service refund lump sum in the quarter must be between 1 and 999999
 
 chargeA.totalAmtOfTaxDueAtLowerRate.error.required = Enter the total amount of tax due at 20%
-chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtLowerRate.error.invalid = The amount of tax due at 20% must be an amount of money, like 123 or 123.45
 chargeA.totalAmtOfTaxDueAtLowerRate.error.decimal = The amount of tax due at 20% must be whole numbers, like 123 or must include pence, like 123.45
 chargeA.totalAmtOfTaxDueAtLowerRate.error.maximum = The amount of tax due at 20% must be £99999999999.99 or less
 chargeA.totalAmtOfTaxDueAtLowerRate.error.minimum = The amount of tax due at 20% must be £{0} or more
 
 chargeA.totalAmtOfTaxDueAtHigherRate.error.required = Enter the total amount of tax due at 50%
-chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123.45 or 156.00
-chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must include pence, like 123.45 or 156.00
+chargeA.totalAmtOfTaxDueAtHigherRate.error.invalid = The amount of tax due at 50% must be an amount of money, like 123 or 123.45
+chargeA.totalAmtOfTaxDueAtHigherRate.error.decimal = The amount of tax due at 50% must be whole numbers, like 123 or must include pence, like 123.45
 chargeA.totalAmtOfTaxDueAtHigherRate.error.maximum = The amount of tax due at 50% must be £99999999999.99 or less
 chargeA.totalAmtOfTaxDueAtHigherRate.error.minimum = The amount of tax due at 50% must be £{0} or more
 
@@ -295,8 +295,8 @@ numberOfDeceased.error.wholeNumber = The number of deceased members for which pa
 numberOfDeceased.error.maxLength = The number of deceased members for which payment of a lump sum death benefit was made in the quarter must be 999999 or fewer
 
 totalTaxDue.error.required = Enter the total amount of tax due
-totalTaxDue.error.invalid = The total amount of tax due must be an amount of money, like 123.45 or 156.00
-totalTaxDue.error.decimal = The total amount of tax due must include pence, like 123.45 or 156.00
+totalTaxDue.error.invalid = The total amount of tax due must be an amount of money, like 123 or 123.45
+totalTaxDue.error.decimal = The total amount of tax due must be whole numbers, like 123 or must include pence, like 123.45
 totalTaxDue.error.maximum = The total amount of tax due must be £99999999999.99 or less
 totalTaxDue.error.minimum = The total amount of tax due must be £0.01 or more
 totalTaxDue.checkYourAnswersLabel = Total amount of tax due
@@ -349,8 +349,8 @@ chargeF.deregistrationDate.error.required.two = The date the scheme was de-regis
 chargeF.deregistrationDate.error.invalid = Enter a real date for the date the scheme was de-registered
 chargeF.deregistrationDate.error.date = The date the scheme was de-registered must be between {0} and {1}
 chargeF.amountTaxDue.error.required = Enter the amount of tax due at 40%
-chargeF.amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123.45 or 156.00
-chargeF.amountTaxDue.error.decimal = The amount of tax due at 40% must include pence, like 123.45 or 156.00
+chargeF.amountTaxDue.error.invalid = The amount of tax due at 40% must be an amount of money, like 123 or 123.45
+chargeF.amountTaxDue.error.decimal = The amount of tax due at 40% must be whole numbers, like 123 or must include pence, like 123.45
 chargeF.amountTaxDue.error.maximum = The amount of tax due at 40% must be £99999999999.99 or less
 chargeF.amountTaxDue.error.minimum = The amount of tax due at 40% must be £0.01 or more
 chargeF.chargeDetails.date.label = Date scheme was de-registered
@@ -365,8 +365,8 @@ annualAllowanceYear.heading = Select the tax year to which the annual allowance 
 total = Total
 
 chargeAmount.error.required = Enter the charge amount
-chargeAmount.error.invalid = The charge amount must be an amount of money, like 123.45 or 156.00
-chargeAmount.error.decimal = The charge amount must include pence, like 123.45 or 156.00
+chargeAmount.error.invalid = The charge amount must be an amount of money, like 123 or 123.45
+chargeAmount.error.decimal = The charge amount must be whole numbers, like 123 or must include pence, like 123.45
 chargeAmount.error.maximum = The charge amount must be £99999999999.99 or less
 dateNoticeReceived.error.required = Enter the date you received notice to pay the charge
 dateNoticeReceived.error.date = The date you received notice to pay the charge must be between {0} and {1}
@@ -488,8 +488,8 @@ chargeD.whatYouWillNeed.li4 = the amount of tax due at 25%
 chargeD.whatYouWillNeed.li5 = the amount of tax due at 55%
 
 chargeD.amountTaxDue.error.required = Enter the amount of tax due at {0}%
-chargeD.amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123.45 or 156.00
-chargeD.amountTaxDue.error.decimal = The amount of tax due at {0}% must include pence, like 123.45 or 156.00
+chargeD.amountTaxDue.error.invalid = The amount of tax due at {0}% must be an amount of money, like 123 or 123.45
+chargeD.amountTaxDue.error.decimal = The amount of tax due at {0}% must be whole numbers, like 123 or must include pence, like 123.45
 chargeD.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 dateOfEvent.error.required = Enter the date of the benefit crystallisation event giving rise to the charge
@@ -535,14 +535,14 @@ chargeG.chargeAmount.transferred.visuallyHidden.label = how much was transferred
 chargeG.chargeAmount.taxDue.visuallyHidden.label = the amount of tax due for this transfer into the QROPS
 
 amountTransferred.error.required = Enter the amount transferred into the QROPS for {0}
-amountTransferred.error.invalid = The amount transferred into the QROPS for {0} must be an amount of money, like 123.45 or 156.00
-amountTransferred.error.decimal = The amount transferred into the QROPS for {0} must include pence, like 123.45 or 156.00
+amountTransferred.error.invalid = The amount transferred into the QROPS for {0} must be an amount of money, like 123 or 123.45
+amountTransferred.error.decimal = The amount transferred into the QROPS for {0} must be whole numbers, like 123 or must include pence, like 123.45
 amountTransferred.error.maximum = The amount transferred into the QROPS for {0} must be £99999999999.99 or less
 amountTransferred.error.minimum = The amount transferred into the QROPS for {0} must be £0.01 or more
 
 amountTaxDue.error.required = Enter the amount of tax due for this transfer into the QROPS
-amountTaxDue.error.invalid = The amount of tax due for this transfer into the QROPS must be an amount of money, like 123.45 or 156.00
-amountTaxDue.error.decimal = The amount of tax due for this transfer into the QROPS must include pence, like 123.45 or 156.00
+amountTaxDue.error.invalid = The amount of tax due for this transfer into the QROPS must be an amount of money, like 123 or 123.45
+amountTaxDue.error.decimal = The amount of tax due for this transfer into the QROPS must be whole numbers, like 123 or must include pence, like 123.45
 amountTaxDue.error.maximum = The amount of tax due for this transfer into the QROPS must be £99999999999.99 or less
 amountTaxDue.error.minimum = The amount of tax due for this transfer into the QROPS must be £0.01 or more
 
@@ -822,8 +822,8 @@ chargeC.paymentDate.error.incomplete = The date the authorised surplus payment w
 chargeC.paymentDate.error.future = The date the authorised surplus payment was made must be today or in the past
 
 chargeC.amountTaxDue.error.required = Enter the amount of tax due at 35%
-chargeC.amountTaxDue.error.invalid = The amount of tax due at 35% must be an amount of money, like 123.45 or 156.00
-chargeC.amountTaxDue.error.decimal = The amount of tax due at 35% must include pence, like 123.45 or 156.00
+chargeC.amountTaxDue.error.invalid = The amount of tax due at 35% must be an amount of money, like 123 or 123.45
+chargeC.amountTaxDue.error.decimal = The amount of tax due at 35% must be whole numbers, like 123 or must include pence, like 123.45
 chargeC.amountTaxDue.error.maximum = The amount of tax due at {0}% must be £99999999999.99 or less
 
 chargeC.paymentDate.label = Date authorised surplus payment was made
