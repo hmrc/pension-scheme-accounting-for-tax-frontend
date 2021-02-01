@@ -1064,8 +1064,6 @@ paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
 paymentsAndChargesOverdue.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
 
-penaltiesPartial.linkText = View your penalties for 2020
-
 penalties.title = Penalties for {0}
 penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
