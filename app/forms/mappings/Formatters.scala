@@ -30,6 +30,7 @@ trait Formatters extends Transforms with Constraints {
   private[mappings] val postcodeRegexp = """^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$"""
   private[mappings] val numericRegexp = """^-?(\-?)(\d*)(\.?)(\d*)$"""
   private[mappings] val decimalRegexp = """^-?(\d*\.\d*)$"""
+  private[mappings] val intRegexp = """^-?(\d*)$"""
   private[mappings] val decimal2DPRegexp = """^-?(\d*\.\d{2})$"""
 
   private[mappings] val optionalStringFormatter: Formatter[Option[String]] =
@@ -172,7 +173,7 @@ trait Formatters extends Transforms with Constraints {
           .right.flatMap {
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
+          case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
             Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(BigDecimal(s)) match {
@@ -202,7 +203,7 @@ trait Formatters extends Transforms with Constraints {
             Right(None)
           case s if !s.matches(numericRegexp) =>
             Left(Seq(FormError(key, invalidKey, args)))
-          case s if !s.matches(decimal2DPRegexp) =>
+          case s if !s.matches(decimal2DPRegexp) && !s.matches(intRegexp) =>
             Left(Seq(FormError(key, decimalKey, args)))
           case s =>
             Try(Option(BigDecimal(s))) match {

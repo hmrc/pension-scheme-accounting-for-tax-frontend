@@ -72,7 +72,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       }
     }
 
-    "not bind decimals that are not 2 dp" in {
+    "not bind decimals that are more than 2 dp" in {
       forAll(decimals -> "decimal") {
         decimal: String =>
           val result = form.bind(chargeADetails(lowerTax = decimal))
@@ -102,6 +102,15 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       val result = form.bind(chargeADetails(lowerTax = "0.00"))
       result.errors mustBe Seq.empty
     }
+
+    "bind integers to totalAmtOfTaxDueAtLowerRate" in {
+      forAll(intsAboveValue(0) -> "intAboveMax") {
+        i: Int =>
+          val result = form.bind(chargeADetails(lowerTax = i.toString))
+          result.errors mustBe Seq.empty
+          result.value.flatMap(_.totalAmtOfTaxDueAtLowerRate) mustBe Some(BigDecimal(i))
+      }
+    }
   }
 
   "totalAmtOfTaxDueAtHigherRate" must {
@@ -114,7 +123,7 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
       }
     }
 
-    "not bind decimals that are not 2 dp" in {
+    "not bind decimals that are greater than 2 dp" in {
       forAll(decimals -> "decimal") {
         decimal: String =>
           val result = form.bind(chargeADetails(higherTax = decimal))
@@ -143,6 +152,15 @@ class ChargeDetailsFormProviderSpec extends SpecBase with DateBehaviours with Bi
     "bind 0.00 when positive value bound to totalAmtOfTaxDueAtLowerRate" in {
       val result = form.bind(chargeADetails(higherTax = "0.00"))
       result.errors mustBe Seq.empty
+    }
+
+    "bind integers to totalAmtOfTaxDueAtHigherRate" in {
+      forAll(intsAboveValue(0) -> "intAboveMax") {
+        i: Int =>
+          val result = form.bind(chargeADetails(higherTax = i.toString))
+          result.errors mustBe Seq.empty
+          result.value.flatMap(_.totalAmtOfTaxDueAtHigherRate) mustBe Some(BigDecimal(i))
+      }
     }
   }
 

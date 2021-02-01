@@ -71,6 +71,7 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       .suchThat(_ < value)
       .map[String](_.setScale(2, RoundingMode.FLOOR).toString())
 
+
   def decimalsAboveValue(value: BigDecimal): Gen[String] =
     arbitrary[BigDecimal]
       .suchThat(_ > value)
