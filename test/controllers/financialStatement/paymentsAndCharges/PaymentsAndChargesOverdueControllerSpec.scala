@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -52,7 +52,7 @@ class PaymentsAndChargesOverdueControllerSpec
   import PaymentsAndChargesOverdueControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesOverdueController.onPageLoad(srn, startDate).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesOverdueController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]

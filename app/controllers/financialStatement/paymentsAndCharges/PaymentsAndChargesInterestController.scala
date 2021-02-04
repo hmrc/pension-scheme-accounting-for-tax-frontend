@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import java.time.LocalDate
 
@@ -203,7 +203,7 @@ class PaymentsAndChargesInterestController @Inject()(
             else
               PSS_OTC_AFT_RETURN_INTEREST.toString
             ),
-          "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+          "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
             .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url,
           "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)

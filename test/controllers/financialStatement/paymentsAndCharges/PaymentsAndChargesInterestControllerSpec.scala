@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import java.time.LocalDate
 
@@ -52,7 +52,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
   import PaymentsAndChargesInterestControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController.onPageLoad(srn, startDate, index).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController.onPageLoad(srn, startDate, index).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -104,7 +104,7 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
     "schemeName" -> schemeName,
     "accruedInterest" -> schemeFS.accruedInterestTotal,
     "chargeType" -> chargeType,
-    "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+    "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
       .onPageLoad(srn, schemeFS.periodStartDate, index)
       .url,
     "returnUrl" -> dummyCall.url

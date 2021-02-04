@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -191,7 +191,7 @@ class PaymentsAndChargeDetailsController @Inject()(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
             s" <span><a id='breakdown' class=govuk-link href=${
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoad(srn, schemeFS.periodStartDate, index)
                 .url
             }>" +

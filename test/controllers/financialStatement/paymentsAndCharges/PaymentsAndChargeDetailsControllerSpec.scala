@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -56,7 +56,7 @@ class PaymentsAndChargeDetailsControllerSpec
   import PaymentsAndChargeDetailsControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -98,7 +98,7 @@ class PaymentsAndChargeDetailsControllerSpec
         }" +
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
-          controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
             .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url
         }>" +

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
@@ -47,9 +47,9 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   import PenaltiesControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, srn).url
   private def httpPathGETUnassociated(identifier: String): String =
-    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, identifier).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, identifier).url
 
   val penaltyTables: Seq[JsObject] = Seq(
     Json.obj(
@@ -166,6 +166,6 @@ object PenaltiesControllerSpec {
     ))
 
   def link(startDate: String): Html = Html(
-      s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+      s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

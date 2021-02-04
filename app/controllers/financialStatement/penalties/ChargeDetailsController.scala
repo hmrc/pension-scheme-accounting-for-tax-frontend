@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import config.Constants._
 import connectors.FinancialStatementConnector

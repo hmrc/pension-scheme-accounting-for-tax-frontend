@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
-import controllers.paymentsAndCharges.routes._
+import controllers.financialStatement.paymentsAndCharges.routes._
 import controllers.routes.{ReturnToSchemeDetailsController, SignOutController}
 import models.LocalDateBinder._
 import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}

@@ -104,7 +104,8 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
 
         Future.successful(
           s"<a id=${data.chargeReference} " +
-            s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
+            s"class=govuk-link href=${controllers.financialStatement.penalties.routes
+              .ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
             s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
       case _ =>

@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import forms.SelectSchemeFormProvider
-import javax.inject.Inject
 import models.PenaltySchemes
 import models.financialStatement.PsaFS
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,
@@ -57,7 +57,7 @@ class SelectSchemeController @Inject()(
             val json = Json.obj(
               "form" -> form(penaltySchemes),
               "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
-              "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+              "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(year).url)
 
             renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
           } else {
@@ -76,7 +76,7 @@ class SelectSchemeController @Inject()(
               val json = Json.obj(
                 "form" -> formWithErrors,
                 "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
-                "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+                "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(year).url)
 
               renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
             },
@@ -85,10 +85,10 @@ class SelectSchemeController @Inject()(
                 case Some(jsValue) =>
                   value.srn match {
                     case Some(srn) =>
-                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
+                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, srn)))
                     case _ =>
                       val pstrIndex: String = jsValue.as[Seq[PsaFS]].map(_.pstr).indexOf(value.pstr).toString
-                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
+                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
                   }
                 case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

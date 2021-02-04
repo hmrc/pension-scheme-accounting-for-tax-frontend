@@ -60,15 +60,15 @@ class PaymentsAndChargesService @Inject()() {
               val redirectChargeDetailsUrl: String = {
                 chargeDetailsFilter match {
                   case ChargeDetailsFilter.Upcoming =>
-                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                       .onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                       .url
                   case ChargeDetailsFilter.Overdue =>
-                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                       .onPageLoadOverdue(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                       .url
                   case _ =>
-                    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                       .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                       .url
                 }
@@ -125,15 +125,15 @@ class PaymentsAndChargesService @Inject()() {
         val redirectUrl =
           chargeDetailsFilter match {
             case ChargeDetailsFilter.Upcoming =>
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                 .url
             case ChargeDetailsFilter.Overdue =>
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoadOverdue(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                 .url
             case _ =>
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString)
                 .url
           }

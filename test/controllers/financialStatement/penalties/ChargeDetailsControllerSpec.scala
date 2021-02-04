@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
@@ -54,12 +54,12 @@ class ChargeDetailsControllerSpec
   import ChargeDetailsControllerSpec._
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+    controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
       identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = chargeReferenceIndex
     ).url
 
   private def httpPathGETUnassociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+    controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
       identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0"
     ).url
 
