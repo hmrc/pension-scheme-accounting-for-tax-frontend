@@ -1,9 +1,15 @@
 // initialise GovUK lib
 GOVUKFrontend.initAll();
 if (document.querySelector('#country') != null) {
-    openregisterLocationPicker({
-        selectElement: document.getElementById('country'),
-        url: '/manage-pension-scheme-accounting-for-tax/assets/javascripts/autocomplete/location-autocomplete-graph.json'
+    accessibleAutocomplete({
+        element: document.getElementById('country'),
+        id: 'country',
+        source: '/pension-scheme-accounting-for-tax/assets/javascripts/autocomplete/location-autocomplete-graph.json'
+    })
+
+    accessibleAutocomplete.enhanceSelectElement({
+        defaultValue: '',
+        selectElement: document.querySelector('#country')
     })
 }
 
