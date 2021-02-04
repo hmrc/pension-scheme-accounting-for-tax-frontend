@@ -528,6 +528,19 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
+  def pspDashboardUpcomingAftChargesViewModel: PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
+      subHeadings = Seq(Json.obj(
+        "h3" -> "2 in progress",
+        "span" -> "AFT returns:"
+      )),
+      links = Seq(
+        multipleInProgressModel(3, "pspDashboardAftReturnsCard.inProgressReturns.link"),
+        startModel,
+        pastReturnsModel
+      ).map(_.link)
+    )
+
   def pspDashboardOneInProgressModelWithLocking(
                                                  locked: Boolean,
                                                  h3: String,

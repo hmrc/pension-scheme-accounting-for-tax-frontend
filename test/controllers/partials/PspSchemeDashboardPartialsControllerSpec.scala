@@ -22,7 +22,7 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.ArgumentCaptor
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -30,7 +30,7 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -64,6 +64,9 @@ class PspSchemeDashboardPartialsControllerSpec
 
   private val pspDashboardAftReturnsPartialJson: JsObject =
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
+  private val pspDashboardUpcomingChargesPartialJson: JsObject =
+    Json.obj("upcomingCharges" -> Json.toJson(pspDashboardUpcomingAftChargesViewModel))
+
   private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -81,7 +84,7 @@ class PspSchemeDashboardPartialsControllerSpec
   "Partial Controller" when {
 
     "pspDashboardAftReturnsPartial" must {
-      "return the html with the information for AFT returns" in {
+      "return the html with the information for AFT returns and upcoming charges" in {
 
         when(
           mockAftPartialService.retrievePspDashboardAftReturnsModel(
@@ -91,6 +94,9 @@ class PspSchemeDashboardPartialsControllerSpec
             authorisingPsaId = any()
           )(any(), any())
         ).thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
+
+        when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
+          .thenReturn(pspDashboardUpcomingAftChargesViewModel)
 
         val result = route(
           app = application,
@@ -105,11 +111,16 @@ class PspSchemeDashboardPartialsControllerSpec
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual "partials/pspDashboardAftReturnsCard.njk"
+        verify(mockRenderer, times(1))
+          .render(Matchers.eq("partials/pspDashboardAftReturnsCard.njk"), jsonCaptor.capture())(any())
 
         jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
+
+        verify(mockRenderer, times(1))
+          .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+
+        jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
+
       }
     }
   }
