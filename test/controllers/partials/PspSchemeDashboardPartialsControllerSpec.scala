@@ -49,7 +49,7 @@ class PspSchemeDashboardPartialsControllerSpec
     with Results
     with ScalaFutures {
 
-  private def pspDashboardAftReturnsPartial: String = routes.PspSchemeDashboardPartialsController.pspDashboardAftReturnsPartial().url
+  private def pspDashboardAftReturnsPartial: String = routes.PspSchemeDashboardPartialsController.pspDashboardAllTilesPartial().url
 
   private val mockAftPartialService: AFTPartialService = mock[AFTPartialService]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -116,10 +116,10 @@ class PspSchemeDashboardPartialsControllerSpec
 
         jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-        verify(mockRenderer, times(1))
-          .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
-
-        jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
+        //verify(mockRenderer, times(1))
+        //  .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+        //
+        //jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
       }
     }

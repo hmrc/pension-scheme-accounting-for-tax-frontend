@@ -20,18 +20,19 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action, Result}
 import play.twirl.api.Html
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import services.{AFTPartialService, SchemeService}
-import uk.gov.hmrc.http.BadRequestException
+import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Future, ExecutionContext}
 
 class PspSchemeDashboardPartialsController @Inject()(
                                    identify: IdentifierAction,
@@ -48,8 +49,12 @@ class PspSchemeDashboardPartialsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def pspDashboardAftReturnsPartial(): Action[AnyContent] = identify.async {
+  def pspDashboardAllTilesPartial(): Action[AnyContent] = identify.async {
     implicit request =>
+      pspDashboardAftReturnsPartial.map(Ok(_))
+  }
+
+  def pspDashboardAftReturnsPartial(implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] = {
       val idNumber = request.headers.get("idNumber")
       val schemeIdType = request.headers.get("schemeIdType")
       val authorisingPsaId = request.headers.get("authorisingPsaId")
@@ -66,7 +71,7 @@ class PspSchemeDashboardPartialsController @Inject()(
               renderer.render(
                 template = "partials/pspDashboardAftReturnsCard.njk",
                 ctx = Json.obj("aft" -> Json.toJson(viewModel))
-              ).map(Ok(_))
+              )
             }
           }
         case _ =>
