@@ -116,10 +116,10 @@ class PspSchemeDashboardPartialsControllerSpec
 
         jsonCaptor.getValue must containJson(pspDashboardAftReturnsPartialJson)
 
-        //verify(mockRenderer, times(1))
-        //  .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
-        //
-        //jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
+        verify(mockRenderer, times(1))
+          .render(Matchers.eq("partials/pspDashboardUpcomingAftChargesCard.njk"), jsonCaptor.capture())(any())
+
+        jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
       }
     }

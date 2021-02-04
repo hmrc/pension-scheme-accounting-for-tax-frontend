@@ -20,11 +20,12 @@ import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
 import javax.inject.Inject
+import models.Enumerable
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action, Result}
-import play.twirl.api.Html
+import play.api.libs.json.{JsString, JsArray, Writes, Json}
+import play.api.mvc.{Result, AnyContent, MessagesControllerComponents, Action}
+import play.twirl.api.{Html, HtmlFormat}
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
 import services.{AFTPartialService, SchemeService}
@@ -51,7 +52,13 @@ class PspSchemeDashboardPartialsController @Inject()(
 
   def pspDashboardAllTilesPartial(): Action[AnyContent] = identify.async {
     implicit request =>
-      pspDashboardAftReturnsPartial.map(Ok(_))
+      val allResults = for {
+        aftReturnsHtml <- pspDashboardAftReturnsPartial
+        upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial
+      } yield {
+        scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml)
+      }
+      allResults.map(HtmlFormat.fill).map(Ok(_))
   }
 
   def pspDashboardAftReturnsPartial(implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] = {
@@ -81,8 +88,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       }
   }
 
-  def pspDashboardUpcomingAftChargesPartial(): Action[AnyContent] = identify.async {
-    implicit request =>
+  def pspDashboardUpcomingAftChargesPartial(implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] = {
       val idNumber = request.headers.get("idNumber")
 
       idNumber match {
@@ -96,14 +102,14 @@ class PspSchemeDashboardPartialsController @Inject()(
               pstr = schemeDetails.pstr
             ) flatMap { schemeFs =>
               if (schemeFs.isEmpty) {
-                Future.successful(Ok(Html("")))
+                Future.successful(Html(""))
               } else {
                 val viewModel =
                   aftPartialService.retrievePspDashboardUpcomingAftChargesModel(schemeFs, srn)
                 renderer.render(
                   template = "partials/pspDashboardUpcomingAftChargesCard.njk",
                   ctx = Json.obj("upcomingCharges" -> Json.toJson(viewModel))
-                ).map(Ok(_))
+                )
               }
             }
           }
