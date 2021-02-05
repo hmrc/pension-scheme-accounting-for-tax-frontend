@@ -66,6 +66,8 @@ class PspSchemeDashboardPartialsControllerSpec
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val pspDashboardUpcomingChargesPartialJson: JsObject =
     Json.obj("upcomingCharges" -> Json.toJson(pspDashboardUpcomingAftChargesViewModel))
+  private val pspDashboardOverdueChargesPartialJson: JsObject =
+    Json.obj("overdueCharges" -> Json.toJson(pspDashboardOverdueAftChargesViewModel))
 
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -81,6 +83,15 @@ class PspSchemeDashboardPartialsControllerSpec
     PspDashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> "test span for upcoming charges",
+        "total" -> 100
+      )),
+      links = Nil
+    )
+
+  private def pspDashboardOverdueAftChargesViewModel: PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
+      subHeadings = Seq(Json.obj(
+        "span" -> "test span for overdue charged",
         "total" -> 100
       )),
       links = Nil
@@ -113,6 +124,9 @@ class PspSchemeDashboardPartialsControllerSpec
         when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
           .thenReturn(pspDashboardUpcomingAftChargesViewModel)
 
+        when(mockAftPartialService.retrievePspDashboardOverdueAftChargesModel(any(), any())(any()))
+        .thenReturn(pspDashboardOverdueAftChargesViewModel)
+
         val result = route(
           app = application,
           req = httpGETRequest(pspDashboardAftReturnsPartial)
@@ -136,6 +150,10 @@ class PspSchemeDashboardPartialsControllerSpec
 
         jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
+        verify(mockRenderer, times(1))
+          .render(Matchers.eq("partials/pspDashboardOverdueAftChargesCard.njk"), jsonCaptor.capture())(any())
+
+        jsonCaptor.getValue must containJson(pspDashboardOverdueChargesPartialJson)
       }
   }
 }

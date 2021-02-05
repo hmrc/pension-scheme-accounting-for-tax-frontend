@@ -55,8 +55,9 @@ class PspSchemeDashboardPartialsController @Inject()(
       val allResults = for {
         aftReturnsHtml <- pspDashboardAftReturnsPartial
         upcomingAftChargesHtml <- pspDashboardUpcomingAftChargesPartial
+        overdueChargesHtml <- pspDashboardOverdueAftChargesPartial
       } yield {
-        scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml)
+        scala.collection.immutable.Seq(aftReturnsHtml, upcomingAftChargesHtml, overdueChargesHtml)
       }
       allResults.map(HtmlFormat.fill).map(Ok(_))
   }
@@ -120,8 +121,7 @@ class PspSchemeDashboardPartialsController @Inject()(
       }
   }
 
-  def pspDashboardOverdueAftChargesPartial(): Action[AnyContent] = identify.async {
-    implicit request =>
+  def pspDashboardOverdueAftChargesPartial(implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] = {
       val idNumber = request.headers.get("idNumber")
 
       idNumber match {
@@ -137,14 +137,14 @@ class PspSchemeDashboardPartialsController @Inject()(
               val overdueCharges =
                 paymentsAndChargesService.getOverdueCharges(schemeFs)
               if (overdueCharges.isEmpty) {
-                Future.successful(Ok(Html("")))
+                Future.successful(Html(""))
               } else {
                 val viewModel =
                   aftPartialService.retrievePspDashboardOverdueAftChargesModel(overdueCharges, srn)
                 renderer.render(
                   template = "partials/pspDashboardOverdueAftChargesCard.njk",
                   ctx = Json.obj("overdueCharges" -> Json.toJson(viewModel))
-                ).map(Ok(_))
+                )
               }
             }
           }

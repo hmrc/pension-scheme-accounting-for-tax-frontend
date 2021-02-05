@@ -248,7 +248,6 @@ GET         /:year/:identifier/penalties                                        
 GET         /:identifier/penalties/:startDate/:chargeReferenceIndex/charge-details                                                                   controllers.financialStatement.ChargeDetailsController.onPageLoad(identifier: String, startDate: String, chargeReferenceIndex: String)
 
 GET         /psp-dashboard-aft-returns-card                                                                                                          controllers.partials.PspSchemeDashboardPartialsController.pspDashboardAllTilesPartial()
-GET         /psp-dashboard-overdue-aft-charges-card                                                                                                  controllers.partials.PspSchemeDashboardPartialsController.pspDashboardOverdueAftChargesPartial()
 GET         /:srn/psa-scheme-dashboard-cards                                                                                                         controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn: String)
 
 GET         /:srn/:year/payments-and-charges                                                                                                         controllers.paymentsAndCharges.PaymentsAndChargesController.onPageLoad(srn: String, year: Int)
