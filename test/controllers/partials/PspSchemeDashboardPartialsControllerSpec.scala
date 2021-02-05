@@ -22,7 +22,7 @@ import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.Enumerable
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{Matchers, ArgumentCaptor}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
@@ -34,9 +34,9 @@ import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.AFTPartialServiceSpec._
 import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.PspDashboardAftViewModel
 
 import scala.concurrent.Future
 
@@ -60,15 +60,31 @@ class PspSchemeDashboardPartialsControllerSpec
       bind[SchemeService].toInstance(mockSchemeService),
       bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
     )
-  val application: Application = applicationBuilder(extraModules = extraModules).build()
+  private val application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val pspDashboardAftReturnsPartialJson: JsObject =
     Json.obj("aft" -> Json.toJson(pspDashboardAftReturnsViewModel))
   private val pspDashboardUpcomingChargesPartialJson: JsObject =
     Json.obj("upcomingCharges" -> Json.toJson(pspDashboardUpcomingAftChargesViewModel))
 
-  private val templateCaptor = ArgumentCaptor.forClass(classOf[String])
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+
+  private def pspDashboardAftReturnsViewModel: PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
+      subHeadings = Seq(Json.obj(
+        "span" -> "test span for AFT returns"
+      )),
+      links = Nil
+    )
+
+  private def pspDashboardUpcomingAftChargesViewModel: PspDashboardAftViewModel =
+    PspDashboardAftViewModel(
+      subHeadings = Seq(Json.obj(
+        "span" -> "test span for upcoming charges",
+        "total" -> 100
+      )),
+      links = Nil
+    )
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -81,9 +97,8 @@ class PspSchemeDashboardPartialsControllerSpec
       .thenReturn(Future.successful(schemeFSResponseAftAndOTC))
   }
 
-  "Partial Controller" when {
+  "Psp Scheme Dashboard Partials Controller" must {
 
-    "pspDashboardAftReturnsPartial" must {
       "return the html with the information for AFT returns and upcoming charges" in {
 
         when(
@@ -122,6 +137,5 @@ class PspSchemeDashboardPartialsControllerSpec
         jsonCaptor.getValue must containJson(pspDashboardUpcomingChargesPartialJson)
 
       }
-    }
   }
 }
