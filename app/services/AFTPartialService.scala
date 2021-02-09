@@ -430,7 +430,7 @@ class AFTPartialService @Inject()(
     val subHeadingPaymentDue = {
       val upcomingCharges: Seq[PsaFS] =
         paymentsAndChargesService.extractUpcomingCharges[PsaFS](psaFs, _.dueDate)
-      val totalUpcoming = upcomingCharges.map(_.outstandingAmount).sum
+      val totalUpcoming = upcomingCharges.map(_.amountDue).sum
       val span =
         if (upcomingCharges.map(_.dueDate).distinct.size == 1)
           msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
