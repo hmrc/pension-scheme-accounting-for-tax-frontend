@@ -449,7 +449,7 @@ class AFTPartialService @Inject()(
     val subHeadingTotalOverduePayments = {
       val pastDueDateCharges: Seq[PsaFS] =
         psaFs.filter(charge =>  charge.dueDate.nonEmpty && charge.dueDate.get.isBefore(DateHelper.today))
-      val totalOverdue: BigDecimal = pastDueDateCharges.map(_.outstandingAmount).sum
+      val totalOverdue: BigDecimal = pastDueDateCharges.map(_.amountDue).sum
       Json.obj(
         "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
         "span" -> msg"pspDashboardOverdueAftChargesCard.total.span"
