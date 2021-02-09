@@ -91,6 +91,7 @@ class AFTPartialService @Inject()(
     }
   }
 
+  // scalastyle:off method.length
   def retrievePspDashboardUpcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
                                                  (implicit messages: Messages): PspDashboardAftViewModel = {
 
@@ -103,14 +104,15 @@ class AFTPartialService @Inject()(
     val total = upcomingCharges.map(_.amountDue).sum
 
     val span =
-      if (upcomingCharges.map(_.dueDate).distinct.size == 1)
+      if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
         msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
           .withArgs(upcomingCharges.map(_.dueDate).distinct
             .flatten
             .head
             .format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
-      else
+      } else {
         msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+      }
 
     val subHeading = Json.obj(
       "total" -> s"${FormatHelper.formatCurrencyAmountAsString(total)}",
@@ -123,7 +125,7 @@ class AFTPartialService @Inject()(
         None
       } else {
         val upcomingLinkText =
-          if (upcomingCharges.map(_.periodStartDate).distinct.size == 1)
+          if (upcomingCharges.map(_.periodStartDate).distinct.size == 1) {
             msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
               .withArgs(
                 upcomingCharges.map(_.periodStartDate)
@@ -135,8 +137,9 @@ class AFTPartialService @Inject()(
                   .head
                   .format(DateTimeFormatter.ofPattern("d MMMM"))
               )
-          else
+          } else {
             msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+          }
 
         val startDate: LocalDate =
           upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
@@ -170,6 +173,7 @@ class AFTPartialService @Inject()(
     )
   }
 
+  // scalastyle:off method.length
   def retrievePspDashboardOverdueAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
                                                 (implicit messages: Messages): PspDashboardAftViewModel = {
 
@@ -195,7 +199,7 @@ class AFTPartialService @Inject()(
         None
       } else {
         val overdueLinkText =
-          if (schemeFs.map(_.periodStartDate).distinct.size == 1)
+          if (schemeFs.map(_.periodStartDate).distinct.size == 1) {
             msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
               .withArgs(
                 schemeFs.map(_.periodStartDate)
@@ -207,8 +211,9 @@ class AFTPartialService @Inject()(
                   .head
                   .format(DateTimeFormatter.ofPattern("d MMMM"))
               )
-          else
+          } else {
             msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
+          }
 
         val startDate: LocalDate =
           schemeFs.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
