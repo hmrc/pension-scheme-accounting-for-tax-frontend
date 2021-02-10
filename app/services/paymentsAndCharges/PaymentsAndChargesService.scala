@@ -101,7 +101,8 @@ class PaymentsAndChargesService @Inject()() {
   def extractUpcomingCharges[A](seqOfCharges: Seq[A], dateToFilterOn: A => Option[LocalDate]): Seq[A] =
     seqOfCharges.filter{ charge =>
       val optionDate = dateToFilterOn(charge)
-      optionDate.nonEmpty && optionDate.get.isAfter(DateHelper.today)
+      optionDate.nonEmpty &&
+        (optionDate.get.isEqual(DateHelper.today) || optionDate.get.isAfter(DateHelper.today))
     }
 
   def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
