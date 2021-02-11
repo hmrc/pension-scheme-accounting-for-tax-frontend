@@ -208,29 +208,17 @@ class PaymentsAndChargesService @Inject()() {
           case _ => data.chargeReference
         }
 
-      val htmlChargeType =
+      val htmlChargeType = Html(
         s"<a id=$linkId class=govuk-link href=" +
           s"${data.redirectUrl}>" +
           s"${data.chargeType} " +
-          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>"
+          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.chargeType.table")
-          }</span>$htmlChargeType"""
-        )),
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.totalDue.table")
-          }</span>${data.amountDue}"""
-        )),
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.chargeReference.table")
-          }</span>${data.chargeReference}"""
-        )),
-        Cell(htmlStatus(data))
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlStatus(data), classes = Nil)
       )
     }
 
@@ -240,7 +228,6 @@ class PaymentsAndChargesService @Inject()() {
         head = head,
         rows = rows,
         attributes = Map("role" -> "table"),
-        classes = Seq("hmrc-responsive-table")
       )
     )
   }

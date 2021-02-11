@@ -32,12 +32,12 @@
       <p class="govuk-body">{{ messages("penalties.pstr", pstr) }}</p>
       <p class="govuk-body">{{ messages("penalties.p1") }}</p>
 
-      <p class="govuk-body">
          {% for table in tables %}
-             <h2 class="govuk-heading-m">{{ table.header }}</h2>
+             <h2 id={{ loop.index }}  class="govuk-heading-m">{{ table.header }}</h2>
+            <div role="region" aria-labelledby={{ loop.index}} class="govuk-!-margin-bottom-7" tabindex="0">
              {{ govukTable(table.penaltyTable) }}
+             </div>
          {% endfor %}
-      </p>
 
     </div>
   </div>

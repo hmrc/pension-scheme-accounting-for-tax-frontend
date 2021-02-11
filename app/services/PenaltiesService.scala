@@ -79,9 +79,10 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
         chargeTypeLink(identifier, data, startDate).map {
           content =>
             Seq(
-              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.penalty")}</span>${content}""")),
-              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.amount")}</span>${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}""")),
-              Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.chargeReference")}</span>${data.chargeReference}""")),
+              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+                classes = Seq("govuk-!-width-one-quarter")),
+              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
               statusCell(data)
             )
         }
@@ -89,26 +90,25 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       rows =>
         Json.obj(
           "header" -> caption,
-          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"),
-            classes= Seq("hmrc-responsive-table"))
+          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
         )
     }
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate)
-                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
+                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[Html] = {
     fiCacheConnector.fetch flatMap {
       case Some(jsValue) =>
         val chargeRefsIndex: String =
           jsValue.as[Seq[PsaFS]].map(_.chargeReference).indexOf(data.chargeReference).toString
 
-        Future.successful(
+        Future.successful(Html(
           s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
-            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
+            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"))
       case _ =>
-        Future.successful("")
+        Future.successful(Html(""))
     }
 
   }
