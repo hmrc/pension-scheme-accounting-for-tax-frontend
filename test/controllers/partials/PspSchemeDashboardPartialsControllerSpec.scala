@@ -36,7 +36,7 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.{AFTPartialService, SchemeService}
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.PspDashboardAftViewModel
+import viewmodels.DashboardAftViewModel
 
 import scala.concurrent.Future
 
@@ -71,16 +71,16 @@ class PspSchemeDashboardPartialsControllerSpec
 
   private val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-  private def pspDashboardAftReturnsViewModel: PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+  private def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> "test span for AFT returns"
       )),
       links = Nil
     )
 
-  private def pspDashboardUpcomingAftChargesViewModel: PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+  private def pspDashboardUpcomingAftChargesViewModel: DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> "test span for upcoming charges",
         "total" -> 100
@@ -88,8 +88,8 @@ class PspSchemeDashboardPartialsControllerSpec
       links = Nil
     )
 
-  private def pspDashboardOverdueAftChargesViewModel: PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+  private def pspDashboardOverdueAftChargesViewModel: DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> "test span for overdue charged",
         "total" -> 100
