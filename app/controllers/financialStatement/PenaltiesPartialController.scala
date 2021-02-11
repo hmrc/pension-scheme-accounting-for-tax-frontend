@@ -27,6 +27,7 @@ import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import play.twirl.api.Html
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -47,7 +48,7 @@ class PenaltiesPartialController @Inject()(
 
     fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
       val result = if (psaFS.isEmpty) {
-        Future.successful(play.twirl.api.Html(""))
+        Future.successful(Html(""))
       } else {
         val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS)
         renderer.render(
