@@ -75,7 +75,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
     val links = Seq(
       Link(id = "aft-penalties-id",
-        url = controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,//"http://localhost:8206/manage-pension-scheme-accounting-for-tax/2020/select-a-scheme",
+        url = controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,
         linkText = Message("psaPenaltiesCard.viewPenalties"),
         hiddenText = None)
     )
