@@ -217,4 +217,18 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
       case Right(list) => list.schemeDetails.getOrElse(Nil)
       case _ => Seq.empty[ListSchemeDetails]
     }
+
+  //SELECT YEAR
+  def saveAndReturnPenalties(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
+    for {
+      penalties <- fsConnector.getPsaFS(psaId)
+      _ <- fiCacheConnector.save(Json.toJson(penalties))
+    } yield penalties
+
+
+  def getPenaltiesFromCache(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
+    fiCacheConnector.fetch map {
+      case Some(jsValue) => jsValue.as[Seq[PsaFS]]
+      case _ => Seq.empty[PsaFS]
+    }
 }

@@ -23,14 +23,14 @@ import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFS
 import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
 import play.api.Logger
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
 import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{NunjucksSupport, Text}
 import viewmodels.Table
 
 import java.time.LocalDate
@@ -56,62 +56,22 @@ class PaymentsAndChargesUpcomingController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
+      schemeService.retrieveSchemeDetails(request.idOrException, srn, schemeIdType = "srn") flatMap {
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
-              val upcomingPaymentsAndCharges: Seq[SchemeFS] =
-                paymentsAndChargesService
-                  .getUpcomingCharges(schemeFs)
+              val upcomingPaymentsAndCharges: Seq[SchemeFS] = paymentsAndChargesService.getUpcomingCharges(schemeFs)
 
               if (upcomingPaymentsAndCharges.nonEmpty) {
-                val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Upcoming)
 
-                val tableWithoutPaymentStatusColumn: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesTables map {
-                    table =>
-                      PaymentsAndChargesTable(
-                        caption = table.caption,
-                        table = Table(
-                          caption = table.table.caption,
-                          captionClasses = table.table.captionClasses,
-                          firstCellIsHeader = table.table.firstCellIsHeader,
-                          head = table.table.head.take(table.table.head.size - 1),
-                          rows = table.table.rows.map(p => p.take(p.size - 1)),
-                          classes = table.table.classes,
-                          attributes = table.table.attributes
-                        )
-                      )
-                  }
-
-                val heading =
-                  if (upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.size == 1)
-                    msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
-                      upcomingPaymentsAndCharges.map(_.periodStartDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM")),
-                      upcomingPaymentsAndCharges.map(_.periodEndDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-                    )
-                  else
-                    msg"paymentsAndChargesUpcoming.h1.multiplePeriod"
 
                 val json = Json.obj(
-                  "heading" -> heading,
-                  "upcomingPaymentsAndCharges" -> tableWithoutPaymentStatusColumn,
+                  "heading" -> heading(upcomingPaymentsAndCharges),
+                  "upcomingPaymentsAndCharges" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn, startDate),
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
+                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 
               } else {
                 logger.warn(
@@ -122,4 +82,31 @@ class PaymentsAndChargesUpcomingController @Inject()(
           }
       }
   }
+
+  def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String, startDate: LocalDate)
+                                     (implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
+
+    val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] = paymentsAndChargesService
+      .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Upcoming)
+
+    paymentsAndChargesTables map { table =>
+      PaymentsAndChargesTable(
+        caption = table.caption,
+        table = Table(table.table.caption, table.table.captionClasses, table.table.firstCellIsHeader,
+          table.table.head.take(table.table.head.size - 1),
+          table.table.rows.map(p => p.take(p.size - 1)), table.table.classes, table.table.attributes
+        )
+      )
+    }
+  }
+
+  def heading(upcomingPaymentsAndCharges: Seq[SchemeFS]): Text.Message =
+    if (upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {
+      msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
+        upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM")),
+        upcomingPaymentsAndCharges.map(_.periodEndDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+      )
+    } else {
+      msg"paymentsAndChargesUpcoming.h1.multiplePeriod"
+    }
 }

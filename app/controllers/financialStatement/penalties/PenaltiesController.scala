@@ -81,7 +81,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                       tables = tables,
                       args = schemeDetails.schemeName
                     )
-                    renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                    renderer.render(template = "financialStatement/penalties/penalties.njk", json).map(Ok(_))
                 }
 
             }
@@ -106,7 +106,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
                           tables = tables
                         )
 
-                        renderer.render(template = "financialStatement/penalties.njk", json).map(Ok(_))
+                        renderer.render(template = "financialStatement/penalties/penalties.njk", json).map(Ok(_))
                     }
                 }
 

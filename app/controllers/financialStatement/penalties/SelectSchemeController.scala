@@ -48,27 +48,27 @@ class SelectSchemeController @Inject()(
 
   private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
-  def onPageLoad(year: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
+      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
           if (penaltySchemes.nonEmpty) {
 
             val json = Json.obj(
               "form" -> form(penaltySchemes),
               "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
-              "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(year).url)
+              "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
 
-            renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
+            renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
       }
   }
 
-  def onSubmit(year: String): Action[AnyContent] = identify.async {
+  def onSubmit(startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
+      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
           form(penaltySchemes).bindFromRequest().fold(
             formWithErrors => {
@@ -76,19 +76,19 @@ class SelectSchemeController @Inject()(
               val json = Json.obj(
                 "form" -> formWithErrors,
                 "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
-                "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(year).url)
+                "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
 
-              renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
+              renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
             },
             value => {
               fiCacheConnector.fetch flatMap {
                 case Some(jsValue) =>
                   value.srn match {
                     case Some(srn) =>
-                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, srn)))
+                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
                     case _ =>
                       val pstrIndex: String = jsValue.as[Seq[PsaFS]].map(_.pstr).indexOf(value.pstr).toString
-                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
+                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex)))
                   }
                 case _ =>
                   Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

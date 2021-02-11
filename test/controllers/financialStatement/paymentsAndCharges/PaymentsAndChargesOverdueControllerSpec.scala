@@ -116,7 +116,7 @@ class PaymentsAndChargesOverdueControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesOverdue.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk"
       jsonCaptor.getValue must containJson(
         expectedJson("Payments and charges for 1 October to 31 December 2020")
       )
@@ -135,7 +135,7 @@ class PaymentsAndChargesOverdueControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesOverdue.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk"
       jsonCaptor.getValue must containJson(
         expectedJson("Overdue payments and charges")
       )

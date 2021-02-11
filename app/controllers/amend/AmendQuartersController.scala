@@ -43,8 +43,7 @@ class AmendQuartersController @Inject()(
                                          renderer: Renderer,
                                          config: FrontendAppConfig,
                                          quartersService: QuartersService,
-                                         schemeService: SchemeService,
-                                         aftConnector: AFTConnector
+                                         schemeService: SchemeService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -96,11 +95,7 @@ class AmendQuartersController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                schemeService.retrieveSchemeDetails(
-                  psaId = request.idOrException,
-                  srn = srn,
-                  schemeIdType = "srn"
-                ) flatMap { schemeDetails =>
+
                   val json = Json.obj(
                     fields = "srn" -> srn,
                     "startDate" -> None,
@@ -110,7 +105,6 @@ class AmendQuartersController @Inject()(
                     "year" -> year
                   )
                   renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
-                }
               },
               value => {
                 Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))

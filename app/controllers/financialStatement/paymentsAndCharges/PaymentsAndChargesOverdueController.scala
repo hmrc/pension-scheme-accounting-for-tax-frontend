@@ -74,19 +74,14 @@ class PaymentsAndChargesOverdueController @Inject()(
                     .getPaymentsAndCharges(srn, overduePaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Overdue)
 
                 val heading =
-                  if (overduePaymentsAndCharges.map(_.periodStartDate).distinct.size == 1)
+                  if (overduePaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {
                     msg"paymentsAndChargesOverdue.h1.singlePeriod".withArgs(
-                      overduePaymentsAndCharges.map(_.periodStartDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM")),
-                      overduePaymentsAndCharges.map(_.periodEndDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                      overduePaymentsAndCharges.map(_.periodStartDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM")),
+                      overduePaymentsAndCharges.map(_.periodEndDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
                     )
-                  else
+                  } else {
                     msg"paymentsAndChargesOverdue.h1.multiplePeriod"
+                  }
 
                 val json = Json.obj(
                   "heading" -> heading,
@@ -94,7 +89,7 @@ class PaymentsAndChargesOverdueController @Inject()(
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
+                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
 
               } else {
                 logger.warn(

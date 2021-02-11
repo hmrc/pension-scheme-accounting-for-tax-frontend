@@ -25,6 +25,7 @@ site.finishAndSignOut = Finish and sign out
 site.action = Action
 site.view.link = View link
 site.remove.link = Remove link
+site.return_to_overview = Return to overview
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -1144,3 +1145,5 @@ enterPsaId.error.noMatch = Enter the correct pension scheme administrator ID
 pspDeclaration.title = Declaration
 pspDeclaration.heading = Declaration
 pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.
+
+selectPenaltiesYear.title = Which year do you want to view scheme penalties for?

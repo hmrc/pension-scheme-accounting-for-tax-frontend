@@ -164,7 +164,7 @@ class PaymentsAndChargesInterestController @Inject()(
           seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
             case Some(schemeFs) =>
               renderer.render(
-                template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                template = "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk",
                 ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>

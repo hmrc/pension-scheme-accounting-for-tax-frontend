@@ -66,25 +66,21 @@ class ChargeDetailsController @Inject()(
                   case Some(fs) =>
                     if (filteredPsaFS.nonEmpty) {
                       if (identifier.matches(srnRegex)) {
-                        schemeService.retrieveSchemeDetails(
-                          psaId = request.idOrException,
-                          srn = identifier,
-                          schemeIdType = "srn"
-                        ) flatMap {
+                        schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
                           schemeDetails =>
                             val json = Json.obj(
                               "schemeAssociated" -> true,
                               "schemeName" -> schemeDetails.schemeName
                             ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
 
-                            renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                            renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
                         }
                       } else {
                         val json = Json.obj(
                           "schemeAssociated" -> false
                         ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
 
-                        renderer.render(template = "financialStatement/chargeDetails.njk", json).map(Ok(_))
+                        renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
                       }
                     } else {
                       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

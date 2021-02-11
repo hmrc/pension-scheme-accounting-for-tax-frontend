@@ -75,7 +75,7 @@ class PaymentsAndChargesController @Inject()(
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
                 logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")

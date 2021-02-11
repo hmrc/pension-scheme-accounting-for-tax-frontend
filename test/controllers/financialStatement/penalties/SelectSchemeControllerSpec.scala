@@ -146,7 +146,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 }
 
 object SelectSchemeControllerSpec {
-  private val template = "financialStatement/selectScheme.njk"
+  private val template = "financialStatement/penalties/selectScheme.njk"
   private val year = "2020"
   private val ps1 = PenaltySchemes(name = Some("Assoc scheme"), pstr = "24000040IN", srn = Some(srn))
   private val ps2 = PenaltySchemes(name = None, pstr = "24000041IN", srn = None)
