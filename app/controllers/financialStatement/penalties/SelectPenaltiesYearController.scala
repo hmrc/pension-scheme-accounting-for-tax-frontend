@@ -19,7 +19,8 @@ package controllers.financialStatement.penalties
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.{AmendYears, Year}
+import models.financialStatement.PsaFS
+import models.{DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -43,14 +44,14 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                                                       with I18nSupport
                                                                       with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()
+  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectPenaltiesYear.error")
 
   def onPageLoad: Action[AnyContent] = identify.async { implicit request =>
     service.getPenaltiesFromCache.flatMap { penalties =>
-      val years = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse
+      val years = getYears(penalties)
       val json = Json.obj(
         "form" -> form(config),
-        "radios" -> AmendYears.radios(form(config), years),
+        "radios" -> FSYears.radios(form(config), years),
         "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
       )
 
@@ -63,16 +64,21 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
         formWithErrors =>
 
           service.getPenaltiesFromCache.flatMap { penalties =>
-              val years = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse
+
               val json = Json.obj(
                 "form" -> formWithErrors,
-                "radios" -> AmendYears.radios(formWithErrors, years),
+                "radios" -> FSYears.radios(formWithErrors, getYears(penalties)),
                 "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
               )
               renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
         },
         value => Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(value.getYear.toString)))
       )
+  }
+
+  def getYears(penalties: Seq[PsaFS]): Seq[DisplayYear] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>
+    val hint = if (penalties.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+    DisplayYear(year, hint)
   }
 
 }

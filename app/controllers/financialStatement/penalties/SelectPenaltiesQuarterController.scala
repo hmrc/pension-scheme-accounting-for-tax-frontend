@@ -16,23 +16,21 @@
 
 package controllers.financialStatement.penalties
 
-import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
 import models.financialStatement.PsaFS
-import models.requests.IdentifierRequest
-import models.{DisplayQuarter, GenericViewModel, Quarter, Quarters}
+import models.{DisplayQuarter, DisplayHint, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import services.{PenaltiesService, QuartersService, SchemeService}
+import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -42,17 +40,14 @@ class SelectPenaltiesQuarterController @Inject()(
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer,
-                                                  config: FrontendAppConfig,
-                                                  quartersService: QuartersService,
-                                                  penaltiesService: PenaltiesService,
-                                                  aftConnector: AFTConnector
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                                  penaltiesService: PenaltiesService)
+                                                (implicit ec: ExecutionContext)
+                                                  extends FrontendBaseController
+                                                  with I18nSupport
+                                                  with NunjucksSupport {
 
   private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("amendQuarters.error.required"), quarters)
+    formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
   def onPageLoad(year: String): Action[AnyContent] = identify.async { implicit request =>
     penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
@@ -62,13 +57,14 @@ class SelectPenaltiesQuarterController @Inject()(
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
+            "year" -> year,
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(year, penalties)),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
             "year" -> year
           )
 
-          renderer.render(template = "amend/amendQuarters.njk", json).map(Ok(_))
+          renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
@@ -82,23 +78,23 @@ class SelectPenaltiesQuarterController @Inject()(
       val quarters: Seq[Quarter] = getQuarters(year, penalties)
         if (quarters.nonEmpty) {
 
-
           form(quarters)
             .bindFromRequest()
             .fold(
               formWithErrors => {
 
                   val json = Json.obj(
+                    "year" -> year,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, penalties)),
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
                     "year" -> year
                   )
-                  renderer.render(template = "amend/amendQuarters.njk", json).map(BadRequest(_))
+                  renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(BadRequest(_))
 
               },
               value => {
-                Future.successful(Redirect(controllers.amend.routes.ReturnHistoryController.onPageLoad(srn, value.startDate)))
+                Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(value.startDate)))
               }
             )
         } else {
@@ -107,9 +103,16 @@ class SelectPenaltiesQuarterController @Inject()(
     }
   }
 
-  private def getDisplayQuarters(year: String, penalties: Seq[PsaFS]): Seq[DisplayQuarter] =
-    penalties.filter(_.periodStartDate.getYear == year.toInt).distinct
-      .map(penalty => Quarters.getQuarter(penalty.periodStartDate))
+  private def getDisplayQuarters(year: String, penalties: Seq[PsaFS]): Seq[DisplayQuarter] = {
+    val quartersFound: Seq[LocalDate] = penalties.filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct.sortBy(_.getMonth)
+    quartersFound.map { startDate =>
+      val hint: Option[DisplayHint] =
+        if (penalties.filter(_.periodStartDate == startDate).exists(penaltiesService.isPaymentOverdue)) Some(PaymentOverdue) else None
+
+      DisplayQuarter(Quarters.getQuarter(startDate), displayYear = false, None, hint)
+
+    }
+  }
 
   private def getQuarters(year: String, penalties: Seq[PsaFS]): Seq[Quarter] =
     penalties.filter(_.periodStartDate.getYear == year.toInt).distinct

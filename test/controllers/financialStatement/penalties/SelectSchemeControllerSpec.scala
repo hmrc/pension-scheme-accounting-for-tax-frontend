@@ -73,6 +73,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
+    when(mockPenaltyService.getPenaltiesFromCache(any(), any())).thenReturn(Future.successful(psaFSResponse))
   }
 
   "SelectScheme Controller" when {
@@ -97,8 +98,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
     "on a POST" must {
       "redirect to penalties page when valid data with associated scheme is submitted" in {
-        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(psaFS)))
-
         val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps1.pstr)))).value
 
         status(result) mustEqual SEE_OTHER
@@ -109,7 +108,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
 
       "redirect to penalties page when valid data with unassociated scheme is submitted" in {
 
-        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(Some(psaFS)))
+
 
         val pstrIndex: String = psaFS.as[Seq[PsaFS]].map(_.pstr).indexOf(ps2.pstr).toString
 
@@ -118,19 +117,6 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad(year, pstrIndex).url)
-
-      }
-
-      "redirect to sessionExpired page when valid data with unassociated scheme is submitted " +
-        "but no pstrs return from fiCacheConnector" in {
-
-        when(mockFICacheConnector.fetch(any(), any())).thenReturn(Future.successful(None))
-
-        val result = route(application, httpPOSTRequest(httpPathPOST, Map("value" -> Seq(ps2.pstr)))).value
-
-        status(result) mustEqual SEE_OTHER
-
-        redirectLocation(result) mustBe Some(controllers.routes.SessionExpiredController.onPageLoad().url)
 
       }
 

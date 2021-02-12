@@ -41,8 +41,6 @@ class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,
                                          override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents,
-                                         fsConnector: FinancialStatementConnector,
-                                         fiCacheConnector: FinancialInfoCacheConnector,
                                          penaltiesService: PenaltiesService,
                                          schemeService: SchemeService,
                                          renderer: Renderer
@@ -55,52 +53,37 @@ class ChargeDetailsController @Inject()(
 
   def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>
-      fsConnector.getPsaFS(request.psaIdOrException.id).flatMap {
-        psaFS =>
-          val filteredPsaFS = psaFS.filter(_.periodStartDate == startDate)
-          fiCacheConnector.fetch flatMap {
-            case Some(jsValue) =>
-              val chargeRefs: Seq[String] = jsValue.as[Seq[PsaFS]].map(_.chargeReference)
-              try {
-                psaFS.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)) match {
-                  case Some(fs) =>
-                    if (filteredPsaFS.nonEmpty) {
-                      if (identifier.matches(srnRegex)) {
-                        schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
-                          schemeDetails =>
-                            val json = Json.obj(
-                              "schemeAssociated" -> true,
-                              "schemeName" -> schemeDetails.schemeName
-                            ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
+      penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
 
-                            renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
-                        }
-                      } else {
-                        val json = Json.obj(
-                          "schemeAssociated" -> false
-                        ) ++ commonJson(fs, psaFS, chargeRefs, chargeReferenceIndex, startDate)
+          val filteredPsaFS = penalties.filter(_.periodStartDate == startDate)
+          val chargeRefs: Seq[String] = penalties.map(_.chargeReference)
+          def penaltyOpt: Option[PsaFS] = penalties.find(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt))
 
-                        renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
-                      }
-                    } else {
-                      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-                    }
-                  case _ =>
-                    Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+          if(chargeRefs.length > chargeReferenceIndex.toInt && filteredPsaFS.nonEmpty && penaltyOpt.nonEmpty) {
+                if (identifier.matches(srnRegex)) {
+                  schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") flatMap {
+                    schemeDetails =>
+                      val json = Json.obj(
+                        "schemeAssociated" -> true,
+                        "schemeName" -> schemeDetails.schemeName
+                      ) ++ commonJson(penaltyOpt.head, penalties, chargeRefs, chargeReferenceIndex, startDate)
+
+                      renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
+                  }
+                } else {
+                  val json = Json.obj(
+                    "schemeAssociated" -> false
+                  ) ++ commonJson(penaltyOpt.head, penalties, chargeRefs, chargeReferenceIndex, startDate)
+
+                  renderer.render(template = "financialStatement/penalties/chargeDetails.njk", json).map(Ok(_))
                 }
-              } catch {
-                case _: IndexOutOfBoundsException =>
-                  logger.warn(
-                    s"[financialStatement.ChargeDetailsController][IndexOutOfBoundsException]:" +
-                      s"index $chargeReferenceIndex of collection length ${chargeRefs.length} attempted"
-                  )
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              }
-            case _ =>
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          }
+
+        } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
 
       }
+
   }
 
   private def commonJson(
@@ -111,19 +94,11 @@ class ChargeDetailsController @Inject()(
                           startDate: LocalDate
                         )(implicit request: IdentifierRequest[AnyContent]): JsObject =
     Json.obj(
-      "heading" ->
-        heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
-      "isOverdue" ->
-        penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
-      "period" ->
-        Messages("penalties.period",
-          startDate.format(dateFormatterStartDate),
-          getQuarter(startDate).endDate.format(dateFormatterDMY)
-        ),
-      "chargeReference" ->
-        fs.chargeReference,
-      "list" ->
-        penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
+      "heading" ->   heading(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head.chargeType.toString),
+      "isOverdue" ->        penaltiesService.isPaymentOverdue(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head),
+      "period" ->           Messages("penalties.period", startDate.format(dateFormatterStartDate), getQuarter(startDate).endDate.format(dateFormatterDMY)),
+      "chargeReference" ->  fs.chargeReference,
+      "list" ->             penaltiesService.chargeDetailsRows(psaFS.filter(_.chargeReference == chargeRefs(chargeReferenceIndex.toInt)).head)
     )
 
   private val heading: String => String = s => if (s.contains('(')) s.substring(0, s.indexOf('(')) else s

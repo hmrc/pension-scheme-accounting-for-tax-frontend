@@ -16,11 +16,9 @@
 
 package controllers.financialStatement.penalties
 
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import forms.SelectSchemeFormProvider
 import models.PenaltySchemes
-import models.financialStatement.PsaFS
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -39,12 +37,11 @@ class SelectSchemeController @Inject()(
                                         val controllerComponents: MessagesControllerComponents,
                                         formProvider: SelectSchemeFormProvider,
                                         penaltiesService: PenaltiesService,
-                                        fiCacheConnector: FinancialInfoCacheConnector,
                                         renderer: Renderer
                                       )(implicit ec: ExecutionContext)
-  extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                        extends FrontendBaseController
+                                          with I18nSupport
+                                          with NunjucksSupport {
 
   private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
@@ -52,6 +49,7 @@ class SelectSchemeController @Inject()(
     implicit request =>
       penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
+
           if (penaltySchemes.nonEmpty) {
 
             val json = Json.obj(
@@ -81,17 +79,14 @@ class SelectSchemeController @Inject()(
               renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
             },
             value => {
-              fiCacheConnector.fetch flatMap {
-                case Some(jsValue) =>
-                  value.srn match {
-                    case Some(srn) =>
-                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
-                    case _ =>
-                      val pstrIndex: String = jsValue.as[Seq[PsaFS]].map(_.pstr).indexOf(value.pstr).toString
-                      Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex)))
-                  }
-                case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                value.srn match {
+                  case Some(srn) =>
+                    Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
+                  case _ =>
+                    penaltiesService.getPenaltiesFromCache.map { penalties =>
+                      val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
+                      Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex))
+                }
               }
             }
           )

@@ -20,10 +20,10 @@ import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.YearsFormProvider
+import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
+import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -42,7 +42,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
@@ -51,26 +51,30 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     bind[PenaltiesService].toInstance(mockPenaltiesService)
   )
 
-  private val years: Seq[DisplayYear] = Seq(DisplayYear(2020, Some(PaymentOverdue)))
+  private val year = "2020"
+
+  private val quarters: Seq[Quarter] = Seq(q32020, q42020)
+  private val displayQuarters: Seq[DisplayQuarter] = Seq(
+    DisplayQuarter(q32020, displayYear = false, None, Some(PaymentOverdue)),
+    DisplayQuarter(q42020, displayYear = false, None, Some(PaymentOverdue))
+  )
 
   private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
   private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialStatement/penalties/selectYear.njk"
-  val formProvider = new YearsFormProvider()
-  val form: Form[Year] = formProvider()
+  val templateToBeRendered = "financialStatement/penalties/selectQuarter.njk"
+  val formProvider = new QuartersFormProvider()
+  val form: Form[Quarter] = formProvider("selectPenaltiesQuarter.error", quarters)
 
-  lazy val httpPathGET: String = routes.SelectPenaltiesYearController.onPageLoad().url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesYearController.onSubmit().url
+  lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year).url
+  lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
 
-  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
+  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> FSYears.radios(form, years),
+    "radios" -> Quarters.radios(form, displayQuarters),
     "submitUrl" -> httpPathPOST
   )
 
-  private val year = "2020"
-
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q32020.toString))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -82,7 +86,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
     when(mockPenaltiesService.getPenaltiesFromCache(any(), any())).thenReturn(Future.successful(psaFsSeq))
   }
 
-  "SelectYear Controller" must {
+  "SelectPenaltiesQuarter Controller" must {
     "return OK and the correct view for a GET" in {
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -105,7 +109,7 @@ class SelectPenaltiesYearControllerSpec extends ControllerSpecBase with Nunjucks
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectPenaltiesQuarterController.onPageLoad(year).url)
+      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(q32020.startDate.toString).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

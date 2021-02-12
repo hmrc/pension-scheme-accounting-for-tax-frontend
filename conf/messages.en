@@ -966,6 +966,7 @@ quarters.lockDetail = - locked by {0}
 quarters.hint.locked = You can view this return but you cannot make changes until it is unlocked
 quarters.hint.inProgress = Continue this return. It has already been started.
 quarters.hint.submitted = You have already submitted this return. You can still view or amend it.
+hint.paymentOverdue = PAYMENT OVERDUE
 
 returnHistory.title = AFT return history for {0} to {1}
 returnHistory.version = Submission
@@ -1064,7 +1065,7 @@ paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
 
 penaltiesPartial.linkText = View your penalties for 2020
 
-penalties.title = Penalties for {0}
+penalties.title = Penalties for {0} to {1}
 penalties.pstr = Pension Scheme Tax Reference: {0}
 penalties.p1 = Amounts due may not reflect payments made in the last 3 days.
 penalties.column.penalty = Penalty
@@ -1147,3 +1148,6 @@ pspDeclaration.heading = Declaration
 pspDeclaration.p1 = By submitting this Accounting for Tax (AFT) return, you declare that the pension scheme administrator approves the content and authorises you to submit this return.
 
 selectPenaltiesYear.title = Which year do you want to view scheme penalties for?
+selectPenaltiesYear.error = Select which year you want to view scheme penalties for
+selectPenaltiesQuarter.title = Which quarter of {0} do you want to view scheme penalties for?
+selectPenaltiesQuarter.error = Select which quarter you want to view scheme penalties for

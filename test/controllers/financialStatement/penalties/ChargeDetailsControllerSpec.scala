@@ -93,7 +93,7 @@ class ChargeDetailsControllerSpec
     reset(mockPenaltiesService, mockRenderer)
     when(mockPenaltiesService.chargeDetailsRows(any())).thenReturn(rows)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltiesService.getPenaltiesFromCache(any(), any())).thenReturn(Future.successful(psaFSResponse))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
@@ -139,18 +139,6 @@ class ChargeDetailsControllerSpec
         templateCaptor.getValue mustEqual templateToBeRendered
 
         jsonCaptor.getValue must containJson(commonJson ++ json)
-      }
-
-      "redirect to session expired when no data in FICacheConnector" in {
-
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(None))
-
-        val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-
-        status(result) mustEqual SEE_OTHER
-
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
       }
 
       "catch IndexOutOfBoundsException" in {

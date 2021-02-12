@@ -42,18 +42,26 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
     service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
       val yearsSeq: Seq[Int] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse
+
+
       if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
         Future.successful(Redirect(routes.SelectPenaltiesYearController.onPageLoad()))
-      } else {
+      } else if (yearsSeq.size == 1) {
         val quartersSeq = penalties
           .filter(_.periodStartDate.getYear == yearsSeq.head)
           .map { penalty => Quarters.getQuarter(penalty.periodStartDate) }.distinct
 
         if (quartersSeq.size > 1) {
           Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(yearsSeq.head.toString)))
-        } else {
+        } else if (quartersSeq.size == 1) {
           Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(quartersSeq.head.startDate)))
+        } else {
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+
         }
+      }else {
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+
       }
     }
   }

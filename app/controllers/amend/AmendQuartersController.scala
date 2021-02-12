@@ -17,23 +17,22 @@
 package controllers.amend
 
 import config.FrontendAppConfig
-import connectors.AFTConnector
 import controllers.actions._
 import forms.QuartersFormProvider
-import javax.inject.Inject
 import models.LocalDateBinder._
 import models.requests.IdentifierRequest
-import models.{Quarter, GenericViewModel, Quarters}
+import models.{GenericViewModel, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{QuartersService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class AmendQuartersController @Inject()(
                                          override val messagesApi: MessagesApi,

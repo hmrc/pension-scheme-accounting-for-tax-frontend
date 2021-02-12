@@ -17,26 +17,26 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
-import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
+import models.Quarters
 import models.financialStatement.PsaFS
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import models.LocalDateBinder._
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
-                                    fsConnector: FinancialStatementConnector,
-                                    fiCacheConnector: FinancialInfoCacheConnector,
                                     penaltiesService: PenaltiesService,
                                     schemeService: SchemeService,
                                     renderer: Renderer
@@ -45,75 +45,39 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(year: String, identifier: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = identify.async {
     implicit request =>
-      def viewModel(pstr: String, schemeAssociated: Boolean, tables: Seq[JsObject], args: String*): JsObject =
-        Json.obj(
-          "year" -> year,
-          "pstr" -> pstr,
-          "schemeAssociated" -> schemeAssociated,
-          "tables" -> tables,
-          "schemeName" -> args
-        )
 
-      fsConnector.getPsaFS(request.psaIdOrException.id).flatMap {
-        psaFS =>
-          if (identifier.matches(srnRegex)) {
-            schemeService.retrieveSchemeDetails(
-              psaId = request.idOrException,
-              srn = identifier,
-              schemeIdType = "srn"
-            ) flatMap {
-              schemeDetails =>
-                val filteredPsaFS: Seq[PsaFS] =
-                  psaFS.filter(_.pstr == schemeDetails.pstr)
+      penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
 
-                val penaltyTables: Future[Seq[JsObject]] =
-                  penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
-                    _.filter(_ != Json.obj())
-                  }
-
-                penaltyTables flatMap {
-                  tables =>
-                    val json = viewModel(
-                      pstr = schemeDetails.pstr,
-                      schemeAssociated = true,
-                      tables = tables,
-                      args = schemeDetails.schemeName
-                    )
-                    renderer.render(template = "financialStatement/penalties/penalties.njk", json).map(Ok(_))
-                }
-
-            }
-          } else {
-            fiCacheConnector.fetch flatMap {
-              case Some(jsValue) =>
-                val pstrs: Seq[String] =
-                  jsValue.as[Seq[PsaFS]].map(_.pstr)
-
-                penaltiesService.unassociatedSchemes(psaFS, year, request.psaIdOrException.id) flatMap {
-                  filteredPsaFS =>
-                    val penaltyTables: Future[Seq[JsObject]] =
-                      penaltiesService.getPsaFsJson(filteredPsaFS, identifier, year.toInt) map {
-                        _.filter(_ != Json.obj())
-                      }
-
-                    penaltyTables flatMap {
-                      tables =>
-                        val json = viewModel(
-                          pstr = pstrs(identifier.toInt),
-                          schemeAssociated = false,
-                          tables = tables
-                        )
-
-                        renderer.render(template = "financialStatement/penalties/penalties.njk", json).map(Ok(_))
-                    }
-                }
-
-              case _ =>
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-            }
+        val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
+        val json: Future[JsObject] = if (identifier.matches(srnRegex)) {
+          schemeService.retrieveSchemeDetails(request.idOrException, identifier, "srn") map { schemeDetails =>
+            val filteredPsaFS: Seq[PsaFS] = penalties.filter(_.pstr == schemeDetails.pstr)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, startDate, chargeRefsIndex)
+            viewModel(startDate, schemeDetails.pstr, schemeAssociated = true, penaltyTable, schemeDetails.schemeName)
           }
+        } else {
+          penaltiesService.unassociatedSchemes(penalties, startDate, request.psaIdOrException.id) map { filteredPsaFS =>
+            val pstrs: Seq[String] = penalties.map(_.pstr)
+            val penaltyTable: JsObject = penaltiesService.getPsaFsJson(filteredPsaFS, identifier, startDate, chargeRefsIndex)
+            viewModel(startDate, pstrs(identifier.toInt), schemeAssociated = false, penaltyTable)
+          }
+        }
+
+        json.flatMap(js => renderer.render(template = "financialStatement/penalties/penalties.njk", js).map(Ok(_)))
+
       }
   }
+
+  private def viewModel(startDate: LocalDate, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*)
+                       (implicit messages: Messages): JsObject =
+    Json.obj(
+      "startDate" -> startDate.format(dateFormatterStartDate),
+      "endDate" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+      "pstr" -> pstr,
+      "schemeAssociated" -> schemeAssociated,
+      "table" -> table,
+      "schemeName" -> args
+    )
 }
