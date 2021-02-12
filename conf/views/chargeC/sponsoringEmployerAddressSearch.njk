@@ -24,7 +24,7 @@
 
         <h1 class="govuk-heading-xl">{{messages('chargeC.employerAddressSearch.heading', sponsorName)}}</h1>
 
-        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 

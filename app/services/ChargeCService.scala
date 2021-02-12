@@ -120,10 +120,11 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
 
     val rows = members.map { data =>
       Seq(
-        Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("addEmployers.employer.header")}</span>${data.name}""")),
-        Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("addEmployers.amount.header")}</span>${FormatHelper.formatCurrencyAmountAsString(data.amount)}"""), classes = Seq("govuk-table__header--numeric")),
-        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name))
-      ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name)))
+        Cell(Literal(data.name), classes = Seq("govuk-!-width-one-half")),
+        Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amount)}"),
+          classes = Seq("govuk-!-width-one-quarter", "govuk-table__header--numeric")),
+        Cell(link(data.viewLinkId, "site.view", data.viewLink, data.name), classes = Seq("govuk-!-width-one-quarter"))
+      ) ++ (if (canChange) Seq(Cell(link(data.removeLinkId, "site.remove", data.removeLink, data.name), classes = Seq("govuk-!-width-one-quarter")))
       else Nil)
     }
     val totalAmount = members.map(_.amount).sum
@@ -136,7 +137,7 @@ class ChargeCService @Inject()(deleteChargeHelper: DeleteChargeHelper) {
         Cell(msg"")
       ) ++ (if (canChange) Seq(Cell(msg"")) else Nil))
 
-    Table(head = head, rows = rows ++ totalRow, classes= Seq("hmrc-responsive-table"),attributes = Map("role" -> "table"))
+    Table(head = head, rows = rows ++ totalRow,attributes = Map("role" -> "table"))
   }
 
   def link(id: String, text: String, url: String, name: String)(implicit messages: Messages): Html = {

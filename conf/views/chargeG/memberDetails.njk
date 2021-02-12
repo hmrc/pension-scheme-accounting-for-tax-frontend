@@ -23,7 +23,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
+        <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 
