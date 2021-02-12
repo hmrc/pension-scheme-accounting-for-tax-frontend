@@ -98,8 +98,10 @@ class PaymentsAndChargesInterestController @Inject()(
             schemeFS =>
 
               val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
-                paymentsAndChargesService
-                  .groupAndSortByStartDate(paymentsAndChargesService.getUpcomingCharges(schemeFS), startDate.getYear)
+                paymentsAndChargesService.groupAndSortByStartDate(
+                  paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFS, _.dueDate),
+                  startDate.getYear
+                )
 
               buildPage(
                 schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,

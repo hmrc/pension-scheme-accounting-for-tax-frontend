@@ -47,7 +47,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectPenaltiesYear.error")
 
   def onPageLoad: Action[AnyContent] = identify.async { implicit request =>
-    service.getPenaltiesFromCache.flatMap { penalties =>
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
       val years = getYears(penalties)
       val json = Json.obj(
         "form" -> form(config),
@@ -63,7 +63,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
     form(config).bindFromRequest().fold(
         formWithErrors =>
 
-          service.getPenaltiesFromCache.flatMap { penalties =>
+          service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
               val json = Json.obj(
                 "form" -> formWithErrors,

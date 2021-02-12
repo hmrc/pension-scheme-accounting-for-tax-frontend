@@ -1057,13 +1057,14 @@ pspDashboardOverdueAftChargesCard.toDate.span = to date
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod = View overdue payments and interest charges for {0} to {1}
 pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods = View overdue payments and interest charges
 
+psaPenaltiesCard.h2 = Penalties
+psaPenaltiesCard.viewPastPenalties = View past penalties
+
 paymentsAndChargesUpcoming.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesUpcoming.h1.multiplePeriod = Upcoming payments and charges
 
 paymentsAndChargesOverdue.h1.singlePeriod = Payments and charges for {0} to {1}
 paymentsAndChargesOverdue.h1.multiplePeriod = Overdue payments and charges
-
-penaltiesPartial.linkText = View your penalties for 2020
 
 penalties.title = Penalties for {0} to {1}
 penalties.pstr = Pension Scheme Tax Reference: {0}

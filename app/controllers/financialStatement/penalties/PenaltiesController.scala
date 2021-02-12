@@ -48,7 +48,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
   def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = identify.async {
     implicit request =>
 
-      penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
         val chargeRefsIndex: String => String = cr => penalties.map(_.chargeReference).indexOf(cr).toString
         val json: Future[JsObject] = if (identifier.matches(srnRegex)) {

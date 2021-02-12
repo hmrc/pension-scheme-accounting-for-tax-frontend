@@ -29,11 +29,14 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{Json, JsObject}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
+import services.AFTPartialService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.Text.Message
+import viewmodels.{Link, DashboardAftViewModel}
 
 import scala.concurrent.Future
 
@@ -44,23 +47,49 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  val mockAFTPartialService: AFTPartialService = mock[AFTPartialService]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
-      bind[FinancialStatementConnector].toInstance(mockFSConnector)
+      bind[FinancialStatementConnector].toInstance(mockFSConnector),
+      bind[AFTPartialService].toInstance(mockAFTPartialService)
     )
 
-  val application: Application = applicationBuilder(extraModules = extraModules).build()
+  def application: Application = applicationBuilder(extraModules = extraModules).build()
 
   private val templateToBeRendered = "partials/penalties.njk"
-  private val jsonToPassToTemplate: Boolean => JsObject = display => Json.obj("displayLink" -> Json.toJson(display),
-                                  "viewPenaltiesUrl" -> frontendAppConfig.viewPenaltiesUrl)
+  private val jsonToPassToTemplate: DashboardAftViewModel => JsObject = display => Json.obj("viewModel" -> Json.toJson(display))
+
+  def dashboardViewModel: DashboardAftViewModel = {
+    val subheadings =
+      Seq(
+        Json.obj(
+          "total" -> "£1,029.05",
+          "span" -> "Total amount due:"
+        ),
+        Json.obj(
+          "total" -> "£2,058.10",
+          "span" -> "Total overdue payments:"
+        )
+      )
+
+    val links = Seq(
+      Link(id = "aft-penalties-id",
+        url = routes.PenaltiesLogicController.onPageLoad().url,
+        linkText = Message("psaPenaltiesCard.viewPenalties"),
+        hiddenText = None)
+    )
+    DashboardAftViewModel(subHeadings = subheadings, links = links)
+  }
+
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockFSConnector, mockRenderer)
     when(mockFSConnector.getPsaFS(any())(any(), any()))
       .thenReturn(Future.successful(psaFSResponse))
+    when(mockAFTPartialService.retrievePsaPenaltiesCardModel(any())(any()))
+      .thenReturn(dashboardViewModel)
     when(mockAppConfig.viewPenaltiesUrl).thenReturn(frontendAppConfig.viewPenaltiesUrl)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -81,14 +110,10 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(true))
+        jsonCaptor.getValue must containJson(jsonToPassToTemplate(dashboardViewModel))
       }
 
-      "return the html without the link when empty sequence is received from PSA financial statement api" in {
-
-        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-        val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
+      "don't attempt to render template when empty sequence is received from PSA financial statement api" in {
         when(mockFSConnector.getPsaFS(any())(any(), any()))
           .thenReturn(Future.successful(Seq.empty))
 
@@ -96,11 +121,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
         status(result) mustEqual OK
 
-        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-        templateCaptor.getValue mustEqual templateToBeRendered
-
-        jsonCaptor.getValue must containJson(jsonToPassToTemplate(false))
+        verify(mockRenderer, times(0)).render(any(), any())(any())
       }
 
     }

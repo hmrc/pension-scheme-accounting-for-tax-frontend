@@ -53,7 +53,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
-  private val penaltiesService = new PenaltiesService(mockAppConfig, mockFSConnector, mockFIConnector, mockListOfSchemesConn)
+  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn)
 
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
       "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),
@@ -140,8 +140,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
-      when(mockFIConnector.save(any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", psaFSResponse()))))
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
 
       whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID")(implicitly, implicitly)) {

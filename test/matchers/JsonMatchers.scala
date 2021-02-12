@@ -24,8 +24,6 @@ trait JsonMatchers {
   class JsonContains(json: JsObject) extends Matcher[JsObject] {
 
     def apply(left: JsObject): MatchResult = {
-      println(">>>>>>>>>>>>>>>>>>>>>>>> actual : "+left)
-      println(">>>>>>>>>>>>>>>>>>>>>>>> expected : "+json)
       val mismatches = json.keys.filter(key => (left \ key) != (json \ key))
       MatchResult(
         mismatches.isEmpty,

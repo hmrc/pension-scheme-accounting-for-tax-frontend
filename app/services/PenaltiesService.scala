@@ -25,7 +25,7 @@ import models.LocalDateBinder._
 import models.financialStatement.PsaFS
 import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, Json, OFormat}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
@@ -36,8 +36,7 @@ import utils.DateHelper.dateFormatterDMY
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
-class PenaltiesService @Inject()(config: FrontendAppConfig,
-                                 fsConnector: FinancialStatementConnector,
+class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
                                  listOfSchemesConnector: ListOfSchemesConnector) {
 
@@ -151,7 +150,7 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   def penaltySchemes(startDate: String, psaId: String)
                     (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PenaltySchemes]] =
     for {
-      penalties <- getPenaltiesFromCache
+      penalties <- getPenaltiesFromCache(psaId)
       listOfSchemes <- getListOfSchemes(psaId)
     } yield {
 
@@ -191,13 +190,19 @@ class PenaltiesService @Inject()(config: FrontendAppConfig,
   def saveAndReturnPenalties(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
     for {
       penalties <- fsConnector.getPsaFS(psaId)
-      _ <- fiCacheConnector.save(Json.toJson(penalties))
+      _ <- fiCacheConnector.save(Json.toJson(PenaltiesCache(psaId, penalties)))
     } yield penalties
 
 
-  def getPenaltiesFromCache(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
-    fiCacheConnector.fetch map {
-      case Some(jsValue) => jsValue.as[Seq[PsaFS]]
-      case _ => Seq.empty[PsaFS]
+  def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
+    fiCacheConnector.fetch flatMap {
+      case Some(jsValue) if jsValue.as[PenaltiesCache].psaId == psaId => Future.successful(jsValue.as[PenaltiesCache].penalties)
+      case _ => saveAndReturnPenalties(psaId)
     }
+
+}
+
+case class PenaltiesCache(psaId: String, penalties: Seq[PsaFS])
+object PenaltiesCache {
+  implicit val format: OFormat[PenaltiesCache] = Json.format[PenaltiesCache]
 }

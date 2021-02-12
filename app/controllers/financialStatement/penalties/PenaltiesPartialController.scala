@@ -22,12 +22,14 @@ import controllers.actions._
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
+import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesPartialController @Inject()(
                                                 identify: IdentifierAction,
@@ -35,7 +37,8 @@ class PenaltiesPartialController @Inject()(
                                                 val controllerComponents: MessagesControllerComponents,
                                                 fsConnector: FinancialStatementConnector,
                                                 renderer: Renderer,
-                                                config: FrontendAppConfig
+                                                config: FrontendAppConfig,
+                                                aftPartialService: AFTPartialService
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
     with I18nSupport
@@ -44,9 +47,16 @@ class PenaltiesPartialController @Inject()(
   def penaltiesPartial: Action[AnyContent] = identify.async { implicit request =>
 
     fsConnector.getPsaFS(request.psaIdOrException.id).flatMap { psaFS =>
-      val json = Json.obj("displayLink" -> Json.toJson(psaFS.nonEmpty),
-      "viewPenaltiesUrl" -> config.viewPenaltiesUrl)
-      renderer.render(template = "partials/penalties.njk", json).map(Ok(_))
+      val result = if (psaFS.isEmpty) {
+        Future.successful(Html(""))
+      } else {
+        val viewModel = aftPartialService.retrievePsaPenaltiesCardModel(psaFS)
+        renderer.render(
+          template = "partials/penalties.njk",
+          ctx = Json.obj("viewModel" -> Json.toJson(viewModel))
+        )
+      }
+      result.map(Ok(_))
     }
   }
 }

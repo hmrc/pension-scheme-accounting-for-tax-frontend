@@ -50,7 +50,7 @@ class SelectPenaltiesQuarterController @Inject()(
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
   def onPageLoad(year: String): Action[AnyContent] = identify.async { implicit request =>
-    penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
       val quarters: Seq[Quarter] = getQuarters(year, penalties)
 
@@ -59,7 +59,7 @@ class SelectPenaltiesQuarterController @Inject()(
           val json = Json.obj(
             "year" -> year,
             "form" -> form(quarters),
-            "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(year, penalties)),
+            "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-tag--red")),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
             "year" -> year
           )
@@ -73,7 +73,7 @@ class SelectPenaltiesQuarterController @Inject()(
   }
 
   def onSubmit(year: String): Action[AnyContent] = identify.async { implicit request =>
-    penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
+    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
       val quarters: Seq[Quarter] = getQuarters(year, penalties)
         if (quarters.nonEmpty) {
@@ -86,7 +86,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   val json = Json.obj(
                     "year" -> year,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, penalties)),
+                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-tag--red")),
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
                     "year" -> year
                   )

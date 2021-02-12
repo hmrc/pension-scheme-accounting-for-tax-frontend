@@ -106,7 +106,7 @@ class PaymentsAndChargesUpcomingControllerSpec
     "return OK and the correct view with filtered payments and charges information for single period" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
         .thenReturn(schemeFSResponseSinglePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -125,8 +125,9 @@ class PaymentsAndChargesUpcomingControllerSpec
     "return OK and the correct view with filtered payments and charges information for multiple periods" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(schemeFSResponseMultiplePeriod))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
         .thenReturn(schemeFSResponseMultiplePeriod)
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
@@ -144,8 +145,11 @@ class PaymentsAndChargesUpcomingControllerSpec
     "redirect to Session Expired page when there is no data for the selected year" in {
       when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
         .thenReturn(Future.successful(Seq.empty))
-      when(mockPaymentsAndChargesService.getUpcomingCharges(any()))
+
+      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
         .thenReturn(Seq.empty)
+
+
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url

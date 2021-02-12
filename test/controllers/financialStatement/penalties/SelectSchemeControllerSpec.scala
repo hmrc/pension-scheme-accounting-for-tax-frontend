@@ -73,7 +73,7 @@ class SelectSchemeControllerSpec extends ControllerSpecBase with NunjucksSupport
     reset(mockPenaltyService, mockAppConfig, mockFICacheConnector, mockFSConnector)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockPenaltyService.penaltySchemes(any(), any())(any(), any())).thenReturn(Future.successful(penaltySchemes))
-    when(mockPenaltyService.getPenaltiesFromCache(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltyService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
   }
 
   "SelectScheme Controller" when {

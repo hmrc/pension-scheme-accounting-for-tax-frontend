@@ -35,7 +35,7 @@ import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{Link, AFTViewModel, PspDashboardAftViewModel}
+import viewmodels.{Link, AFTViewModel, DashboardAftViewModel}
 
 import scala.concurrent.{Future, ExecutionContext}
 
@@ -53,6 +53,11 @@ class AFTPartialServiceSpec
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
   private val schemeService = mock[SchemeService]
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
+
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
+  }
 
   def service: AFTPartialService =
     new AFTPartialService(frontendAppConfig, schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
@@ -81,6 +86,9 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
+
       whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = false,
@@ -98,6 +106,9 @@ class AFTPartialServiceSpec
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
+
+      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
       whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
@@ -124,6 +135,9 @@ class AFTPartialServiceSpec
         when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
+        when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
+
         whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
           _ mustBe pspDashboardOneCompileZeroedOutModel
         }
@@ -136,7 +150,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
 
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Payment due by 15 February 2021:"
@@ -159,7 +173,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
 
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Total amount due:"
@@ -180,7 +194,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
       val schemeFS = schemeFSResponseSinglePeriod() ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Payment due by 15 February 2021:"
@@ -209,7 +223,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
       val schemeFS = schemeFSResponseMultiplePeriods() ++ pastCharges
       service.retrievePspDashboardUpcomingAftChargesModel(schemeFS, srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Total amount due:"
@@ -238,7 +252,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
 
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseSinglePeriod(), srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(
             Json.obj(
               "total" -> "£3,087.15",
@@ -269,7 +283,7 @@ class AFTPartialServiceSpec
       service.retrievePspDashboardOverdueAftChargesModel(
         schemeFSResponseSinglePeriod(123.00), srn
       ) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(
             Json.obj(
               "total" -> "£3,087.15",
@@ -297,7 +311,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
 
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(), srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(
             Json.obj(
               "total" -> "£3,087.15",
@@ -325,7 +339,7 @@ class AFTPartialServiceSpec
       val service = app.injector.instanceOf[AFTPartialService]
 
       service.retrievePspDashboardOverdueAftChargesModel(schemeFSResponseMultiplePeriods(123.00), srn) mustBe
-        PspDashboardAftViewModel(
+        DashboardAftViewModel(
           subHeadings = Seq(Json.obj(
             "total" -> "£3,087.15",
             "span" -> "Total overdue payments:"
@@ -515,8 +529,8 @@ object AFTPartialServiceSpec {
   def oneCompileZeroedOutModel: Seq[AFTViewModel] =
     Seq(multipleInProgressModel(2), startModel)
 
-  def pspDashboardAftReturnsViewModel: PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+  def pspDashboardAftReturnsViewModel: DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "2 in progress",
         "span" -> "AFT returns:"
@@ -528,13 +542,15 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
+
+
   def pspDashboardOneInProgressModelWithLocking(
                                                  locked: Boolean,
                                                  h3: String,
                                                  span: String,
                                                  linkText: String
-                                               ): PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+                                               ): DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "span" -> span,
         "h3" -> h3
@@ -546,8 +562,8 @@ object AFTPartialServiceSpec {
       ).map(_.link)
     )
 
-  def pspDashboardOneCompileZeroedOutModel: PspDashboardAftViewModel =
-    PspDashboardAftViewModel(
+  def pspDashboardOneCompileZeroedOutModel: DashboardAftViewModel =
+    DashboardAftViewModel(
       subHeadings = Seq(Json.obj(
         "h3" -> "3 in progress",
         "span" -> "AFT returns:"

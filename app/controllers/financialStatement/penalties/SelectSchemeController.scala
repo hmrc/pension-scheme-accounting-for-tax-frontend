@@ -83,7 +83,7 @@ class SelectSchemeController @Inject()(
                   case Some(srn) =>
                     Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
                   case _ =>
-                    penaltiesService.getPenaltiesFromCache.map { penalties =>
+                    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
                       val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
                       Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex))
                 }

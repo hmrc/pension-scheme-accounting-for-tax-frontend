@@ -238,9 +238,7 @@ POST        /:srn/new-return/select-year                                        
 GET         /:srn/new-return/:year/select-quarter                                                                                                    controllers.QuartersController.onPageLoad(srn: String, year: String)
 POST        /:srn/new-return/:year/select-quarter                                                                                                    controllers.QuartersController.onSubmit(srn: String, year: String)
 
-GET         /psp-dashboard-aft-returns-card                                                                                                          controllers.partials.PspSchemeDashboardPartialsController.pspDashboardAftReturnsPartial()
-GET         /psp-dashboard-upcoming-aft-charges-card                                                                                                 controllers.partials.PspSchemeDashboardPartialsController.pspDashboardUpcomingAftChargesPartial()
-GET         /psp-dashboard-overdue-aft-charges-card                                                                                                  controllers.partials.PspSchemeDashboardPartialsController.pspDashboardOverdueAftChargesPartial()
+GET         /psp-scheme-dashboard-cards                                                                                                              controllers.partials.PspSchemeDashboardPartialsController.pspDashboardAllTilesPartial()
 GET         /:srn/psa-scheme-dashboard-cards                                                                                                         controllers.partials.PsaSchemeDashboardPartialsController.psaSchemeDashboardPartial(srn: String)
 
 GET         /:srn/:startDate/:accessType/:version/enter-psa-id                                                                                       controllers.EnterPsaIdController.onPageLoad(srn: String, startDate: String, accessType: AccessType, version: Int)

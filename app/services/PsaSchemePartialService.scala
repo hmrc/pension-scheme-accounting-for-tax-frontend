@@ -205,7 +205,8 @@ class PsaSchemePartialService @Inject()(
 
   def upcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
                                                  (implicit messages: Messages): Seq[CardViewModel] = {
-    val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.getUpcomingCharges(schemeFs)
+    val upcomingCharges: Seq[SchemeFS] =
+      paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
 
     if (upcomingCharges == Seq.empty) {
       Nil

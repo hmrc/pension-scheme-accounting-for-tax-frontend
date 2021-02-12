@@ -53,7 +53,7 @@ class ChargeDetailsController @Inject()(
 
   def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.getPenaltiesFromCache.flatMap { penalties =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
           val filteredPsaFS = penalties.filter(_.periodStartDate == startDate)
           val chargeRefs: Seq[String] = penalties.map(_.chargeReference)

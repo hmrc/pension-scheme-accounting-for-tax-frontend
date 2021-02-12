@@ -70,7 +70,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
 
   private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters),
+    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red")),
     "submitUrl" -> httpPathPOST
   )
 
@@ -83,7 +83,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any(), any())).thenReturn(Future.successful(psaFsSeq))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
   }
 
   "SelectPenaltiesQuarter Controller" must {
