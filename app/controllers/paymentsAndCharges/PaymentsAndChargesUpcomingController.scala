@@ -65,8 +65,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
               val upcomingPaymentsAndCharges: Seq[SchemeFS] =
-                paymentsAndChargesService
-                  .getUpcomingCharges(schemeFs)
+              paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
 
               if (upcomingPaymentsAndCharges.nonEmpty) {
                 val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =

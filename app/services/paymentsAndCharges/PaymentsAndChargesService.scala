@@ -98,10 +98,12 @@ class PaymentsAndChargesService @Inject()() {
       .toSeq
       .sortWith(_._1 < _._1)
 
-  def getUpcomingCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
-    schemeFS
-      .filter(_.dueDate.nonEmpty)
-      .filter(_.dueDate.get.isAfter(DateHelper.today))
+  def extractUpcomingCharges[A](seqOfCharges: Seq[A], dateToFilterOn: A => Option[LocalDate]): Seq[A] =
+    seqOfCharges.filter{ charge =>
+      val optionDate = dateToFilterOn(charge)
+      optionDate.nonEmpty &&
+        (optionDate.get.isEqual(DateHelper.today) || optionDate.get.isAfter(DateHelper.today))
+    }
 
   def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
     schemeFS
