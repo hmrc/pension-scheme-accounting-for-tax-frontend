@@ -59,7 +59,7 @@ class SelectPenaltiesQuarterController @Inject()(
           val json = Json.obj(
             "year" -> year,
             "form" -> form(quarters),
-            "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-tag--red")),
+            "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
             "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
             "year" -> year
           )
@@ -86,7 +86,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   val json = Json.obj(
                     "year" -> year,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-tag--red")),
+                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, penalties), Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
                     "submitUrl" -> routes.SelectPenaltiesQuarterController.onSubmit(year).url,
                     "year" -> year
                   )

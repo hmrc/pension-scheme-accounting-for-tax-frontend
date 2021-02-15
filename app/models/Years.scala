@@ -102,7 +102,7 @@ object FSYears extends CommonYears with Enumerable.Implicits {
 
   private def getHint(displayYear: DisplayYear): Option[Hint] =
     displayYear.hintText match {
-      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", Seq("govuk-tag govuk-tag--red")))
+      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", Seq("govuk-tag govuk-tag--red govuk-!-display-inline")))
       case _ => None
     }
 
