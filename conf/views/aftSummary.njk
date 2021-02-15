@@ -39,7 +39,7 @@
                 }) }}
             {% endif %}
 
-            <form action="{{ searchURL }}" method="post" autocomplete="off">
+            <form action="{{ searchURL }}" method="post" autocomplete="off" novalidate >
                 {{ csrf() | safe }}
                 {% call govukFieldset({
                   legend: {
@@ -130,7 +130,7 @@
                 {% endcall %}
             </form>
 
-            <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off">
+            <form action="{{ viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
                 {{ csrf() | safe }}
 
