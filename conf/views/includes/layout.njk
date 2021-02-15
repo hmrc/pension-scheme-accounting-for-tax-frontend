@@ -3,6 +3,7 @@
 {% from "hmrc/components/header/macro.njk"     import hmrcHeader %}
 {% from "hmrc/components/page-heading/macro.njk"  import hmrcPageHeading %}
 {% from "hmrc/components/timeout-dialog/macro.njk"     import hmrcTimeoutDialog %}
+{% from "macros/trackingSnippet/macro.njk"     import trackingSnippet %}
 
 {%- set assetPath = "/assets/lib/govuk-frontend/govuk/assets" -%}
 {%- set htmlLang = request.language -%}
@@ -10,54 +11,59 @@
 {% set containerClasses = "app-width-container--wide" %}
 
 {% block head %}
-  {% block pageHead %}{% endblock %}
-{{ hmrcTimeoutDialog({
-  timeout: config.timeout,
-  countdown: config.countdown,
-  keepAliveUrl: routes.controllers.KeepAliveController.keepAlive(srn, startDate).url,
-  signOutUrl: routes.controllers.SignOutController.signOut(srn, startDate).url
-}) }}
-  {% include "includes/head.njk" %}
+    {% block pageHead %}{% endblock %}
+    {{ hmrcTimeoutDialog({
+        timeout: config.timeout,
+        countdown: config.countdown,
+        keepAliveUrl: routes.controllers.KeepAliveController.keepAlive(srn, startDate).url,
+        signOutUrl: routes.controllers.SignOutController.signOut(srn, startDate).url
+    }) }}
+    {{ trackingSnippet({
+        url: config.trackingSnippetUrl,
+        gtmContainerId: config.gtmContainerId,
+        lang: "en"
+    }) }}
+    {% include "includes/head.njk" %}
 {% endblock %}
 
 {% block skipLink %}
-  {{ govukSkipLink({
-    href: "#main-content",
-    text: "Skip to main content"
-  }) }}
+    {{ govukSkipLink({
+        href: "#main-content",
+        text: "Skip to main content"
+    }) }}
 {% endblock %}
 
 {% block header %}
-  {{ hmrcHeader({
-    homepageUrl: "/pension-scheme-accounting-for-tax-frontend",
-    serviceName: messages("site.service_name"),
-    serviceUrl: config.managePensionsSchemeOverviewUrl,
-    containerClasses: "govuk-width-container",
-    assetsPath: "/assets",
-    signOutHref: routes.controllers.SignOutController.signOut(srn, startDate).url
-  }) }}
+    {{ hmrcHeader({
+        homepageUrl: "/pension-scheme-accounting-for-tax-frontend",
+        serviceName: messages("site.service_name"),
+        serviceUrl: config.managePensionsSchemeOverviewUrl,
+        containerClasses: "govuk-width-container",
+        assetsPath: "/assets",
+        signOutHref: routes.controllers.SignOutController.signOut(srn, startDate).url
+    }) }}
 {% endblock %}
 
 {% block beforeContent %}
-  {% include "includes/phase-banner.njk" %}
+    {% include "includes/phase-banner.njk" %}
     {{ govukBackLink({
-      href: "#",
-      text: "Back",
-      classes: "js-visible"
+        href: "#",
+        text: "Back",
+        classes: "js-visible"
     }) }}
 {% endblock %}
 
 {% block content %}
-  {% block mainContent %}{% endblock %}
+    {% block mainContent %}{% endblock %}
 {% endblock %}
 
 {% block bodyEnd %}
-  {% block scripts %}
-    {% block pageScripts %}{% endblock %}
-    {% include "includes/scripts.njk" %}
-  {% endblock %}
+    {% block scripts %}
+        {% block pageScripts %}{% endblock %}
+        {% include "includes/scripts.njk" %}
+    {% endblock %}
 {% endblock %}
 
 {% block footer %}
-  {% include "includes/footer.njk" %}
+    {% include "includes/footer.njk" %}
 {% endblock %}
