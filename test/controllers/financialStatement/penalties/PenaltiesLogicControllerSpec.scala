@@ -21,7 +21,7 @@ import controllers.base.ControllerSpecBase
 import controllers.financialStatement.penalties.PenaltiesLogicControllerSpec._
 import data.SampleData._
 import matchers.JsonMatchers
-import models.Enumerable
+import models.{Enumerable, PenaltySchemes}
 import models.financialStatement.PsaFS
 import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
 import models.requests.IdentifierRequest
@@ -82,13 +82,39 @@ class PenaltiesLogicControllerSpec extends ControllerSpecBase with NunjucksSuppo
 
       }
 
-      "return to SelectScheme page if exactly 1 year and 1 quarter are available to choose from" in {
+      "return to SelectScheme page if exactly 1 year, 1 quarter and multiple schemes are available to choose from" in {
         when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
+        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
+          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), pstr, Some(srn)), PenaltySchemes(Some("ABC"), pstr, None))))
 
         val result = route(application, httpGETRequest(httpPathGET)).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad("2020-04-01").url)
+
+      }
+
+      "return to Penalties page if exactly 1 year, 1 quarter and 1 scheme with srn is available to choose from" in {
+        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
+        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
+          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), pstr, Some(srn)))))
+
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad("2020-04-01", srn).url)
+
+      }
+
+      "return to Penalties page if exactly 1 year, 1 quarter and 1 scheme without srn is available to choose from" in {
+        when(mockPenaltiesService.saveAndReturnPenalties(any())(any(), any())).thenReturn(Future.successful(singleYearMSingleQuarterPsaFS))
+        when(mockPenaltiesService.penaltySchemes(any(), any())(any(), any()))
+          .thenReturn(Future.successful(Seq(PenaltySchemes(Some("ABC"), "24000040IN", None))))
+
+        val result = route(application, httpGETRequest(httpPathGET)).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result) mustBe Some(routes.PenaltiesController.onPageLoad("2020-04-01", "0").url)
 
       }
 

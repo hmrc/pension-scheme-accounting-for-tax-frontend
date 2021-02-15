@@ -21,12 +21,15 @@ import connectors.AFTConnector
 import controllers.actions._
 import models.LocalDateBinder._
 import models.Quarters
+import models.financialStatement.PsaFS
+import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,29 +43,49 @@ class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with NunjucksSupport {
 
   def onPageLoad(): Action[AnyContent] = identify.async { implicit request =>
+
     service.saveAndReturnPenalties(request.psaIdOrException.id).flatMap { penalties =>
       val yearsSeq: Seq[Int] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse
-
 
       if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
         Future.successful(Redirect(routes.SelectPenaltiesYearController.onPageLoad()))
       } else if (yearsSeq.size == 1) {
-        val quartersSeq = penalties
-          .filter(_.periodStartDate.getYear == yearsSeq.head)
-          .map { penalty => Quarters.getQuarter(penalty.periodStartDate) }.distinct
-
-        if (quartersSeq.size > 1) {
-          Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(yearsSeq.head.toString)))
-        } else if (quartersSeq.size == 1) {
-          Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(quartersSeq.head.startDate)))
-        } else {
-          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-
-        }
-      }else {
+          skipYearsPage(penalties, yearsSeq.head)
+      } else {
         Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-
       }
     }
   }
+
+  private def skipYearsPage(penalties: Seq[PsaFS], year: Int)
+                           (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
+    val quartersSeq = penalties
+      .filter(_.periodStartDate.getYear == year)
+      .map { penalty => Quarters.getQuarter(penalty.periodStartDate) }.distinct
+
+    if (quartersSeq.size > 1) {
+      Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(year.toString)))
+    } else if (quartersSeq.size == 1) {
+      skipQuartersPage(penalties, quartersSeq.head.startDate)
+    } else {
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+  }
+
+  private def skipQuartersPage(penalties: Seq[PsaFS], startDate: LocalDate)(implicit request: IdentifierRequest[AnyContent]): Future[Result] =
+    service.penaltySchemes(startDate, request.psaIdOrException.id).map { schemes =>
+      if(schemes.size > 1) {
+        Redirect(routes.SelectSchemeController.onPageLoad(startDate))
+      } else if (schemes.size == 1) {
+        schemes.head.srn match {
+          case Some(srn) =>
+            Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn))
+          case _ =>
+            val pstrIndex: String = penalties.map(_.pstr).indexOf(schemes.head.pstr).toString
+            Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex))
+        }
+      } else {
+        Redirect(controllers.routes.SessionExpiredController.onPageLoad())
+      }
+    }
 }
