@@ -229,7 +229,7 @@ class PaymentsAndChargesService @Inject()() {
       Table(
         head = head,
         rows = rows,
-        attributes = Map("role" -> "table"),
+        attributes = Map("role" -> "table")
       )
     )
   }
