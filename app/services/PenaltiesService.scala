@@ -17,7 +17,6 @@
 package services
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
 import helpers.FormatHelper
@@ -25,12 +24,13 @@ import models.LocalDateBinder._
 import models.financialStatement.PsaFS
 import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json, OFormat}
+import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 
 import java.time.LocalDate
@@ -41,7 +41,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  listOfSchemesConnector: ListOfSchemesConnector) {
 
   val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
-    (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
+    (data.dueDate.isDefined && data.dueDate.get.isBefore(DateHelper.today))
 
   //PENALTIES
   def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, startDate: LocalDate, chargeRefsIndex: String => String)
@@ -196,7 +196,11 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
     fiCacheConnector.fetch flatMap {
-      case Some(jsValue) if jsValue.as[PenaltiesCache].psaId == psaId => Future.successful(jsValue.as[PenaltiesCache].penalties)
+      case Some(jsValue) =>
+        jsValue.validate[PenaltiesCache] match {
+          case JsSuccess(value, _) if value.psaId == psaId => Future.successful(value.penalties)
+          case _ => saveAndReturnPenalties(psaId)
+        }
       case _ => saveAndReturnPenalties(psaId)
     }
 

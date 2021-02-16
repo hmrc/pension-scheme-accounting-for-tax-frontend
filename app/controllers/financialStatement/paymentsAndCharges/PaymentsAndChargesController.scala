@@ -51,7 +51,7 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
-  def onPageLoad(srn: String, year: Int): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
       schemeService.retrieveSchemeDetails(
         psaId = request.idOrException,
@@ -62,13 +62,13 @@ class PaymentsAndChargesController @Inject()(
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
               val schemePaymentsAndChargesForSelectedYear: Seq[SchemeFS] =
-                schemeFs.filter(_.periodStartDate.getYear == year)
+                schemeFs.filter(_.periodStartDate == startDate)
 
               if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
 
                 val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
                   paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, year, ChargeDetailsFilter.All)
+                    .getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, startDate, ChargeDetailsFilter.All)
 
                 val json = Json.obj(
                   fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,

@@ -26,8 +26,6 @@ class YearsFormProvider @Inject() extends Mappings {
 
   def apply(errorMessage: String = "years.error.required")(implicit config: FrontendAppConfig): Form[Year] =
     Form(
-      "value" -> enumerable[Year](errorMessage)(
-        StartYears.enumerable
-      )
+      "value" -> enumerable[Year](errorMessage)(StartYears.enumerable)
     )
 }

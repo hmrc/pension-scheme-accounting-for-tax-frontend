@@ -16,6 +16,8 @@
 
 package services.paymentsAndCharges
 
+import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import dateOrdering._
 import helpers.FormatHelper._
@@ -23,29 +25,36 @@ import models.ChargeDetailsFilter
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType._
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverdue, InterestIsAccruing, NoStatus}
-import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentsAndChargesDetails}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.viewModels.paymentsAndCharges.{PaymentsAndChargesDetails, PaymentsAndChargesTable}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
+import services.SchemeService
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, SummaryList, Content, _}
+import uk.gov.hmrc.viewmodels.{Content, Html, SummaryList, _}
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+
 import java.time.LocalDate
-
 import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargesService @Inject()() {
+class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
+                                          fsConnector: FinancialStatementConnector,
+                                          financialInfoCacheConnector: FinancialInfoCacheConnector
+                                         ) {
 
   def getPaymentsAndCharges(
                              srn: String,
                              schemeFS: Seq[SchemeFS],
-                             year: Int,
+                             startDate: LocalDate,
                              chargeDetailsFilter: ChargeDetailsFilter
                            )(implicit messages: Messages): Seq[PaymentsAndChargesTable] =
-    groupAndSortByStartDate(schemeFS, year) map {
+    groupAndSortByStartDate(schemeFS, startDate) map {
       startDateAndFS =>
         val (_, schemeFs) = startDateAndFS
 
@@ -99,16 +108,18 @@ class PaymentsAndChargesService @Inject()() {
       .sortWith(_._1 < _._1)
 
   def extractUpcomingCharges[A](seqOfCharges: Seq[A], dateToFilterOn: A => Option[LocalDate]): Seq[A] =
-    seqOfCharges.filter{ charge =>
+    seqOfCharges.filter { charge =>
       val optionDate = dateToFilterOn(charge)
-      optionDate.nonEmpty &&
-        (optionDate.get.isEqual(DateHelper.today) || optionDate.get.isAfter(DateHelper.today))
+      optionDate.nonEmpty && !optionDate.get.isBefore(DateHelper.today)
     }
 
   def getOverdueCharges(schemeFS: Seq[SchemeFS]): Seq[SchemeFS] =
     schemeFS
       .filter(_.dueDate.nonEmpty)
       .filter(_.dueDate.get.isBefore(DateHelper.today))
+
+  val isPaymentOverdue: SchemeFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
+    (data.dueDate.isDefined && data.dueDate.get.isBefore(DateHelper.today))
 
   private def paymentsAndChargesDetails(
                                          onlyAFTAndOTCChargeTypes: Boolean,
@@ -345,4 +356,32 @@ class PaymentsAndChargesService @Inject()() {
       Nil
     }
   }
+
+  def saveAndReturnPaymentsCache(loggedInId: String, srn: String)
+                           (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[PaymentsCache] =
+    for {
+      schemeDetails <- schemeService.retrieveSchemeDetails(loggedInId, srn, "srn")
+      schemeFS <- fsConnector.getSchemeFS(schemeDetails.pstr)
+      paymentsCache = PaymentsCache(loggedInId, srn, schemeDetails, schemeFS)
+      _ <- financialInfoCacheConnector.save(Json.toJson(paymentsCache))
+    } yield paymentsCache
+
+  def getPaymentsFromCache(loggedInId: String, srn: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[PaymentsCache] =
+    financialInfoCacheConnector.fetch flatMap {
+      case Some(jsValue) =>
+        val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
+        jsValue.validate[PaymentsCache] match {
+          case JsSuccess(value, _) if cacheAuthenticated => Future.successful(value)
+          case _ => saveAndReturnPaymentsCache(loggedInId, srn)
+        }
+      case _ => saveAndReturnPaymentsCache(loggedInId, srn)
+    }
+
+}
+
+import models.SchemeDetails
+
+case class PaymentsCache(loggedInId: String, srn: String, schemeDetails: SchemeDetails, schemeFS: Seq[SchemeFS])
+object PaymentsCache {
+  implicit val format: OFormat[PaymentsCache] = Json.format[PaymentsCache]
 }
