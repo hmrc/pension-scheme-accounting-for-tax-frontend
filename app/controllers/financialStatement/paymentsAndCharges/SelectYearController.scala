@@ -36,7 +36,6 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.SchemeFS
-import models.requests.IdentifierRequest
 import models.{DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -51,43 +50,26 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class SelectYearController @Inject()(override val messagesApi: MessagesApi,
-                                           identify: IdentifierAction,
-                                           formProvider: YearsFormProvider,
-                                           val controllerComponents: MessagesControllerComponents,
-                                           renderer: Renderer,
-                                           config: FrontendAppConfig,
-                                           service: PaymentsAndChargesService)
-                                          (implicit ec: ExecutionContext) extends FrontendBaseController
-                                                                      with I18nSupport
-                                                                      with NunjucksSupport {
+                                     identify: IdentifierAction,
+                                     formProvider: YearsFormProvider,
+                                     val controllerComponents: MessagesControllerComponents,
+                                     renderer: Renderer,
+                                     config: FrontendAppConfig,
+                                     service: PaymentsAndChargesService)
+                                    (implicit ec: ExecutionContext) extends FrontendBaseController
+  with I18nSupport
+  with NunjucksSupport {
 
-  private def form(errorKey: String)(implicit config: FrontendAppConfig): Form[Year] = formProvider(errorKey)
+  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectChargesYear.error")
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    renderView(srn)
-  }
-
-  def onPageLoadOverDue(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    renderView(srn, forOverdueCharges = true)
-  }
-
-  def renderView(srn: String, forOverdueCharges: Boolean = false)
-                (implicit request: IdentifierRequest[AnyContent]): Future[Result] = {
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-      val (payments, title, errorKey): (Seq[SchemeFS], String, String) =
-        if(!forOverdueCharges) {
-          (payments, "selectChargesYear.title", "selectChargesYear.error")
-        } else {
-          (service.getOverdueCharges(paymentsCache.schemeFS), "selectOverdueChargesYear.title", "selectOverdueChargesYear.error")
-        }
-
-      val years = getYears(payments)
+      val years = getYears(paymentsCache.schemeFS)
       val json = Json.obj(
-        "title" -> title,
         "schemeName" -> paymentsCache.schemeDetails.schemeName,
-        "form" -> form(errorKey)(config),
-        "radios" -> FSYears.radios(form(errorKey)(config), years),
+        "form" -> form(config),
+        "radios" -> FSYears.radios(form(config), years),
         "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
       )
 
@@ -96,44 +78,22 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
   }
 
   def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    onSubmitGeneric(srn)
-  }
-
-  def onSubmitOverdue(srn: String): Action[AnyContent] = identify.async { implicit request =>
-    onSubmitGeneric(srn, forOverdueCharges = true)
-  }
-
-  def onSubmitGeneric(srn: String, forOverdueCharges: Boolean = false)
-                   (implicit request: IdentifierRequest[AnyContent]): Future[Result] =
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-    val (payments, title, errorKey, redirectUrl): (Seq[SchemeFS], String, String, Int => Call) =
-      if(!forOverdueCharges) {
-        (payments,
-          "selectChargesYear.title",
-          "selectChargesYear.error",
-          (year: Int) => routes.SelectQuarterController.onPageLoad(srn, year.toString))
-      } else {
-        (service.getOverdueCharges(paymentsCache.schemeFS),
-          "selectOverdueChargesYear.title",
-          "selectOverdueChargesYear.error",
-          (year: Int) => routes.SelectQuarterController.onPageLoadOverdue(srn, year.toString))
-      }
-
-    form(errorKey)(config).bindFromRequest().fold(
-      formWithErrors => {
+      form(config).bindFromRequest().fold(
+        formWithErrors => {
 
           val json = Json.obj(
-            "title" -> title,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(payments)),
+            "radios" -> FSYears.radios(formWithErrors, getYears(paymentsCache.schemeFS)),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
-      value => Future.successful(Redirect(redirectUrl(value.getYear)))
-    )
+        value => Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, value.getYear.toString)))
+      )
+    }
   }
 
   def getYears(payments: Seq[SchemeFS]): Seq[DisplayYear] =

@@ -1155,9 +1155,9 @@ selectPenaltiesQuarter.error = Select which quarter you want to view scheme pena
 
 selectChargesYear.title = Which year do you want to view charges for?
 selectChargesYear.error = Select which year you want to view charges for
-selectOverdueChargesYear.title = Which year do you want to view overdue payments and interest charges for?
-selectOverdueChargesYear.error = Select which year do you want to view overdue payments and interest charges for
 selectChargesQuarter.title = Which quarter of {0} do you want to view the charges for?
 selectChargesQuarter.error = Select which quarter of {0} you want to view charges for
 selectOverdueChargesQuarter.title = Which quarter do you want to view overdue payments and interest charges for?
-selectOverdueChargesQuarter.error = Select which quarter of {0} you want to view overdue payments and interest charges for
+selectOverdueChargesQuarter.error = Select which quarter you want to view overdue payments and interest charges for
+selectUpcomingChargesQuarter.title = Which quarter do you want to view upcoming payments for?
+selectUpcomingChargesQuarter.error = Select which quarter you want to view upcoming payments and interest charges for

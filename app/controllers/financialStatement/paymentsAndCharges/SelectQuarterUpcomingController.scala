@@ -18,14 +18,14 @@ package controllers.financialStatement.paymentsAndCharges
 
 import controllers.actions._
 import forms.QuartersFormProvider
-import models.financialStatement.{PsaFS, SchemeFS}
+import models.LocalDateBinder._
+import models.financialStatement.SchemeFS
 import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import models.LocalDateBinder._
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -34,14 +34,14 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SelectQuarterController @Inject()(
+class SelectQuarterUpcomingController @Inject()(
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer,
                                                   service: PaymentsAndChargesService)
-                                                  (implicit ec: ExecutionContext)
+                                               (implicit ec: ExecutionContext)
                                                   extends FrontendBaseController
                                                   with I18nSupport
                                                   with NunjucksSupport {
@@ -52,20 +52,21 @@ class SelectQuarterController @Inject()(
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
+      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges[SchemeFS](paymentsCache.schemeFS, _.dueDate)
+      val quarters: Seq[Quarter] = getQuarters(year, upcomingPaymentsAndCharges)
 
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
             "year" -> year,
             "form" -> form(quarters, year),
-            "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFS),
+            "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, upcomingPaymentsAndCharges),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
             "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
             "year" -> year
           )
 
-          renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(Ok(_))
+          renderer.render(template = "financialStatement/paymentsAndCharges/selectUpcomingQuarter.njk", json).map(Ok(_))
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
         }
@@ -76,7 +77,8 @@ class SelectQuarterController @Inject()(
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsFromCache(request.psaIdOrException.id, srn).flatMap { paymentsCache =>
 
-      val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
+      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges[SchemeFS](paymentsCache.schemeFS, _.dueDate)
+      val quarters: Seq[Quarter] = getQuarters(year, upcomingPaymentsAndCharges)
         if (quarters.nonEmpty) {
 
           form(quarters, year)
@@ -87,17 +89,16 @@ class SelectQuarterController @Inject()(
                   val json = Json.obj(
                     "year" -> year,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFS),
+                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, upcomingPaymentsAndCharges),
                       Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
                     "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
                     "year" -> year
                   )
-                  renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(BadRequest(_))
+                  renderer.render(template = "financialStatement/paymentsAndCharges/selectUpcomingQuarter.njk", json).map(BadRequest(_))
 
               },
-              value => {
+              value =>
                 Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.startDate)))
-              }
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -111,7 +112,7 @@ class SelectQuarterController @Inject()(
       val hint: Option[DisplayHint] =
         if (payments.filter(_.periodStartDate == startDate).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
 
-      DisplayQuarter(Quarters.getQuarter(startDate), displayYear = false, None, hint)
+      DisplayQuarter(Quarters.getQuarter(startDate), displayYear = true, None, hint)
 
     }
   }

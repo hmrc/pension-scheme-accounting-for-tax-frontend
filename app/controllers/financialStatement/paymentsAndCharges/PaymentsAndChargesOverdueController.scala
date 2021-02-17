@@ -71,7 +71,7 @@ class PaymentsAndChargesOverdueController @Inject()(
               if (overduePaymentsAndCharges.nonEmpty) {
                 val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
                   paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Overdue)
+                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, startDate, ChargeDetailsFilter.Overdue)
 
                 val heading =
                   if (overduePaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {

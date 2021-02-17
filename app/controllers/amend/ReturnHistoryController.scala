@@ -71,7 +71,7 @@ class ReturnHistoryController @Inject()(
       val paymentJson = if (schemeFs.isEmpty) Json.obj()
       else
         Json.obj("paymentsAndChargesUrl" ->
-          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate.getYear).url)
+          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate).url)
       Json.obj(
         fields = "srn" -> srn,
         "startDate" -> Some(startDate),

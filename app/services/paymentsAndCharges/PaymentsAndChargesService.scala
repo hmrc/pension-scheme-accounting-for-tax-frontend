@@ -100,9 +100,9 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         )
     }
 
-  def groupAndSortByStartDate(schemeFS: Seq[SchemeFS], year: Int): Seq[(LocalDate, Seq[SchemeFS])] =
+  def groupAndSortByStartDate(schemeFS: Seq[SchemeFS], startDate: LocalDate): Seq[(LocalDate, Seq[SchemeFS])] =
     schemeFS
-      .filter(_.periodStartDate.getYear == year)
+      .filter(_.periodStartDate == startDate)
       .groupBy(_.periodStartDate)
       .toSeq
       .sortWith(_._1 < _._1)
@@ -221,29 +221,17 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
           case _ => data.chargeReference
         }
 
-      val htmlChargeType =
+      val htmlChargeType = Html(
         s"<a id=$linkId class=govuk-link href=" +
           s"${data.redirectUrl}>" +
           s"${data.chargeType} " +
-          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>"
+          s"<span class=govuk-visually-hidden>${data.visuallyHiddenText}</span> </a>")
 
       Seq(
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.chargeType.table")
-          }</span>$htmlChargeType"""
-        )),
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.totalDue.table")
-          }</span>${data.amountDue}"""
-        )),
-        Cell(Html(
-          s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${
-            messages("paymentsAndCharges.chargeReference.table")
-          }</span>${data.chargeReference}"""
-        )),
-        Cell(htmlStatus(data))
+        Cell(htmlChargeType, classes = Seq("govuk-!-width-two-thirds-quarter")),
+        Cell(Literal(data.amountDue), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(Literal(s"${data.chargeReference}"), classes = Seq("govuk-!-width-one-quarter")),
+        Cell(htmlStatus(data), classes = Nil)
       )
     }
 
@@ -252,8 +240,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       Table(
         head = head,
         rows = rows,
-        attributes = Map("role" -> "table"),
-        classes = Seq("hmrc-responsive-table")
+        attributes = Map("role" -> "table")
       )
     )
   }
@@ -371,7 +358,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
       case Some(jsValue) =>
         val cacheAuthenticated: PaymentsCache => Boolean = value => value.loggedInId == loggedInId && value.srn == srn
         jsValue.validate[PaymentsCache] match {
-          case JsSuccess(value, _) if cacheAuthenticated => Future.successful(value)
+          case JsSuccess(value, _) if cacheAuthenticated(value) => Future.successful(value)
           case _ => saveAndReturnPaymentsCache(loggedInId, srn)
         }
       case _ => saveAndReturnPaymentsCache(loggedInId, srn)

@@ -17,29 +17,30 @@
 package services.paymentsAndCharges
 
 import base.SpecBase
+import connectors.FinancialStatementConnector
+import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFSChargeType._
-import models.financialStatement.{SchemeFSChargeType, SchemeFS}
-import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{PaymentOverdue, InterestIsAccruing, NoStatus}
-import models.viewModels.paymentsAndCharges.{PaymentsAndChargesTable, PaymentAndChargeStatus}
+import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
+import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import services.SchemeService
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
+
 import java.time.LocalDate
 
-class PaymentsAndChargesServiceSpec
-  extends SpecBase
-    with MockitoSugar
-    with BeforeAndAfterEach {
+class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with BeforeAndAfterEach {
 
   import PaymentsAndChargesServiceSpec._
 
@@ -48,7 +49,7 @@ class PaymentsAndChargesServiceSpec
                               chargeReference: String,
                               redirectUrl: String,
                               visuallyHiddenText: String
-                            ): String = {
+                            ) = {
     val linkId =
       chargeReference match {
         case "To be assigned" => "to-be-assigned"
@@ -56,10 +57,11 @@ class PaymentsAndChargesServiceSpec
         case _ => chargeReference
       }
 
+    Html(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
-        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>"
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
   }
 
   private val tableHead = Seq(
@@ -75,8 +77,7 @@ class PaymentsAndChargesServiceSpec
       table = Table(
         head = tableHead,
         rows = rows,
-        attributes = Map("role" -> "table"),
-        classes= Seq("hmrc-responsive-table")
+        attributes = Map("role" -> "table")
       )
     )
 
@@ -99,14 +100,18 @@ class PaymentsAndChargesServiceSpec
     }
 
     Seq(
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeType.table")}</span>${htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText)}""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.totalDue.table")}</span>${amountDue}""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeReference.table")}</span>${chargeReference}""")),
+      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(statusHtml)
     )
   }
 
-  private val paymentsAndChargesService = new PaymentsAndChargesService()
+  val mockSchemeService: SchemeService = mock[SchemeService]
+  val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
+  val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
+
+  private val paymentsAndChargesService = new PaymentsAndChargesService(mockSchemeService, mockFSConnector, mockFIConnector)
 
   "getPaymentsAndCharges" must {
 
@@ -165,21 +170,21 @@ class PaymentsAndChargesServiceSpec
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            year = 2020,
+            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.All
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            year = 2020,
+            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.Upcoming
           )
 
           val result3 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            year = 2020,
+            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.Overdue
           )
 
@@ -197,7 +202,7 @@ class PaymentsAndChargesServiceSpec
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        2020,
+        QUARTER_START_DATE,
         ChargeDetailsFilter.All
       )
 
@@ -225,7 +230,7 @@ class PaymentsAndChargesServiceSpec
         paymentsAndChargesService.getPaymentsAndCharges(
           srn,
           paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00).head._2,
-          2020,
+          QUARTER_START_DATE,
           ChargeDetailsFilter.All
         )
 

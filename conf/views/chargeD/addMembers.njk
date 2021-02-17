@@ -23,9 +23,9 @@
           }) }}
         {% endif %}
 
-        <h1 class="govuk-heading-xl">{{messages('chargeD.addMembers.heading', quarterStart, quarterEnd)}}</h1>
+        <h1 id="chargeD_h1" class="govuk-heading-xl">{{messages('chargeD.addMembers.heading', quarterStart, quarterEnd)}}</h1>
 
-        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off">
+        <form action="{{  viewModel.submitUrl }}" method="post" autocomplete="off" novalidate >
 
           {{ csrf() | safe }}
 
@@ -33,9 +33,9 @@
       {% for i in range(0, members.length) -%}
             {{ members[i].name }}
           {%- endfor %}
-
+            <div role="region" aria-labelledby="chargeD_h1" class="govuk-!-margin-bottom-7" tabindex="0">
                 {{ govukTable(table) }}
-
+            <div>
                 {% if canChange %}
                   {{ govukRadios({
                           classes: "govuk-radios--inline",

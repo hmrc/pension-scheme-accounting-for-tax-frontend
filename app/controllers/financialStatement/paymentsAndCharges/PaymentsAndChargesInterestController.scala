@@ -73,7 +73,7 @@ class PaymentsAndChargesInterestController @Inject()(
 
               val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
                 paymentsAndChargesService
-                  .groupAndSortByStartDate(schemeFS, startDate.getYear)
+                  .groupAndSortByStartDate(schemeFS, startDate)
 
               buildPage(
                 schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
@@ -100,7 +100,7 @@ class PaymentsAndChargesInterestController @Inject()(
               val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
                 paymentsAndChargesService.groupAndSortByStartDate(
                   paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFS, _.dueDate),
-                  startDate.getYear
+                  startDate
                 )
 
               buildPage(
@@ -127,7 +127,7 @@ class PaymentsAndChargesInterestController @Inject()(
 
               val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
                 paymentsAndChargesService
-                  .groupAndSortByStartDate(paymentsAndChargesService.getOverdueCharges(schemeFS), startDate.getYear)
+                  .groupAndSortByStartDate(paymentsAndChargesService.getOverdueCharges(schemeFS), startDate)
 
               buildPage(
                 schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,

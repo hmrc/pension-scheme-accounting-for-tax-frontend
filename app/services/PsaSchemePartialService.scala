@@ -248,24 +248,25 @@ class PsaSchemePartialService @Inject()(
 
   private def viewUpcomingLink(upcomingCharges: Seq[SchemeFS], srn: String): Seq[Link] =
     if (upcomingCharges != Seq.empty) {
-      val upcomingLinkText: Text =
+
         if (upcomingCharges.map(_.periodStartDate).distinct.size == 1) {
-          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
+          val startDate: LocalDate = upcomingCharges.map(_.periodStartDate).distinct.head
+          Seq(Link(
+            id = "upcoming-payments-and-charges",
+            url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
+            linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single".withArgs(
             upcomingCharges.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-            upcomingCharges.map(_.periodEndDate).distinct.head.format(smallDatePattern)
-          )
+            upcomingCharges.map(_.periodEndDate).distinct.head.format(smallDatePattern)),
+            hiddenText = None
+          ))
         } else {
-          msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+          Seq(Link(
+            id = "upcoming-payments-and-charges",
+            url = appConfig.upcomingChargesSelectQuarterUrl.format(srn),
+            linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+            hiddenText = None
+          ))
         }
-
-      val startDate: LocalDate = upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
-
-      Seq(Link(
-        id = "upcoming-payments-and-charges",
-        url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
-        linkText = upcomingLinkText,
-        hiddenText = None
-      ))
     } else {
       Nil
     }
@@ -276,7 +277,7 @@ class PsaSchemePartialService @Inject()(
     } else {
       Seq(Link(
         id = "past-payments-and-charges",
-        url = appConfig.paymentsAndChargesUrl.format(srn, "2020"),
+        url = appConfig.paymentsAndChargesUrl.format(srn),
         linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
         hiddenText = None
       ))
@@ -324,27 +325,26 @@ class PsaSchemePartialService @Inject()(
     }
   }
 
-  private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] = {
-    val overdueLinkText: Text =
+  private def viewOverdueLink(schemeFs: Seq[SchemeFS], srn: String): Seq[Link] =
       if (schemeFs.map(_.periodStartDate).distinct.size == 1) {
-        msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+        val startDate: LocalDate = schemeFs.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
+        Seq(Link(
+          id = "overdue-payments-and-charges",
+          url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate),
+          linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
           .withArgs(
             schemeFs.map(_.periodStartDate).distinct.head.format(smallDatePattern),
-            schemeFs.map(_.periodEndDate).distinct.head.format(smallDatePattern)
-          )
+            schemeFs.map(_.periodEndDate).distinct.head.format(smallDatePattern)),
+          hiddenText = None
+        ))
       } else {
-        msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
+        Seq(Link(
+          id = "overdue-payments-and-charges",
+          url = appConfig.overdueChargesSelectQuarterUrl.format(srn),
+          linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+          hiddenText = None
+        ))
       }
-
-    val startDate: LocalDate = schemeFs.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
-
-    Seq(Link(
-      id = "overdue-payments-and-charges",
-      url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate),
-      linkText = overdueLinkText,
-      hiddenText = None
-    ))
-  }
 
   val fullDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
   val smallDatePattern: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM")

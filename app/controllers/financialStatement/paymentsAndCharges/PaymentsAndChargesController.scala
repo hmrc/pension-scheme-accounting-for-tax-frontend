@@ -34,6 +34,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import models.LocalDateBinder._
 
 class PaymentsAndChargesController @Inject()(
                                               override val messagesApi: MessagesApi,
@@ -78,7 +79,7 @@ class PaymentsAndChargesController @Inject()(
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
-                logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")
+                logger.warn(s"No Scheme Payments and Charges returned for the selected startDate $startDate")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
           }

@@ -170,7 +170,8 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
       val actual = jsonCaptor.getValue
 
       val expectedJson =
-        Json.obj("paymentsAndChargesUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate.getYear).url)
+        Json.obj("paymentsAndChargesUrl" -> controllers.financialStatement.paymentsAndCharges.routes
+          .PaymentsAndChargesController.onPageLoad(srn, startDate).url)
 
       actual must containJson(expectedJson)
     }

@@ -57,7 +57,7 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
       "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),
-        attributes = Map("role" -> "table"),classes= Seq("hmrc-responsive-table"))
+        attributes = Map("role" -> "table"))
     )
 
   override def beforeEach: Unit = {
@@ -218,33 +218,33 @@ object PenaltiesServiceSpec {
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))
   )
 
-  private def rows(link: String,
+  private def rows(link: Html,
                    statusClass: String,
                    statusMessageKey: String,
                    amountDue: String,
-                   link2: String = otcLink("2020-04-01")
+                   link2: Html = otcLink("2020-04-01")
                   )(implicit messages: Messages) = Seq(Seq(
-    Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.penalty")}</span>$link""")),
-    Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.amount")}</span>£$amountDue""")),
-    Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.chargeReference")}</span>XY002610150184""")),
+    Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
+    Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
   ),
     Seq(
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.penalty")}</span>$link2""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.amount")}</span>£$amountDue""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.chargeReference")}</span>XY002610150184""")),
+      Cell(link2, classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
     ))
 
-  def aftLink(startDate: String): String =
+  def aftLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>"
+      s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
-  def otcLink(startDate: String): String =
+  def otcLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 class=govuk-link " +
       s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
-      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>"
+      s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
 
   def totalAmount(amount: BigDecimal = BigDecimal(80000.00)): Row = Row(

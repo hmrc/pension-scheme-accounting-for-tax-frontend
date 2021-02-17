@@ -16,7 +16,7 @@
       <div class="govuk-grid-column-two-thirds">
 
         <h1 class="govuk-heading-xl">Test Only Date Tool</h1>
-            <form action="{{ submitUrl }}" method="post" autocomplete="off">
+            <form action="{{ submitUrl }}" method="post" autocomplete="off" novalidate >
 
                       {{ csrf() | safe }}
             {{ govukInput({

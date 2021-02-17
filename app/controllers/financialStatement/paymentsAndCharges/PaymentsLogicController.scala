@@ -60,57 +60,27 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
 
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-      val selectYearUrl: Call = routes.SelectYearController.onPageLoad(srn)
-      val selectQuarterUrl: Int => Call = year => routes.SelectQuarterController.onPageLoad(srn, year.toString)
-      val chargesOverviewUrl: LocalDate => Call = startDate => routes.PaymentsAndChargesController.onPageLoad(srn, startDate)
+      val yearsSeq: Seq[Int] = paymentsCache.schemeFS.map(_.periodStartDate.getYear).distinct.sorted.reverse
 
-      redirectionLogic(paymentsCache.schemeFS, selectYearUrl, selectQuarterUrl, chargesOverviewUrl)
-
+      if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
+        Future.successful(Redirect(routes.SelectYearController.onPageLoad(srn)))
+      } else if (yearsSeq.size == 1) {
+        skipYearsPage(paymentsCache.schemeFS, yearsSeq.head, srn)
+      } else {
+        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      }
     }
   }
 
-  def onPageLoadOverdue(srn: String): Action[AnyContent] = identify.async { implicit request =>
-
-    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
-
-      val overduePaymentsAndCharges: Seq[SchemeFS] = service.getOverdueCharges(paymentsCache.schemeFS)
-      val selectYearUrl: Call = routes.SelectYearController.onPageLoadOverdue(srn)
-      val selectQuarterUrl: Int => Call = year => routes.SelectQuarterController.onPageLoadOverdue(srn, year.toString)
-      val chargesOverviewUrl: LocalDate => Call = startDate => routes.PaymentsAndChargesOverdueController.onPageLoad(srn, startDate)
-
-      redirectionLogic(overduePaymentsAndCharges, selectYearUrl, selectQuarterUrl, chargesOverviewUrl)
-
-    }
-  }
-
-  private def redirectionLogic(payments: Seq[SchemeFS],
-                    selectYearUrl: Call,
-                    selectQuarterUrl: Int => Call,
-                    chargesOverviewUrl: LocalDate => Call): Future[Result] = {
-
-    val yearsSeq: Seq[Int] = payments.map(_.periodStartDate.getYear).distinct.sorted.reverse
-
-    if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
-      Future.successful(Redirect(selectYearUrl))
-    } else if (yearsSeq.size == 1) {
-      skipYearsPage(payments, yearsSeq.head, selectQuarterUrl, chargesOverviewUrl)
-    } else {
-      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    }
-  }
-
-  private def skipYearsPage(payments: Seq[SchemeFS],
-                            year: Int,
-                            selectQuarterUrl: Int => Call,
-                            chargesOverviewUrl: LocalDate => Call): Future[Result] = {
+  private def skipYearsPage(payments: Seq[SchemeFS], year: Int, srn: String): Future[Result] = {
     val quartersSeq = payments
       .filter(_.periodStartDate.getYear == year)
       .map { paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate) }.distinct
 
     if (quartersSeq.size > 1) {
-      Future.successful(Redirect(selectQuarterUrl(year)))
+      Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, year.toString)))
     } else if (quartersSeq.size == 1) {
-      Future.successful(Redirect(chargesOverviewUrl(quartersSeq.head.startDate)))
+      Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.startDate)))
     } else {
       Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }

@@ -88,7 +88,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
                                      (implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
 
     val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] = paymentsAndChargesService
-      .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Upcoming)
+      .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate, ChargeDetailsFilter.Upcoming)
 
     paymentsAndChargesTables map { table =>
       PaymentsAndChargesTable(

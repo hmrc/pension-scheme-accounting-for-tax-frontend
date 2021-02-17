@@ -59,7 +59,8 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
   )
 
   private val valuesInvalid: Map[String, Seq[String]] = Map.empty
-
+  private val cssQuarterWidth = "govuk-!-width-one-quarter"
+  private val cssHalfWidth = "govuk-!-width-one-half"
   private def table = Json.obj(
     "firstCellIsHeader" -> false,
     "head" -> Json.arr(
@@ -70,26 +71,25 @@ class AddEmployersControllerSpec extends ControllerSpecBase with NunjucksSupport
     ),
     "rows" -> Json.arr(
       Json.arr(
-        Json.obj("html" -> "<span class=hmrc-responsive-table__heading aria-hidden=true>Sponsoring employer</span>First Last"),
-        Json.obj("html" -> s"""<span class=hmrc-responsive-table__heading aria-hidden=true>Total</span>${FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))}""","classes" -> s"govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/1/check-your-answers><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View First Last’s authorised surplus payments charge</span> </a>"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/1/remove-charge><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove First Last’s authorised surplus payments charge</span> </a>")
+        Json.obj("text" -> "First Last","classes" -> cssHalfWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-0-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/1/check-your-answers><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-0-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/1/remove-charge><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove First Last’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
-        Json.obj("html" -> "<span class=hmrc-responsive-table__heading aria-hidden=true>Sponsoring employer</span>Big Company"),
-        Json.obj("html" -> s"""<span class=hmrc-responsive-table__heading aria-hidden=true>Total</span>${FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44))}""","classes" -> s"govuk-table__header--numeric"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/2/check-your-answers><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Big Company’s authorised surplus payments charge</span> </a>"),
-        Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/2/remove-charge><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Big Company’s authorised surplus payments charge</span> </a>")
+        Json.obj("text" -> "Big Company","classes" -> cssHalfWidth),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(33.44)),"classes" -> s"$cssQuarterWidth govuk-table__header--numeric"),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-1-view href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/2/check-your-answers><span aria-hidden=true >View</span><span class= govuk-visually-hidden>View Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth),
+        Json.obj("html" -> s"<a class=govuk-link id=employer-1-remove href=/manage-pension-scheme-accounting-for-tax/aa/$QUARTER_START_DATE/$accessType/$versionInt/authorised-surplus-payments-charge/2/remove-charge><span aria-hidden=true >Remove</span><span class= govuk-visually-hidden>Remove Big Company’s authorised surplus payments charge</span> </a>","classes" -> cssQuarterWidth)
       ),
       Json.arr(
         Json.obj("text" -> "Total", "classes" -> "govuk-table__header--numeric"),
-        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> "govuk-table__header--numeric"),
+        Json.obj("text" -> FormatHelper.formatCurrencyAmountAsString(BigDecimal(66.88)),"classes" -> s"govuk-table__header--numeric"),
         Json.obj("text" -> ""),
         Json.obj("text" -> "")
       )
     ),
     "attributes" -> Map("role" -> "table"),
-    "classes" -> "hmrc-responsive-table"
   )
 
   private val jsonToPassToTemplate:Form[Boolean]=>JsObject = form => Json.obj(

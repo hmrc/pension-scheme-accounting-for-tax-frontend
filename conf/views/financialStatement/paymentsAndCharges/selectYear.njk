@@ -7,7 +7,7 @@
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
-  {{ title(messages(title), form.errors) }}
+  {{ title(messages("selectChargesYear.title"), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,7 +22,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{  submitUrl }}" method="post" autocomplete="off">
+        <form method="post" autocomplete="off">
 
           {{ csrf() | safe }}
 
@@ -30,7 +30,7 @@
             name: 'value',
             fieldset: {
               legend: {
-                text: messages(title),
+                text: messages("selectChargesYear.title"),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl govuk-!-margin-bottom-8"
               }

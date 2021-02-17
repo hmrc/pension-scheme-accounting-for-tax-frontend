@@ -49,8 +49,8 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
   import PaymentsAndChargesControllerSpec._
 
-  private def httpPathGET(year: Int = year): String =
-    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+  private def httpPathGET(startDate: String = startDate): String =
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -102,7 +102,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     }
 
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET(year = 2022))).value
+      val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-01-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -110,7 +110,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 }
 
 object PaymentsAndChargesControllerSpec {
-  private val year = 2020
+  private val startDate = "2020-04-01"
   private val srn = "test-srn"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
     SchemeFS(

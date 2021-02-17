@@ -16,27 +16,25 @@
 
 package services
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
-import dateOrdering.orderingLocalDate
 import helpers.FormatHelper
 import models.financialStatement.{PsaFS, SchemeFS}
-import javax.inject.Inject
-import models.{AFTOverview, Quarters, Draft, SchemeDetails, LockDetail}
+import models.{AFTOverview, Draft, LockDetail, Quarters, SchemeDetails}
 import play.api.i18n.Messages
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
-import viewmodels.{Link, AFTViewModel, DashboardAftViewModel}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import viewmodels.{AFTViewModel, DashboardAftViewModel, Link}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTPartialService @Inject()(
                                    appConfig: FrontendAppConfig,
@@ -124,9 +122,15 @@ class AFTPartialService @Inject()(
       if (upcomingCharges == Seq.empty) {
         None
       } else {
-        val upcomingLinkText =
+
           if (upcomingCharges.map(_.periodStartDate).distinct.size == 1) {
-            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
+
+            val startDate: LocalDate = upcomingCharges.map(_.periodStartDate).distinct.head
+
+            Some(Link(
+              id = "upcoming-payments-and-charges",
+              url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
+              linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.single"
               .withArgs(
                 upcomingCharges.map(_.periodStartDate)
                   .distinct
@@ -136,19 +140,17 @@ class AFTPartialService @Inject()(
                   .distinct
                   .head
                   .format(DateTimeFormatter.ofPattern("d MMMM"))
-              )
+              ),
+              hiddenText = None
+            ))
           } else {
-            msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple"
+            Some(Link(
+              id = "upcoming-payments-and-charges",
+              url = appConfig.upcomingChargesSelectQuarterUrl.format(srn),
+              linkText = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
+              hiddenText = None
+            ))
           }
-
-        val startDate: LocalDate =
-          upcomingCharges.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
-        Some(Link(
-          id = "upcoming-payments-and-charges",
-          url = appConfig.paymentsAndChargesUpcomingUrl.format(srn, startDate),
-          linkText = upcomingLinkText,
-          hiddenText = None
-        ))
       }
     }
 
@@ -158,7 +160,7 @@ class AFTPartialService @Inject()(
       } else {
         Some(Link(
           id = "past-payments-and-charges",
-          url = appConfig.paymentsAndChargesUrl.format(srn, "2020"),
+          url = appConfig.paymentsAndChargesUrl.format(srn),
           linkText = msg"pspDashboardUpcomingAftChargesCard.link.pastPaymentsAndCharges",
           hiddenText = None
         ))
@@ -198,9 +200,13 @@ class AFTPartialService @Inject()(
       if (schemeFs == Seq.empty) {
         None
       } else {
-        val overdueLinkText =
           if (schemeFs.map(_.periodStartDate).distinct.size == 1) {
-            msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
+
+            val startDate: LocalDate = schemeFs.map(_.periodStartDate).distinct.head
+            Some(Link(
+              id = "overdue-payments-and-charges",
+              url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate),
+              linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
               .withArgs(
                 schemeFs.map(_.periodStartDate)
                   .distinct
@@ -210,19 +216,17 @@ class AFTPartialService @Inject()(
                   .distinct
                   .head
                   .format(DateTimeFormatter.ofPattern("d MMMM"))
-              )
+              ),
+              hiddenText = None
+            ))
           } else {
-            msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods"
+            Some(Link(
+              id = "overdue-payments-and-charges",
+              url = appConfig.overdueChargesSelectQuarterUrl.format(srn),
+              linkText = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+              hiddenText = None
+            ))
           }
-
-        val startDate: LocalDate =
-          schemeFs.sortBy(_.periodStartDate).map(_.periodStartDate).distinct.head
-        Some(Link(
-          id = "overdue-payments-and-charges",
-          url = appConfig.paymentsAndChargesOverdueUrl.format(srn, startDate),
-          linkText = overdueLinkText,
-          hiddenText = None
-        ))
       }
     }
 
