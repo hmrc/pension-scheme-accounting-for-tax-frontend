@@ -57,27 +57,28 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     val rows = penalties.filter(_.periodStartDate == startDate).map {
       data =>
 
-        val content = chargeTypeLink(identifier, data, startDate, chargeRefsIndex(data.chargeReference))
-        Seq(
-          Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.penalty")}</span>$content""")),
-          Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.amount")}</span>${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}""")),
-          Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("penalties.column.chargeReference")}</span>${data.chargeReference}""")),
-          statusCell(data)
-        )
-    }
+          val content = chargeTypeLink(identifier, data, startDate, chargeRefsIndex(data.chargeReference))
+            Seq(
+              Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
+              Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
+                classes = Seq("govuk-!-width-one-quarter")),
+              Cell(Literal(data.chargeReference), classes = Seq("govuk-!-width-one-quarter")),
+              statusCell(data)
+            )
+        }
 
-    Json.obj(
-      "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"), classes= Seq("hmrc-responsive-table"))
-    )
+        Json.obj(
+          "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
+        )
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate, chargeRefsIndex: String)
-                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): String =
-          s"<a id=${data.chargeReference} " +
+                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Html =
+          Html(s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.penalties.routes
               .ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +
             s"${messages(data.chargeType.toString)}" +
-            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>"
+            s"<span class=govuk-visually-hidden>${messages(s"penalties.visuallyHiddenText", data.chargeReference)}</span> </a>")
 
 
 

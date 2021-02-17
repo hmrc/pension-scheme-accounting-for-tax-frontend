@@ -48,7 +48,7 @@ class PaymentsAndChargesServiceSpec
                               chargeReference: String,
                               redirectUrl: String,
                               visuallyHiddenText: String
-                            ): String = {
+                            ) = {
     val linkId =
       chargeReference match {
         case "To be assigned" => "to-be-assigned"
@@ -56,10 +56,11 @@ class PaymentsAndChargesServiceSpec
         case _ => chargeReference
       }
 
+    Html(
       s"<a id=$linkId class=govuk-link href=" +
         s"$redirectUrl>" +
         s"$chargeType " +
-        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>"
+        s"<span class=govuk-visually-hidden>$visuallyHiddenText</span> </a>")
   }
 
   private val tableHead = Seq(
@@ -76,7 +77,6 @@ class PaymentsAndChargesServiceSpec
         head = tableHead,
         rows = rows,
         attributes = Map("role" -> "table"),
-        classes= Seq("hmrc-responsive-table")
       )
     )
 
@@ -99,9 +99,9 @@ class PaymentsAndChargesServiceSpec
     }
 
     Seq(
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeType.table")}</span>${htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText)}""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.totalDue.table")}</span>${amountDue}""")),
-      Cell(Html(s"""<span class=hmrc-responsive-table__heading aria-hidden=true>${messages("paymentsAndCharges.chargeReference.table")}</span>${chargeReference}""")),
+      Cell(htmlChargeType(chargeType, chargeReference, redirectUrl, visuallyHiddenText), classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(amountDue), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal(s"$chargeReference"), classes = Seq("govuk-!-width-one-quarter")),
       Cell(statusHtml)
     )
   }

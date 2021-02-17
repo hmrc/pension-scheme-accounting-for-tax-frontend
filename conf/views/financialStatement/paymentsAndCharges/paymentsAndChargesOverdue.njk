@@ -25,7 +25,10 @@
                 {% if overduePaymentsAndCharges.length > 1 %}
                     <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
                 {% endif %}
-                {{ govukTable(paymentAndChargesTable.table) }}
+                <span id="overduePaymentsAndCharges_h2" class="govuk-visually-hidden" aria-hidden="true" >{{ paymentAndChargesTable.caption }}</span>
+                <div role="region" aria-labelledby="overduePaymentsAndCharges_h2" class="govuk-!-margin-bottom-7" tabindex="0">
+                    {{ govukTable(paymentAndChargesTable.table) }}
+                </div>
             {% endif %}
         {% endfor %}
 

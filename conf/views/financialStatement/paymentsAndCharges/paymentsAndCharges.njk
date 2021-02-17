@@ -22,8 +22,10 @@
 
         {% for paymentAndChargesTable in seqPaymentsAndChargesTable %}
             {% if paymentAndChargesTable.table.rows.length > 0 %}
-                <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
-                {{ govukTable(paymentAndChargesTable.table) }}
+                <h2 id="paymentAndCharges_h2" class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
+                 <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7" tabindex="0">
+                    {{ govukTable(paymentAndChargesTable.table) }}
+                </div>
             {% endif %}
         {% endfor %}
 
