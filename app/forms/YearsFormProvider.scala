@@ -24,9 +24,9 @@ import play.api.data.Form
 
 class YearsFormProvider @Inject() extends Mappings {
 
-  def apply()(implicit config: FrontendAppConfig): Form[Year] =
+  def apply(errorMessage: String = "years.error.required")(implicit config: FrontendAppConfig): Form[Year] =
     Form(
-      "value" -> enumerable[Year](requiredKey = "years.error.required")(
+      "value" -> enumerable[Year](errorMessage)(
         StartYears.enumerable
       )
     )

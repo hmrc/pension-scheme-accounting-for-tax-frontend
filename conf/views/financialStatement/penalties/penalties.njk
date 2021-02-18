@@ -11,7 +11,7 @@
 
 
 {% block pageTitle %}
-  {{ title(messages("penalties.title", year), form.errors) }}
+  {{ title(messages("penalties.title", startDate, endDate), form.errors) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -22,22 +22,21 @@
 
         {% if schemeAssociated %}
             {{ hmrcPageHeading({
-                  text: messages("penalties.title", year),
+                  text: messages("penalties.title", startDate, endDate),
                   section: schemeName
                 }) }}
         {% else %}
-        <h1 class="govuk-heading-xl">{{ messages("penalties.title", year) }}</h1>
+        <h1 class="govuk-heading-xl">{{ messages("penalties.title", startDate, endDate) }}</h1>
         {% endif %}
 
       <p class="govuk-body">{{ messages("penalties.pstr", pstr) }}</p>
       <p class="govuk-body">{{ messages("penalties.p1") }}</p>
 
-         {% for table in tables %}
-             <h2 id={{ loop.index }}  class="govuk-heading-m">{{ table.header }}</h2>
-            <div role="region" aria-labelledby={{ loop.index}} class="govuk-!-margin-bottom-7" tabindex="0">
-             {{ govukTable(table.penaltyTable) }}
-             </div>
-         {% endfor %}
+     <h2 class="govuk-heading-m">{{ table.header }}</h2>
+     <div role="region" class="govuk-!-margin-bottom-7" tabindex="0">
+        {{ govukTable(table.penaltyTable) }}
+      </div>
+
 
     </div>
   </div>

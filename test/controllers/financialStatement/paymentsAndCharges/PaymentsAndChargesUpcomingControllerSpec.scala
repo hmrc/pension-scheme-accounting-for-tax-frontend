@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -52,7 +52,7 @@ class PaymentsAndChargesUpcomingControllerSpec
   import PaymentsAndChargesUpcomingControllerSpec._
 
   private def httpPathGET(startDate: String = startDate): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, startDate).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -116,7 +116,7 @@ class PaymentsAndChargesUpcomingControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk"
       jsonCaptor.getValue must containJson(
         expectedJson("Payments and charges for 1 October to 31 December 2020")
       )
@@ -136,7 +136,7 @@ class PaymentsAndChargesUpcomingControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargesUpcoming.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk"
       jsonCaptor.getValue must containJson(
         expectedJson("Upcoming payments and charges")
       )

@@ -117,26 +117,26 @@ class PaymentsAndChargesServiceSpec
           def chargeLink(chargeDetailsFilter: ChargeDetailsFilter): String =
             chargeDetailsFilter match {
               case ChargeDetailsFilter.All =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                   .onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Upcoming =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                   .onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Overdue =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                   .onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
             }
 
           def interestLink(chargeDetailsFilter: ChargeDetailsFilter): String =
             chargeDetailsFilter match {
               case ChargeDetailsFilter.All =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                   .onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Upcoming =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                   .onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Overdue =>
-                controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                   .onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
             }
 
@@ -214,7 +214,7 @@ class PaymentsAndChargesServiceSpec
               chargeReference = "AYU3494534632",
               amountDue = FormatHelper.formatCurrencyAmountAsString(0.00),
               status = Html(""),
-              redirectUrl = controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+              redirectUrl = controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
                 .onPageLoad(srn, QUARTER_START_DATE.toString, index = "0")
                 .url,
               visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")

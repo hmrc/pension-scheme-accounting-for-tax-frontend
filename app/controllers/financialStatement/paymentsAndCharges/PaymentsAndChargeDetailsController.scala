@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -161,7 +161,7 @@ class PaymentsAndChargeDetailsController @Inject()(
           seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
             case Some(schemeFs) =>
               renderer.render(
-                template = "paymentsAndCharges/paymentsAndChargeDetails.njk",
+                template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
                 ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
@@ -193,7 +193,7 @@ class PaymentsAndChargeDetailsController @Inject()(
           s"<h2 class=govuk-heading-s>${messages("paymentsAndCharges.chargeDetails.interestAccruing")}</h2>" +
             s"<p class=govuk-body>${messages("paymentsAndCharges.chargeDetails.amount.not.paid.by.dueDate")}" +
             s" <span><a id='breakdown' class=govuk-link href=${
-              controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+              controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
                 .onPageLoad(srn, schemeFS.periodStartDate, index)
                 .url
             }>" +

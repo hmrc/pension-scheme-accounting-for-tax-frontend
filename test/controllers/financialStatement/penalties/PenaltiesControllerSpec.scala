@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
-import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -47,58 +45,48 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   import PenaltiesControllerSpec._
 
   private def httpPathGETAssociated: String =
-    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn).url
   private def httpPathGETUnassociated(identifier: String): String =
-    controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, identifier).url
+    controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, identifier).url
 
-  val penaltyTables: Seq[JsObject] = Seq(
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows("2020-04-01"))
-    ),
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows("2020-07-01"))
-    )
-  )
+  val penaltyTables: JsObject =
+    Json.obj("penaltyTable" -> Table(head = head, rows = rows("2020-04-01")))
 
   val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
   val mockSchemeService: SchemeService = mock[SchemeService]
-  val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
 
   private val extraModules: Seq[GuiceableModule] =
     Seq[GuiceableModule](
       bind[PenaltiesService].toInstance(mockPenaltiesService),
-      bind[SchemeService].toInstance(mockSchemeService),
-      bind[FinancialStatementConnector].toInstance(mockFSConnector),
-      bind[FinancialInfoCacheConnector].toInstance(mockFIConnector)
+      bind[SchemeService].toInstance(mockSchemeService)
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
 
-  private val templateToBeRendered = "financialStatement/penalties.njk"
+  private val templateToBeRendered = "financialStatement/penalties/penalties.njk"
   private val jsonToPassToTemplateAssociatedScheme: JsObject = Json.obj(
-    "year" -> "2020",
+    "startDate" -> "1 April",
+    "endDate" -> "30 June 2020",
     "pstr" -> pstr,
     "schemeAssociated" -> true,
     "schemeName" -> Json.arr(schemeDetails.schemeName),
-    "tables" -> penaltyTables)
+    "table" -> penaltyTables)
 
   private val jsonToPassToTemplateUnassociatedScheme: JsObject = Json.obj(
-    "year" -> "2020",
+    "startDate" -> "1 April",
+    "endDate" -> "30 June 2020",
     "pstr" -> pstr,
     "schemeAssociated" -> false,
     "schemeName" -> Json.arr(),
-    "tables" -> penaltyTables)
+    "table" -> penaltyTables)
 
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any())(any(), any(), any()))
-      .thenReturn(Future.successful(penaltyTables))
-    when(mockFSConnector.getPsaFS(any())(any(), any()))
-      .thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any(), any(), any()))
+      .thenReturn(penaltyTables)
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any()))
@@ -124,8 +112,6 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
       }
 
       "render the correct view with penalty tables for unassociated" in {
-        when(mockFIConnector.fetch(any(), any()))
-          .thenReturn(Future.successful(Some(Json.toJson(psaFSResponse))))
         when(mockPenaltiesService.unassociatedSchemes(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(psaFSResponse))
 
@@ -142,14 +128,13 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
 
         jsonCaptor.getValue must containJson(jsonToPassToTemplateUnassociatedScheme)
       }
-
     }
-
   }
 }
 
 object PenaltiesControllerSpec {
-  val year = "2020"
+
+  val startDate = "2020-04-01"
   val srn = "S2400000041"
   val pstr = "24000040IN"
 
@@ -166,6 +151,6 @@ object PenaltiesControllerSpec {
     ))
 
   def link(startDate: String): Html = Html(
-      s"<a id=XY002610150184 class=govuk-link href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
+      s"<a id=XY002610150184 class=govuk-link href=${routes.ChargeDetailsController.onPageLoad(srn, startDate, "XY002610150184").url}>" +
       s"Accounting for Tax late filing penalty </a>")
 }

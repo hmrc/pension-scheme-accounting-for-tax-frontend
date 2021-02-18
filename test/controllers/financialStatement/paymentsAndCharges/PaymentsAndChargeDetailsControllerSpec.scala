@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -56,7 +56,7 @@ class PaymentsAndChargeDetailsControllerSpec
   import PaymentsAndChargeDetailsControllerSpec._
 
   private def httpPathGET(startDate: LocalDate = QUARTER_START_DATE, index: String): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController.onPageLoad(srn, startDate, index).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -98,7 +98,7 @@ class PaymentsAndChargeDetailsControllerSpec
         }" +
         s" <span>" +
         s"<a id='breakdown' class=govuk-link href=${
-          controllers.paymentsAndCharges.routes.PaymentsAndChargesInterestController
+          controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
             .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url
         }>" +
@@ -174,7 +174,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, insetTextWithAmountDueAndInterest(schemeFS, "1"), isPaymentOverdue = true)
@@ -205,7 +205,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(
         expectedJson(schemeFS, Html(""), optHint = Some(messages("paymentsAndCharges.interest.hint")))
       )
@@ -228,7 +228,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, insetTextWithNoAmountDue(schemeFS)))
     }
 
@@ -249,7 +249,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html("")))
     }
 
@@ -270,7 +270,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
       jsonCaptor.getValue must containJson(expectedJson(schemeFS, uk.gov.hmrc.viewmodels.Html(""), isInCredit = true))
     }
 
@@ -316,7 +316,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150184")
     }
@@ -348,7 +348,7 @@ class PaymentsAndChargeDetailsControllerSpec
       verify(mockRenderer, times(1))
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndChargeDetails.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk"
 
       jsonCaptor.getValue.value("chargeReferenceTextMessage") mustBe JsString("Charge reference: XY002610150181")
     }

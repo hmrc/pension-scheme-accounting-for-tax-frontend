@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions._
 import forms.SelectSchemeFormProvider
-import javax.inject.Inject
 import models.PenaltySchemes
-import models.financialStatement.PsaFS
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,
@@ -39,36 +37,36 @@ class SelectSchemeController @Inject()(
                                         val controllerComponents: MessagesControllerComponents,
                                         formProvider: SelectSchemeFormProvider,
                                         penaltiesService: PenaltiesService,
-                                        fiCacheConnector: FinancialInfoCacheConnector,
                                         renderer: Renderer
                                       )(implicit ec: ExecutionContext)
-  extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+                                        extends FrontendBaseController
+                                          with I18nSupport
+                                          with NunjucksSupport {
 
   private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
-  def onPageLoad(year: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
+      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
+
           if (penaltySchemes.nonEmpty) {
 
             val json = Json.obj(
               "form" -> form(penaltySchemes),
               "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
-              "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+              "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
 
-            renderer.render(template = "financialStatement/selectScheme.njk", json).map(Ok(_))
+            renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
           } else {
             Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
           }
       }
   }
 
-  def onSubmit(year: String): Action[AnyContent] = identify.async {
+  def onSubmit(startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(year, request.psaIdOrException.id).flatMap {
+      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>
           form(penaltySchemes).bindFromRequest().fold(
             formWithErrors => {
@@ -76,22 +74,19 @@ class SelectSchemeController @Inject()(
               val json = Json.obj(
                 "form" -> formWithErrors,
                 "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
-                "submitUrl" -> controllers.financialStatement.routes.SelectSchemeController.onSubmit(year).url)
+                "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
 
-              renderer.render(template = "financialStatement/selectScheme.njk", json).map(BadRequest(_))
+              renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
             },
             value => {
-              fiCacheConnector.fetch flatMap {
-                case Some(jsValue) =>
-                  value.srn match {
-                    case Some(srn) =>
-                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, srn)))
-                    case _ =>
-                      val pstrIndex: String = jsValue.as[Seq[PsaFS]].map(_.pstr).indexOf(value.pstr).toString
-                      Future.successful(Redirect(controllers.financialStatement.routes.PenaltiesController.onPageLoad(year, pstrIndex)))
-                  }
-                case _ =>
-                  Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+                value.srn match {
+                  case Some(srn) =>
+                    Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
+                  case _ =>
+                    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
+                      val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
+                      Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex))
+                }
               }
             }
           )

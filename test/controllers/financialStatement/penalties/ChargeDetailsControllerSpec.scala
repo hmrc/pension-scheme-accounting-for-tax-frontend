@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
@@ -54,12 +54,12 @@ class ChargeDetailsControllerSpec
   import ChargeDetailsControllerSpec._
 
   private def httpPathGETAssociated(chargeReferenceIndex: String): String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+    controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
       identifier = srn, startDate = "2020-04-01", chargeReferenceIndex = chargeReferenceIndex
     ).url
 
   private def httpPathGETUnassociated: String =
-    controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(
+    controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(
       identifier = "0", startDate = "2020-04-01", chargeReferenceIndex = "0"
     ).url
 
@@ -77,7 +77,7 @@ class ChargeDetailsControllerSpec
     )
 
   val application: Application = applicationBuilder(extraModules = extraModules).build()
-  private val templateToBeRendered = "financialStatement/chargeDetails.njk"
+  private val templateToBeRendered = "financialStatement/penalties/chargeDetails.njk"
   private val commonJson: JsObject = Json.obj(
     "heading" -> "Accounting for Tax late filing penalty",
     "isOverdue" -> true,
@@ -93,7 +93,7 @@ class ChargeDetailsControllerSpec
     reset(mockPenaltiesService, mockRenderer)
     when(mockPenaltiesService.chargeDetailsRows(any())).thenReturn(rows)
     when(mockPenaltiesService.isPaymentOverdue).thenReturn(isOverdue)
-    when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
+    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
     when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
       .thenReturn(Future.successful(SchemeDetails(schemeDetails.schemeName, pstr, "Open", None)))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(play.twirl.api.Html("")))
@@ -139,18 +139,6 @@ class ChargeDetailsControllerSpec
         templateCaptor.getValue mustEqual templateToBeRendered
 
         jsonCaptor.getValue must containJson(commonJson ++ json)
-      }
-
-      "redirect to session expired when no data in FICacheConnector" in {
-
-        when(mockFIConnector.fetch(any(),any())).thenReturn(Future.successful(None))
-
-        val result = route(application, httpGETRequest(httpPathGETAssociated("0"))).value
-
-        status(result) mustEqual SEE_OTHER
-
-        redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
-
       }
 
       "catch IndexOutOfBoundsException" in {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -75,7 +75,7 @@ class PaymentsAndChargesController @Inject()(
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
+                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
               } else {
                 logger.warn(s"No Scheme Payments and Charges returned for the selected year $year")

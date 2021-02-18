@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
@@ -31,14 +31,14 @@ import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewmodels.Table
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
 
-class PaymentsAndChargesUpcomingController @Inject()(
+import javax.inject.Inject
+
+import scala.concurrent.{Future, ExecutionContext}
+
+class PaymentsAndChargesOverdueController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       identify: IdentifierAction,
                                                       val controllerComponents: MessagesControllerComponents,
@@ -52,7 +52,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private val logger = Logger(classOf[PaymentsAndChargesUpcomingController])
+  private val logger = Logger(classOf[PaymentsAndChargesOverdueController])
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
@@ -64,57 +64,36 @@ class PaymentsAndChargesUpcomingController @Inject()(
         schemeDetails =>
           fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
             schemeFs =>
-              val upcomingPaymentsAndCharges: Seq[SchemeFS] =
-              paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
+              val overduePaymentsAndCharges: Seq[SchemeFS] =
+                paymentsAndChargesService
+                  .getOverdueCharges(schemeFs)
 
-              if (upcomingPaymentsAndCharges.nonEmpty) {
+              if (overduePaymentsAndCharges.nonEmpty) {
                 val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
                   paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Upcoming)
-
-                val tableWithoutPaymentStatusColumn: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesTables map {
-                    table =>
-                      PaymentsAndChargesTable(
-                        caption = table.caption,
-                        table = Table(
-                          caption = table.table.caption,
-                          captionClasses = table.table.captionClasses,
-                          firstCellIsHeader = table.table.firstCellIsHeader,
-                          head = table.table.head.take(table.table.head.size - 1),
-                          rows = table.table.rows.map(p => p.take(p.size - 1)),
-                          classes = table.table.classes,
-                          attributes = table.table.attributes
-                        )
-                      )
-                  }
+                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, startDate.getYear, ChargeDetailsFilter.Overdue)
 
                 val heading =
-                  if (upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.size == 1)
-                    msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
-                      upcomingPaymentsAndCharges.map(_.periodStartDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM")),
-                      upcomingPaymentsAndCharges.map(_.periodEndDate)
-                        .distinct
-                        .head
-                        .format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+                  if (overduePaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {
+                    msg"paymentsAndChargesOverdue.h1.singlePeriod".withArgs(
+                      overduePaymentsAndCharges.map(_.periodStartDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM")),
+                      overduePaymentsAndCharges.map(_.periodEndDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
                     )
-                  else
-                    msg"paymentsAndChargesUpcoming.h1.multiplePeriod"
+                  } else {
+                    msg"paymentsAndChargesOverdue.h1.multiplePeriod"
+                  }
 
                 val json = Json.obj(
                   "heading" -> heading,
-                  "upcomingPaymentsAndCharges" -> tableWithoutPaymentStatusColumn,
+                  "overduePaymentsAndCharges" -> paymentsAndChargesTables,
                   "schemeName" -> schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
-                renderer.render(template = "paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
+                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
 
               } else {
                 logger.warn(
-                  s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}"
+                  s"No Overdue Payments and Charges returned for the selected year ${startDate.getYear}"
                 )
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }

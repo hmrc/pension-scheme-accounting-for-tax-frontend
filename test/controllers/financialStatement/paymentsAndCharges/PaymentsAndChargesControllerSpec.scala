@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import java.time.LocalDate
 
@@ -50,7 +50,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
   import PaymentsAndChargesControllerSpec._
 
   private def httpPathGET(year: Int = year): String =
-    controllers.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
   private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -97,7 +97,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      templateCaptor.getValue mustEqual "paymentsAndCharges/paymentsAndCharges.njk"
+      templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndCharges.njk"
       jsonCaptor.getValue must containJson(expectedJson)
     }
 

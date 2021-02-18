@@ -43,6 +43,7 @@ import utils.DateHelper.dateFormatterDMY
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import models.LocalDateBinder._
 
 class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfterEach with MockitoSugar with Results {
 
@@ -52,22 +53,12 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
   private val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
   private val mockFIConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockListOfSchemesConn: ListOfSchemesConnector = mock[ListOfSchemesConnector]
-  private val penaltiesService = new PenaltiesService(mockAppConfig, mockFSConnector, mockFIConnector, mockListOfSchemesConn)
+  private val penaltiesService = new PenaltiesService(mockFSConnector, mockFIConnector, mockListOfSchemesConn)
 
-  def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): Seq[JsObject] = Seq(
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 April", "30 June 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
-    ),
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 July", "30 September 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-07-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
-    ),
-    Json.obj(
-      "header" -> msg"penalties.period".withArgs("1 October", "31 December 2020"),
-      "penaltyTable" -> Table(head = head, rows = rows(otcLink("2020-10-01"), statusClass, statusMessageKey, amountDue),attributes = Map("role" -> "table"))
+  def penaltyTables(statusClass: String, statusMessageKey: String, amountDue: String): JsObject = Json.obj(
+      "penaltyTable" -> Table(head = head, rows = rows(aftLink("2020-04-01"), statusClass, statusMessageKey, amountDue),
+        attributes = Map("role" -> "table"))
     )
-  )
 
   override def beforeEach: Unit = {
     super.beforeEach
@@ -78,38 +69,30 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "getPsaFsJson" must {
     "return the penalty tables based on API response for paymentOverdue" in {
-      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, year)) {
-        _.mustBe(
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 1029.05, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-tag govuk-tag--red",
             statusMessageKey = "penalties.status.paymentOverdue",
             amountDue = "1,029.05"
           )
-        )
-      }
     }
+
     "return the penalty tables based on API response for noPaymentDue" in {
-      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, year)) {
-        _.mustBe(
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 0.00, dueDate = LocalDate.parse("2020-07-15")), srn, startDate, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.noPaymentDue",
             amountDue = "0.00"
           )
-        )
-      }
     }
+
     "return the penalty tables based on API response for paymentIsDue" in {
-      whenReady(penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, year)) {
-        _.mustBe(
+      penaltiesService.getPsaFsJson(psaFSResponse(amountDue = 5.00, dueDate = LocalDate.now()), srn, startDate, chargeRefIndex) mustBe
           penaltyTables(
             statusClass = "govuk-visually-hidden",
             statusMessageKey = "penalties.status.visuallyHiddenText.paymentIsDue",
-            amountDue = "5.00"
-          )
-        )
+            amountDue = "5.00")
       }
-    }
   }
 
   "isPaymentOverdue" must {
@@ -157,11 +140,10 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 
   "penaltySchemes" must {
     "return a combination of all associated and unassociated schemes returned in correct format" in {
-      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
-      when(mockFIConnector.save(any())(any(), any())) thenReturn Future.successful(Json.obj())
+      when(mockFIConnector.fetch(any(), any())) thenReturn Future.successful(Some(Json.toJson(PenaltiesCache("PsaID", psaFSResponse()))))
       when(mockListOfSchemesConn.getListOfSchemes(any())(any(), any())).thenReturn(Future.successful(Right(listOfSchemes)))
 
-      whenReady(penaltiesService.penaltySchemes("2020", "PsaID")(implicitly, implicitly)) {
+      whenReady(penaltiesService.penaltySchemes("2020-04-01", "PsaID")(implicitly, implicitly)) {
         _ mustBe penaltySchemes
       }
     }
@@ -172,8 +154,10 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
 object PenaltiesServiceSpec {
 
   val year: Int = 2020
+  val startDate: String = "2020-04-01"
   val srn: String = "S2400000041"
   val dateNow: LocalDate = LocalDate.now()
+  val chargeRefIndex: String => String = _ => "0"
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(
@@ -196,8 +180,8 @@ object PenaltiesServiceSpec {
       outstandingAmount = 56049.08,
       stoodOverAmount = 25089.08,
       amountDue = amountDue,
-      periodStartDate = LocalDate.parse("2020-07-01"),
-      periodEndDate = LocalDate.parse("2020-09-30"),
+      periodStartDate = LocalDate.parse("2020-04-01"),
+      periodEndDate = LocalDate.parse("2020-06-30"),
       pstr = "24000041IN"
     ),
     PsaFS(
@@ -237,22 +221,29 @@ object PenaltiesServiceSpec {
   private def rows(link: Html,
                    statusClass: String,
                    statusMessageKey: String,
-                   amountDue: String
+                   amountDue: String,
+                   link2: Html = otcLink("2020-04-01")
                   )(implicit messages: Messages) = Seq(Seq(
     Cell(link, classes = Seq("govuk-!-width-two-thirds-quarter")),
     Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
     Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
-  ))
+  ),
+    Seq(
+      Cell(link2, classes = Seq("govuk-!-width-two-thirds-quarter")),
+      Cell(Literal(s"£$amountDue"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Literal("XY002610150184"), classes = Seq("govuk-!-width-one-quarter")),
+      Cell(Html(s"<span class='$statusClass'>${messages(statusMessageKey)}</span>"))
+    ))
 
   def aftLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Accounting for Tax late filing penalty<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
   def otcLink(startDate: String): Html = Html(
     s"<a id=XY002610150184 class=govuk-link " +
-      s"href=${controllers.financialStatement.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
+      s"href=${controllers.financialStatement.penalties.routes.ChargeDetailsController.onPageLoad(srn, startDate, "0").url}>" +
       s"Overseas transfer charge late payment penalty (6 months)<span class=govuk-visually-hidden>for charge reference XY002610150184</span> </a>")
 
 
@@ -284,7 +275,6 @@ object PenaltiesServiceSpec {
 
   val penaltySchemes: Seq[PenaltySchemes] = Seq(
     PenaltySchemes(Some("Assoc scheme"), "24000040IN", Some("SRN123")),
-    PenaltySchemes(None, "24000041IN", None),
     PenaltySchemes(None, "24000041IN", None)
   )
 

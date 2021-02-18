@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import config.FrontendAppConfig
 import connectors.FinancialStatementConnector
 import controllers.actions._
-import javax.inject.Inject
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.twirl.api.Html
 import renderer.Renderer
 import services.AFTPartialService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import play.twirl.api.Html
 
-import scala.concurrent.{Future, ExecutionContext}
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesPartialController @Inject()(
                                                 identify: IdentifierAction,

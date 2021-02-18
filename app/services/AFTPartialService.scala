@@ -436,15 +436,16 @@ class AFTPartialService @Inject()(
       val upcomingCharges: Seq[PsaFS] =
         paymentsAndChargesService.extractUpcomingCharges[PsaFS](psaFs, _.dueDate)
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
-      val span =
-        if (upcomingCharges.map(_.dueDate).distinct.size == 1)
+      val span = if (upcomingCharges.map(_.dueDate).distinct.size == 1) {
           msg"pspDashboardUpcomingAftChargesCard.span.singleDueDate"
             .withArgs(upcomingCharges.map(_.dueDate).distinct
               .flatten
               .head
               .format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
-        else
+        } else {
           msg"pspDashboardUpcomingAftChargesCard.span.multipleDueDate"
+        }
+
       Json.obj(
         "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalUpcoming)}",
         "span" -> span
@@ -467,7 +468,7 @@ class AFTPartialService @Inject()(
         Link(
           id = "aft-penalties-id",
           url = appConfig.viewPenaltiesUrl,
-          linkText = msg"psaPenaltiesCard.viewPenalties",
+          linkText = msg"psaPenaltiesCard.viewPastPenalties",
           hiddenText = None
         )
       )

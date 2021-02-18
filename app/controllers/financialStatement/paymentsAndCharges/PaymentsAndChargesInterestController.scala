@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.paymentsAndCharges
+package controllers.financialStatement.paymentsAndCharges
 
 import java.time.LocalDate
 
@@ -166,7 +166,7 @@ class PaymentsAndChargesInterestController @Inject()(
           seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
             case Some(schemeFs) =>
               renderer.render(
-                template = "paymentsAndCharges/paymentsAndChargeInterest.njk",
+                template = "financialStatement/paymentsAndCharges/paymentsAndChargeInterest.njk",
                 ctx = summaryListData(srn, Some(schemeFs), schemeDetails.schemeName, index, request.psaId, request.pspId)
               ).map(Ok(_))
             case _ =>
@@ -205,7 +205,7 @@ class PaymentsAndChargesInterestController @Inject()(
             else
               PSS_OTC_AFT_RETURN_INTEREST.toString
             ),
-          "originalAmountUrl" -> controllers.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
+          "originalAmountUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
             .onPageLoad(srn, schemeFS.periodStartDate, index)
             .url,
           "returnUrl" -> config.schemeDashboardUrl(psaId, pspId).format(srn)

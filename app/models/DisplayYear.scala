@@ -16,13 +16,4 @@
 
 package models
 
-case class DisplayQuarter(quarter: Quarter,
-                          displayYear: Boolean,
-                          lockedBy: Option[String],
-                          hintText: Option[DisplayHint])
-
-sealed trait DisplayHint
-object LockedHint extends WithName("quarters.hint.locked") with DisplayHint
-object InProgressHint extends WithName("quarters.hint.inProgress") with DisplayHint
-object SubmittedHint extends WithName("quarters.hint.submitted") with DisplayHint
-object PaymentOverdue extends WithName("hint.paymentOverdue") with DisplayHint
+case class DisplayYear(year: Int, hintText: Option[DisplayHint])

@@ -92,8 +92,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       )
   }"
 
-  lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend" +
-    ".schemesOverview")).url
+  lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend.schemesOverview")).url
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val pensionsAdministratorUrl: String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
@@ -103,7 +102,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val isAftNonZero: String = s"$aftUrl${configuration.get[String](path = "urls.isAftNonZero")}"
   lazy val psaFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.psaFinancialStatement")}"
   lazy val viewPenaltiesUrl: String = configuration.get[String](path = "urls.partials.psaFinancialStatementLink")
-    .format(configuration.get[Int](path = "minimumYear"))
   lazy val schemeFinancialStatementUrl: String = s"$aftUrl${configuration.get[String](path = "urls.schemeFinancialStatement")}"
 
   lazy val schemeDetailsUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.schemeDetails")}"

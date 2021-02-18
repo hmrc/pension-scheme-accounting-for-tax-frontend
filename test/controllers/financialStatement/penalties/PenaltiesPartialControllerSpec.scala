@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement
+package controllers.financialStatement.penalties
 
 import connectors.FinancialStatementConnector
 import connectors.FinancialStatementConnectorSpec.psaFSResponse
@@ -43,7 +43,7 @@ import scala.concurrent.Future
 class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
-  private def httpPathGET: String = controllers.financialStatement.routes.PenaltiesPartialController.penaltiesPartial().url
+  private def httpPathGET: String = controllers.financialStatement.penalties.routes.PenaltiesPartialController.penaltiesPartial().url
 
 
   val mockFSConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
@@ -60,7 +60,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
   private val templateToBeRendered = "partials/penalties.njk"
   private val jsonToPassToTemplate: DashboardAftViewModel => JsObject = display => Json.obj("viewModel" -> Json.toJson(display))
 
-  def dashboardViewModel = {
+  def dashboardViewModel: DashboardAftViewModel = {
     val subheadings =
       Seq(
         Json.obj(
@@ -75,7 +75,7 @@ class PenaltiesPartialControllerSpec extends ControllerSpecBase with NunjucksSup
 
     val links = Seq(
       Link(id = "aft-penalties-id",
-        url = controllers.financialStatement.routes.SelectSchemeController.onPageLoad(year = "2020").url,
+        url = routes.PenaltiesLogicController.onPageLoad().url,
         linkText = Message("psaPenaltiesCard.viewPenalties"),
         hiddenText = None)
     )

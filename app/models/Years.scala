@@ -19,11 +19,13 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
-import play.api.libs.json.{JsString, Writes, JsValue}
-import uk.gov.hmrc.viewmodels.Radios
+import play.api.libs.json.{JsString, JsValue, Writes}
+
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
-
+import viewmodels.Radios.Radio
+import viewmodels.{Radios, Hint, LabelClasses}
+import uk.gov.hmrc.viewmodels._
 
 case class Year(year: Int) {
   def getYear: Int = this.asInstanceOf[Year].year
@@ -77,5 +79,31 @@ object AmendYears extends CommonYears with Enumerable.Implicits {
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
     Enumerable(values(years).map(v => v.toString -> v): _*)
+
+}
+
+object FSYears extends CommonYears with Enumerable.Implicits {
+
+  def values(years: Seq[DisplayYear]): Seq[Year] = years.map(x => Year(x.year))
+
+  def radios(form: Form[_], displayYears: Seq[DisplayYear]): Seq[Radios.Item] = {
+    val x: Seq[Radio] = displayYears.map { displayYear =>
+
+      Radios.Radio(label = Literal(displayYear.year.toString),
+        value = displayYear.year.toString,
+        hint = getHint(displayYear),
+        labelClasses = Some(LabelClasses(classes = Seq("govuk-!-font-weight-bold"))))
+    }
+    Radios(form("value"), x)
+  }
+
+  implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
+    Enumerable(years.map(v => v.toString -> Year(v)): _*)
+
+  private def getHint(displayYear: DisplayYear): Option[Hint] =
+    displayYear.hintText match {
+      case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", Seq("govuk-tag govuk-tag--red govuk-!-display-inline")))
+      case _ => None
+    }
 
 }
