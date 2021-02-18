@@ -76,7 +76,7 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
       )
   }
 
-  def getYears(penalties: Seq[PsaFS]): Seq[DisplayYear] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>
+  private def getYears(penalties: Seq[PsaFS]): Seq[DisplayYear] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>
     val hint = if (penalties.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
     DisplayYear(year, hint)
   }
