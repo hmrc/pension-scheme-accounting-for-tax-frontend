@@ -17,25 +17,24 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
-import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.IdentifierAction
 import models.Quarters.getQuarter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.libs.json.{Json, JsObject}
+import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
-
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import java.time.LocalDate
+
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, ExecutionContext}
 
 class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,

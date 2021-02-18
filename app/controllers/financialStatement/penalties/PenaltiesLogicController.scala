@@ -16,22 +16,21 @@
 
 package controllers.financialStatement.penalties
 
-import audit.{AuditService, StartAmendAFTAuditEvent}
-import connectors.AFTConnector
 import controllers.actions._
 import models.LocalDateBinder._
 import models.Quarters
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
-import services.{PenaltiesService, SchemeService}
+import play.api.mvc.{Result, AnyContent, MessagesControllerComponents, Action}
+import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
 import java.time.LocalDate
+
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, ExecutionContext}
 
 class PenaltiesLogicController @Inject()(override val messagesApi: MessagesApi,
                                           service: PenaltiesService,
