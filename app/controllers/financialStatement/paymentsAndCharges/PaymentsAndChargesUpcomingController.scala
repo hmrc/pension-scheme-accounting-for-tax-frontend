@@ -84,7 +84,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
       }
   }
 
-  def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String, startDate: LocalDate)
+  private def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String, startDate: LocalDate)
                                      (implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
 
     val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] = paymentsAndChargesService

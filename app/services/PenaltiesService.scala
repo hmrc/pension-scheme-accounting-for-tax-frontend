@@ -17,7 +17,6 @@
 package services
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
 import helpers.FormatHelper
@@ -25,16 +24,16 @@ import models.LocalDateBinder._
 import models.financialStatement.PsaFS
 import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json, OFormat}
+import play.api.libs.json.{Json, OFormat, JsObject}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper.dateFormatterDMY
-
 import java.time.LocalDate
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, ExecutionContext}
 
 class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
