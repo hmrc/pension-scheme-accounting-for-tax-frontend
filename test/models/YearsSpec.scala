@@ -17,33 +17,24 @@
 package models
 
 import forms.mappings.Mappings
-import javax.inject.Inject
-import org.mockito.Mockito.when
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.data.Form
-import org.mockito.Matchers.any
 import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
-import viewmodels.Radios.Item
 
 class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
-
-  private object DummyFormProvider extends Mappings {
-    def apply(): Form[String] =
-      Form(
-        "value" -> text("required")
-      )
+  private val form = {
+    object DummyFormProvider extends Mappings {
+      def apply(): Form[String] =
+        Form(
+          "value" -> text("required")
+        )
+    }
+    DummyFormProvider()
   }
-
-  val form = DummyFormProvider()
-
-
-  //
-  //private val mockForm = mock[Form[String]]
-  //private val mockField = mock[play.api.data.Field]
 
   "writes" - {
     "must map correctly to string" in {
@@ -63,14 +54,7 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
   "AmendYears.radios" - {
     "must return Seq of years as string in reverse order" in {
-      //when(mockForm.apply(any())).thenReturn(mockField)
-      //when(mockField.value).thenReturn(None)
-      //when(mockField.indexes).thenReturn(Nil)
       val years = Seq(1,2)
-
-
-      //val tt = List(Item(null,Literal(2),2,false), Item(null_1,Literal(1),1,false))
-
       val expectedResult = Seq(Radios.Radio.apply(Literal("2"), "2"), Radios.Radio(Literal("1"), "1"))
       AmendYears.radios(form, years) mustBe expectedResult
     }
