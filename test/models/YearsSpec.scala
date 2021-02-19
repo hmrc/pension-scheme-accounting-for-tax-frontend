@@ -29,6 +29,7 @@ import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
 
+///scalastyle:off
 class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
   private val form = {
