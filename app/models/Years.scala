@@ -74,7 +74,7 @@ object AmendYears extends CommonYears with Enumerable.Implicits {
   def values(years: Seq[Int]): Seq[Year] = correctlyOrderedYears(years).map(Year(_))
 
   def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
-    Radios(form("value"), correctlyOrderedYears(years).map(year => Radios.Radio(Literal(year.toString), year.toString)))
+    Radios(form.apply("value"), correctlyOrderedYears(years).map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
