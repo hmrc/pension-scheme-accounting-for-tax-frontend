@@ -16,13 +16,18 @@
 
 package models
 
+import java.time.LocalDate
+
+import config.FrontendAppConfig
 import forms.mappings.Mappings
+import org.mockito.Mockito.when
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.data.Form
 import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
+import utils.DateHelper
 
 class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
@@ -36,6 +41,9 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
     DummyFormProvider()
   }
 
+  private val mockConfig = mock[FrontendAppConfig]
+  private val minYear = 2018
+
   "writes" - {
     "must map correctly to string" in {
       val year = Year(2020)
@@ -44,6 +52,29 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
       result mustBe JsString("2020")
     }
   }
+
+  "StartYears.values" - {
+    "must return Seq of years in reverse order" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
+      when(mockConfig.minimumYear).thenReturn(minYear)
+      val expectedResult = Seq(Year(2020), Year(2019), Year(2018))
+      StartYears.values(mockConfig) mustBe expectedResult
+    }
+  }
+
+  "StartYears.radios" - {
+    "must return Seq of radio items" in {
+      DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
+      when(mockConfig.minimumYear).thenReturn(minYear)
+      val expectedResult = Seq(
+        Radios.Item("value", Literal("2020"), "2020", false),
+        Radios.Item("value_1", Literal("2019"), "2019", false),
+        Radios.Item("value_2", Literal("2018"), "2018", false)
+      )
+      StartYears.radios(form)(mockConfig) mustBe expectedResult
+    }
+  }
+
   "AmendYears.values" - {
     "must return Seq of years in reverse order" in {
       val years = Seq(1,2,3)
@@ -53,11 +84,12 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
   }
 
   "AmendYears.radios" - {
-    "must return Seq of years as string in reverse order" in {
+    "must return Seq of radio items" in {
       val years = Seq(1,2)
-      val expectedResult = Seq(Radios.Radio.apply(Literal("2"), "2"), Radios.Radio(Literal("1"), "1"))
+      val expectedResult = Seq(Radios.Item("value", Literal("2"), "2", false), Radios.Item("value_1", Literal("1"), "1", false))
       AmendYears.radios(form, years) mustBe expectedResult
     }
+
   }
 
 }
