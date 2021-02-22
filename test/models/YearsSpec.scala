@@ -25,9 +25,9 @@ import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.data.Form
 import play.api.libs.json.{JsString, Json}
-import uk.gov.hmrc.viewmodels.Radios
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
+import viewmodels.Radios
 
 class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
@@ -44,6 +44,10 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
   private val mockConfig = mock[FrontendAppConfig]
   private val minYear = 2018
 
+  //scalastyle.off: magic.number
+  private def setDate():Unit =
+    DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
+
   "writes" - {
     "must map correctly to string" in {
       val year = Year(2020)
@@ -55,7 +59,7 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
   "StartYears.values" - {
     "must return Seq of years in reverse order" in {
-      DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
+      setDate()
       when(mockConfig.minimumYear).thenReturn(minYear)
       val expectedResult = Seq(Year(2020), Year(2019), Year(2018))
       StartYears.values(mockConfig) mustBe expectedResult
@@ -64,13 +68,14 @@ class YearsSpec extends FreeSpec with MustMatchers with MockitoSugar {
 
   "StartYears.radios" - {
     "must return Seq of radio items" in {
-      DateHelper.setDate(Some(LocalDate.of(2020, 12, 12)))
+      setDate()
       when(mockConfig.minimumYear).thenReturn(minYear)
       val expectedResult = Seq(
-        Radios.Item("value", Literal("2020"), "2020", false),
-        Radios.Item("value_1", Literal("2019"), "2019", false),
-        Radios.Item("value_2", Literal("2018"), "2018", false)
+        Radios.Item("value", Literal("2020"), "2020", checked = false),
+        Radios.Item("value_1", Literal("2019"), "2019", checked = false),
+        Radios.Item("value_2", Literal("2018"), "2018", checked = false)
       )
+
       StartYears.radios(form)(mockConfig) mustBe expectedResult
     }
   }
