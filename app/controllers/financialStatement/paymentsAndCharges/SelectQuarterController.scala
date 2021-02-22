@@ -62,7 +62,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
             "year" -> year,
             "form" -> form(quarters, year),
             "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFS),
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
 
@@ -90,7 +90,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
                     "year" -> year,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFS),
-                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
+                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
                     "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                   )
                   renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(BadRequest(_))

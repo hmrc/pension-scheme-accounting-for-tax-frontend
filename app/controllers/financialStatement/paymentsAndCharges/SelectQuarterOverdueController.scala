@@ -62,7 +62,7 @@ class SelectQuarterOverdueController @Inject()(config: FrontendAppConfig,
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "form" -> form(quarters),
             "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(overduePaymentsAndCharges),
-              Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
+              Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
             "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
 
@@ -90,7 +90,7 @@ class SelectQuarterOverdueController @Inject()(config: FrontendAppConfig,
                     "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(overduePaymentsAndCharges),
-                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
+                      Seq("govuk-tag govuk-!-display-inline govuk-tag--red"), areLabelsBold = false),
                     "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
 
                   )

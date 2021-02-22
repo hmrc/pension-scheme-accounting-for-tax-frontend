@@ -70,7 +70,7 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
 
   private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
     "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
+    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
     "submitUrl" -> httpPathPOST
   )
 
