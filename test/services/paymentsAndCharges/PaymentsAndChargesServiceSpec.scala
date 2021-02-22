@@ -20,12 +20,13 @@ import base.SpecBase
 import connectors.FinancialStatementConnector
 import connectors.cache.FinancialInfoCacheConnector
 import controllers.chargeB.{routes => _}
+import controllers.financialStatement.paymentsAndCharges.routes.{PaymentsAndChargeDetailsController, PaymentsAndChargesInterestController}
 import helpers.FormatHelper
 import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFSChargeType._
 import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus
 import models.viewModels.paymentsAndCharges.PaymentAndChargeStatus.{InterestIsAccruing, NoStatus, PaymentOverdue}
-import models.viewModels.paymentsAndCharges.{PaymentAndChargeStatus, PaymentsAndChargesTable}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import services.SchemeService
@@ -71,15 +72,8 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("paymentsAndCharges.chargeDetails.paymentStatus")}</span>"))
   )
 
-  private def paymentTable(rows: Seq[Seq[Table.Cell]]): PaymentsAndChargesTable =
-    PaymentsAndChargesTable(
-      caption = messages("paymentsAndCharges.caption", startDate, endDate),
-      table = Table(
-        head = tableHead,
-        rows = rows,
-        attributes = Map("role" -> "table")
-      )
-    )
+  private def paymentTable(rows: Seq[Seq[Table.Cell]]): Table =
+    Table(head = tableHead, rows = rows, attributes = Map("role" -> "table"))
 
   private def row(chargeType: String,
                   chargeReference: String,
@@ -122,30 +116,24 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
           def chargeLink(chargeDetailsFilter: ChargeDetailsFilter): String =
             chargeDetailsFilter match {
               case ChargeDetailsFilter.All =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                  .onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargeDetailsController.onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Upcoming =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                  .onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargeDetailsController.onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Overdue =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargeDetailsController
-                  .onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargeDetailsController.onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
             }
 
           def interestLink(chargeDetailsFilter: ChargeDetailsFilter): String =
             chargeDetailsFilter match {
               case ChargeDetailsFilter.All =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                  .onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargesInterestController.onPageLoad(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Upcoming =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                  .onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargesInterestController.onPageLoadUpcoming(srn, QUARTER_START_DATE.toString, "0").url
               case ChargeDetailsFilter.Overdue =>
-                controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesInterestController
-                  .onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
+                PaymentsAndChargesInterestController.onPageLoadOverdue(srn, QUARTER_START_DATE.toString, "0").url
             }
 
-          def expectedTable(chargeLink: String, interestLink: String) = Seq(
+          def expectedTable(chargeLink: String, interestLink: String): Table =
             paymentTable(Seq(
               row(
                 chargeType = chargeType.toString,
@@ -165,26 +153,23 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 visuallyHiddenText = messages(s"paymentsAndCharges.interest.visuallyHiddenText"),
                 paymentAndChargeStatus = PaymentAndChargeStatus.InterestIsAccruing
               )
-            )))
+            ))
 
           val result1 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.All
           )
 
           val result2 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.Upcoming
           )
 
           val result3 = paymentsAndChargesService.getPaymentsAndCharges(
             srn = srn,
             schemeFS = paymentsAndChargesForAGivenPeriod(chargeType).head._2,
-            QUARTER_START_DATE,
             chargeDetailsFilter = ChargeDetailsFilter.Overdue
           )
 
@@ -197,12 +182,11 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
     "return payments and charges table with no rows for credit" in {
 
       val totalAmount = -56432.00
-      val expectedTable = Seq(paymentTable(Seq.empty))
+      val expectedTable = paymentTable(Seq.empty)
 
       val result = paymentsAndChargesService.getPaymentsAndCharges(
         srn,
         paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, totalAmount, amountDue = 0.00).head._2,
-        QUARTER_START_DATE,
         ChargeDetailsFilter.All
       )
 
@@ -211,7 +195,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
 
     "return payments and charges table with row where there is no amount due" in {
 
-      val expectedTable = Seq(
+      val expectedTable: Table =
         paymentTable(
           Seq(
             row(
@@ -224,13 +208,12 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
                 .url,
               visuallyHiddenText = messages(s"paymentsAndCharges.visuallyHiddenText", "AYU3494534632")
             )
-          )))
+          ))
 
       val result =
         paymentsAndChargesService.getPaymentsAndCharges(
           srn,
           paymentsAndChargesForAGivenPeriod(PSS_OTC_AFT_RETURN, amountDue = 0.00).head._2,
-          QUARTER_START_DATE,
           ChargeDetailsFilter.All
         )
 
@@ -271,7 +254,7 @@ class PaymentsAndChargesServiceSpec extends SpecBase with MockitoSugar with Befo
         createCharge(PSS_OTC_AFT_RETURN, 123.00, 456.00, Some(LocalDate.parse("2020-08-15")))
       )
 
-      val result = paymentsAndChargesService.extractUpcomingCharges[SchemeFS](charges, _.dueDate)
+      val result = paymentsAndChargesService.extractUpcomingCharges(charges)
       result.size mustBe 1
       result.head.chargeType mustBe PSS_OTC_AFT_RETURN
     }

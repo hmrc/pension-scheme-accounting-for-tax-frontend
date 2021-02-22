@@ -20,17 +20,14 @@
 
         <p class="govuk-body">{{ messages("paymentsAndCharges.reflect.charge.text") }}</p>
 
-        {% for paymentAndChargesTable in overduePaymentsAndCharges %}
-            {% if paymentAndChargesTable.table.rows.length > 0 %}
-                {% if overduePaymentsAndCharges.length > 1 %}
-                    <h2 class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
-                {% endif %}
-                <span id="overduePaymentsAndCharges_h2" class="govuk-visually-hidden" aria-hidden="true" >{{ paymentAndChargesTable.caption }}</span>
+
+            {% if paymentAndChargesTable.rows.length > 0 %}
+
                 <div role="region" aria-labelledby="overduePaymentsAndCharges_h2" class="govuk-!-margin-bottom-7" tabindex="0">
-                    {{ govukTable(paymentAndChargesTable.table) }}
+                    {{ govukTable(paymentAndChargesTable) }}
                 </div>
             {% endif %}
-        {% endfor %}
+
 
       </div>
     </div>

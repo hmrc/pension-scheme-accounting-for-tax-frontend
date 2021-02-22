@@ -16,6 +16,7 @@
 
 package controllers.financialStatement.paymentsAndCharges
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.financialStatement.{PsaFS, SchemeFS}
@@ -34,7 +35,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SelectQuarterController @Inject()(
+class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
                                                   formProvider: QuartersFormProvider,
@@ -47,7 +48,7 @@ class SelectQuarterController @Inject()(
                                                   with NunjucksSupport {
 
   private def form(quarters: Seq[Quarter], year: String)(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("selectPenaltiesQuarter.error", year), quarters)
+    formProvider(messages("selectChargesQuarter.error", year), quarters)
 
   def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
@@ -57,12 +58,12 @@ class SelectQuarterController @Inject()(
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
+            "schemeName" -> paymentsCache.schemeDetails.schemeName,
             "year" -> year,
             "form" -> form(quarters, year),
             "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, paymentsCache.schemeFS),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
-            "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
-            "year" -> year
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
 
           renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(Ok(_))
@@ -74,7 +75,7 @@ class SelectQuarterController @Inject()(
   }
 
   def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.psaIdOrException.id, srn).flatMap { paymentsCache =>
+    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)
         if (quarters.nonEmpty) {
@@ -85,12 +86,12 @@ class SelectQuarterController @Inject()(
               formWithErrors => {
 
                   val json = Json.obj(
+                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "year" -> year,
                     "form" -> formWithErrors,
                     "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, paymentsCache.schemeFS),
                       Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
-                    "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
-                    "year" -> year
+                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                   )
                   renderer.render(template = "financialStatement/paymentsAndCharges/selectQuarter.njk", json).map(BadRequest(_))
 

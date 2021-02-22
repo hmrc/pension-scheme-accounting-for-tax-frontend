@@ -17,17 +17,14 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
 import controllers.actions._
-import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFS
-import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
+import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{NunjucksSupport, Text}
@@ -43,8 +40,6 @@ class PaymentsAndChargesUpcomingController @Inject()(
                                                       identify: IdentifierAction,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
-                                                      schemeService: SchemeService,
-                                                      fsConnector: FinancialStatementConnector,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
@@ -56,58 +51,43 @@ class PaymentsAndChargesUpcomingController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(request.idOrException, srn, schemeIdType = "srn") flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFs =>
-              val upcomingPaymentsAndCharges: Seq[SchemeFS] =
-              paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+        val schemeFS = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+        val upcomingPaymentsAndCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFS)
 
-              if (upcomingPaymentsAndCharges.nonEmpty) {
+        if (upcomingPaymentsAndCharges.nonEmpty) {
 
 
-                val json = Json.obj(
-                  "heading" -> heading(upcomingPaymentsAndCharges),
-                  "upcomingPaymentsAndCharges" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn, startDate),
-                  "schemeName" -> schemeDetails.schemeName,
-                  "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
-                )
-                renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
+          val json = Json.obj(
+            "heading" -> heading(startDate),
+            "paymentAndChargesTable" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn),
+            "schemeName" -> paymentsCache.schemeDetails.schemeName,
+            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+          )
+          renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 
-              } else {
-                logger.warn(
-                  s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}"
-                )
-                Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-              }
-          }
-      }
+        } else {
+          logger.warn(
+            s"No Upcoming Payments and Charges returned for the selected year ${startDate.getYear}"
+          )
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+        }
+    }
   }
 
-  def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String, startDate: LocalDate)
-                                     (implicit messages: Messages): Seq[PaymentsAndChargesTable] = {
+  def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String)
+                                     (implicit messages: Messages): Table = {
 
-    val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] = paymentsAndChargesService
-      .getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, startDate, ChargeDetailsFilter.Upcoming)
+    val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, ChargeDetailsFilter.Upcoming)
 
-    paymentsAndChargesTables map { table =>
-      PaymentsAndChargesTable(
-        caption = table.caption,
-        table = Table(table.table.caption, table.table.captionClasses, table.table.firstCellIsHeader,
-          table.table.head.take(table.table.head.size - 1),
-          table.table.rows.map(p => p.take(p.size - 1)), table.table.classes, table.table.attributes
+        Table(table.caption, table.captionClasses, table.firstCellIsHeader,
+          table.head.take(table.head.size - 1),
+          table.rows.map(p => p.take(p.size - 1)), table.classes, table.attributes
         )
-      )
-    }
   }
 
-  def heading(upcomingPaymentsAndCharges: Seq[SchemeFS]): Text.Message =
-    if (upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {
-      msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
-        upcomingPaymentsAndCharges.map(_.periodStartDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM")),
-        upcomingPaymentsAndCharges.map(_.periodEndDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
-      )
-    } else {
-      msg"paymentsAndChargesUpcoming.h1.multiplePeriod"
-    }
+  val heading: LocalDate => Text.Message = startDate => msg"paymentsAndChargesUpcoming.h1.singlePeriod".withArgs(
+        startDate.format(DateTimeFormatter.ofPattern("d MMMM")),
+        Quarters.getQuarter(startDate).endDate.format(DateTimeFormatter.ofPattern("d MMMM yyyy")))
+
 }

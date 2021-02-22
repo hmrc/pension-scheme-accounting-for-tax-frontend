@@ -1097,7 +1097,7 @@ paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments ma
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
-paymentsAndCharges.h1 = Payments and charges for 2020
+paymentsAndCharges.h1 = Payments and charges for {0} to {1}
 paymentsAndCharges.chargeReference.toBeAssigned = To be assigned
 paymentsAndCharges.chargeType.table = Charge type
 paymentsAndCharges.totalDue.table = Amount due
@@ -1134,9 +1134,9 @@ paymentsAndCharges.interest.hint = This interest charge was the result of late p
 paymentsAndCharges.interest.chargeReference.text2 = in full. You can only pay the interest once a charge reference has been generated.
 paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 
-selectScheme.title = Select a pension scheme
+selectScheme.title = Which scheme do you want to view penalties for?
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
-selectScheme.error = Select a pension scheme
+selectScheme.error = Select which scheme you want to view penalties for
 
 enterPsaId.title = What is the pension scheme administrator’s ID?
 enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme

@@ -16,6 +16,7 @@
 
 package controllers.financialStatement.paymentsAndCharges
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
 import models.LocalDateBinder._
@@ -34,7 +35,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SelectQuarterUpcomingController @Inject()(
+class SelectQuarterUpcomingController @Inject()(config: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
                                                   formProvider: QuartersFormProvider,
@@ -46,24 +47,23 @@ class SelectQuarterUpcomingController @Inject()(
                                                   with I18nSupport
                                                   with NunjucksSupport {
 
-  private def form(quarters: Seq[Quarter], year: String)(implicit messages: Messages): Form[Quarter] =
-    formProvider(messages("selectPenaltiesQuarter.error", year), quarters)
+  private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
+    formProvider(messages("selectUpcomingChargesQuarter.error"), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges[SchemeFS](paymentsCache.schemeFS, _.dueDate)
-      val quarters: Seq[Quarter] = getQuarters(year, upcomingPaymentsAndCharges)
+      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges(paymentsCache.schemeFS)
+      val quarters: Seq[Quarter] = getQuarters(upcomingPaymentsAndCharges)
 
         if (quarters.nonEmpty) {
 
           val json = Json.obj(
-            "year" -> year,
-            "form" -> form(quarters, year),
-            "radios" -> Quarters.radios(form(quarters, year), getDisplayQuarters(year, upcomingPaymentsAndCharges),
+            "schemeName" -> paymentsCache.schemeDetails.schemeName,
+            "form" -> form(quarters),
+            "radios" -> Quarters.radios(form(quarters), getDisplayQuarters(upcomingPaymentsAndCharges),
               Seq("govuk-tag govuk-tag--red govuk-!-display-inline")),
-            "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
-            "year" -> year
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
 
           renderer.render(template = "financialStatement/paymentsAndCharges/selectUpcomingQuarter.njk", json).map(Ok(_))
@@ -74,31 +74,30 @@ class SelectQuarterUpcomingController @Inject()(
     }
   }
 
-  def onSubmit(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
-    service.getPaymentsFromCache(request.psaIdOrException.id, srn).flatMap { paymentsCache =>
+  def onSubmit(srn: String): Action[AnyContent] = identify.async { implicit request =>
+    service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges[SchemeFS](paymentsCache.schemeFS, _.dueDate)
-      val quarters: Seq[Quarter] = getQuarters(year, upcomingPaymentsAndCharges)
+      val upcomingPaymentsAndCharges: Seq[SchemeFS] = service.extractUpcomingCharges(paymentsCache.schemeFS)
+      val quarters: Seq[Quarter] = getQuarters(upcomingPaymentsAndCharges)
         if (quarters.nonEmpty) {
 
-          form(quarters, year)
+          form(quarters)
             .bindFromRequest()
             .fold(
               formWithErrors => {
 
                   val json = Json.obj(
-                    "year" -> year,
+                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
                     "form" -> formWithErrors,
-                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(year, upcomingPaymentsAndCharges),
+                    "radios" -> Quarters.radios(formWithErrors, getDisplayQuarters(upcomingPaymentsAndCharges),
                       Seq("govuk-tag govuk-!-display-inline govuk-tag--red")),
-                    "submitUrl" -> routes.SelectQuarterController.onSubmit(srn, year).url,
-                    "year" -> year
+                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                   )
                   renderer.render(template = "financialStatement/paymentsAndCharges/selectUpcomingQuarter.njk", json).map(BadRequest(_))
 
               },
               value =>
-                Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, value.startDate)))
+                Future.successful(Redirect(routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, value.startDate)))
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
@@ -106,18 +105,17 @@ class SelectQuarterUpcomingController @Inject()(
     }
   }
 
-  private def getDisplayQuarters(year: String, payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
-    val quartersFound: Seq[LocalDate] = payments.filter(_.periodStartDate.getYear == year.toInt).map(_.periodStartDate).distinct.sortBy(_.getMonth)
+  private def getDisplayQuarters(payments: Seq[SchemeFS]): Seq[DisplayQuarter] = {
+    implicit val localDateOrdering: Ordering[LocalDate] = _ compareTo _
+    val quartersFound: Seq[LocalDate] = payments.map(_.periodStartDate).distinct.sorted
     quartersFound.map { startDate =>
       val hint: Option[DisplayHint] =
         if (payments.filter(_.periodStartDate == startDate).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
 
       DisplayQuarter(Quarters.getQuarter(startDate), displayYear = true, None, hint)
-
     }
   }
 
-  private def getQuarters(year: String, payments: Seq[SchemeFS]): Seq[Quarter] =
-    payments.filter(_.periodStartDate.getYear == year.toInt).distinct
-      .map(paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate))
+  private val getQuarters: Seq[SchemeFS] => Seq[Quarter] =
+    payments => payments.map(_.periodStartDate).distinct.map(Quarters.getQuarter)
 }

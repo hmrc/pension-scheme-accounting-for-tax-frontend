@@ -206,7 +206,7 @@ class PsaSchemePartialService @Inject()(
   def upcomingAftChargesModel(schemeFs: Seq[SchemeFS], srn: String)
                              (implicit messages: Messages): Seq[CardViewModel] = {
     val upcomingCharges: Seq[SchemeFS] =
-      paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFs, _.dueDate)
+      paymentsAndChargesService.extractUpcomingCharges(schemeFs)
 
     val pastCharges: Seq[SchemeFS] = schemeFs.filter(_.periodEndDate.isBefore(DateHelper.today))
 

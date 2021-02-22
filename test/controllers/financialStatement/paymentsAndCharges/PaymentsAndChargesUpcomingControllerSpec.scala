@@ -17,8 +17,6 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -35,7 +33,6 @@ import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -54,9 +51,6 @@ class PaymentsAndChargesUpcomingControllerSpec
   private def httpPathGET(startDate: String = startDate): String =
     controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesUpcomingController.onPageLoad(srn, startDate).url
 
-  private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  private val mockFICacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -64,9 +58,6 @@ class PaymentsAndChargesUpcomingControllerSpec
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[SchemeService].toInstance(mockSchemeService),
-        bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-        bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
       ): _*
     )
@@ -75,28 +66,21 @@ class PaymentsAndChargesUpcomingControllerSpec
   override def beforeEach: Unit = {
     super.beforeEach
     reset(
-      mockSchemeService,
-      mockFinancialStatementConnector,
       mockRenderer,
-      mockPaymentsAndChargesService,
-      mockFICacheConnector
+      mockPaymentsAndChargesService
     )
 
     when(mockAppConfig.managePensionsSchemeSummaryUrl)
       .thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-      .thenReturn(Future.successful(schemeDetails))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any()))
-      .thenReturn(Nil)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any()))
+      .thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))
-    when(mockFICacheConnector.save(any())(any(), any()))
-      .thenReturn(Future.successful(Json.obj()))
   }
 
-  private def expectedJson(heading: String): JsObject = Json.obj(
-    "heading" -> heading,
-    "upcomingPaymentsAndCharges" -> Nil,
+  private def expectedJson: JsObject = Json.obj(
+    "heading" -> "Payments and charges for 1 October to 31 December 2020",
+    "paymentAndChargesTable" -> emptyChargesTable,
     "schemeName" -> schemeDetails.schemeName,
     "returnUrl" -> dummyCall.url
   )
@@ -104,10 +88,9 @@ class PaymentsAndChargesUpcomingControllerSpec
   "PaymentsAndChargesController for a GET" must {
 
     "return OK and the correct view with filtered payments and charges information for single period" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
-      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
-        .thenReturn(schemeFSResponseSinglePeriod)
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseSinglePeriod)))
+      when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseSinglePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
       val result = route(application, httpGETRequest(httpPathGET())).value
@@ -117,16 +100,13 @@ class PaymentsAndChargesUpcomingControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk"
-      jsonCaptor.getValue must containJson(
-        expectedJson("Payments and charges for 1 October to 31 December 2020")
-      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "return OK and the correct view with filtered payments and charges information for multiple periods" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseMultiplePeriod))
-      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
-        .thenReturn(schemeFSResponseMultiplePeriod)
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseMultiplePeriod)))
+      when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => schemeFSResponseMultiplePeriod)
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
@@ -137,18 +117,14 @@ class PaymentsAndChargesUpcomingControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk"
-      jsonCaptor.getValue must containJson(
-        expectedJson("Upcoming payments and charges")
-      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired page when there is no data for the selected year" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(Seq.empty))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(Seq.empty)))
 
-      when(mockPaymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
-        .thenReturn(Seq.empty)
-
+      when(mockPaymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => Seq.empty)
 
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value
       status(result) mustEqual SEE_OTHER

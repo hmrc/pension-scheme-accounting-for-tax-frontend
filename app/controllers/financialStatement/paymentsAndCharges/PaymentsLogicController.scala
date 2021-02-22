@@ -58,8 +58,8 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
                                           with NunjucksSupport {
 
   def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
-
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+
       val yearsSeq: Seq[Int] = paymentsCache.schemeFS.map(_.periodStartDate.getYear).distinct.sorted.reverse
 
       if (yearsSeq.nonEmpty && yearsSeq.size > 1) {
@@ -73,6 +73,7 @@ class PaymentsLogicController @Inject()(override val messagesApi: MessagesApi,
   }
 
   private def skipYearsPage(payments: Seq[SchemeFS], year: Int, srn: String): Future[Result] = {
+
     val quartersSeq = payments
       .filter(_.periodStartDate.getYear == year)
       .map { paymentOrCharge => Quarters.getQuarter(paymentOrCharge.periodStartDate) }.distinct

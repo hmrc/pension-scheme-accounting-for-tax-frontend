@@ -17,32 +17,29 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
 import controllers.actions._
-import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFS
-import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
+import models.{ChargeDetailsFilter, Quarters}
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import viewmodels.Table
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import models.LocalDateBinder._
 
 class PaymentsAndChargesController @Inject()(
                                               override val messagesApi: MessagesApi,
                                               identify: IdentifierAction,
                                               val controllerComponents: MessagesControllerComponents,
                                               config: FrontendAppConfig,
-                                              schemeService: SchemeService,
-                                              fsConnector: FinancialStatementConnector,
                                               paymentsAndChargesService: PaymentsAndChargesService,
                                               renderer: Renderer
                                             )(implicit ec: ExecutionContext)
@@ -52,29 +49,23 @@ class PaymentsAndChargesController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesController])
 
-  def onPageLoad(srn: String, startDate: String): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFs =>
-              val schemePaymentsAndChargesForSelectedYear: Seq[SchemeFS] =
-                schemeFs.filter(_.periodStartDate == startDate)
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+              val filteredPayments: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
 
-              if (schemePaymentsAndChargesForSelectedYear.nonEmpty) {
+              if (filteredPayments.nonEmpty) {
 
-                val tableOfPaymentsAndCharges: Seq[PaymentsAndChargesTable] =
-                  paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, schemePaymentsAndChargesForSelectedYear, startDate, ChargeDetailsFilter.All)
+                val tableOfPaymentsAndCharges: Table =
+                  paymentsAndChargesService.getPaymentsAndCharges(srn, filteredPayments, ChargeDetailsFilter.All)
 
                 val json = Json.obj(
-                  fields = "seqPaymentsAndChargesTable" -> tableOfPaymentsAndCharges,
-                  "schemeName" -> schemeDetails.schemeName,
-                  "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
+                  fields =
+                    "startDate" -> startDate.format(dateFormatterStartDate),
+                    "endDate" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),
+                    "paymentAndChargesTable" -> tableOfPaymentsAndCharges,
+                    "schemeName" -> paymentsCache.schemeDetails.schemeName,
+                    "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                 )
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndCharges.njk", json).map(Ok(_))
 
@@ -82,7 +73,7 @@ class PaymentsAndChargesController @Inject()(
                 logger.warn(s"No Scheme Payments and Charges returned for the selected startDate $startDate")
                 Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
               }
-          }
+
       }
   }
 }

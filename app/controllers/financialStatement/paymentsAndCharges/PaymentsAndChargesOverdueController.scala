@@ -17,34 +17,29 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
 import controllers.actions._
 import models.ChargeDetailsFilter
 import models.financialStatement.SchemeFS
-import models.viewModels.paymentsAndCharges.PaymentsAndChargesTable
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import viewmodels.Table
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
 import javax.inject.Inject
-
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class PaymentsAndChargesOverdueController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       identify: IdentifierAction,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
-                                                      schemeService: SchemeService,
-                                                      fsConnector: FinancialStatementConnector,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
                                                       renderer: Renderer
                                                     )(implicit ec: ExecutionContext)
@@ -56,37 +51,27 @@ class PaymentsAndChargesOverdueController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFs =>
-              val overduePaymentsAndCharges: Seq[SchemeFS] =
-                paymentsAndChargesService
-                  .getOverdueCharges(schemeFs)
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
+
+        val schemeFS = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+        val overduePaymentsAndCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFS)
 
               if (overduePaymentsAndCharges.nonEmpty) {
-                val paymentsAndChargesTables: Seq[PaymentsAndChargesTable] =
+                val paymentsAndChargesTables: Table =
                   paymentsAndChargesService
-                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, startDate, ChargeDetailsFilter.Overdue)
+                    .getPaymentsAndCharges(srn, overduePaymentsAndCharges, ChargeDetailsFilter.Overdue)
 
                 val heading =
-                  if (overduePaymentsAndCharges.map(_.periodStartDate).distinct.size == 1) {
                     msg"paymentsAndChargesOverdue.h1.singlePeriod".withArgs(
                       overduePaymentsAndCharges.map(_.periodStartDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM")),
                       overduePaymentsAndCharges.map(_.periodEndDate).distinct.head.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
                     )
-                  } else {
-                    msg"paymentsAndChargesOverdue.h1.multiplePeriod"
-                  }
+
 
                 val json = Json.obj(
                   "heading" -> heading,
-                  "overduePaymentsAndCharges" -> paymentsAndChargesTables,
-                  "schemeName" -> schemeDetails.schemeName,
+                  "paymentAndChargesTable" -> paymentsAndChargesTables,
+                  "schemeName" -> paymentsCache.schemeDetails.schemeName,
                   "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
                 )
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
@@ -99,5 +84,4 @@ class PaymentsAndChargesOverdueController @Inject()(
               }
           }
       }
-  }
 }
