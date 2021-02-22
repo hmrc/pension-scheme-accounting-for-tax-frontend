@@ -71,12 +71,10 @@ object StartYears extends CommonYears with Enumerable.Implicits {
 
 object AmendYears extends CommonYears with Enumerable.Implicits {
 
-  private def correctlyOrderedYears(years: Seq[Int]): Seq[Int] = years.reverse
-
-  def values(years: Seq[Int]): Seq[Year] = correctlyOrderedYears(years).map(Year(_))
+  def values(years: Seq[Int]): Seq[Year] = years.map(x => Year(x))
 
   def radios(form: Form[_], years: Seq[Int]): Seq[Radios.Item] = {
-    Radios(form("value"), correctlyOrderedYears(years).map(year => Radios.Radio(Literal(year.toString), year.toString)))
+    Radios(form("value"), years.map(year => Radios.Radio(Literal(year.toString), year.toString)))
   }
 
   implicit def enumerable(implicit years: Seq[Int]): Enumerable[Year] =
