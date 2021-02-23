@@ -92,7 +92,7 @@ object FSYears extends CommonYears with Enumerable.Implicits {
       Radios.Radio(label = Literal(displayYear.year.toString),
         value = displayYear.year.toString,
         hint = getHint(displayYear),
-        labelClasses = Some(LabelClasses(classes = Seq("govuk-!-font-weight-bold"))))
+        labelClasses = None)
     }
     Radios(form("value"), x)
   }
