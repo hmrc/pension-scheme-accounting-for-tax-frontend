@@ -112,7 +112,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to the next page when submits with value true" in {
+    "redirect to the next page and save all user answers data when submits with value true" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
@@ -129,7 +129,6 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
 
     "redirect to the next page and remove all user answers data when submits with value false" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
-      when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
       when(mockUserAnswersCacheConnector.removeAll(any())(any(),any()))
         .thenReturn(Future.successful(Ok))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
@@ -141,7 +140,7 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
-      verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
+      verify(mockUserAnswersCacheConnector, times(1)).removeAll(any())(any(), any())
     }
 
     "return a Bad Request and errors when invalid data is submitted" in {
