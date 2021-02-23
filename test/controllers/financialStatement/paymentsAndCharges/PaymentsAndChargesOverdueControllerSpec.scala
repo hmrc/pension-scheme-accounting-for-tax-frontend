@@ -23,6 +23,7 @@ import data.SampleData._
 import matchers.JsonMatchers
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.requests.IdentifierRequest
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -73,8 +74,7 @@ class PaymentsAndChargesOverdueControllerSpec
       mockPaymentsAndChargesService
     )
 
-    when(mockAppConfig.managePensionsSchemeSummaryUrl)
-      .thenReturn(dummyCall.url)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any()))
       .thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any()))
