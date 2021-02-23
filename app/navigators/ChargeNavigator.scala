@@ -17,16 +17,16 @@
 package navigators
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
+import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
 import models.requests.DataRequest
-import models.{NormalMode, ChargeType, AccessType, UserAnswers}
+import models.{UserAnswers, ChargeType, NormalMode, AccessType}
 import pages._
 import play.api.mvc.{Call, AnyContent}
-import services.{ChargeDService, ChargeEService, AFTService, ChargeGService}
+import services.{ChargeEService, ChargeDService, ChargeGService, AFTService}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -115,7 +115,11 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
 
       case Some(false) =>
-        Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+        request.schemeAdministratorType match {
+          case SchemeAdministratorTypePSA => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+          case SchemeAdministratorTypePSP => Call("GET", config.managePensionsSchemePspUrl.format(srn))
+        }
+
       case _ => sessionExpiredPage
     }
   }
