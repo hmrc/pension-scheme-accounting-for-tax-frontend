@@ -106,17 +106,15 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
             },
             value => {
               val updatedAnswers = request.userAnswers.setOrException(ConfirmSubmitAFTReturnPage, value)
-              userAnswersCacheConnector.save(request.internalId, updatedAnswers.data).flatMap { _ =>
-                val cleanUpResult = if (value) {
-                  Future.successful(())
-                } else {
-                  userAnswersCacheConnector.removeAll(s"$srn$startDate").map(_=>())
-                }
-
-                cleanUpResult.map { _ =>
-                  Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
-                }
+              val updateMongoDBResult = if (value) {
+                userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
+              } else {
+                userAnswersCacheConnector.removeAll(cacheId = s"$srn$startDate")
               }
+
+              updateMongoDBResult.map ( _ =>
+                Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+              )
             }
           )
       }
