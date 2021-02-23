@@ -115,11 +115,12 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
 
       case Some(false) =>
-        request.schemeAdministratorType match {
-          case SchemeAdministratorTypePSA => Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
-          case SchemeAdministratorTypePSP => Call("GET", config.managePensionsSchemePspUrl.format(srn))
+        val dashboardUrl = request.schemeAdministratorType match {
+          case SchemeAdministratorTypePSA => config.managePensionsSchemeSummaryUrl
+          case SchemeAdministratorTypePSP => config.managePensionsSchemePspUrl
         }
 
+        Call("GET", dashboardUrl.format(srn))
       case _ => sessionExpiredPage
     }
   }

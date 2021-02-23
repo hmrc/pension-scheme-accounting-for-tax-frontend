@@ -17,23 +17,23 @@
 package controllers
 
 import java.time.LocalDate
-
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions._
 import forms.ConfirmSubmitAFTReturnFormProvider
+
 import javax.inject.Inject
-import models.{NormalMode, GenericViewModel, AccessType}
+import models.{NormalMode, AccessType, GenericViewModel}
 import navigators.CompoundNavigator
 import pages.ConfirmSubmitAFTReturnPage
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, Radios}
+import uk.gov.hmrc.viewmodels.{Radios, NunjucksSupport}
 import models.LocalDateBinder._
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: MessagesApi,
                                                  userAnswersCacheConnector: UserAnswersCacheConnector,
@@ -108,9 +108,9 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
               val updatedAnswers = request.userAnswers.setOrException(ConfirmSubmitAFTReturnPage, value)
               userAnswersCacheConnector.save(request.internalId, updatedAnswers.data).flatMap { _ =>
                 val cleanUpResult = if (value) {
-                  Future.successful(false)
+                  Future.successful(())
                 } else {
-                  userAnswersCacheConnector.removeAll(s"$srn$startDate").map(_=>true)
+                  userAnswersCacheConnector.removeAll(s"$srn$startDate").map(_=>())
                 }
 
                 cleanUpResult.map { _ =>
