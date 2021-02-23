@@ -36,7 +36,7 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.SchemeFS
-import models.{DisplayYear, FSYears, PaymentOverdue, Year}
+import models.{DisplayYear, FSYears, PaymentOverdue, Quarters, Year}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -91,7 +91,14 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/selectYear.njk", json).map(BadRequest(_))
         },
-        value => Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, value.getYear.toString)))
+        value => {
+          val quartersSeq = paymentsCache.schemeFS.filter(_.periodStartDate.getYear == value.year).map(_.periodStartDate).distinct
+          if (quartersSeq.size == 1) {
+            Future.successful(Redirect(routes.PaymentsAndChargesController.onPageLoad(srn, quartersSeq.head.toString)))
+          } else {
+            Future.successful(Redirect(routes.SelectQuarterController.onPageLoad(srn, value.getYear.toString)))
+          }
+        }
       )
     }
   }

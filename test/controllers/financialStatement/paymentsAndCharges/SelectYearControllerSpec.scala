@@ -39,7 +39,9 @@ import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
@@ -79,7 +81,8 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
     when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any())).thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
+    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
   }
 
   "SelectYear Controller" must {
@@ -99,7 +102,19 @@ class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport w
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
-    "redirect to next page when valid data is submitted" in {
+    "redirect to next page when valid data is submitted and a single quarter is found for the selected year" in {
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(routes.PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString).url)
+    }
+
+    "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
+      val schemeFS = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFS)))
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 

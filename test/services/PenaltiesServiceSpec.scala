@@ -17,14 +17,14 @@
 package services
 
 import java.time.LocalDate
-
 import base.SpecBase
 import config.FrontendAppConfig
 import connectors.cache.FinancialInfoCacheConnector
 import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import data.SampleData.{paymentsCache, psaFsSeq, psaId, schemeFSResponseAftAndOTC}
 import helpers.FormatHelper
 import models.financialStatement.PsaFS
-import models.financialStatement.PsaFSChargeType.{OTC_6_MONTH_LPP, AFT_INITIAL_LFP}
+import models.financialStatement.PsaFSChargeType.{AFT_INITIAL_LFP, OTC_6_MONTH_LPP}
 import models.{ListOfSchemes, ListSchemeDetails, PenaltySchemes}
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -32,9 +32,9 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.i18n.Messages
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
@@ -149,6 +149,57 @@ class PenaltiesServiceSpec extends SpecBase with ScalaFutures with BeforeAndAfte
     }
   }
 
+  "isPaymentOverdue" must {
+    "return true if the amount due is positive and due date is before today" in {
+      val psaFS: PsaFS = psaFsSeq.head
+      penaltiesService.isPaymentOverdue(psaFS) mustBe true
+    }
+
+    "return false if the amount due is negative and due date is before today" in {
+      val psaFS: PsaFS = psaFsSeq.head.copy(amountDue = BigDecimal(0.00))
+      penaltiesService.isPaymentOverdue(psaFS) mustBe false
+    }
+
+    "return true if the amount due is positive and due date is today" in {
+      val psaFS: PsaFS = psaFsSeq.head.copy(dueDate = Some(LocalDate.now()))
+      penaltiesService.isPaymentOverdue(psaFS) mustBe false
+    }
+
+    "return true if the amount due is positive and due date is none" in {
+      val psaFS: PsaFS = psaFsSeq.head.copy(dueDate = None)
+      penaltiesService.isPaymentOverdue(psaFS) mustBe false
+    }
+  }
+
+  "getPenaltiesFromCache" must {
+    "return payload from cache is srn and logged in id match the payload" in {
+      when(mockFIConnector.fetch(any(), any()))
+        .thenReturn(Future.successful(Some(Json.toJson(penaltiesCache))))
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+    }
+
+    "call FS API and save to cache if logged in id does not match the retrieved payload from cache" in {
+      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(penaltiesCache.copy(psaId = "wrong-id")))))
+      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFSResponse()))
+      when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFSResponse() }
+    }
+
+    "call FS API and save to cache if retrieved payload from cache is not in Payments format" in {
+      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(Some(Json.toJson(paymentsCache(schemeFSResponseAftAndOTC)))))
+      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
+      when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+    }
+
+    "call FS API and save to cache if there is no existing payload stored in cache" in {
+      when(mockFIConnector.fetch(any(), any())).thenReturn(Future.successful(None))
+      when(mockFSConnector.getPsaFS(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
+      when(mockFIConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      whenReady(penaltiesService.getPenaltiesFromCache(psaId)){ _ mustBe psaFsSeq }
+    }
+  }
+
 }
 
 object PenaltiesServiceSpec {
@@ -158,6 +209,8 @@ object PenaltiesServiceSpec {
   val srn: String = "S2400000041"
   val dateNow: LocalDate = LocalDate.now()
   val chargeRefIndex: String => String = _ => "0"
+
+  val penaltiesCache: PenaltiesCache = PenaltiesCache(psaId, psaFsSeq)
 
   def psaFSResponse(amountDue: BigDecimal = BigDecimal(0.01), dueDate: LocalDate = dateNow): Seq[PsaFS] = Seq(
     PsaFS(

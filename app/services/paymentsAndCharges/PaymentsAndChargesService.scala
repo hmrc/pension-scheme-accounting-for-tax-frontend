@@ -116,7 +116,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
     }
   }
 
-  def redirectChargeDetailsUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String], chargeDetailsFilter: ChargeDetailsFilter): String =
+  private def redirectChargeDetailsUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String], chargeDetailsFilter: ChargeDetailsFilter): String =
     chargeDetailsFilter match {
       case ChargeDetailsFilter.Upcoming =>
         PaymentsAndChargeDetailsController.onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString).url
@@ -126,7 +126,7 @@ class PaymentsAndChargesService @Inject()(schemeService: SchemeService,
         PaymentsAndChargeDetailsController.onPageLoad(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString).url
     }
 
-  def interestRedirectUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String], chargeDetailsFilter: ChargeDetailsFilter): String =
+  private def interestRedirectUrl(details: SchemeFS, srn: String, chargeRefs: Seq[String], chargeDetailsFilter: ChargeDetailsFilter): String =
     chargeDetailsFilter match {
       case ChargeDetailsFilter.Upcoming =>
         PaymentsAndChargesInterestController.onPageLoadUpcoming(srn, details.periodStartDate, chargeRefs.indexOf(details.chargeReference).toString).url
