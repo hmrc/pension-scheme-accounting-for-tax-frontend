@@ -104,11 +104,20 @@ class ConfirmSubmitAFTReturnController @Inject()(override val messagesApi: Messa
 
               renderer.render(template = "confirmSubmitAFTReturn.njk", json).map(BadRequest(_))
             },
-            value =>
-              for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmSubmitAFTReturnPage, value))
-                _ <- userAnswersCacheConnector.save(request.internalId, updatedAnswers.data)
-              } yield Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+            value => {
+              val updatedAnswers = request.userAnswers.setOrException(ConfirmSubmitAFTReturnPage, value)
+              userAnswersCacheConnector.save(request.internalId, updatedAnswers.data).flatMap { _ =>
+                val cleanUpResult = if (value) {
+                  Future.successful(false)
+                } else {
+                  userAnswersCacheConnector.removeAll(s"$srn$startDate").map(_=>true)
+                }
+
+                cleanUpResult.map { _ =>
+                  Redirect(navigator.nextPage(ConfirmSubmitAFTReturnPage, NormalMode, updatedAnswers, srn, startDate, accessType, version))
+                }
+              }
+            }
           )
       }
     }
