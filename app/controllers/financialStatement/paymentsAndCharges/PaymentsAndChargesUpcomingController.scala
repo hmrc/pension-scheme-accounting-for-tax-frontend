@@ -62,7 +62,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
             "heading" -> heading(startDate),
             "paymentAndChargesTable" -> tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges, srn),
             "schemeName" -> paymentsCache.schemeDetails.schemeName,
-            "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+            "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
           )
           renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesUpcoming.njk", json).map(Ok(_))
 

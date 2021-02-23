@@ -72,7 +72,7 @@ class PaymentsAndChargesOverdueController @Inject()(
                   "heading" -> heading,
                   "paymentAndChargesTable" -> paymentsAndChargesTables,
                   "schemeName" -> paymentsCache.schemeDetails.schemeName,
-                  "returnUrl" -> config.managePensionsSchemeSummaryUrl.format(srn)
+                  "returnUrl" -> config.schemeDashboardUrl(request).format(srn)
                 )
                 renderer.render(template = "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk", json).map(Ok(_))
 
