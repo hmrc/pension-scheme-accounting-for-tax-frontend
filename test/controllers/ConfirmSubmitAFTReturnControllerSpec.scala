@@ -22,6 +22,7 @@ import data.SampleData._
 import forms.ConfirmSubmitAFTReturnFormProvider
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import play.api.mvc.Results.Ok
 import models.requests.IdentifierRequest
 import models.{GenericViewModel, UserAnswers}
 import org.mockito.Matchers.any
@@ -126,9 +127,11 @@ class ConfirmSubmitAFTReturnControllerSpec extends ControllerSpecBase with Nunju
       verify(mockUserAnswersCacheConnector, times(1)).save(any(), any())(any(), any())
     }
 
-    "redirect to the next page when submits with value false" in {
+    "redirect to the next page and remove all user answers data when submits with value false" in {
       mutableFakeDataRetrievalAction.setDataToReturn(userAnswers)
       when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
+      when(mockUserAnswersCacheConnector.removeAll(any())(any(),any()))
+        .thenReturn(Future.successful(Ok))
       when(mockCompoundNavigator.nextPage(any(), any(), any(), any(), any(), any(), any())(any())).thenReturn(onwardRoute)
       val request =
         FakeRequest(POST, confirmSubmitAFTReturnRoute)
