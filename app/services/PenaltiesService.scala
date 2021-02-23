@@ -26,15 +26,15 @@ import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
 import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-
 import java.time.LocalDate
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.{Future, ExecutionContext}
 
 class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,

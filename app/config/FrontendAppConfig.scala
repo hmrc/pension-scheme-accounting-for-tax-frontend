@@ -30,7 +30,7 @@ import uk.gov.hmrc.domain.{PspId, PsaId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig: ServicesConfig) {
+class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: ServicesConfig) {
 
   private def loadConfig(key: String): String =
     configuration.getOptional[String](key).getOrElse(throw new Exception(s"Missing configuration key: $key"))
@@ -74,17 +74,27 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val emailApiUrl: String = servicesConfig.baseUrl("email")
   lazy val emailSendForce: Boolean = configuration.getOptional[Boolean]("email.force").getOrElse(false)
   lazy val aftUrl: String = servicesConfig.baseUrl("pension-scheme-accounting-for-tax")
-  def aftEmailCallback(schemeAdministratorType: SchemeAdministratorType,
-    journeyType: JourneyType.Value,
-    requestId: String,
-    encryptedEmail: String,
-    encryptedPsaId: String
-  ) = s"$aftUrl${configuration.get[String](path = "urls.emailCallback")
-      .format(schemeAdministratorType.toString, journeyType.toString, requestId, encryptedEmail, encryptedPsaId)}"
+
+  def aftEmailCallback(
+                        schemeAdministratorType: SchemeAdministratorType,
+                        journeyType: JourneyType.Value,
+                        requestId: String,
+                        encryptedEmail: String,
+                        encryptedPsaId: String
+                      ) = s"$aftUrl${
+    configuration.get[String](path = "urls.emailCallback")
+      .format(
+        schemeAdministratorType.toString,
+        journeyType.toString,
+        requestId,
+        encryptedEmail,
+        encryptedPsaId
+      )
+  }"
 
   lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend.schemesOverview")).url
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
-  lazy val pensionsAdministratorUrl:String = servicesConfig.baseUrl("pension-administrator")
+  lazy val pensionsAdministratorUrl: String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
   lazy val aftListOfVersions: String = s"$aftUrl${configuration.get[String](path = "urls.aftListOfVersions")}"
   lazy val getAftDetails: String = s"$aftUrl${configuration.get[String](path = "urls.getAFTDetails")}"
@@ -100,7 +110,9 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
   lazy val checkAssociationUrl: String = s"$pensionSchemeUrl${configuration.get[String](path = "urls.checkPsaAssociation")}"
 
   def schemeDashboardUrl(request: DataRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+
   def schemeDashboardUrl(request: IdentifierRequest[_]): String = schemeDashboardUrl(request.psaId, request.pspId)
+
   def schemeDashboardUrl(psaId: Option[PsaId], pspId: Option[PspId]): String =
     (psaId, pspId) match {
       case (Some(_), None) => managePensionsSchemeSummaryUrl
@@ -143,7 +155,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
       DateTimeFormatter.ofPattern("yyyy-MM-dd")
     )
 
-  def featureToggleUrl(toggle:String) : String =
+  def featureToggleUrl(toggle: String): String =
     s"$pensionSchemeUrl${configuration.underlying.getString("urls.featureToggle").format(toggle)}"
 
   lazy val addressLookUp = s"${servicesConfig.baseUrl("address-lookup")}"
@@ -152,4 +164,7 @@ class FrontendAppConfig @Inject() (configuration: Configuration, servicesConfig:
     (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
 
   lazy val isFSEnabled: Boolean = configuration.get[Boolean]("features.is-fs-enabled")
+
+  lazy val gtmContainerId: String = configuration.get[String]("tracking-consent-frontend.gtm.container")
+  lazy val trackingSnippetUrl: String = configuration.get[String]("tracking-consent-frontend.url")
 }
