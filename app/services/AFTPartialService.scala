@@ -370,7 +370,7 @@ class AFTPartialService @Inject()(
     val subHeadingPaymentDue = {
 
       val upcomingCharges: Seq[PsaFS] =
-        psaFs.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
+        psaFs.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
 
 
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
