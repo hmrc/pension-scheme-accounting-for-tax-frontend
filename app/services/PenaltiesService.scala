@@ -40,8 +40,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
                                  listOfSchemesConnector: ListOfSchemesConnector) {
 
-  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
-    (data.dueDate.isDefined && data.dueDate.get.isBefore(DateHelper.today))
+  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
   def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, startDate: LocalDate, chargeRefsIndex: String => String)
