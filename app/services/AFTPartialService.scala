@@ -370,7 +370,7 @@ class AFTPartialService @Inject()(
     val subHeadingPaymentDue = {
 
       val upcomingCharges: Seq[PsaFS] =
-        psaFs.filter(charge => charge.dueDate.nonEmpty && !charge.dueDate.get.isBefore(DateHelper.today))
+        psaFs.filter(charge => charge.dueDate.exists(_.isBefore(DateHelper.today)))
 
 
       val totalUpcoming = upcomingCharges.map(_.amountDue).sum
@@ -390,7 +390,7 @@ class AFTPartialService @Inject()(
 
     val subHeadingTotalOverduePayments = {
       val pastDueDateCharges: Seq[PsaFS] =
-        psaFs.filter(charge =>  charge.dueDate.nonEmpty && charge.dueDate.get.isBefore(DateHelper.today))
+        psaFs.filter(charge =>  charge.dueDate.exists(_.isBefore(DateHelper.today)))
       val totalOverdue: BigDecimal = pastDueDateCharges.map(_.amountDue).sum
       Json.obj(
         "total" -> s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
