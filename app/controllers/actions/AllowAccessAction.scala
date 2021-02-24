@@ -49,35 +49,31 @@ class AllowAccessAction(
                        )
   extends ActionFilter[DataRequest] {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
-
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
-    if (isInvalidDate) {
-      //todo redirect to new error page for invalid dates once it is created
-      Future.successful(Option(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-    } else {
-      request.userAnswers.get(SchemeStatusQuery) match {
-        case Some(schemeStatus) =>
-          if (!validStatuses.contains(schemeStatus)) {
-            errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
-          } else {
-            val idType: String =
-              (request.psaId, request.pspId) match {
-                case (Some(_), _) => "psaId"
-                case (_, Some(_)) => "pspId"
-                case _ => throw new Exception("Unable to get ID from request")
-              }
-            schemeDetailsConnector.checkForAssociation(request.idOrException, srn, idType)(hc, implicitly).flatMap {
-              case true =>
-                associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
-              case _ =>
-                errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
-            }
+    (isInvalidDate, request.userAnswers.get(SchemeStatusQuery)) match {
+      case (false, Some(schemeStatus)) =>
+        if (!validStatuses.contains(schemeStatus)) {
+          errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
+        } else {
+          schemeDetailsConnector.checkForAssociation(request.idOrException, srn, getIdType(request))(hc, implicitly).flatMap {
+            case true =>
+              associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
+            case _ =>
+              errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
           }
-        case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
-      }
+        }
+      //todo redirect to new error page for invalid dates once it is created
+      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+    }
+  }
+
+  private def getIdType[A](request: DataRequest[A]):String = {
+    (request.psaId, request.pspId) match {
+      case (Some(_), _) => "psaId"
+      case (_, Some(_)) => "pspId"
+      case _ => throw new Exception("Unable to get ID from request")
     }
   }
 
