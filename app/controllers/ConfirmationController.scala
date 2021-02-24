@@ -65,7 +65,7 @@ class ConfirmationController @Inject()(
 
   private val logger = Logger(classOf[ConfirmationController])
 
-  private def checkIfFinancialInfoLinkDisplayable(srn: String, year: Int)
+  private def checkIfFinancialInfoLinkDisplayable(srn: String, startDate: LocalDate)
                                                  (implicit request: DataRequest[AnyContent]): Future[Boolean] = {
     if (config.isFSEnabled) {
       schemeService.retrieveSchemeDetails(
@@ -73,7 +73,7 @@ class ConfirmationController @Inject()(
         srn = srn,
         schemeIdType = "srn"
       ) flatMap { schemeDetails =>
-        fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate.getYear == year))
+        fsConnector.getSchemeFS(schemeDetails.pstr).map(_.exists(_.periodStartDate == startDate))
       } recover { case e =>
         logger.error("Exception (not rendered to user) when checking for financial information", e)
         false
@@ -87,7 +87,6 @@ class ConfirmationController @Inject()(
     (identify andThen getData(srn, startDate) andThen requireData andThen
       allowAccess(srn, startDate, None, version, accessType) andThen allowSubmission).async {
       implicit request =>
-        val year = startDate.getYear
         DataRetrievals.retrievePSAAndSchemeDetailsWithAmendment {
           (schemeName, _, email, quarter, isAmendment, amendedVersion) =>
             val quarterStartDate = quarter.startDate.format(dateFormatterStartDate)
@@ -104,11 +103,11 @@ class ConfirmationController @Inject()(
               amendedVersion = if (isAmendment) Some(amendedVersion) else None
             )
 
-            checkIfFinancialInfoLinkDisplayable(srn, year).flatMap { isFinancialInfoLinkDisplayable =>
+            checkIfFinancialInfoLinkDisplayable(srn, startDate).flatMap { isFinancialInfoLinkDisplayable =>
               val optViewPaymentsUrl =
                 if (isFinancialInfoLinkDisplayable) {
                   Json.obj(
-                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, year).url
+                    "viewPaymentsUrl" -> PaymentsAndChargesController.onPageLoad(srn, startDate).url
                   )
                 } else {
                   Json.obj()

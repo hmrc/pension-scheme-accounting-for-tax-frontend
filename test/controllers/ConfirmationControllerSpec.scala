@@ -99,7 +99,7 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
       submitUrl = submitUrl.url,
       returnUrl = controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, QUARTER_START_DATE, accessType, versionInt).url,
       schemeName = SampleData.schemeName),
-    "viewPaymentsUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+    "viewPaymentsUrl" -> controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE).url
   )
 
   private val schemeFSResponseWithDataForDifferentYear: Seq[SchemeFS] = Seq(

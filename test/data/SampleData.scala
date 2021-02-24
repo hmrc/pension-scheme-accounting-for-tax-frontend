@@ -16,6 +16,8 @@
 
 package data
 
+import controllers.financialStatement.paymentsAndCharges.PaymentsAndChargeDetailsControllerSpec.{loggedInId, srn}
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
@@ -33,7 +35,9 @@ import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}
 import play.api.libs.json.Json
 import play.api.mvc.Call
+import services.paymentsAndCharges.PaymentsCache
 import utils.AFTConstants._
+import viewmodels.Table
 
 object SampleData {
   //scalastyle.off: magic.number
@@ -191,6 +195,9 @@ object SampleData {
     AFTOverview(q42020.startDate, q42020.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
   val aftOverviewQ12021: AFTOverview =
     AFTOverview(q12021.startDate, q12021.endDate, numberOfVersions = 1, submittedVersionAvailable = true, compiledVersionAvailable = false)
+
+  val paymentsCache: Seq[SchemeFS] => PaymentsCache = schemeFS => PaymentsCache(psaId, srn, schemeDetails, schemeFS)
+  val emptyChargesTable: Table = Table(None, Nil, firstCellIsHeader = false, Nil, Nil, Nil)
 
   val schemeFSResponseAftAndOTC: Seq[SchemeFS] = Seq(
     SchemeFS(

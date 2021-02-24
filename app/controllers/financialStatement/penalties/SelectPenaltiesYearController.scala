@@ -60,20 +60,26 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
   }
 
   def onSubmit: Action[AnyContent] = identify.async { implicit request =>
-    form(config).bindFromRequest().fold(
-        formWithErrors =>
-
-          service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-
-              val json = Json.obj(
-                "form" -> formWithErrors,
-                "radios" -> FSYears.radios(formWithErrors, getYears(penalties)),
-                "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
-              )
-              renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
+    service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+      form(config).bindFromRequest().fold(
+        formWithErrors => {
+          val json = Json.obj(
+            "form" -> formWithErrors,
+            "radios" -> FSYears.radios(formWithErrors, getYears(penalties)),
+            "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
+          )
+          renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
         },
-        value => Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(value.getYear.toString)))
+      value => {
+        val quartersSeq = penalties.filter(_.periodStartDate.getYear == value.year).map(_.periodStartDate).distinct
+        if (quartersSeq.size == 1) {
+          Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(quartersSeq.head.toString)))
+        } else {
+          Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(value.getYear.toString)))
+        }
+      }
       )
+    }
   }
 
   private def getYears(penalties: Seq[PsaFS]): Seq[DisplayYear] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>

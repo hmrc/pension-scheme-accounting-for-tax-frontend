@@ -16,11 +16,7 @@
 
 package controllers.financialStatement.paymentsAndCharges
 
-import java.time.LocalDate
-
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
@@ -28,33 +24,30 @@ import matchers.JsonMatchers
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, reset, when, verify}
-import org.mockito.{Matchers, ArgumentCaptor}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.libs.json.{Json, JsObject}
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.Helpers.{route, _}
 import play.twirl.api.Html
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers with BeforeAndAfterEach {
 
   import PaymentsAndChargesControllerSpec._
 
-  private def httpPathGET(year: Int = year): String =
-    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, year).url
+  private def httpPathGET(startDate: String = startDate): String =
+    controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate).url
 
-  private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  private val mockFICacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -62,9 +55,6 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[SchemeService].toInstance(mockSchemeService),
-        bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-        bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
       ): _*
     )
@@ -72,17 +62,16 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(mockSchemeService, mockFinancialStatementConnector, mockRenderer, mockPaymentsAndChargesService, mockFICacheConnector)
+    reset(mockRenderer, mockPaymentsAndChargesService)
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
-    when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any())).thenReturn(Future.successful(schemeFSResponse))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any())).thenReturn(Nil)
+    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponse)))
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any())).thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-    when(mockFICacheConnector.save(any())(any(), any())).thenReturn(Future.successful(Json.obj()))
   }
 
   private def expectedJson: JsObject = Json.obj(
-    fields = "seqPaymentsAndChargesTable" -> Nil,
+    fields = "paymentAndChargesTable" -> emptyChargesTable,
     "schemeName" -> schemeDetails.schemeName,
     "returnUrl" -> dummyCall.url
   )
@@ -102,7 +91,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
     }
 
     "redirect to Session Expired page when there is no data for the selected year for a GET" in {
-      val result = route(application, httpGETRequest(httpPathGET(year = 2022))).value
+      val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-01-01"))).value
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustBe controllers.routes.SessionExpiredController.onPageLoad().url
     }
@@ -110,7 +99,7 @@ class PaymentsAndChargesControllerSpec extends ControllerSpecBase with NunjucksS
 }
 
 object PaymentsAndChargesControllerSpec {
-  private val year = 2020
+  private val startDate = "2020-04-01"
   private val srn = "test-srn"
   private def createCharge(startDate: String, endDate: String, chargeReference: String): SchemeFS = {
     SchemeFS(

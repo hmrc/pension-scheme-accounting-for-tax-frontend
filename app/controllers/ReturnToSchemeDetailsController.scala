@@ -43,5 +43,4 @@ class ReturnToSchemeDetailsController @Inject()(
     userAnswersCacheConnector.removeAll(id).map(_ => Redirect(config.schemeDashboardUrl(request).format(srn)))
   }
 
-
 }

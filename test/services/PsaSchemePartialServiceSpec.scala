@@ -130,16 +130,14 @@ class PsaSchemePartialServiceSpec extends SpecBase with MockitoSugar with Before
   "upcomingAftChargesModel" must {
     "return the correct model when there are multiple upcoming charges and past charges" in {
       DateHelper.setDate(Some(LocalDate.of(2021, 1, 1)))
-      when(paymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
-        .thenReturn(upcomingChargesMultiple)
+      when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesMultiple)
 
       service.upcomingAftChargesModel(upcomingChargesMultiple, srn) mustBe upcomingChargesMultipleModel()
     }
 
     "return the correct model when there is a single upcoming charge and no past charges" in {
       DateHelper.setDate(Some(LocalDate.of(2020, 12, 31)))
-      when(paymentsAndChargesService.extractUpcomingCharges[SchemeFS](any(), any()))
-        .thenReturn(upcomingChargesSingle)
+      when(paymentsAndChargesService.extractUpcomingCharges).thenReturn(_ => upcomingChargesSingle)
 
       service.upcomingAftChargesModel(upcomingChargesSingle, srn) mustBe upcomingChargesSingleModel
     }
@@ -182,8 +180,10 @@ object PsaSchemePartialServiceSpec {
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
+  val selectUpcomingChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-upcoming-charges-quarter"
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
-  val viewPastChargesUrl: String = s"$aftUrl/srn/2020/payments-and-charges"
+  val selectOverdueChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-overdue-charges-quarter"
+  val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
 
   private val charge1: SchemeFS = SchemeFS("XYZ", SchemeFSChargeType.PSS_AFT_RETURN, Some(LocalDate.parse(dueDate)), BigDecimal(100.00),
     BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), BigDecimal(100.00), LocalDate.parse(startDate), LocalDate.parse(endDate))
@@ -205,13 +205,15 @@ object PsaSchemePartialServiceSpec {
       LocalDate.parse(startDate).format(smallDatePattern),
       LocalDate.parse(endDate).format(smallDatePattern)),
       Nil,
-    "£100.00"
+    "£100.00",
+    viewUpcomingChargesUrl
   )
 
   def upcomingChargesMultipleModel(upcomingChargesSubHeading: String = "pspDashboardUpcomingAftChargesCard.span.multipleDueDate",
                                    upcomingLinkText: Text = msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
                                    pastLink: Seq[Link] = upcomingPastChargesLink,
-                                   amount: String = "£300.00")
+                                   amount: String = "£300.00",
+                                   upcomingLink: String = selectUpcomingChargesQuarterUrl)
                                   (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "upcoming-aft-charges",
     heading = messages("pspDashboardUpcomingAftChargesCard.h2"),
@@ -225,7 +227,7 @@ object PsaSchemePartialServiceSpec {
     )),
     Seq(Link(
       id = "upcoming-payments-and-charges",
-      url = viewUpcomingChargesUrl,
+      url = upcomingLink,
       linkText = upcomingLinkText,
       hiddenText = None
     )) ++ pastLink)
@@ -236,11 +238,13 @@ object PsaSchemePartialServiceSpec {
     msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.singlePeriod"
       .withArgs(LocalDate.parse(startDate).format(smallDatePattern),
         LocalDate.parse(endDate).format(smallDatePattern)
-      ))
+      ),
+    viewOverdueChargesUrl)
 
 
   def overdueChargesModel(totalOverdue: BigDecimal = BigDecimal(300.00), totalInterestAccruing: BigDecimal = BigDecimal(300.00),
-                          overdueLinkText: Text = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods")
+                          overdueLinkText: Text = msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
+                          link: String = selectOverdueChargesQuarterUrl)
                          (implicit messages: Messages): Seq[CardViewModel] = Seq(CardViewModel(
     id = "aft-overdue-charges",
     heading = messages("pspDashboardOverdueAftChargesCard.h2"),
@@ -269,7 +273,7 @@ object PsaSchemePartialServiceSpec {
     ),
     links = Seq(Link(
       id = "overdue-payments-and-charges",
-      url = viewOverdueChargesUrl,
+      url = link,
       linkText = overdueLinkText,
       hiddenText = None
     ))

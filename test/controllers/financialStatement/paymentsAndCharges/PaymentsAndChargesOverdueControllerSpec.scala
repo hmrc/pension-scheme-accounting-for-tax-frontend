@@ -17,17 +17,16 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
-import connectors.cache.FinancialInfoCacheConnector
 import controllers.actions.{FakeIdentifierAction, IdentifierAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
+import models.requests.IdentifierRequest
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
-import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
 import play.api.inject.bind
@@ -55,8 +54,6 @@ class PaymentsAndChargesOverdueControllerSpec
     controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesOverdueController.onPageLoad(srn, startDate).url
 
   private val mockSchemeService: SchemeService = mock[SchemeService]
-  private val mockFinancialStatementConnector: FinancialStatementConnector = mock[FinancialStatementConnector]
-  private val mockFICacheConnector: FinancialInfoCacheConnector = mock[FinancialInfoCacheConnector]
   private val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   private val application: Application = new GuiceApplicationBuilder()
     .overrides(
@@ -64,9 +61,6 @@ class PaymentsAndChargesOverdueControllerSpec
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[SchemeService].toInstance(mockSchemeService),
-        bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector),
-        bind[FinancialInfoCacheConnector].toInstance(mockFICacheConnector),
         bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
       ): _*
     )
@@ -76,27 +70,20 @@ class PaymentsAndChargesOverdueControllerSpec
     super.beforeEach
     reset(
       mockSchemeService,
-      mockFinancialStatementConnector,
       mockRenderer,
-      mockPaymentsAndChargesService,
-      mockFICacheConnector
+      mockPaymentsAndChargesService
     )
 
-    when(mockAppConfig.managePensionsSchemeSummaryUrl)
-      .thenReturn(dummyCall.url)
-    when(mockSchemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-      .thenReturn(Future.successful(schemeDetails))
-    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any(), any())(any()))
-      .thenReturn(Nil)
+    when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
+    when(mockPaymentsAndChargesService.getPaymentsAndCharges(Matchers.eq(srn), any(), any())(any()))
+      .thenReturn(emptyChargesTable)
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))
-    when(mockFICacheConnector.save(any())(any(), any()))
-      .thenReturn(Future.successful(Json.obj()))
   }
 
-  private def expectedJson(heading: String): JsObject = Json.obj(
-    "heading" -> heading,
-    "overduePaymentsAndCharges" -> Nil,
+  private def expectedJson: JsObject = Json.obj(
+    "heading" -> "Payments and charges for 1 October to 31 December 2020",
+    "paymentAndChargesTable" -> emptyChargesTable,
     "schemeName" -> schemeDetails.schemeName,
     "returnUrl" -> dummyCall.url
   )
@@ -104,8 +91,8 @@ class PaymentsAndChargesOverdueControllerSpec
   "PaymentsAndChargesController for a GET" must {
 
     "return OK and the correct view with filtered payments and charges information for single period" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseSinglePeriod))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseSinglePeriod)))
       when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(schemeFSResponseSinglePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -117,14 +104,12 @@ class PaymentsAndChargesOverdueControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk"
-      jsonCaptor.getValue must containJson(
-        expectedJson("Payments and charges for 1 October to 31 December 2020")
-      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "return OK and the correct view with filtered payments and charges information for multiple periods" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(schemeFSResponseMultiplePeriod))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseMultiplePeriod)))
       when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(schemeFSResponseMultiplePeriod)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -136,14 +121,12 @@ class PaymentsAndChargesOverdueControllerSpec
         .render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       templateCaptor.getValue mustEqual "financialStatement/paymentsAndCharges/paymentsAndChargesOverdue.njk"
-      jsonCaptor.getValue must containJson(
-        expectedJson("Overdue payments and charges")
-      )
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "redirect to Session Expired page when there is no data for the selected year" in {
-      when(mockFinancialStatementConnector.getSchemeFS(any())(any(), any()))
-        .thenReturn(Future.successful(Seq.empty))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(Seq.empty)))
       when(mockPaymentsAndChargesService.getOverdueCharges(any()))
         .thenReturn(Seq.empty)
       val result = route(application, httpGETRequest(httpPathGET(startDate = "2022-10-01"))).value

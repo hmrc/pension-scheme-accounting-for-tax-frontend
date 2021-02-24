@@ -17,11 +17,9 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import connectors.FinancialStatementConnector
 import controllers.actions._
 import helpers.FormatHelper
 import models.LocalDateBinder._
-import models.SchemeDetails
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
 import models.requests.IdentifierRequest
@@ -30,7 +28,6 @@ import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
-import services.SchemeService
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -46,8 +43,6 @@ class PaymentsAndChargeDetailsController @Inject()(
                                                     identify: IdentifierAction,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
-                                                    schemeService: SchemeService,
-                                                    fsConnector: FinancialStatementConnector,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
                                                     renderer: Renderer
                                                   )(implicit ec: ExecutionContext)
@@ -59,128 +54,68 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFS =>
-              val schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
-                paymentsAndChargesService
-                  .groupAndSortByStartDate(schemeFS, startDate.getYear)
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-              buildPage(
-                schemeFSGroupedAndSorted = schemeFSGroupedAndSorted,
-                startDate = startDate,
-                index = index,
-                schemeDetails = schemeDetails,
-                srn = srn
-              )
-          }
+        val schemeFS = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+
+        buildPage(schemeFS, startDate, index, paymentsCache.schemeDetails.schemeName, srn)
       }
   }
 
   def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFS =>
-              val upcomingSchemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
-                paymentsAndChargesService.groupAndSortByStartDate(
-                  paymentsAndChargesService.extractUpcomingCharges[SchemeFS](schemeFS, _.dueDate),
-                  startDate.getYear
-                )
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-              buildPage(
-                schemeFSGroupedAndSorted = upcomingSchemeFSGroupedAndSorted,
-                startDate = startDate,
-                index = index,
-                schemeDetails = schemeDetails,
-                srn = srn
-              )
-          }
+        val schemeFS: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+        val upcomingCharges: Seq[SchemeFS] = paymentsAndChargesService.extractUpcomingCharges(schemeFS)
+
+        buildPage(upcomingCharges, startDate, index, paymentsCache.schemeDetails.schemeName, srn)
       }
   }
 
   def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
     implicit request =>
-      schemeService.retrieveSchemeDetails(
-        psaId = request.idOrException,
-        srn = srn,
-        schemeIdType = "srn"
-      ) flatMap {
-        schemeDetails =>
-          fsConnector.getSchemeFS(schemeDetails.pstr).flatMap {
-            schemeFS =>
-              val overdueSchemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])] =
-                paymentsAndChargesService
-                  .groupAndSortByStartDate(paymentsAndChargesService.getOverdueCharges(schemeFS), startDate.getYear)
+      paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
-              buildPage(
-                schemeFSGroupedAndSorted = overdueSchemeFSGroupedAndSorted,
-                startDate = startDate,
-                index = index,
-                schemeDetails = schemeDetails,
-                srn = srn
-              )
-          }
+        val schemeFS: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
+        val overdueCharges: Seq[SchemeFS] = paymentsAndChargesService.getOverdueCharges(schemeFS)
+
+        buildPage(overdueCharges, startDate, index, paymentsCache.schemeDetails.schemeName, srn)
       }
   }
 
   private def buildPage(
-                         schemeFSGroupedAndSorted: Seq[(LocalDate, Seq[SchemeFS])],
+                         filteredCharges: Seq[SchemeFS],
                          startDate: LocalDate,
                          index: String,
-                         schemeDetails: SchemeDetails,
+                         schemeName: String,
                          srn: String
                        )(
                          implicit request: IdentifierRequest[AnyContent]
                        ): Future[Result] = {
 
-    val chargeRefsGroupedAndSorted: Seq[(LocalDate, Seq[String])] =
-      schemeFSGroupedAndSorted.map(
-        dateAndFs => {
-          val (date, schemeFs) = dateAndFs
-          (date, schemeFs.map(_.chargeReference))
-        }
-      )
+    val chargeRefs: Seq[String] = filteredCharges.map(_.chargeReference)
 
-    (
-      schemeFSGroupedAndSorted.find(_._1 == startDate),
-      chargeRefsGroupedAndSorted.find(_._1 == startDate)
-    ) match {
-      case (Some(Tuple2(_, seqSchemeFs)), Some(Tuple2(_, seqChargeRefs))) =>
-        try {
-          seqSchemeFs.find(_.chargeReference == seqChargeRefs(index.toInt)) match {
-            case Some(schemeFs) =>
-              renderer.render(
-                template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
-                ctx = summaryListData(srn, startDate, schemeFs, schemeDetails.schemeName, index, request.psaId, request.pspId)
-              ).map(Ok(_))
-            case _ =>
-              logger.warn(
-                s"No Payments and Charge details found for the " +
-                  s"selected charge reference ${seqChargeRefs(index.toInt)}"
-              )
-              Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          }
-        } catch {
-          case _: IndexOutOfBoundsException =>
-            logger.warn(
-              s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
-                s"index $startDate/$index of attempted"
-            )
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-        }
-      case _ =>
-        Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    if (chargeRefs.size > index.toInt) {
+      filteredCharges.find(_.chargeReference == chargeRefs(index.toInt)) match {
+        case Some(schemeFs) =>
+          renderer.render(
+            template = "financialStatement/paymentsAndCharges/paymentsAndChargeDetails.njk",
+            ctx = summaryListData(srn, startDate, schemeFs, schemeName, index, request.psaId, request.pspId)
+          ).map(Ok(_))
+        case _ =>
+          logger.warn(
+            s"No Payments and Charge details found for the " +
+              s"selected charge reference ${chargeRefs(index.toInt)}"
+          )
+          Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      }
+    } else {
+      logger.warn(
+        s"[paymentsAndCharges.PaymentsAndChargeDetailsController][IndexOutOfBoundsException]:" +
+          s"index $startDate/$index of attempted"
+      )
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
     }
   }
 

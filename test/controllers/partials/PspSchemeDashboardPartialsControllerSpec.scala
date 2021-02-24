@@ -113,13 +113,8 @@ class PspSchemeDashboardPartialsControllerSpec
       "return the html with the information for AFT returns and upcoming charges" in {
 
         when(
-          mockAftPartialService.retrievePspDashboardAftReturnsModel(
-            srn = any(),
-            pspId = any(),
-            schemeIdType = any(),
-            authorisingPsaId = any()
-          )(any(), any())
-        ).thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
+          mockAftPartialService.retrievePspDashboardAftReturnsModel(any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(pspDashboardAftReturnsViewModel))
 
         when(mockAftPartialService.retrievePspDashboardUpcomingAftChargesModel(any(), any())(any()))
           .thenReturn(pspDashboardUpcomingAftChargesViewModel)

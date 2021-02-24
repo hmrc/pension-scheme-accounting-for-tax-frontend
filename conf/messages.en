@@ -26,6 +26,7 @@ site.action = Action
 site.view.link = View link
 site.remove.link = Remove link
 site.return_to_overview = Return to overview
+return.to.link = Return to {0}
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
@@ -151,7 +152,6 @@ dob.error.incomplete = The member’s date of birth must include a day, month an
 dob.error.future = The member’s date of birth must be in the past
 dob.error.past = The member’s date of birth must be after 31 12 1899
 
-return.to.link = Return to {0}
 viewAllSubmissionsForReturn = View all submissions for this AFT return
 
 chargeDetails.amount.label = Amount of tax due at 40%
@@ -1097,7 +1097,7 @@ paymentsAndCharges.reflect.charge.text = Amounts due may not reflect payments ma
 paymentsAndCharges.caption = {0} to {1}
 paymentsAndCharges.visuallyHiddenText = for charge reference {0}
 paymentsAndCharges.interest.visuallyHiddenText = for charge reference to come
-paymentsAndCharges.h1 = Payments and charges for 2020
+paymentsAndCharges.h1 = Payments and charges for {0} to {1}
 paymentsAndCharges.chargeReference.toBeAssigned = To be assigned
 paymentsAndCharges.chargeType.table = Charge type
 paymentsAndCharges.totalDue.table = Amount due
@@ -1134,9 +1134,9 @@ paymentsAndCharges.interest.hint = This interest charge was the result of late p
 paymentsAndCharges.interest.chargeReference.text2 = in full. You can only pay the interest once a charge reference has been generated.
 paymentsAndCharges.viewReturnHistory = View the AFT return for this quarter
 
-selectScheme.title = Select a pension scheme
+selectScheme.title = Which scheme do you want to view penalties for?
 selectScheme.text = Any schemes with which you are no longer associated will only show as PSTR numbers
-selectScheme.error = Select a pension scheme
+selectScheme.error = Select which scheme you want to view penalties for
 
 enterPsaId.title = What is the pension scheme administrator’s ID?
 enterPsaId.p1 = Enter the ID of the pension scheme administrator who authorised you to this scheme
@@ -1152,3 +1152,12 @@ selectPenaltiesYear.title = Which year do you want to view scheme penalties for?
 selectPenaltiesYear.error = Select which year you want to view scheme penalties for
 selectPenaltiesQuarter.title = Which quarter of {0} do you want to view scheme penalties for?
 selectPenaltiesQuarter.error = Select which quarter you want to view scheme penalties for
+
+selectChargesYear.title = Which year do you want to view charges for?
+selectChargesYear.error = Select which year you want to view charges for
+selectChargesQuarter.title = Which quarter of {0} do you want to view the charges for?
+selectChargesQuarter.error = Select which quarter of {0} you want to view charges for
+selectOverdueChargesQuarter.title = Which quarter do you want to view overdue payments and interest charges for?
+selectOverdueChargesQuarter.error = Select which quarter you want to view overdue payments and interest charges for
+selectUpcomingChargesQuarter.title = Which quarter do you want to view upcoming payments for?
+selectUpcomingChargesQuarter.error = Select which quarter you want to view upcoming payments and interest charges for

@@ -110,13 +110,14 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
 
   def values(displayQuarters: Seq[DisplayQuarter]): Seq[Quarter] = displayQuarters.map(_.quarter)
 
-  def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter], hintClass: Seq[String] = Nil)(implicit messages: Messages): Seq[Radios.Item] = {
+  def radios(form: Form[_], displayQuarters: Seq[DisplayQuarter], hintClass: Seq[String] = Nil, areLabelsBold: Boolean = true)
+            (implicit messages: Messages): Seq[Radios.Item] = {
     val x: Seq[Radio] = displayQuarters.map { displayQuarter =>
 
       Radios.Radio(label = getLabel(displayQuarter),
         value = displayQuarter.quarter.toString,
         hint = getHint(displayQuarter, hintClass),
-        labelClasses = Some(LabelClasses(classes = Seq("govuk-!-font-weight-bold"))))
+        labelClasses = Some(LabelClasses(classes = if(areLabelsBold) Seq("govuk-!-font-weight-bold") else Nil)))
     }
 
     Radios(form("value"), x)

@@ -24,12 +24,13 @@ import models.LocalDateBinder._
 import models.financialStatement.PsaFS
 import models.{ListSchemeDetails, PenaltySchemes}
 import play.api.i18n.Messages
-import play.api.libs.json.{Json, OFormat, JsObject}
+import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
+import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
 import java.time.LocalDate
 
@@ -39,8 +40,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
                                  listOfSchemesConnector: ListOfSchemesConnector) {
 
-  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) &&
-    (data.dueDate.isDefined && data.dueDate.get.isBefore(LocalDate.now()))
+  val isPaymentOverdue: PsaFS => Boolean = data => data.amountDue > BigDecimal(0.00) && data.dueDate.exists(_.isBefore(LocalDate.now()))
 
   //PENALTIES
   def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, startDate: LocalDate, chargeRefsIndex: String => String)
@@ -56,7 +56,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
     val rows = penalties.filter(_.periodStartDate == startDate).map {
       data =>
 
-          val content = chargeTypeLink(identifier, data, startDate, chargeRefsIndex(data.chargeReference))
+         val content = chargeTypeLink(identifier, data, startDate, chargeRefsIndex(data.chargeReference))
             Seq(
               Cell(content, classes = Seq("govuk-!-width-two-thirds-quarter")),
               Cell(Literal(s"${FormatHelper.formatCurrencyAmountAsString(data.amountDue)}"),
@@ -65,8 +65,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
               statusCell(data)
             )
         }
-
-        Json.obj(
+    Json.obj(
           "penaltyTable" -> Table(head = head, rows = rows, attributes = Map("role" -> "table"))
         )
   }
@@ -196,7 +195,11 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   def getPenaltiesFromCache(psaId: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[PsaFS]] =
     fiCacheConnector.fetch flatMap {
-      case Some(jsValue) if jsValue.as[PenaltiesCache].psaId == psaId => Future.successful(jsValue.as[PenaltiesCache].penalties)
+      case Some(jsValue) =>
+        jsValue.validate[PenaltiesCache] match {
+          case JsSuccess(value, _) if value.psaId == psaId => Future.successful(value.penalties)
+          case _ => saveAndReturnPenalties(psaId)
+        }
       case _ => saveAndReturnPenalties(psaId)
     }
 

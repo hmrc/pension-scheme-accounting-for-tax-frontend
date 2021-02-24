@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.Reads._
-import play.api.libs.json.{Reads, JsPath}
+import play.api.libs.json.{JsPath, Json, OFormat, Reads}
 
 case class SchemeDetails(schemeName: String, pstr: String, schemeStatus: String, authorisingPSAID: Option[String])
 
@@ -42,4 +42,8 @@ object SchemeDetails {
       )(
       (schemeName, pstr, status, authorisingPSAID) => SchemeDetails(schemeName, pstr, status, Some(authorisingPSAID))
     )
+
+
+    implicit val format: OFormat[SchemeDetails] = Json.format[SchemeDetails]
+
 }

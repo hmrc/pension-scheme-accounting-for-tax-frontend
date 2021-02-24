@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package controllers.financialStatement.penalties
+package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
 import controllers.actions.MutableFakeDataRetrievalAction
 import controllers.base.ControllerSpecBase
 import data.SampleData._
-import forms.QuartersFormProvider
+import forms.YearsFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayYear, Enumerable, FSYears, PaymentOverdue, Year}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -37,44 +37,42 @@ import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Results
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
-import services.PenaltiesService
+import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import utils.AFTConstants.QUARTER_START_DATE
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
-class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
+class SelectYearControllerSpec extends ControllerSpecBase with NunjucksSupport with JsonMatchers
   with BeforeAndAfterEach with Enumerable.Implicits with Results with ScalaFutures {
 
   implicit val config: FrontendAppConfig = mockAppConfig
-  val mockPenaltiesService: PenaltiesService = mock[PenaltiesService]
+  val mockPaymentsAndChargesService: PaymentsAndChargesService = mock[PaymentsAndChargesService]
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
-    bind[PenaltiesService].toInstance(mockPenaltiesService)
+    bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+  )
+
+  private val years: Seq[DisplayYear] = Seq(DisplayYear(2020, Some(PaymentOverdue)))
+
+  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
+  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
+  val templateToBeRendered = "financialStatement/paymentsAndCharges/selectYear.njk"
+  val formProvider = new YearsFormProvider()
+  val form: Form[Year] = formProvider()
+
+  lazy val httpPathGET: String = routes.SelectYearController.onPageLoad(srn).url
+  lazy val httpPathPOST: String = routes.SelectYearController.onSubmit(srn).url
+
+  private val jsonToPassToTemplate: Form[Year] => JsObject = form => Json.obj(
+    "form" -> form,
+    "radios" -> FSYears.radios(form, years),
+    "schemeName" -> schemeName
   )
 
   private val year = "2020"
 
-  private val quarters: Seq[Quarter] = Seq(q32020, q42020)
-  private val displayQuarters: Seq[DisplayQuarter] = Seq(
-    DisplayQuarter(q32020, displayYear = false, None, Some(PaymentOverdue)),
-    DisplayQuarter(q42020, displayYear = false, None, Some(PaymentOverdue))
-  )
-
-  private val mutableFakeDataRetrievalAction: MutableFakeDataRetrievalAction = new MutableFakeDataRetrievalAction()
-  private val application: Application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-  val templateToBeRendered = "financialStatement/penalties/selectQuarter.njk"
-  val formProvider = new QuartersFormProvider()
-  val form: Form[Quarter] = formProvider("selectPenaltiesQuarter.error", quarters)
-
-  lazy val httpPathGET: String = routes.SelectPenaltiesQuarterController.onPageLoad(year).url
-  lazy val httpPathPOST: String = routes.SelectPenaltiesQuarterController.onSubmit(year).url
-
-  private val jsonToPassToTemplate: Form[Quarter] => JsObject = form => Json.obj(
-    "form" -> form,
-    "radios" -> Quarters.radios(form, displayQuarters, Seq("govuk-tag govuk-tag--red govuk-!-display-inline"), areLabelsBold = false),
-    "submitUrl" -> httpPathPOST
-  )
-
-  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(q32020.toString))
+  private val valuesValid: Map[String, Seq[String]] = Map("value" -> Seq(year))
   private val valuesInvalid: Map[String, Seq[String]] = Map("year" -> Seq("20"))
 
   override def beforeEach: Unit = {
@@ -82,11 +80,12 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
     when(mockUserAnswersCacheConnector.save(any(), any())(any(), any())).thenReturn(Future.successful(Json.obj()))
     when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
     when(mockAppConfig.schemeDashboardUrl(any(): IdentifierRequest[_])).thenReturn(dummyCall.url)
-    when(mockPenaltiesService.isPaymentOverdue).thenReturn(_ => true)
-    when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFsSeq))
+    when(mockPaymentsAndChargesService.isPaymentOverdue).thenReturn(_ => true)
+    when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+      .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC)))
   }
 
-  "SelectPenaltiesQuarter Controller" must {
+  "SelectYear Controller" must {
     "return OK and the correct view for a GET" in {
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -103,13 +102,25 @@ class SelectPenaltiesQuarterControllerSpec extends ControllerSpecBase with Nunju
       jsonCaptor.getValue must containJson(jsonToPassToTemplate.apply(form))
     }
 
-    "redirect to next page when valid data is submitted" in {
+    "redirect to next page when valid data is submitted and a single quarter is found for the selected year" in {
 
       val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result) mustBe Some(routes.SelectSchemeController.onPageLoad(q32020.startDate.toString).url)
+      redirectLocation(result) mustBe Some(routes.PaymentsAndChargesController.onPageLoad(srn, QUARTER_START_DATE.toString).url)
+    }
+
+    "redirect to next page when valid data is submitted and multiple quarters are found for the selected year" in {
+      val schemeFS = schemeFSResponseAftAndOTC.head.copy(periodStartDate = LocalDate.parse("2020-07-01"))
+      when(mockPaymentsAndChargesService.getPaymentsFromCache(any(), any())(any(), any()))
+        .thenReturn(Future.successful(paymentsCache(schemeFSResponseAftAndOTC :+ schemeFS)))
+
+      val result = route(application, httpPOSTRequest(httpPathPOST, valuesValid)).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result) mustBe Some(routes.SelectQuarterController.onPageLoad(srn, year).url)
     }
 
     "return a BAD REQUEST when invalid data is submitted" in {

@@ -5,7 +5,7 @@
 {% from "govuk/components/table/macro.njk" import govukTable %}
 
 {% block pageTitle %}
-  {{ title(messages("paymentsAndCharges.h1")) }}
+  {{ title(messages("paymentsAndCharges.h1", startDate, endDate)) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -14,20 +14,17 @@
       <div class="govuk-grid-column-two-thirds">
 
         {{ hmrcPageHeading({
-          text: messages("paymentsAndCharges.h1"),
+          text: messages("paymentsAndCharges.h1", startDate, endDate),
           section: schemeName
         }) }}
 
         <p class="govuk-body">{{ messages("paymentsAndCharges.reflect.charge.text") }}</p>
 
-        {% for paymentAndChargesTable in seqPaymentsAndChargesTable %}
-            {% if paymentAndChargesTable.table.rows.length > 0 %}
-                <h2 id="paymentAndCharges_h2" class="govuk-heading-m">{{ paymentAndChargesTable.caption }}</h2>
+            {% if paymentAndChargesTable.rows.length > 0 %}
                  <div role="region" aria-labelledby="paymentAndCharges_h2" class="govuk-!-margin-bottom-7" tabindex="0">
-                    {{ govukTable(paymentAndChargesTable.table) }}
+                    {{ govukTable(paymentAndChargesTable) }}
                 </div>
             {% endif %}
-        {% endfor %}
 
       </div>
     </div>

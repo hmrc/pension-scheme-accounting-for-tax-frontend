@@ -16,9 +16,6 @@
 
 package services
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import base.SpecBase
 import connectors.AFTConnector
 import connectors.cache.UserAnswersCacheConnector
@@ -35,9 +32,11 @@ import play.api.libs.json.Json
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.viewmodels._
 import utils.DateHelper
-import viewmodels.{Link, AFTViewModel, DashboardAftViewModel}
+import viewmodels.{AFTViewModel, DashboardAftViewModel, Link}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import scala.concurrent.{ExecutionContext, Future}
 
 class AFTPartialServiceSpec
   extends SpecBase
@@ -51,16 +50,15 @@ class AFTPartialServiceSpec
   private val aftConnector = mock[AFTConnector]
 
   private val aftCacheConnector = mock[UserAnswersCacheConnector]
-  private val schemeService = mock[SchemeService]
   private val paymentsAndChargesService = mock[PaymentsAndChargesService]
 
   override def beforeEach: Unit = {
     super.beforeEach
-    reset(schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
+    reset(paymentsAndChargesService, aftConnector, aftCacheConnector)
   }
 
   def service: AFTPartialService =
-    new AFTPartialService(frontendAppConfig, schemeService, paymentsAndChargesService, aftConnector, aftCacheConnector)
+    new AFTPartialService(frontendAppConfig, paymentsAndChargesService, aftConnector, aftCacheConnector)
 
  "retrievePspDashboardAftReturnsModel" must {
     "return overview api returns multiple returns in progress, " +
@@ -70,10 +68,8 @@ class AFTPartialServiceSpec
         .thenReturn(Future.successful(allTypesMultipleReturnsPresent))
       when(aftConnector.aftOverviewStartDate).thenReturn(LocalDate.of(2020, 4, 1))
       when(aftConnector.aftOverviewEndDate).thenReturn(LocalDate.of(2021, 6, 30))
-      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
 
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
         _ mustBe pspDashboardAftReturnsViewModel
       }
     }
@@ -86,10 +82,7 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
-
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = false,
           h3 = "In progress",
@@ -107,10 +100,7 @@ class AFTPartialServiceSpec
       when(aftCacheConnector.lockDetail(any(), any())(any(), any()))
         .thenReturn(Future.successful(Some(LockDetail(name, psaId))))
 
-      when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-        .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
-
-      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+      whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
         _ mustBe pspDashboardOneInProgressModelWithLocking(
           locked = true,
           h3 = "Locked by test-name",
@@ -135,10 +125,7 @@ class AFTPartialServiceSpec
         when(aftConnector.getIsAftNonZero(any(), Matchers.eq("2020-04-01"), any())(any(), any()))
           .thenReturn(Future.successful(true))
 
-        when(schemeService.retrieveSchemeDetails(any(), any(), any())(any(), any()))
-          .thenReturn(Future.successful(SchemeDetails("test-name", pstr, "Open", None)))
-
-        whenReady(service.retrievePspDashboardAftReturnsModel(srn, pspId, "srn", psaId)) {
+        whenReady(service.retrievePspDashboardAftReturnsModel(srn, pstr, psaId)) {
           _ mustBe pspDashboardOneCompileZeroedOutModel
         }
       }
@@ -181,7 +168,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
+              url = selectUpcomingChargesQuarterUrl,
               linkText =
                 msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
               hiddenText = None
@@ -231,7 +218,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "upcoming-payments-and-charges",
-              url = viewUpcomingChargesUrl,
+              url = selectUpcomingChargesQuarterUrl,
               linkText =
                 msg"pspDashboardUpcomingAftChargesCard.link.paymentsAndChargesForPeriod.multiple",
               hiddenText = None
@@ -325,7 +312,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
+              url = selectOverdueChargesQuarterUrl,
               linkText =
                 msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
               hiddenText = None
@@ -352,7 +339,7 @@ class AFTPartialServiceSpec
           links = Seq(
             Link(
               id = "overdue-payments-and-charges",
-              url = viewOverdueChargesUrl,
+              url = selectOverdueChargesQuarterUrl,
               linkText =
                 msg"pspDashboardOverdueAftChargesCard.viewOverduePayments.link.multiplePeriods",
               hiddenText = None
@@ -466,8 +453,10 @@ object AFTPartialServiceSpec {
   val aftSummaryUrl: String = s"$aftUrl/srn/2020-10-01/draft/2/summary"
   val continueUrl: String = s"$aftUrl/srn/new-return/select-quarter-in-progress"
   val viewUpcomingChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/upcoming-payments-and-charges"
+  val selectUpcomingChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-upcoming-charges-quarter"
   val viewOverdueChargesUrl: String = s"$aftUrl/srn/payments-and-charges/2020-10-01/overdue-payments-and-charges"
-  val viewPastChargesUrl: String = s"$aftUrl/srn/2020/payments-and-charges"
+  val selectOverdueChargesQuarterUrl: String = s"$aftUrl/srn/payments-and-charges/select-overdue-charges-quarter"
+  val viewPastChargesUrl: String = s"$aftUrl/srn/past-payments-logic"
 
   def startModel: AFTViewModel = AFTViewModel(None, None,
     Link(id = "aftLoginLink", url = aftLoginUrl,
