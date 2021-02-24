@@ -21,7 +21,6 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
-import models.SchemeAdministratorType.{SchemeAdministratorTypePSA, SchemeAdministratorTypePSP}
 import models.requests.DataRequest
 import models.{UserAnswers, ChargeType, NormalMode, AccessType}
 import pages._
@@ -115,12 +114,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
 
       case Some(false) =>
-        val dashboardUrl = request.schemeAdministratorType match {
-          case SchemeAdministratorTypePSA => config.managePensionsSchemeSummaryUrl
-          case SchemeAdministratorTypePSP => config.managePensionsSchemePspUrl
-        }
-
-        Call("GET", dashboardUrl.format(srn))
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)
       case _ => sessionExpiredPage
     }
   }
