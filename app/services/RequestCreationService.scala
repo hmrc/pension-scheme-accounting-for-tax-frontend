@@ -139,17 +139,11 @@ class RequestCreationService @Inject()(
                                               ec: ExecutionContext,
                                               request: IdentifierRequest[A]
                                             ): Future[UserAnswers] = {
-    val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
-    (uaWithStatus.get(EmailQuery), uaWithStatus.get(NameQuery)) match {
-      case (Some(_), Some(_)) =>
-        Future.successful(uaWithStatus)
-      case _ =>
-        minimalConnector.getMinimalDetails.map { minimalDetails =>
-          uaWithStatus
-            .setOrException(EmailQuery, minimalDetails.email)
-            .setOrException(NameQuery, minimalDetails.name)
-            .setOrException(MinimalFlagsQuery, MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag))
-        }
+    minimalConnector.getMinimalDetails.map { minimalDetails =>
+      ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
+        .setOrException(EmailQuery, minimalDetails.email)
+        .setOrException(NameQuery, minimalDetails.name)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag))
     }
   }
 

@@ -53,7 +53,9 @@ class MinimalConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
         response.status match {
           case OK =>
             Json.parse(response.body).validate[MinimalDetails] match {
-              case JsSuccess(value, _) => value
+              case JsSuccess(value, _) =>
+              println("\nHERE:" + value)
+                value
               case JsError(errors) => throw JsResultException(errors)
             }
           case _ =>
