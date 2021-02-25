@@ -115,9 +115,42 @@ class AllowAccessAction(
   }
 }
 
+class AllowAccessActionTemp(
+                         frontendAppConfig: FrontendAppConfig,
+                       )(
+                         implicit val executionContext: ExecutionContext
+                       )
+  extends ActionFilter[DataRequest] {
+  override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
+    implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+
+    minimalFlagChecks(request) match {
+      case optionRedirectUrl@Some(_) => Future.successful(optionRedirectUrl)
+      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+    }
+  }
+
+  private def minimalFlagChecks[A](request:DataRequest[A]):Option[Result] = {
+    request.userAnswers.get(MinimalFlagsQuery) match {
+      case None => Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+      case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
+      case Some(MinimalFlags(_, true)) =>
+        Some(Redirect(
+          if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
+            frontendAppConfig.psaUpdateContactDetailsUrl
+          } else {
+            frontendAppConfig.pspUpdateContactDetailsUrl
+          }
+        ))
+      case _ => None
+    }
+  }
+}
+
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
+  def apply(): ActionFilter[DataRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
@@ -126,4 +159,6 @@ class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
     new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, frontendAppConfig, schemeDetailsConnector)
+
+  def apply() = new AllowAccessActionTemp(frontendAppConfig)
 }
