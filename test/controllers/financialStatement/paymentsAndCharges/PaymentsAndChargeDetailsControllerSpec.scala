@@ -314,7 +314,6 @@ class PaymentsAndChargeDetailsControllerSpec
 
 object PaymentsAndChargeDetailsControllerSpec {
   private val srn = "test-srn"
-  private val loggedInId = "test-id"
 
   def psaFS(chargeReference: String): PsaFS =
     PsaFS(
