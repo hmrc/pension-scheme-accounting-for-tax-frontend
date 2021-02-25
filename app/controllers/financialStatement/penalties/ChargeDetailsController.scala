@@ -21,20 +21,18 @@ import controllers.actions.IdentifierAction
 import models.Quarters.getQuarter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
-import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{AnyContent, MessagesControllerComponents, Action}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+
 import java.time.LocalDate
-
 import javax.inject.Inject
-
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,
@@ -47,8 +45,6 @@ class ChargeDetailsController @Inject()(
   extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
-
-  private val logger = Logger(classOf[ChargeDetailsController])
 
   def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
     implicit request =>

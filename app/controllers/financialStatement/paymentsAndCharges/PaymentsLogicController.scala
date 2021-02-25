@@ -35,16 +35,13 @@ package controllers.financialStatement.paymentsAndCharges
 import controllers.actions._
 import models.LocalDateBinder._
 import models.Quarters
-import models.financialStatement.{PsaFS, SchemeFS}
-import models.requests.IdentifierRequest
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
-import services.PenaltiesService
+import models.financialStatement.SchemeFS
+import play.api.i18n.{MessagesApi, I18nSupport}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 

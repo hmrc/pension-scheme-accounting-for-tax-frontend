@@ -19,10 +19,10 @@ package controllers.financialStatement.paymentsAndCharges
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.QuartersFormProvider
-import models.financialStatement.{PsaFS, SchemeFS}
-import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
+import models.financialStatement.SchemeFS
+import models.{DisplayQuarter, Quarters, PaymentOverdue, Quarter, DisplayHint}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer

@@ -44,7 +44,7 @@ import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
-  
+
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
