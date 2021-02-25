@@ -23,6 +23,7 @@ import config.FrontendAppConfig
 import connectors.{AFTConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
+import models.SchemeAdministratorType.SchemeAdministratorTypePSA
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
 import models.{AccessType, MinimalFlags}
@@ -56,6 +57,13 @@ class AllowAccessAction(
 
     (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), request.userAnswers.get(MinimalFlagsQuery)) match {
       case (_, _, Some(MinimalFlags(true, _))) => Future.successful(Some(Redirect(frontendAppConfig.youMustContactHMRCUrl)))
+      case (_, _, Some(MinimalFlags(_, true))) =>
+        val url = if(request.schemeAdministratorType == SchemeAdministratorTypePSA) {
+        frontendAppConfig.psaUpdateContactDetailsUrl
+      } else {
+        frontendAppConfig.pspUpdateContactDetailsUrl
+      }
+        Future.successful(Some(Redirect(url)))
       case (false, Some(schemeStatus), _) =>
         if (!validStatuses.contains(schemeStatus)) {
           errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))

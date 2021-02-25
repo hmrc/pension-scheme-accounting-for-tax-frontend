@@ -60,6 +60,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
   lazy val signOutUrl: String = loadConfig("urls.logout")
 
+  lazy val psaUpdateContactDetailsUrl: String = loadConfig("urls.psaUpdateContactDetails")
+  lazy val pspUpdateContactDetailsUrl: String = loadConfig("urls.pspUpdateContactDetails")
+
   lazy val timeoutSeconds: String = configuration.get[String]("session.timeoutSeconds")
   lazy val countdownSeconds: String = configuration.get[String]("session.countdownSeconds")
 

@@ -32,7 +32,7 @@ import pages._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Call, Result}
 import play.api.test.Helpers.NOT_FOUND
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -52,6 +52,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
+  }
+
+  private def dataRequestPsp(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+    DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
   }
 
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
@@ -184,6 +189,36 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
+      }
+    }
+
+    "respond with a redirect to update contact address page when the PSA has RLS flag set" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
+
+      val errorResult = Ok("error")
+      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val testHarness = new TestHarness("")
+
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.psaUpdateContactDetailsUrl)))
+      }
+    }
+
+    "respond with a redirect to update contact address page when the PSP has RLS flag set" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
+
+      val errorResult = Ok("error")
+      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val testHarness = new TestHarness("")
+
+      whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.pspUpdateContactDetailsUrl)))
       }
     }
   }
