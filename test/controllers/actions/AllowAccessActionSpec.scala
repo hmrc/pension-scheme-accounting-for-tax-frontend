@@ -16,21 +16,21 @@
 
 package controllers.actions
 
-import connectors.{AFTConnector, SchemeDetailsConnector}
+import connectors.{SchemeDetailsConnector, AFTConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData.{accessType, versionInt, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{Open, Rejected, WoundUp}
+import models.SchemeStatus.{WoundUp, Rejected, Open}
 import models.requests.DataRequest
-import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
+import models.{SessionAccessData, SessionData, UserAnswers, MinimalFlags, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{AnyContent, Call, Result}
+import play.api.mvc.{Call, AnyContent, Result}
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import utils.AFTConstants.QUARTER_START_DATE
@@ -74,6 +74,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
@@ -88,6 +90,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Open/Wound-up/Deregistered for a option page is None" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult: Result =
         Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
@@ -109,11 +112,12 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "but the scheme status is Rejected" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Rejected)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -124,13 +128,15 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Wound-up but there is no association" in {
       val ua = userAnswersWithSchemeName
         .setOrException(SchemeStatusQuery, WoundUp)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(false))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -140,6 +146,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the AFT summary page when the PSA is not suspended and current page is charge type page and view only" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, WoundUp)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
@@ -155,10 +163,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the session expired page (i.e. don't allow access) when " +
       "no PSA suspended flag is found in user answers" in {
       val ua = userAnswersWithSchemeName
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -168,11 +177,14 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the session expired page (i.e. don't allow access) when" +
       "there is PSA suspeneded flag but no scheme status is found in user answers" in {
 
+      val ua = userAnswersWithSchemeName
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
-      whenReady(testHarness.test(dataRequest(userAnswersWithSchemeName))) { result =>
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
     }
@@ -185,7 +197,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
@@ -200,7 +212,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.psaUpdateContactDetailsUrl)))
@@ -215,10 +227,25 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
         result mustBe Some(Redirect(Call("GET", frontendAppConfig.pspUpdateContactDetailsUrl)))
+      }
+    }
+
+    "respond with a redirect to return to scheme details when no minimal details are present in user answers" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+
+      val errorResult = Ok("error")
+      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val testHarness = new TestHarness(srn)
+
+      whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
+        result mustBe Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
+          .returnToSchemeDetails(srn, startDate, accessType, version)))
       }
     }
   }

@@ -17,16 +17,15 @@
 package controllers.actions
 
 import java.time.LocalDate
-
-import com.google.inject.{ImplementedBy, Inject}
+import com.google.inject.{Inject, ImplementedBy}
 import config.FrontendAppConfig
-import connectors.{AFTConnector, SchemeDetailsConnector}
+import connectors.{SchemeDetailsConnector, AFTConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeAdministratorType.SchemeAdministratorTypePSA
-import models.SchemeStatus.{Deregistered, Open, WoundUp}
+import models.SchemeStatus.{WoundUp, Deregistered, Open}
 import models.requests.DataRequest
-import models.{AccessType, MinimalFlags}
+import models.{MinimalFlags, AccessType}
 import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
@@ -56,6 +55,9 @@ class AllowAccessAction(
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
     (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), request.userAnswers.get(MinimalFlagsQuery)) match {
+      case (_, _, None) =>
+        Future.successful(Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
+          .returnToSchemeDetails(srn, startDate, accessType, version))))
       case (_, _, Some(MinimalFlags(true, _))) => Future.successful(Some(Redirect(frontendAppConfig.youMustContactHMRCUrl)))
       case (_, _, Some(MinimalFlags(_, true))) =>
         val url = if(request.schemeAdministratorType == SchemeAdministratorTypePSA) {
