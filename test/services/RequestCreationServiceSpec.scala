@@ -44,6 +44,7 @@ import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+  
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -75,7 +76,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     .setOrException(PSTRQuery, SampleData.pstr)
     .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
     .setOrException(SchemeStatusQuery, SchemeStatus.Open)
-    .setOrException(NameQuery, "Pension Scheme Administrator")
+    .setOrException(NameQuery, companyName)
     .setOrException(EmailQuery, email)
 
   override def beforeEach(): Unit = {
@@ -84,7 +85,7 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockMinimalPsaConnector.getMinimalDetails(any(), any(), any()))
-      .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, None, None, rlsFlag = false, deceasedFlag = true)))
+      .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = true)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockAftConnector.getListOfVersions(any(), any())(any(), any())).thenReturn(Future.successful(Seq[AFTVersion]()))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
