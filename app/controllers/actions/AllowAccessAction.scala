@@ -19,13 +19,14 @@ package controllers.actions
 import java.time.LocalDate
 
 import com.google.inject.{ImplementedBy, Inject}
+import config.FrontendAppConfig
 import connectors.{AFTConnector, SchemeDetailsConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{Deregistered, Open, WoundUp}
 import models.requests.DataRequest
-import models.AccessType
-import pages._
+import models.{AccessType, MinimalFlags}
+import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
 import play.api.mvc.{ActionFilter, Result}
@@ -43,6 +44,7 @@ class AllowAccessAction(
                          accessType: AccessType,
                          aftConnector: AFTConnector,
                          errorHandler: ErrorHandler,
+                         frontendAppConfig: FrontendAppConfig,
                          schemeDetailsConnector: SchemeDetailsConnector
                        )(
                          implicit val executionContext: ExecutionContext
@@ -52,8 +54,9 @@ class AllowAccessAction(
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
-    (isInvalidDate, request.userAnswers.get(SchemeStatusQuery)) match {
-      case (false, Some(schemeStatus)) =>
+    (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), request.userAnswers.get(MinimalFlagsQuery)) match {
+      case (_, _, Some(MinimalFlags(true, _))) => Future.successful(Some(Redirect(frontendAppConfig.youMustContactHMRCUrl)))
+      case (false, Some(schemeStatus), _) =>
         if (!validStatuses.contains(schemeStatus)) {
           errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
         } else {
@@ -102,7 +105,8 @@ trait AllowAccessActionProvider {
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               errorHandler: ErrorHandler,
+                                              frontendAppConfig: FrontendAppConfig,
                                               schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
-    new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, schemeDetailsConnector)
+    new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, frontendAppConfig, schemeDetailsConnector)
 }

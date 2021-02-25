@@ -18,25 +18,25 @@ package controllers.actions
 
 import connectors.{AFTConnector, SchemeDetailsConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{versionInt, accessType, _}
+import data.SampleData.{accessType, versionInt, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{Rejected, Open, WoundUp}
+import models.SchemeStatus.{Open, Rejected, WoundUp}
 import models.requests.DataRequest
-import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
+import models.{AccessMode, LockDetail, MinimalFlags, SessionAccessData, SessionData, UserAnswers}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{Result, AnyContent}
+import play.api.mvc.{AnyContent, Call, Result}
 import play.api.test.Helpers.NOT_FOUND
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
@@ -55,7 +55,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   }
 
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
-    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler, pensionsSchemeConnector)(ec) {
+    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler, frontendAppConfig, pensionsSchemeConnector)(ec) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
@@ -169,6 +169,21 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
       whenReady(testHarness.test(dataRequest(userAnswersWithSchemeName))) { result =>
         result mustBe Some(expectedResult)
+      }
+    }
+
+    "respond with a redirect to deceased page when the PSA is deceased " in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
+
+      val errorResult = Ok("error")
+      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
+
+      val testHarness = new TestHarness("")
+
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
       }
     }
   }
