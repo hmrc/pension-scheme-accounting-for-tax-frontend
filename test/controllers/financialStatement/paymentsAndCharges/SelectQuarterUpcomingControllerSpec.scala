@@ -51,8 +51,6 @@ class SelectQuarterUpcomingControllerSpec extends ControllerSpecBase with Nunjuc
     bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
 
-  private val year = "2020"
-
   private val quarters: Seq[Quarter] = Seq(q22020)
   private val displayQuarters: Seq[DisplayQuarter] = Seq(
     DisplayQuarter(q22020, displayYear = true, None, Some(PaymentOverdue))

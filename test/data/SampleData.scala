@@ -16,20 +16,18 @@
 
 package data
 
-import controllers.financialStatement.paymentsAndCharges.PaymentsAndChargeDetailsControllerSpec.{loggedInId, srn}
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import models.SponsoringEmployerType.{SponsoringEmployerTypeIndividual, SponsoringEmployerTypeOrganisation}
 import models.chargeB.ChargeBDetails
-import models.chargeC.{ChargeCDetails, SponsoringEmployerAddress, SponsoringOrganisationDetails}
+import models.chargeC.{SponsoringEmployerAddress, ChargeCDetails, SponsoringOrganisationDetails}
 import models.chargeD.ChargeDDetails
 import models.chargeE.ChargeEDetails
 import models.chargeG.{ChargeAmounts, MemberDetails => MemberDetailsG}
 import models.financialStatement.PsaFSChargeType.OTC_6_MONTH_LPP
-import models.financialStatement.{PsaFS, SchemeFS}
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_OTC_AFT_RETURN}
-import models.{AFTOverview, AccessMode, DisplayQuarter, Draft, InProgressHint, LockDetail, LockedHint, MemberDetails, Quarter, SchemeDetails, SchemeStatus, SessionAccessData, SessionData, SubmittedHint, UserAnswers}
+import models.financialStatement.{SchemeFS, PsaFS}
+import models.financialStatement.SchemeFSChargeType.{PSS_OTC_AFT_RETURN, PSS_AFT_RETURN}
+import models.{SessionAccessData, SchemeStatus, Draft, SessionData, LockedHint, DisplayQuarter, InProgressHint, AFTOverview, UserAnswers, Quarter, SubmittedHint, SchemeDetails, MemberDetails, AccessMode, LockDetail}
 import pages.chargeC._
 import pages.chargeD.{ChargeDetailsPage => ChargeDDetailsPage, MemberDetailsPage => ChargeDMemberDetailsPAge}
 import pages.chargeE.{ChargeDetailsPage, MemberDetailsPage}

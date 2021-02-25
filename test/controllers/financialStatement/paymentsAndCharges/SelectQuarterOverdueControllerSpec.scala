@@ -23,7 +23,7 @@ import data.SampleData._
 import forms.QuartersFormProvider
 import matchers.JsonMatchers
 import models.requests.IdentifierRequest
-import models.{DisplayQuarter, Enumerable, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayQuarter, Quarters, PaymentOverdue, Quarter, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -50,8 +50,6 @@ class SelectQuarterOverdueControllerSpec extends ControllerSpecBase with Nunjuck
   val extraModules: Seq[GuiceableModule] = Seq[GuiceableModule](
     bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
   )
-
-  private val year = "2020"
 
   private val quarters: Seq[Quarter] = Seq(q22020)
   private val displayQuarters: Seq[DisplayQuarter] = Seq(
