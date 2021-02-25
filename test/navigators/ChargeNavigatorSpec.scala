@@ -132,7 +132,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
           version = 2),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate,
           version = 1)

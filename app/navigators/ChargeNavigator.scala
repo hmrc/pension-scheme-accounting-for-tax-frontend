@@ -134,7 +134,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version)
       case (Some(false), Some(quarter)) =>
           if (aftService.isSubmissionDisabled(quarter.endDate)) {
-            Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)
           } else {
             if (request.isAmendment) {
               controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version)
