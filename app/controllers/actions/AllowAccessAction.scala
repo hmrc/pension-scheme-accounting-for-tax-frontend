@@ -54,18 +54,8 @@ class AllowAccessAction(
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
 
-    (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), request.userAnswers.get(MinimalFlagsQuery)) match {
-      case (_, _, None) =>
-        Future.successful(Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
-          .returnToSchemeDetails(srn, startDate, accessType, version))))
-      case (_, _, Some(MinimalFlags(true, _))) => Future.successful(Some(Redirect(frontendAppConfig.youMustContactHMRCUrl)))
-      case (_, _, Some(MinimalFlags(_, true))) =>
-        val url = if(request.schemeAdministratorType == SchemeAdministratorTypePSA) {
-        frontendAppConfig.psaUpdateContactDetailsUrl
-      } else {
-        frontendAppConfig.pspUpdateContactDetailsUrl
-      }
-        Future.successful(Some(Redirect(url)))
+    (isInvalidDate, request.userAnswers.get(SchemeStatusQuery), minimalFlagChecks(request)) match {
+      case (_, _, optionRedirectUrl@Some(_)) => Future.successful(optionRedirectUrl)
       case (false, Some(schemeStatus), _) =>
         if (!validStatuses.contains(schemeStatus)) {
           errorHandler.onClientError(request, NOT_FOUND, message = "Scheme Status Check Failed for status " + schemeStatus.toString).map(Option(_))
@@ -79,6 +69,23 @@ class AllowAccessAction(
         }
       //todo redirect to new error page for invalid dates once it is created
       case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+    }
+  }
+
+  private def minimalFlagChecks[A](request:DataRequest[A]):Option[Result] = {
+    request.userAnswers.get(MinimalFlagsQuery) match {
+      case None => Some(Redirect(
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)))
+      case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
+      case Some(MinimalFlags(_, true)) =>
+        Some(Redirect(
+          if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
+            frontendAppConfig.psaUpdateContactDetailsUrl
+          } else {
+            frontendAppConfig.pspUpdateContactDetailsUrl
+          }
+        ))
+      case _ => None
     }
   }
 
