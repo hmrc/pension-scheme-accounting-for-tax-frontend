@@ -54,13 +54,14 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
-  private def dataRequestPsp(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
+  private def dataRequestPsp(ua:UserAnswers, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
   }
 
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
-    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler, frontendAppConfig, pensionsSchemeConnector)(ec) {
+    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
+      frontendAppConfig, pensionsSchemeConnector)(ec) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
@@ -194,9 +195,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
 
-      val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
-
       val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
@@ -208,9 +206,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
-
-      val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
       val testHarness = new TestHarness(srn)
 
@@ -224,9 +219,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
         .setOrException(SchemeStatusQuery, Open)
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
 
-      val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
-
       val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
@@ -237,9 +229,6 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to return to scheme details when no minimal details are present in user answers" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
-
-      val errorResult = Ok("error")
-      when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
       val testHarness = new TestHarness(srn)
 
