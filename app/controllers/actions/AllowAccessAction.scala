@@ -37,7 +37,7 @@ import utils.DateHelper
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AllowAccessCommon {
-  def minimalFlagsRedirect(minimalFlags: MinimalFlags,
+  protected def minimalFlagsRedirect(minimalFlags: MinimalFlags,
     frontendAppConfig: FrontendAppConfig,
     schemeAdministratorType: SchemeAdministratorType):Option[Result] = {
     minimalFlags match {
