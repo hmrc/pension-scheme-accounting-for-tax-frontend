@@ -17,7 +17,7 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{IdentifierAction, FakeIdentifierAction}
+import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import helpers.FormatHelper
@@ -63,7 +63,8 @@ class PaymentsAndChargeDetailsControllerSpec
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+        bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
     )
     .build()

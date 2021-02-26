@@ -38,6 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SelectQuarterController @Inject()(config: FrontendAppConfig,
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
+                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer,
@@ -50,7 +51,7 @@ class SelectQuarterController @Inject()(config: FrontendAppConfig,
   private def form(quarters: Seq[Quarter], year: String)(implicit messages: Messages): Form[Quarter] =
     formProvider(messages("selectChargesQuarter.error", year), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
       val quarters: Seq[Quarter] = getQuarters(year, paymentsCache.schemeFS)

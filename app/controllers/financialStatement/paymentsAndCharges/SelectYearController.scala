@@ -51,6 +51,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      identify: IdentifierAction,
+                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                      formProvider: YearsFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
                                      renderer: Renderer,
@@ -62,7 +63,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectChargesYear.error")
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
       val years = getYears(paymentsCache.schemeFS)

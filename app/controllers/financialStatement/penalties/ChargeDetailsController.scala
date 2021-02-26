@@ -17,7 +17,7 @@
 package controllers.financialStatement.penalties
 
 import config.Constants._
-import controllers.actions.IdentifierAction
+import controllers.actions.{IdentifierAction, AllowAccessActionProviderForIdentifierRequest}
 import models.Quarters.getQuarter
 import models.financialStatement.PsaFS
 import models.requests.IdentifierRequest
@@ -36,6 +36,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ChargeDetailsController @Inject()(
                                          identify: IdentifierAction,
+                                         allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                          override val messagesApi: MessagesApi,
                                          val controllerComponents: MessagesControllerComponents,
                                          penaltiesService: PenaltiesService,
@@ -46,7 +47,7 @@ class ChargeDetailsController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = identify.async {
+  def onPageLoad(identifier: String, startDate: LocalDate, chargeReferenceIndex: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 

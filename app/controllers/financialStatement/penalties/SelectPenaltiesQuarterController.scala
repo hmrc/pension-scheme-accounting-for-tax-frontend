@@ -37,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class SelectPenaltiesQuarterController @Inject()(
                                                   override val messagesApi: MessagesApi,
                                                   identify: IdentifierAction,
+                                                  allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                   formProvider: QuartersFormProvider,
                                                   val controllerComponents: MessagesControllerComponents,
                                                   renderer: Renderer,
@@ -49,7 +50,7 @@ class SelectPenaltiesQuarterController @Inject()(
   private def form(quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
     formProvider(messages("selectPenaltiesQuarter.error"), quarters)
 
-  def onPageLoad(year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
 
       val quarters: Seq[Quarter] = getQuarters(year, penalties)

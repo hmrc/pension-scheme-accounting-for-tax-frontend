@@ -136,8 +136,8 @@ class AllowAccessActionForIdentifierRequest(
   override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
-      val mf = MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag)
-      minimalFlagsRedirect(mf, frontendAppConfig, request.schemeAdministratorType) match {
+      minimalFlagsRedirect(MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag),
+        frontendAppConfig, request.schemeAdministratorType) match {
         case optionRedirectUrl@Some(_) => optionRedirectUrl
         case _ => None
       }

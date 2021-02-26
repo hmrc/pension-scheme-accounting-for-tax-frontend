@@ -35,6 +35,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
+                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
                                     penaltiesService: PenaltiesService,
@@ -45,7 +46,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
 
       penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
