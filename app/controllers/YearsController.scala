@@ -19,11 +19,12 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
+
 import javax.inject.Inject
 import models.requests.IdentifierRequest
-import models.{GenericViewModel, StartYears, Year}
+import models.{Year, StartYears, GenericViewModel}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -36,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class YearsController @Inject()(
     override val messagesApi: MessagesApi,
     identify: IdentifierAction,
+    allowAccess: AllowAccessActionProviderForIdentifierRequest,
     formProvider: YearsFormProvider,
     val controllerComponents: MessagesControllerComponents,
     renderer: Renderer,
@@ -48,7 +50,7 @@ class YearsController @Inject()(
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider()
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,
