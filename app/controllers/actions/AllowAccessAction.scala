@@ -19,13 +19,13 @@ package controllers.actions
 import java.time.LocalDate
 import com.google.inject.{Inject, ImplementedBy}
 import config.FrontendAppConfig
-import connectors.{SchemeDetailsConnector, AFTConnector}
+import connectors.{SchemeDetailsConnector, MinimalConnector, AFTConnector}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeAdministratorType.SchemeAdministratorTypePSA
 import models.SchemeStatus.{WoundUp, Deregistered, Open}
 import models.requests.{IdentifierRequest, DataRequest}
-import models.{MinimalFlags, AccessType}
+import models.{SchemeAdministratorType, MinimalFlags, AccessType}
 import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
 import play.api.mvc.Results._
@@ -35,6 +35,25 @@ import uk.gov.hmrc.play.HeaderCarrierConverter
 import utils.DateHelper
 
 import scala.concurrent.{ExecutionContext, Future}
+
+trait AllowAccessCommon {
+  def minimalFlagsRedirect(minimalFlags: MinimalFlags,
+    frontendAppConfig: FrontendAppConfig,
+    schemeAdministratorType: SchemeAdministratorType):Option[Result] = {
+    minimalFlags match {
+      case MinimalFlags(true, _) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
+      case MinimalFlags(_, true) =>
+        Some(Redirect(
+          if (schemeAdministratorType == SchemeAdministratorTypePSA) {
+            frontendAppConfig.psaUpdateContactDetailsUrl
+          } else {
+            frontendAppConfig.pspUpdateContactDetailsUrl
+          }
+        ))
+      case _ => None
+    }
+  }
+}
 
 class AllowAccessAction(
                          srn: String,
@@ -49,7 +68,7 @@ class AllowAccessAction(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[DataRequest] {
+  extends ActionFilter[DataRequest] with AllowAccessCommon {
   override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
     val isInvalidDate: Boolean = startDate.isBefore(aftConnector.aftOverviewStartDate) || startDate.isAfter(DateHelper.today)
@@ -76,16 +95,8 @@ class AllowAccessAction(
     request.userAnswers.get(MinimalFlagsQuery) match {
       case None => Some(Redirect(
         controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)))
-      case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
-      case Some(MinimalFlags(_, true)) =>
-        Some(Redirect(
-          if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
-            frontendAppConfig.psaUpdateContactDetailsUrl
-          } else {
-            frontendAppConfig.pspUpdateContactDetailsUrl
-          }
-        ))
-      case _ => None
+      case Some(mf) =>
+        minimalFlagsRedirect(mf, frontendAppConfig, request.schemeAdministratorType)
     }
   }
 
@@ -117,35 +128,20 @@ class AllowAccessAction(
 
 class AllowAccessActionForIdentifierRequest(
                          frontendAppConfig: FrontendAppConfig,
+                         minimalConnector: MinimalConnector
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[IdentifierRequest] {
+  extends ActionFilter[IdentifierRequest] with AllowAccessCommon {
   override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-
-    minimalFlagChecks(request) match {
-      case optionRedirectUrl@Some(_) => Future.successful(optionRedirectUrl)
-      case _ => Future.successful(None)
+    minimalConnector.getMinimalDetails(implicitly, implicitly, request).map { minimalDetails =>
+      val mf = MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag)
+      minimalFlagsRedirect(mf, frontendAppConfig, request.schemeAdministratorType) match {
+        case optionRedirectUrl@Some(_) => optionRedirectUrl
+        case _ => None
+      }
     }
-  }
-
-  private def minimalFlagChecks[A](request:IdentifierRequest[A]):Option[Result] = {
-
-    None
-    //request.userAnswers.get(MinimalFlagsQuery) match {
-    //  case None => Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-    //  case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
-    //  case Some(MinimalFlags(_, true)) =>
-    //    Some(Redirect(
-    //      if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
-    //        frontendAppConfig.psaUpdateContactDetailsUrl
-    //      } else {
-    //        frontendAppConfig.pspUpdateContactDetailsUrl
-    //      }
-    //    ))
-    //  case _ => None
-    //}
   }
 }
 
@@ -168,7 +164,8 @@ trait AllowAccessActionProviderForIdentifierRequest {
 }
 
 class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
-  frontendAppConfig: FrontendAppConfig
+  frontendAppConfig: FrontendAppConfig,
+  minimalConnector: MinimalConnector
 )(implicit ec: ExecutionContext) extends AllowAccessActionProviderForIdentifierRequest {
-  def apply() = new AllowAccessActionForIdentifierRequest(frontendAppConfig)
+  def apply() = new AllowAccessActionForIdentifierRequest(frontendAppConfig, minimalConnector)
 }
