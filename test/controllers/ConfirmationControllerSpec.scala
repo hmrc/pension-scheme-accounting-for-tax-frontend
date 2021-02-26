@@ -16,52 +16,34 @@
 
 package controllers
 
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.{ZoneId, ZonedDateTime, LocalDate}
 import java.time.format.DateTimeFormatter
-
 import connectors.FinancialStatementConnector
-import controllers.actions.AllowSubmissionAction
-import controllers.actions.FakeAllowSubmissionAction
-import controllers.actions.MutableFakeDataRetrievalAction
+import controllers.actions.{FakeAllowSubmissionAction, MutableFakeDataRetrievalAction, AllowSubmissionAction}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.ValueChangeType.ChangeTypeDecrease
-import models.ValueChangeType.ChangeTypeIncrease
-import models.ValueChangeType.ChangeTypeSame
+import models.ValueChangeType.{ChangeTypeSame, ChangeTypeDecrease, ChangeTypeIncrease}
 import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
-import models.AccessMode
-import models.GenericViewModel
-import models.SessionAccessData
-import models.SessionData
-import models.UserAnswers
+import models.{SessionAccessData, GenericViewModel, UserAnswers, SessionData, AccessMode}
 import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.when
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
-import pages.ConfirmSubmitAFTAmendmentValueChangeTypePage
-import pages.EmailQuery
+import org.mockito.Mockito.{times, verify, when}
+import org.mockito.{ArgumentCaptor, Mockito}
+import pages.{EmailQuery, ConfirmSubmitAFTAmendmentValueChangeTypePage}
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.JsObject
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.mvc.Results.Ok
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.SchemeService
-import uk.gov.hmrc.viewmodels.SummaryList.Key
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import uk.gov.hmrc.viewmodels.SummaryList.Value
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.AFTConstants._
@@ -84,8 +66,6 @@ class ConfirmationControllerSpec extends ControllerSpecBase with JsonMatchers {
     bind[FinancialStatementConnector].toInstance(mockFinancialStatementConnector)
   )
   private val application = applicationBuilderMutableRetrievalAction(mutableFakeDataRetrievalAction, extraModules).build()
-
-  private val year = QUARTER_START_DATE.getYear
 
   private def json(isAmendment: Boolean): JsObject = Json.obj(
     fields = "srn" -> SampleData.srn,

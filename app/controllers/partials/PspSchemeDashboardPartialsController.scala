@@ -23,13 +23,13 @@ import models.financialStatement.SchemeFS
 
 import javax.inject.Inject
 import models.requests.IdentifierRequest
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import play.twirl.api.{Html, HtmlFormat}
+import play.twirl.api.{HtmlFormat, Html}
 import renderer.Renderer
 import services.paymentsAndCharges.PaymentsAndChargesService
-import services.{AFTPartialService, SchemeService}
+import services.{SchemeService, AFTPartialService}
 import uk.gov.hmrc.http.{BadRequestException, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -88,7 +88,7 @@ class PspSchemeDashboardPartialsController @Inject()(
   }
 
   private def pspDashboardUpcomingAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
-                                                   (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] =
+                                                   (implicit request: IdentifierRequest[AnyContent]):Future[Html] =
           if (schemeFs.isEmpty) {
             Future.successful(Html(""))
           } else {
@@ -101,7 +101,7 @@ class PspSchemeDashboardPartialsController @Inject()(
           }
 
   private def pspDashboardOverdueAftChargesPartial(idNumber: String, schemeFs: Seq[SchemeFS])
-                                                  (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier):Future[Html] = {
+                                                  (implicit request: IdentifierRequest[AnyContent]):Future[Html] = {
           val overdueCharges = paymentsAndChargesService.getOverdueCharges(schemeFs)
           if (overdueCharges.isEmpty) {
             Future.successful(Html(""))

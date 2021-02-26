@@ -20,7 +20,7 @@ import connectors.FinancialStatementConnectorSpec.psaFSResponse
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
-import models.{Enumerable, SchemeDetails}
+import models.{SchemeDetails, Enumerable}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -83,7 +83,7 @@ class PenaltiesControllerSpec extends ControllerSpecBase with NunjucksSupport wi
   override def beforeEach: Unit = {
     super.beforeEach
     reset(mockPenaltiesService, mockRenderer)
-    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any(), any(), any()))
+    when(mockPenaltiesService.getPsaFsJson(any(), any(), any(), any())(any()))
       .thenReturn(penaltyTables)
     when(mockPenaltiesService.getPenaltiesFromCache(any())(any(), any())).thenReturn(Future.successful(psaFSResponse))
 
