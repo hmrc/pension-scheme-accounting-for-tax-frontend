@@ -41,7 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsAndChargeDetailsController @Inject()(
                                                     override val messagesApi: MessagesApi,
                                                     identify: IdentifierAction,
-                                                    allowAccess: AllowAccessActionProvider,
+                                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
                                                     paymentsAndChargesService: PaymentsAndChargesService,

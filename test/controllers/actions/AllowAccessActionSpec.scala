@@ -70,8 +70,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
-  class TestHarnessTemp()(implicit ec: ExecutionContext)
-    extends AllowAccessActionTemp(frontendAppConfig)(ec) {
+  class TestHarnessForIdentifierRequest()(implicit ec: ExecutionContext)
+    extends AllowAccessActionForIdentifierRequest(frontendAppConfig)(ec) {
     def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
@@ -249,10 +249,10 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
   }
 
-  "Allow Access Action Temp" must {
+  "Allow Access Action For Identifier Request" must {
     "respond with None (i.e. allow access) when neither of minimal flags are true" in {
 
-      val testHarness = new TestHarnessTemp()
+      val testHarness = new TestHarnessForIdentifierRequest()
 
       whenReady(testHarness.test(identifierRequest())) {
         _ mustBe None

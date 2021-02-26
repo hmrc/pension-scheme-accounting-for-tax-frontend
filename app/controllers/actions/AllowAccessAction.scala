@@ -115,7 +115,7 @@ class AllowAccessAction(
   }
 }
 
-class AllowAccessActionTemp(
+class AllowAccessActionForIdentifierRequest(
                          frontendAppConfig: FrontendAppConfig,
                        )(
                          implicit val executionContext: ExecutionContext
@@ -152,7 +152,6 @@ class AllowAccessActionTemp(
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
-  def apply(): ActionFilter[IdentifierRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
@@ -161,8 +160,15 @@ class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
                                               schemeDetailsConnector: SchemeDetailsConnector)(implicit ec: ExecutionContext) extends AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType) =
     new AllowAccessAction(srn, startDate, optionPage, version, accessType, aftConnector, errorHandler, frontendAppConfig, schemeDetailsConnector)
-
-  def apply() = new AllowAccessActionTemp(frontendAppConfig)
 }
 
+@ImplementedBy(classOf[AllowAccessActionProviderForIdentifierRequestImpl])
+trait AllowAccessActionProviderForIdentifierRequest {
+  def apply(): ActionFilter[IdentifierRequest]
+}
 
+class AllowAccessActionProviderForIdentifierRequestImpl @Inject()(
+  frontendAppConfig: FrontendAppConfig
+)(implicit ec: ExecutionContext) extends AllowAccessActionProviderForIdentifierRequest {
+  def apply() = new AllowAccessActionForIdentifierRequest(frontendAppConfig)
+}
