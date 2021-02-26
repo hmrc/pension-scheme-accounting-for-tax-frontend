@@ -18,11 +18,11 @@ package controllers.actions
 
 import connectors.{SchemeDetailsConnector, AFTConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{accessType, versionInt, _}
+import data.SampleData.{accessType, srn, versionInt, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeStatus.{WoundUp, Rejected, Open}
-import models.requests.DataRequest
+import models.requests.{DataRequest, IdentifierRequest}
 import models.{SessionAccessData, SessionData, UserAnswers, MinimalFlags, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
@@ -54,6 +54,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
+  private def identifierRequest(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+    IdentifierRequest(request, Some(PsaId(psaId)), None)
+  }
+
   private def dataRequestPsp(ua:UserAnswers, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
     DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
@@ -63,6 +68,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
       frontendAppConfig, pensionsSchemeConnector)(ec) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
+  }
+
+  class TestHarnessTemp()(implicit ec: ExecutionContext)
+    extends AllowAccessActionTemp(frontendAppConfig)(ec) {
+    def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
   }
 
   override def beforeEach: Unit = {
@@ -176,7 +186,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
 
     "respond with a redirect to the session expired page (i.e. don't allow access) when" +
-      "there is PSA suspeneded flag but no scheme status is found in user answers" in {
+      "there is PSA suspended flag but no scheme status is found in user answers" in {
 
       val ua = userAnswersWithSchemeName
         .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
@@ -235,6 +245,17 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
         result mustBe Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
           .returnToSchemeDetails(srn, startDate, accessType, version)))
+      }
+    }
+  }
+
+  "Allow Access Action Temp" must {
+    "respond with None (i.e. allow access) when neither of minimal flags are true" in {
+
+      val testHarness = new TestHarnessTemp()
+
+      whenReady(testHarness.test(identifierRequest())) {
+        _ mustBe None
       }
     }
   }

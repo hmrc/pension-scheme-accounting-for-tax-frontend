@@ -24,7 +24,7 @@ import handlers.ErrorHandler
 import models.LocalDateBinder._
 import models.SchemeAdministratorType.SchemeAdministratorTypePSA
 import models.SchemeStatus.{WoundUp, Deregistered, Open}
-import models.requests.DataRequest
+import models.requests.{IdentifierRequest, DataRequest}
 import models.{MinimalFlags, AccessType}
 import pages.{MinimalFlagsQuery, _}
 import play.api.http.Status.NOT_FOUND
@@ -120,37 +120,39 @@ class AllowAccessActionTemp(
                        )(
                          implicit val executionContext: ExecutionContext
                        )
-  extends ActionFilter[DataRequest] {
-  override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = {
+  extends ActionFilter[IdentifierRequest] {
+  override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = {
     implicit val hc: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     minimalFlagChecks(request) match {
       case optionRedirectUrl@Some(_) => Future.successful(optionRedirectUrl)
-      case _ => Future.successful(Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad())))
+      case _ => Future.successful(None)
     }
   }
 
-  private def minimalFlagChecks[A](request:DataRequest[A]):Option[Result] = {
-    request.userAnswers.get(MinimalFlagsQuery) match {
-      case None => Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-      case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
-      case Some(MinimalFlags(_, true)) =>
-        Some(Redirect(
-          if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
-            frontendAppConfig.psaUpdateContactDetailsUrl
-          } else {
-            frontendAppConfig.pspUpdateContactDetailsUrl
-          }
-        ))
-      case _ => None
-    }
+  private def minimalFlagChecks[A](request:IdentifierRequest[A]):Option[Result] = {
+
+    None
+    //request.userAnswers.get(MinimalFlagsQuery) match {
+    //  case None => Some(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    //  case Some(MinimalFlags(true, _)) => Some(Redirect(frontendAppConfig.youMustContactHMRCUrl))
+    //  case Some(MinimalFlags(_, true)) =>
+    //    Some(Redirect(
+    //      if (request.schemeAdministratorType == SchemeAdministratorTypePSA) {
+    //        frontendAppConfig.psaUpdateContactDetailsUrl
+    //      } else {
+    //        frontendAppConfig.pspUpdateContactDetailsUrl
+    //      }
+    //    ))
+    //  case _ => None
+    //}
   }
 }
 
 @ImplementedBy(classOf[AllowAccessActionProviderImpl])
 trait AllowAccessActionProvider {
   def apply(srn: String, startDate: LocalDate, optionPage: Option[Page] = None, version: Int, accessType: AccessType): ActionFilter[DataRequest]
-  def apply(): ActionFilter[DataRequest]
+  def apply(): ActionFilter[IdentifierRequest]
 }
 
 class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
@@ -162,3 +164,5 @@ class AllowAccessActionProviderImpl @Inject()(aftConnector: AFTConnector,
 
   def apply() = new AllowAccessActionTemp(frontendAppConfig)
 }
+
+
