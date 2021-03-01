@@ -33,7 +33,7 @@ class CYAChargeDHelper(srn: String, startDate: LocalDate, accessType: AccessType
     Seq(
       Row(
         key = Key(msg"cya.memberName.label", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.fullName.toString), classes = Seq("govuk-!-width-one-third")),
+        value = Value(Literal(answer.fullName), classes = Seq("govuk-!-width-one-third")),
         actions = List(
           Action(
             content = Html(s"<span  aria-hidden=true >${messages("site.edit")}</span>"),

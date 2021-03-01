@@ -16,36 +16,39 @@
 
 package controllers.amend
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{FinancialStatementConnector, AFTConnector}
+import connectors.{AFTConnector, FinancialStatementConnector, SchemeDetailsConnector}
 import controllers.actions.IdentifierAction
-import javax.inject.Inject
 import models.LocalDateBinder._
-import models.{AFTOverview, Quarters, AFTVersion, Submission, AccessType, Draft}
+import models.SubmitterType.PSA
+import models.requests.IdentifierRequest
+import models.{AFTOverview, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
-import play.api.libs.json.{Json, JsObject}
-import play.api.mvc.{Call, AnyContent, MessagesControllerComponents, Action}
+import play.api.libs.json.{JsObject, Json}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
+import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Text}
+import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.matching.Regex
 
 class ReturnHistoryController @Inject()(
                                          schemeService: SchemeService,
                                          aftConnector: AFTConnector,
                                          userAnswersCacheConnector: UserAnswersCacheConnector,
                                          financialStatementConnector: FinancialStatementConnector,
+                                         schemeDetailsConnector: SchemeDetailsConnector,
                                          override val messagesApi: MessagesApi,
                                          identify: IdentifierAction,
                                          val controllerComponents: MessagesControllerComponents,
@@ -66,12 +69,17 @@ class ReturnHistoryController @Inject()(
       seqAFTOverview <- aftConnector.getAftOverview(schemeDetails.pstr, Some(startDate), Some(endDate))
       versions <- aftConnector.getListOfVersions(schemeDetails.pstr, startDate)
       _ <- userAnswersCacheConnector.removeAll(internalId)
-      table <- tableOfVersions(srn, versions.sortBy(_.reportVersion).reverse, startDate, seqAFTOverview)
+      table <- tableOfVersions(srn, versions.sortBy(_.versionDetails.reportVersion).reverse, startDate, seqAFTOverview)
     } yield {
-      val paymentJson = if (schemeFs.isEmpty) Json.obj()
-      else
+
+      val paymentJson = if (schemeFs.isEmpty) {
+        Json.obj()
+      }
+      else {
         Json.obj("paymentsAndChargesUrl" ->
           controllers.financialStatement.paymentsAndCharges.routes.PaymentsAndChargesController.onPageLoad(srn, startDate).url)
+      }
+
       Json.obj(
         fields = "srn" -> srn,
         "startDate" -> Some(startDate),
@@ -84,61 +92,36 @@ class ReturnHistoryController @Inject()(
     json.flatMap(renderer.render("amend/returnHistory.njk", _).map(Ok(_)))
   }
 
-  private def tableOfVersions(srn: String, versions: Seq[AFTVersion], startDate: String, seqAftOverview: Seq[AFTOverview])
-                             (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Future[JsObject] = {
+  private def tableOfVersions(srn: String, versions: Seq[VersionsWithSubmitter], startDate: String, seqAftOverview: Seq[AFTOverview])
+                             (implicit request: IdentifierRequest[AnyContent],
+                              ec: ExecutionContext,
+                              hc: HeaderCarrier): Future[JsObject] = {
     if (versions.nonEmpty) {
-      val isCompileAvailable = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
-      val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
+      val isCompileAvailable: Option[Boolean] = seqAftOverview.find(_.periodStartDate == stringToLocalDate(startDate)).map(_.compiledVersionAvailable)
 
       def url: (AccessType, Int) => Call = controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, _, _)
 
-      def link(version: Int, linkText: String, accessType: AccessType, index: Int)(implicit messages: Messages): Html = {
-        val updatedVersion = if (index == 0 && isCompileAvailable.contains(false)) version + 1 else version
-        Html(
-          s"<a id= report-version-$version class=govuk-link href=${url(accessType, updatedVersion)}>" +
-            s"<span aria-hidden=true>${messages(linkText)}</span>" +
-            s"<span class=govuk-visually-hidden> ${messages(linkText)} " +
-            s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
-        )
-      }
-
-      val head = Seq(
-        Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
-        Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
-        Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
-      )
-
-      def versionCell(reportVersion: Int, reportStatus: String): Cell = {
-        val version = reportStatus.toLowerCase match {
-          case "compiled" => msg"returnHistory.versionDraft"
-          case _ => Literal(reportVersion.toString)
-        }
-        Cell(version, classes = Seq("govuk-!-width-one-quarter"))
-      }
-
-      def statusCell(date: String, reportStatus: String): Cell = {
-        val status = reportStatus match {
-          case "Compiled" => msg"returnHistory.compiledStatus"
-          case _ => msg"returnHistory.submittedOn".withArgs(date)
-        }
-        Cell(status, classes = Seq("govuk-!-width-one-half"))
-      }
-
-      val tableRows = versions.zipWithIndex.map { data =>
+      val tableRows: Seq[Future[Seq[Cell]]] = versions.zipWithIndex.map { data =>
         val (version, index) = data
         val accessType = if (index == 0) Draft else Submission
 
-        getLinkText(index, srn, version.date, version.reportStatus).map { linkText =>
+        for {
+          optionLockDetail <- userAnswersCacheConnector.lockDetail(srn, version.versionDetails.date)
+          displayDetails <- getDisplayDetails(index, version.versionDetails.date, version.versionDetails.reportVersion,
+            version.versionDetails.reportStatus, optionLockDetail, srn)
+          submitter <- submittedBy(version.submitterDetails, srn)
+        } yield
           Seq(
-            versionCell(version.reportVersion, version.reportStatus),
-            statusCell(version.date.format(dateFormatter), version.reportStatus),
-            Cell(link(version.reportVersion, linkText, accessType, index), classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell"))
+            Cell(displayDetails.version, classes = Seq("govuk-!-width-one-quarter")),
+            Cell(displayDetails.status, classes = Seq("govuk-!-width-one-half")),
+            Cell(Literal(submitter.getOrElse("")), classes = Seq("govuk-!-width-one-quarter")),
+            Cell(link(version.versionDetails.reportVersion, displayDetails.linkText, accessType, index, isCompileAvailable, url),
+              classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell"))
           )
-        }
       }
 
       Future.sequence(tableRows).map { rows =>
-        Json.obj("versions" -> Table(head = head,
+        Json.obj("versions" -> Table(head = head(request2Messages),
           rows = rows,
           attributes = Map("role" -> "table")))
       }
@@ -147,18 +130,91 @@ class ReturnHistoryController @Inject()(
     }
   }
 
-  private def getLinkText(index: Int, srn: String, date: String, reportStatus: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[String] = {
+  private def link(version: Int, linkText: String, accessType: AccessType, index: Int,
+                   isCompileAvailable: Option[Boolean], url: (AccessType, Int) => Call)(implicit messages: Messages): Html = {
+
+    val updatedVersion = if (index == 0 && isCompileAvailable.contains(false)) version + 1 else version
+
+    Html(
+      s"<a id= report-version-$version class=govuk-link href=${url(accessType, updatedVersion)}>" +
+        s"<span aria-hidden=true>${messages(linkText)}</span>" +
+        s"<span class=govuk-visually-hidden> ${messages(linkText)} " +
+        s"${messages(s"returnHistory.visuallyHidden", version.toString)}</span></a>"
+    )
+  }
+
+  private val head: Messages => Seq[Cell] = implicit messages => Seq(
+    Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
+    Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
+    Cell(msg"returnHistory.submittedBy", classes = Seq("govuk-!-width-one-quarter")),
+    Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
+  )
+
+  private def getDisplayDetails(index: Int, date: LocalDate, reportVersion: Int, reportStatus: String, optionLockDetail: Option[LockDetail], srn: String)
+                               (implicit request: IdentifierRequest[AnyContent]): Future[DisplayDetails] = {
     if (index == 0) {
-      userAnswersCacheConnector.lockDetail(srn, date).map { optionLockDetail =>
-        (optionLockDetail, reportStatus) match {
-          case (Some(_), _) => "site.view"
-          case (_, "Compiled") => "site.change"
-          case _ => "site.viewOrChange"
-        }
+      (optionLockDetail, reportStatus) match {
+
+        case (Some(lockedBy), _) =>
+          getLockedBy(lockedBy, request.idOrException, srn).map { nameOpt =>
+            DisplayDetails(
+              msg"returnHistory.versionDraft",
+              nameOpt.fold(msg"returnHistory.locked")(name => msg"returnHistory.lockedBy".withArgs(name)),
+              "site.view")
+          }
+        case (_, "Compiled") => Future(DisplayDetails(
+          msg"returnHistory.versionDraft",
+          msg"returnHistory.compiledStatus",
+          "site.change"))
+
+        case _ => Future(DisplayDetails(
+          Literal(reportVersion.toString),
+          msg"returnHistory.submittedOn".withArgs(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
+          "site.viewOrChange"))
       }
     } else {
-      Future.successful("site.view")
+      Future(DisplayDetails(
+        Literal(reportVersion.toString),
+        msg"returnHistory.submittedOn".withArgs(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
+        "site.view"))
+    }
+  }
+
+  private val psaIdRegex: Regex = "^A[0-9]{7}$".r
+  private val pspIdRegex: Regex = "^[0-9]{8}$".r
+
+  private def submittedBy(submitterDetails: SubmitterDetails, srn: String)
+                         (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Option[String]] =
+    request.idOrException match {
+      case psaIdRegex(_*) => Future(Some(submitterDetails.submitterName))
+      case pspIdRegex(_*) if submitterDetails.submitterType == PSA =>
+
+        schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map { schemeDetails =>
+          if (schemeDetails.authorisingPSAID.contains(submitterDetails.submitterID)) {
+            Some(submitterDetails.submitterName)
+          } else {
+            None
+          }
+        }
+      case _ => Future(None)
+    }
+
+  private def getLockedBy(lockedBy: LockDetail, loggedInId: String, srn: String)
+                         (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Option[String]] = {
+    loggedInId match {
+      case psaIdRegex(_*) => Future(Some(lockedBy.name))
+      case pspIdRegex(_*) if lockedBy.psaOrPspId.matches(psaIdRegex.toString()) =>
+        schemeDetailsConnector.getPspSchemeDetails(loggedInId, srn).map { schemeDetails =>
+          if (schemeDetails.authorisingPSAID.contains(lockedBy.psaOrPspId)) {
+            Some(lockedBy.name)
+          } else {
+            None
+          }
+        }
+      case _ => Future(None)
     }
   }
 
 }
+
+case class DisplayDetails(version: Text, status: Text, linkText: String)
