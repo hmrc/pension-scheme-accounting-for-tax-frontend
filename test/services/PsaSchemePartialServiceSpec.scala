@@ -219,7 +219,7 @@ object PsaSchemePartialServiceSpec {
     heading = messages("pspDashboardUpcomingAftChargesCard.h2"),
     Seq(CardSubHeading(
       subHeading = messages(upcomingChargesSubHeading),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = amount,
         subHeadingParamClasses = "font-large bold"
@@ -250,7 +250,7 @@ object PsaSchemePartialServiceSpec {
     heading = messages("pspDashboardOverdueAftChargesCard.h2"),
     subHeadings = Seq(CardSubHeading(
       subHeading =  messages("pspDashboardOverdueAftChargesCard.total.span"),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
         subHeadingParamClasses = "font-large bold"
@@ -258,15 +258,15 @@ object PsaSchemePartialServiceSpec {
     ),
       CardSubHeading(
         subHeading =  messages("pspDashboardOverdueAftChargesCard.interestAccruing.span"),
-        subHeadingClasses = "font-xsmall",
+        subHeadingClasses = "font-xsmall card-sub-heading",
         subHeadingParams = Seq(
           CardSubHeadingParam(
             subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-            subHeadingParamClasses = "font-large bold"
+            subHeadingParamClasses = "font-large bold inline-block"
           ),
           CardSubHeadingParam(
             subHeadingParam = messages("pspDashboardOverdueAftChargesCard.toDate.span"),
-            subHeadingParamClasses = "font-xsmall"
+            subHeadingParamClasses = "font-xsmall inline-block"
           )
         )
       )
@@ -350,10 +350,10 @@ object PsaSchemePartialServiceSpec {
 
     CardSubHeading(
       subHeading = messages("aftPartial.inProgress.forPeriod", startDt, endDt),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = subHeadingParam,
-        subHeadingParamClasses = "card-sub-heading bold"
+        subHeadingParamClasses = "font-small bold"
       )))
   }
 
@@ -367,10 +367,10 @@ object PsaSchemePartialServiceSpec {
   private def multipleInProgressSubHead(count: Int = 2)(implicit messages: Messages): CardSubHeading =
     CardSubHeading(
       subHeading = messages("aftPartial.multipleInProgress.text"),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = messages("aftPartial.multipleInProgress.count", count),
-        subHeadingParamClasses = "card-sub-heading bold"
+        subHeadingParamClasses = "font-small bold"
       )))
 
   private def multipleInProgressLink = Link(
