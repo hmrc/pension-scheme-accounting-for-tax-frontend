@@ -4,10 +4,10 @@
             {{ messages("pspDashboardUpcomingAftChargesCard.h2") }}
         </h2>
         {% for subHeading in upcomingCharges.subHeadings %}
-            <h3 class="card-sub-heading">
+            <p class="card-sub-heading">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
                 <span class="font-large bold">{{ subHeading.total }}</span>
-            </h3>
+            </p>
         {% endfor %}
     </div>
     <div class="card-action">

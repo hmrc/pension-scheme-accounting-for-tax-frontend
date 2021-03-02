@@ -6,12 +6,12 @@
                 {{ card.heading }}
             </h2>
             {% for subHead in card.subHeadings %}
-                <h3 class="{{ subHead.subHeadingClasses }}">
-                    {{ subHead.subHeading }}
+                <p class="{{ subHead.subHeadingClasses }}">
+                    <span>{{ subHead.subHeading }}</span>
                     {% for subHeadParams in subHead.subHeadingParams %}
-                        <span class="{{subHeadParams.subHeadingParamClasses}}">{{ subHeadParams.subHeadingParam }}</span>
+                        <span class='{{ subHeadParams.subHeadingParamClasses}}'>{{ subHeadParams.subHeadingParam }}</span>
                     {% endfor %}
-                </h3>
+                </p>
             {% endfor %}
         </div>
         <div class="card-action">
