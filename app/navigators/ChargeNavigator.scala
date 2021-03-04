@@ -17,16 +17,15 @@
 package navigators
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import models.LocalDateBinder._
 import models.requests.DataRequest
-import models.{NormalMode, ChargeType, AccessType, UserAnswers}
+import models.{UserAnswers, ChargeType, NormalMode, AccessType}
 import pages._
 import play.api.mvc.{Call, AnyContent}
-import services.{ChargeDService, ChargeEService, AFTService, ChargeGService}
+import services.{ChargeEService, ChargeDService, ChargeGService, AFTService}
 
 class ChargeNavigator @Inject()(config: FrontendAppConfig,
                                 val dataCacheConnector: UserAnswersCacheConnector,
@@ -115,7 +114,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         }
 
       case Some(false) =>
-        Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+        controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)
       case _ => sessionExpiredPage
     }
   }
@@ -135,7 +134,7 @@ class ChargeNavigator @Inject()(config: FrontendAppConfig,
         controllers.routes.ChargeTypeController.onPageLoad(srn, startDate, accessType, version)
       case (Some(false), Some(quarter)) =>
           if (aftService.isSubmissionDisabled(quarter.endDate)) {
-            Call("GET", config.managePensionsSchemeSummaryUrl.format(srn))
+            controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, version)
           } else {
             if (request.isAmendment) {
               controllers.amend.routes.ConfirmSubmitAFTAmendmentController.onPageLoad(srn, startDate, accessType, version)

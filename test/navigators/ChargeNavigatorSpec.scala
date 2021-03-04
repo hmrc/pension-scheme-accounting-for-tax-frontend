@@ -17,14 +17,13 @@
 package navigators
 
 import java.time.LocalDate
-
 import config.FrontendAppConfig
 import data.SampleData
-import data.SampleData.{versionInt, accessType}
+import data.SampleData.{accessType, versionInt}
 import models.ChargeType._
 import models.LocalDateBinder._
-import models.{Quarter, NormalMode, ChargeType, UserAnswers}
-import org.scalatest.prop.{TableFor5, TableFor3}
+import models.{Quarter, UserAnswers, ChargeType, NormalMode}
+import org.scalatest.prop.{TableFor3, TableFor5}
 import pages._
 import play.api.mvc.Call
 import utils.AFTConstants._
@@ -72,7 +71,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
         row(ChargeTypePage)(chargeG.routes.MemberDetailsController.onPageLoad(NormalMode,srn, startDate, accessType, versionInt, 1), chargeGMemberExists),
         row(ChargeTypePage)(routes.SessionExpiredController.onPageLoad()),
         row(ConfirmSubmitAFTReturnPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
-        row(ConfirmSubmitAFTReturnPage)(Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)), confirmSubmitAFTReturn(confirmSubmit = false)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
+          confirmSubmitAFTReturn(confirmSubmit = false)),
         row(ConfirmSubmitAFTAmendmentPage)(controllers.routes.DeclarationController.onPageLoad(srn, startDate, accessType, versionInt)),
         row(DeclarationPage)(controllers.routes.ConfirmationController.onPageLoad(srn, startDate, accessType, versionInt))
       )
@@ -83,6 +83,8 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
       Table(
         ("Id", "UserAnswers", "Next Page"),
         row(ConfirmSubmitAFTReturnPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmSubmitAFTReturn(confirmSubmit = true)),
+        row(ConfirmSubmitAFTReturnPage)(controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
+          confirmSubmitAFTReturn(confirmSubmit = false)),
         row(ConfirmSubmitAFTAmendmentPage)(EnterPsaIdController.onPageLoad(srn, startDate, accessType, versionInt), confirmAmendAFTReturn(confirmAmend = true)),
         row(EnterPsaIdPage)(DeclarationController.onPageLoad(srn, startDate, accessType, versionInt),Some(SampleData.userAnswersWithSchemeNamePstrQuarter))
 
@@ -130,7 +132,7 @@ class ChargeNavigatorSpec extends NavigatorBehaviour {
           version = 2),
 
         rowWithDateAndVersion(AFTSummaryPage)(
-          Call("GET", config.managePensionsSchemeSummaryUrl.format(srn)),
+          controllers.routes.ReturnToSchemeDetailsController.returnToSchemeDetails(srn, startDate, accessType, versionInt),
           aftSummaryNo(quarter = SampleData.q32020),
           currentDate = SampleData.q32020.endDate,
           version = 1)
