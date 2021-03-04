@@ -17,22 +17,22 @@
 package controllers.amend
 
 import java.time.LocalDate
-
-import connectors.{FinancialStatementConnector, AFTConnector}
+import connectors.{AFTConnector, FinancialStatementConnector}
 import controllers.base.ControllerSpecBase
 import data.SampleData
 import data.SampleData._
 import matchers.JsonMatchers
 import models.LocalDateBinder._
+import models.SubmitterType.{PSA, PSP}
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AFTVersion, Submission, AccessType, Draft}
+import models.{AFTOverview, AFTVersion, AccessType, Draft, Submission, SubmitterDetails, VersionsWithSubmitter}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, when, verify}
+import org.mockito.Mockito.{times, verify, when}
 import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
-import play.api.libs.json.{JsArray, Json, JsObject}
+import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc.Results._
 import play.api.test.Helpers.{route, status, _}
 import play.twirl.api.Html
@@ -52,7 +52,16 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
   private val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "Submitted")
   private val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "Submitted")
   private val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "Compiled")
-  private val versions = Seq(version1, version2, version3)
+
+  private val submitter1 = SubmitterDetails(PSA, "Submitter 1", "A2100005", None, LocalDate.of(2020, 4, 17))
+  private val submitter2 = SubmitterDetails(PSP, "Submitter 2", "21000005", Some("A2100005"), LocalDate.of(2020, 5, 17))
+  private val submitter3 = SubmitterDetails(PSA, "Submitter 3", "A2100007", None, LocalDate.of(2020, 6, 17))
+
+  private val versions: Seq[VersionsWithSubmitter] = Seq(
+    VersionsWithSubmitter(version1, submitter1),
+    VersionsWithSubmitter(version2, submitter2),
+    VersionsWithSubmitter(version3, submitter3))
+
   private val multipleVersions = Seq[AFTOverview](
     AFTOverview(
       periodStartDate = LocalDate.of(2020, 4, 1),
@@ -123,14 +132,14 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
               }).toSeq
             })))
 
-      actualColumnTextTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status")))
+      actualColumnTextTitles mustBe Some(Seq(messages("returnHistory.version"), messages("returnHistory.status"), messages("returnHistory.submittedBy")))
 
       actualColumnHtmlTitles mustBe Some(Seq(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
 
-      def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType) =
-          s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
-          s"<span aria-hidden=true>$linkContent</span>" +
-          s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
+      def anchor(startDate: String, version: Int, linkContent: String, accessType: AccessType): String =
+      s"<a id= report-version-$version class=govuk-link href=${controllers.routes.AFTSummaryController.onPageLoad(srn, startDate, accessType, version).url}>" +
+      s"<span aria-hidden=true>$linkContent</span>" +
+      s"<span class=govuk-visually-hidden> $linkContent ${messages("returnHistory.visuallyHidden", version)}</span></a>"
 
       val expectedStartDate = "2020-04-01"
 
@@ -138,12 +147,15 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
         Seq(
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
+          "Submitter 3",
           anchor(expectedStartDate, 3, messages("site.change"), Draft),
           "2",
           messages("returnHistory.submittedOn", "17 May 2020"),
+          "Submitter 2",
           anchor(expectedStartDate, 2, messages("site.view"), Submission),
           "1",
           messages("returnHistory.submittedOn", "17 April 2020"),
+          "Submitter 1",
           anchor(expectedStartDate, 1, messages("site.view"), Submission)
         )
       )
