@@ -17,7 +17,7 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{FakeIdentifierAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import matchers.JsonMatchers
@@ -25,7 +25,7 @@ import models.financialStatement.SchemeFS
 import models.financialStatement.SchemeFSChargeType.PSS_AFT_RETURN
 import models.requests.IdentifierRequest
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, times, verify, when}
+import org.mockito.Mockito.{times, verify, reset, when}
 import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.BeforeAndAfterEach
 import play.api.Application
@@ -59,7 +59,8 @@ class PaymentsAndChargesUpcomingControllerSpec
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+        bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
     )
     .build()

@@ -18,23 +18,22 @@ package services
 
 import com.google.inject.Inject
 import connectors.cache.FinancialInfoCacheConnector
-import connectors.{FinancialStatementConnector, ListOfSchemesConnector}
+import connectors.{ListOfSchemesConnector, FinancialStatementConnector}
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.financialStatement.PsaFS
-import models.{ListSchemeDetails, PenaltySchemes}
+import models.{PenaltySchemes, ListSchemeDetails}
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, JsSuccess, Json, OFormat}
+import play.api.libs.json.{JsObject, OFormat, JsSuccess, Json}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Value, Row}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Table.Cell
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Html, _}
-import utils.DateHelper
 import utils.DateHelper.dateFormatterDMY
-import java.time.LocalDate
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
                                  fiCacheConnector: FinancialInfoCacheConnector,
@@ -44,7 +43,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
 
   //PENALTIES
   def getPsaFsJson(penalties: Seq[PsaFS], identifier: String, startDate: LocalDate, chargeRefsIndex: String => String)
-                  (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): JsObject = {
+                  (implicit messages: Messages): JsObject = {
 
     val head: Seq[Cell] = Seq(
       Cell(msg"penalties.column.penalty"),
@@ -71,7 +70,7 @@ class PenaltiesService @Inject()(fsConnector: FinancialStatementConnector,
   }
 
   private def chargeTypeLink(identifier: String, data: PsaFS, startDate: LocalDate, chargeRefsIndex: String)
-                            (implicit messages: Messages, ec: ExecutionContext, hc: HeaderCarrier): Html =
+                            (implicit messages: Messages): Html =
           Html(s"<a id=${data.chargeReference} " +
             s"class=govuk-link href=${controllers.financialStatement.penalties.routes
               .ChargeDetailsController.onPageLoad(identifier, startDate, chargeRefsIndex)}>" +

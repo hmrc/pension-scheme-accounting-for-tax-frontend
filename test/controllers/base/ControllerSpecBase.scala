@@ -21,7 +21,7 @@ import config.FrontendAppConfig
 import connectors.cache.UserAnswersCacheConnector
 import controllers.actions.{AllowAccessActionProvider, _}
 import models.UserAnswers
-import models.requests.DataRequest
+import models.requests.{DataRequest, IdentifierRequest}
 import navigators.CompoundNavigator
 import org.mockito.Matchers.any
 import org.mockito.Mockito
@@ -31,8 +31,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.HeaderNames
 import play.api.inject.bind
 import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
-import play.api.mvc.{ActionFilter, AnyContentAsEmpty, AnyContentAsFormUrlEncoded, Result}
-import play.api.test.Helpers.{GET, POST}
+import play.api.mvc.{AnyContentAsFormUrlEncoded, ActionFilter, AnyContentAsEmpty, Result}
+import play.api.test.Helpers.{POST, GET}
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
@@ -47,9 +47,16 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     override protected def filter[A](request: DataRequest[A]): Future[Option[Result]] = Future.successful(None)
   }
 
+  val FakeActionFilterForIdentifierRequest: ActionFilter[IdentifierRequest] = new ActionFilter[IdentifierRequest] {
+    override protected def executionContext: ExecutionContext = global
+
+    override protected def filter[A](request: IdentifierRequest[A]): Future[Option[Result]] = Future.successful(None)
+  }
+
   override def beforeEach: Unit = {
     Mockito.reset(mockRenderer, mockUserAnswersCacheConnector, mockCompoundNavigator, mockAllowAccessActionProvider)
     when(mockAllowAccessActionProvider.apply(any(), any(), any(), any(), any())).thenReturn(FakeActionFilter)
+    when(mockAllowAccessActionProviderForIdentifierRequest.apply()).thenReturn(FakeActionFilterForIdentifierRequest)
   }
 
   protected def mockDataRetrievalAction: DataRetrievalAction = mock[DataRetrievalAction]
@@ -61,6 +68,8 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
   protected val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
   protected val mockAllowAccessActionProvider: AllowAccessActionProvider = mock[AllowAccessActionProvider]
+  protected val mockAllowAccessActionProviderForIdentifierRequest: AllowAccessActionProviderForIdentifierRequest =
+    mock[AllowAccessActionProviderForIdentifierRequest]
 
   def modules: Seq[GuiceableModule] = Seq(
     bind[DataRequiredAction].to[DataRequiredActionImpl],
@@ -69,7 +78,8 @@ trait ControllerSpecBase extends SpecBase with BeforeAndAfterEach with MockitoSu
     bind[FrontendAppConfig].toInstance(mockAppConfig),
     bind[UserAnswersCacheConnector].toInstance(mockUserAnswersCacheConnector),
     bind[CompoundNavigator].toInstance(mockCompoundNavigator),
-    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider)
+    bind[AllowAccessActionProvider].toInstance(mockAllowAccessActionProvider),
+    bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
   )
 
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None,

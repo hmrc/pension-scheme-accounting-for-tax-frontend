@@ -33,6 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SelectSchemeController @Inject()(
                                         identify: IdentifierAction,
+                                        allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                         override val messagesApi: MessagesApi,
                                         val controllerComponents: MessagesControllerComponents,
                                         formProvider: SelectSchemeFormProvider,
@@ -45,7 +46,7 @@ class SelectSchemeController @Inject()(
 
   private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
-  def onPageLoad(startDate: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
         penaltySchemes =>

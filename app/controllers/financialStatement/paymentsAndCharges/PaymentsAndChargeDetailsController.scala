@@ -21,10 +21,10 @@ import controllers.actions._
 import helpers.FormatHelper
 import models.LocalDateBinder._
 import models.financialStatement.SchemeFS
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN}
+import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_AFT_RETURN}
 import models.requests.IdentifierRequest
 import play.api.Logger
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, Messages, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc._
 import renderer.Renderer
@@ -32,7 +32,7 @@ import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport}
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import java.time.LocalDate
 import javax.inject.Inject
@@ -41,6 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsAndChargeDetailsController @Inject()(
                                                     override val messagesApi: MessagesApi,
                                                     identify: IdentifierAction,
+                                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                     val controllerComponents: MessagesControllerComponents,
                                                     config: FrontendAppConfig,
                                                     paymentsAndChargesService: PaymentsAndChargesService,
@@ -52,7 +53,7 @@ class PaymentsAndChargeDetailsController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargeDetailsController])
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
@@ -62,7 +63,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       }
   }
 
-  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
@@ -73,7 +74,7 @@ class PaymentsAndChargeDetailsController @Inject()(
       }
   }
 
-  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 

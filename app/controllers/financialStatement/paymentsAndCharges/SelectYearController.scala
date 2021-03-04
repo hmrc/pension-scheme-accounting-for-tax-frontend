@@ -36,9 +36,9 @@ import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
 import models.financialStatement.SchemeFS
-import models.{DisplayYear, FSYears, PaymentOverdue, Quarters, Year}
+import models.{FSYears, Year, DisplayYear, PaymentOverdue}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.Json
 import play.api.mvc._
 import renderer.Renderer
@@ -51,6 +51,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class SelectYearController @Inject()(override val messagesApi: MessagesApi,
                                      identify: IdentifierAction,
+                                     allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                      formProvider: YearsFormProvider,
                                      val controllerComponents: MessagesControllerComponents,
                                      renderer: Renderer,
@@ -62,7 +63,7 @@ class SelectYearController @Inject()(override val messagesApi: MessagesApi,
 
   private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectChargesYear.error")
 
-  def onPageLoad(srn: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     service.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 
       val years = getYears(paymentsCache.schemeFS)

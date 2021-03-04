@@ -38,6 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsAndChargesOverdueController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       identify: IdentifierAction,
+                                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
@@ -49,7 +50,7 @@ class PaymentsAndChargesOverdueController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesOverdueController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
 

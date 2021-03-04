@@ -43,6 +43,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsAndChargesInterestController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       identify: IdentifierAction,
+                                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
@@ -54,7 +55,7 @@ class PaymentsAndChargesInterestController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesInterestController])
 
-  def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
         val schemeFS: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
@@ -63,7 +64,7 @@ class PaymentsAndChargesInterestController @Inject()(
       }
   }
 
-  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoadUpcoming(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
         val schemeFS: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
@@ -73,7 +74,7 @@ class PaymentsAndChargesInterestController @Inject()(
       }
   }
 
-  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = identify.async {
+  def onPageLoadOverdue(srn: String, startDate: LocalDate, index: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
         val schemeFS: Seq[SchemeFS] = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)

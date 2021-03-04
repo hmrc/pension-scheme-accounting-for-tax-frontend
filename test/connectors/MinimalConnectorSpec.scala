@@ -45,7 +45,9 @@ class MinimalConnectorSpec
       Json.obj(
         "email" -> email,
         "isPsaSuspended" -> b,
-        "organisationName" -> "test ltd"
+        "organisationName" -> "test ltd",
+        "deceasedFlag" -> false,
+        "rlsFlag" -> false
       )
     )
 
@@ -61,7 +63,7 @@ class MinimalConnectorSpec
       )
 
       connector.getMinimalDetails map {
-        _ mustBe MinimalDetails(email, isPsaSuspended = false, Some("test ltd"), None)
+        _ mustBe MinimalDetails(email, isPsaSuspended = false, Some("test ltd"), None, rlsFlag = false, deceasedFlag = false)
       }
     }
 
@@ -75,7 +77,7 @@ class MinimalConnectorSpec
       )
 
       connector.getMinimalDetails map {
-        _ mustBe MinimalDetails(email, isPsaSuspended = true, Some("test ltd"), None)
+        _ mustBe MinimalDetails(email, isPsaSuspended = true, Some("test ltd"), None, rlsFlag = false, deceasedFlag = false)
       }
     }
 

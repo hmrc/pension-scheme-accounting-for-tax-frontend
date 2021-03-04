@@ -38,6 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsAndChargesUpcomingController @Inject()(
                                                       override val messagesApi: MessagesApi,
                                                       identify: IdentifierAction,
+                                                      allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                                       val controllerComponents: MessagesControllerComponents,
                                                       config: FrontendAppConfig,
                                                       paymentsAndChargesService: PaymentsAndChargesService,
@@ -49,7 +50,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
 
   private val logger = Logger(classOf[PaymentsAndChargesUpcomingController])
 
-  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = identify.async {
+  def onPageLoad(srn: String, startDate: LocalDate): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
       paymentsAndChargesService.getPaymentsFromCache(request.idOrException, srn).flatMap { paymentsCache =>
         val schemeFS = paymentsCache.schemeFS.filter(_.periodStartDate == startDate)
@@ -75,7 +76,7 @@ class PaymentsAndChargesUpcomingController @Inject()(
     }
   }
 
-  def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String)
+  private def tableWithoutPaymentStatusColumn(upcomingPaymentsAndCharges: Seq[SchemeFS], srn: String)
                                      (implicit messages: Messages): Table = {
 
     val table: Table = paymentsAndChargesService.getPaymentsAndCharges(srn, upcomingPaymentsAndCharges, ChargeDetailsFilter.Upcoming)

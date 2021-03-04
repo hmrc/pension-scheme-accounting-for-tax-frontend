@@ -38,6 +38,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class QuartersController @Inject()(
                                     override val messagesApi: MessagesApi,
                                     identify: IdentifierAction,
+                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                     formProvider: QuartersFormProvider,
                                     val controllerComponents: MessagesControllerComponents,
                                     renderer: Renderer,
@@ -53,7 +54,7 @@ class QuartersController @Inject()(
   private def form(year: String, quarters: Seq[Quarter])(implicit messages: Messages): Form[Quarter] =
     formProvider(messages("quarters.error.required", year), quarters)
 
-  def onPageLoad(srn: String, year: String): Action[AnyContent] = identify.async { implicit request =>
+  def onPageLoad(srn: String, year: String): Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
     schemeService.retrieveSchemeDetails(
       psaId = request.idOrException,
       srn = srn,

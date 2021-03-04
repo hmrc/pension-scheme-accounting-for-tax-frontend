@@ -20,14 +20,14 @@ import config.Constants._
 import controllers.actions._
 import models.Quarters
 import models.financialStatement.PsaFS
-import play.api.i18n.{I18nSupport, Messages, MessagesApi}
+import play.api.i18n.{MessagesApi, I18nSupport}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.{PenaltiesService, SchemeService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 import models.LocalDateBinder._
 
 import java.time.LocalDate
@@ -35,6 +35,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class PenaltiesController @Inject()(identify: IdentifierAction,
+                                    allowAccess: AllowAccessActionProviderForIdentifierRequest,
                                     override val messagesApi: MessagesApi,
                                     val controllerComponents: MessagesControllerComponents,
                                     penaltiesService: PenaltiesService,
@@ -45,7 +46,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = identify.async {
+  def onPageLoad(startDate: String, identifier: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
 
       penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
@@ -70,8 +71,7 @@ class PenaltiesController @Inject()(identify: IdentifierAction,
       }
   }
 
-  private def viewModel(startDate: LocalDate, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*)
-                       (implicit messages: Messages): JsObject =
+  private def viewModel(startDate: LocalDate, pstr: String, schemeAssociated: Boolean, table: JsObject, args: String*): JsObject =
     Json.obj(
       "startDate" -> startDate.format(dateFormatterStartDate),
       "endDate" -> Quarters.getQuarter(startDate).endDate.format(dateFormatterDMY),

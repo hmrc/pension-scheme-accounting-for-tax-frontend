@@ -69,7 +69,9 @@ object MinimalConnector {
                              email: String,
                              isPsaSuspended: Boolean,
                              organisationName: Option[String],
-                             individualDetails: Option[IndividualDetails]
+                             individualDetails: Option[IndividualDetails],
+                             rlsFlag: Boolean,
+                             deceasedFlag: Boolean
                            ) {
 
     def name: String = {

@@ -17,7 +17,6 @@
 package models
 
 import java.time.{Month, LocalDate}
-
 import config.FrontendAppConfig
 import play.api.data.Form
 import play.api.i18n.Messages
@@ -25,7 +24,7 @@ import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels.{Text, _}
 import utils.DateHelper._
 import viewmodels.Radios.Radio
-import viewmodels.{Radios, Hint, LabelClasses}
+import viewmodels.{Hint, LabelClasses, Radios}
 
 import scala.language.implicitConversions
 
@@ -137,7 +136,7 @@ object Quarters extends CommonQuarters with Enumerable.Implicits {
     Literal(s"${messages(s"quarters.${q.toString}.label")} $year $lockedString")
   }
 
-  private def getHint(displayQuarter: DisplayQuarter, hintClass: Seq[String] = Nil): Option[Hint] =
+  private def getHint(displayQuarter: DisplayQuarter, hintClass: Seq[String]): Option[Hint] =
     displayQuarter.hintText match {
     case Some(hint) => Some(Hint(msg"${hint.toString}", "hint-id", hintClass))
     case _ => None

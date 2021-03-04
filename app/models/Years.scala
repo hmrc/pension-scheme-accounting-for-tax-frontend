@@ -19,12 +19,11 @@ package models
 
 import config.FrontendAppConfig
 import play.api.data.Form
-import play.api.libs.json.{JsString, JsValue, Writes}
-
+import play.api.libs.json.{JsString, Writes, JsValue}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.DateHelper
 import viewmodels.Radios.Radio
-import viewmodels.{Radios, Hint, LabelClasses}
+import viewmodels.{Hint, Radios}
 import uk.gov.hmrc.viewmodels._
 
 case class Year(year: Int) {

@@ -16,32 +16,35 @@
 
 package controllers.actions
 
-import connectors.{AFTConnector, SchemeDetailsConnector}
+import connectors.MinimalConnector.MinimalDetails
+import connectors.{SchemeDetailsConnector, MinimalConnector, AFTConnector}
 import controllers.base.ControllerSpecBase
-import data.SampleData.{versionInt, accessType, _}
+import data.SampleData.{accessType, srn, versionInt, _}
 import handlers.ErrorHandler
 import models.LocalDateBinder._
-import models.SchemeStatus.{Rejected, Open, WoundUp}
-import models.requests.DataRequest
-import models.{SessionAccessData, UserAnswers, SessionData, AccessMode, LockDetail}
+import models.SchemeStatus.{WoundUp, Rejected, Open}
+import models.requests.{IdentifierRequest, DataRequest}
+import models.{SessionAccessData, SessionData, UserAnswers, MinimalFlags, AccessMode, LockDetail}
 import org.mockito.Matchers
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import org.scalatest.concurrent.ScalaFutures
 import pages._
 import play.api.mvc.Results._
-import play.api.mvc.{Result, AnyContent}
+import play.api.mvc.{Call, AnyContent, Result}
 import play.api.test.Helpers.NOT_FOUND
-import uk.gov.hmrc.domain.PsaId
+import uk.gov.hmrc.domain.{PsaId, PspId}
 import utils.AFTConstants.QUARTER_START_DATE
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
 
   private val aftConnector: AFTConnector = mock[AFTConnector]
   private val errorHandler: ErrorHandler = mock[ErrorHandler]
+  private val mockMinimalConnector = mock[MinimalConnector]
+
   private val version = 1
   private val pensionsSchemeConnector: SchemeDetailsConnector = mock[SchemeDetailsConnector]
   private val sessionId = "1"
@@ -49,18 +52,41 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
   private def sessionData(sad:SessionAccessData) = SessionData(sessionId, optionLockedByName, sad)
   private val sessionAccessDataViewOnly: SessionAccessData =
     SessionAccessData(version = version, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = false)
+  private val email = "a@a.c"
+
   private def dataRequest(ua:UserAnswers, viewOnly:Boolean = false, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
     val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
     DataRequest(request, "", Some(PsaId(psaId)), None, ua, sessionData(sessionAccessDataViewOnly))
   }
 
+  private def identifierRequest(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+    IdentifierRequest(request, Some(PsaId(psaId)), None)
+  }
+
+  private def identifierRequestPsp(headers: Seq[(String,String)] = Seq.empty): IdentifierRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+    IdentifierRequest(request, None, Some(PspId(pspId)))
+  }
+
+  private def dataRequestPsp(ua:UserAnswers, headers: Seq[(String,String)] = Seq.empty): DataRequest[AnyContent] = {
+    val request = if (headers.isEmpty) fakeRequest else fakeRequest.withHeaders(headers :_*)
+    DataRequest(request, "", None, Some(PspId(pspId)), ua, sessionData(sessionAccessDataViewOnly))
+  }
+
   class TestHarness(srn: String = srn, page: Option[Page] = None)(implicit ec: ExecutionContext)
-    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler, pensionsSchemeConnector)(ec) {
+    extends AllowAccessAction(srn, QUARTER_START_DATE, page, versionInt, accessType, aftConnector, errorHandler,
+      frontendAppConfig, pensionsSchemeConnector)(ec) {
     def test(dataRequest: DataRequest[_]): Future[Option[Result]] = this.filter(dataRequest)
   }
 
+  class TestHarnessForIdentifierRequest()(implicit ec: ExecutionContext)
+    extends AllowAccessActionForIdentifierRequest(frontendAppConfig, mockMinimalConnector)(ec) {
+    def test(identifierRequest: IdentifierRequest[_]): Future[Option[Result]] = this.filter(identifierRequest)
+  }
+
   override def beforeEach: Unit = {
-    reset(pensionsSchemeConnector, errorHandler)
+    reset(pensionsSchemeConnector, errorHandler, mockMinimalConnector)
     when(aftConnector.aftOverviewStartDate).thenReturn(QUARTER_START_DATE)
   }
 
@@ -69,6 +95,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Open/Wound-up/Deregistered for a view-only Accessible page" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
@@ -83,6 +111,7 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Open/Wound-up/Deregistered for a option page is None" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult: Result =
         Redirect(controllers.routes.AFTSummaryController.onPageLoad(srn, QUARTER_START_DATE, accessType, versionInt))
@@ -104,11 +133,12 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "but the scheme status is Rejected" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, Rejected)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -119,13 +149,15 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
       "the scheme status is Wound-up but there is no association" in {
       val ua = userAnswersWithSchemeName
         .setOrException(SchemeStatusQuery, WoundUp)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(false))
 
       val errorResult = Ok("error")
       when(errorHandler.onClientError(any(), Matchers.eq(NOT_FOUND), any())).thenReturn(Future.successful(errorResult))
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(errorResult)
@@ -135,6 +167,8 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the AFT summary page when the PSA is not suspended and current page is charge type page and view only" in {
       val ua = userAnswersWithSchemeNamePstrQuarter
         .setOrException(SchemeStatusQuery, WoundUp)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
+
       when(pensionsSchemeConnector.checkForAssociation(any(), any(), any())(any(), any()))
         .thenReturn(Future.successful(true))
 
@@ -150,10 +184,11 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     "respond with a redirect to the session expired page (i.e. don't allow access) when " +
       "no PSA suspended flag is found in user answers" in {
       val ua = userAnswersWithSchemeName
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
       whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
@@ -161,15 +196,121 @@ class AllowAccessActionSpec extends ControllerSpecBase with ScalaFutures {
     }
 
     "respond with a redirect to the session expired page (i.e. don't allow access) when" +
-      "there is PSA suspeneded flag but no scheme status is found in user answers" in {
+      "there is PSA suspended flag but no scheme status is found in user answers" in {
+
+      val ua = userAnswersWithSchemeName
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = false))
 
       val expectedResult = Redirect(controllers.routes.SessionExpiredController.onPageLoad())
 
-      val testHarness = new TestHarness("")
+      val testHarness = new TestHarness(srn)
 
-      whenReady(testHarness.test(dataRequest(userAnswersWithSchemeName))) { result =>
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
         result mustBe Some(expectedResult)
       }
+    }
+
+    "respond with a redirect to deceased page when the PSA is deceased " in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
+
+      val testHarness = new TestHarness(srn)
+
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
+      }
+    }
+
+    "respond with a redirect to update contact address page when the PSA has RLS flag set" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
+
+      val testHarness = new TestHarness(srn)
+
+      whenReady(testHarness.test(dataRequest(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.psaUpdateContactDetailsUrl)))
+      }
+    }
+
+    "respond with a redirect to update contact address page when the PSP has RLS flag set" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = false, rlsFlag = true))
+
+      val testHarness = new TestHarness(srn)
+
+      whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
+        result mustBe Some(Redirect(Call("GET", frontendAppConfig.pspUpdateContactDetailsUrl)))
+      }
+    }
+
+    "respond with a redirect to return to scheme details when no minimal details are present in user answers" in {
+      val ua = userAnswersWithSchemeNamePstrQuarter
+        .setOrException(SchemeStatusQuery, Open)
+
+      val testHarness = new TestHarness(srn)
+
+      whenReady(testHarness.test(dataRequestPsp(ua))) { result =>
+        result mustBe Some(Redirect(controllers.routes.ReturnToSchemeDetailsController
+          .returnToSchemeDetails(srn, startDate, accessType, version)))
+      }
+    }
+  }
+
+  "Allow Access Action For Identifier Request" must {
+    "respond with None (i.e. allow access) when neither of minimal flags are true" in {
+
+      val testHarness = new TestHarnessForIdentifierRequest()
+
+      val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = false)
+
+      when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+        .thenReturn(Future.successful(minimalDetails))
+
+      whenReady(testHarness.test(identifierRequest())) {
+        _ mustBe None
+      }
+    }
+  }
+
+  "respond with a redirect to deceased page when the PSA is deceased" in {
+    val testHarness = new TestHarnessForIdentifierRequest()
+
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = true)
+
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    whenReady(testHarness.test(identifierRequest())) { result =>
+      result mustBe Some(Redirect(Call("GET", frontendAppConfig.youMustContactHMRCUrl)))
+    }
+  }
+
+  "respond with a redirect to update contact address page when the PSA has RLS flag set" in {
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = true, deceasedFlag = false)
+
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    val testHarness = new TestHarnessForIdentifierRequest()
+
+    whenReady(testHarness.test(identifierRequest())) { result =>
+      result mustBe Some(Redirect(Call("GET", frontendAppConfig.psaUpdateContactDetailsUrl)))
+    }
+  }
+
+  "respond with a redirect to update contact address page when the PSP has RLS flag set" in {
+    val minimalDetails = MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = true, deceasedFlag = false)
+
+    when(mockMinimalConnector.getMinimalDetails(any(), any(), any()))
+      .thenReturn(Future.successful(minimalDetails))
+
+    val testHarness = new TestHarnessForIdentifierRequest()
+
+    whenReady(testHarness.test(identifierRequestPsp())) { result =>
+      result mustBe Some(Redirect(Call("GET", frontendAppConfig.pspUpdateContactDetailsUrl)))
     }
   }
 

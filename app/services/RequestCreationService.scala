@@ -17,21 +17,21 @@
 package services
 
 import java.time.LocalDate
-
 import com.google.inject.Inject
 import connectors.cache.UserAnswersCacheConnector
-import connectors.{AFTConnector, MinimalConnector}
+import connectors.{MinimalConnector, AFTConnector}
+
 import javax.inject.Singleton
 import models.LocalDateBinder._
 import models.SchemeStatus.statusByName
-import models.requests.{OptionalDataRequest, IdentifierRequest}
-import models.{AFTOverview, SessionAccessData, Quarters, UserAnswers, AccessType, Draft, SchemeDetails, AccessMode}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{AFTOverview, SessionAccessData, Quarters, Draft, SchemeDetails, AccessMode, UserAnswers, MinimalFlags, AccessType}
 import pages._
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class RequestCreationService @Inject()(
@@ -139,16 +139,11 @@ class RequestCreationService @Inject()(
                                               ec: ExecutionContext,
                                               request: IdentifierRequest[A]
                                             ): Future[UserAnswers] = {
-    val uaWithStatus = ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
-    (uaWithStatus.get(EmailQuery), uaWithStatus.get(NameQuery)) match {
-      case (Some(_), Some(_)) =>
-        Future.successful(uaWithStatus)
-      case _ =>
-        minimalConnector.getMinimalDetails.map { minimalDetails =>
-          uaWithStatus
-            .setOrException(EmailQuery, minimalDetails.email)
-            .setOrException(NameQuery, minimalDetails.name)
-        }
+    minimalConnector.getMinimalDetails.map { minimalDetails =>
+      ua.setOrException(SchemeStatusQuery, statusByName(schemeStatus))
+        .setOrException(EmailQuery, minimalDetails.email)
+        .setOrException(NameQuery, minimalDetails.name)
+        .setOrException(MinimalFlagsQuery, MinimalFlags(minimalDetails.deceasedFlag, minimalDetails.rlsFlag))
     }
   }
 

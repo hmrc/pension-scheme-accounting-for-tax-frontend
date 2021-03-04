@@ -361,7 +361,6 @@ object AFTPartialServiceSpec {
   private val srn = "srn"
   private val pstr = "pstr"
   private val psaId = "A0000000"
-  private val pspId = "20000000"
   private val name = "test-name"
   val minimalPsaName: Option[String] = Some("John Doe Doe")
 

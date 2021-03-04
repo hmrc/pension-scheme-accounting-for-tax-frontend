@@ -17,14 +17,14 @@
 package controllers.financialStatement.paymentsAndCharges
 
 import config.FrontendAppConfig
-import controllers.actions.{FakeIdentifierAction, IdentifierAction}
+import controllers.actions.{IdentifierAction, FakeIdentifierAction, AllowAccessActionProviderForIdentifierRequest}
 import controllers.base.ControllerSpecBase
 import data.SampleData._
 import helpers.FormatHelper
 import matchers.JsonMatchers
 import models.LocalDateBinder._
-import models.financialStatement.SchemeFSChargeType.{PSS_AFT_RETURN, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_OTC_AFT_RETURN_INTEREST}
-import models.financialStatement.{SchemeFS, SchemeFSChargeType}
+import models.financialStatement.SchemeFSChargeType.{PSS_OTC_AFT_RETURN_INTEREST, PSS_AFT_RETURN_INTEREST, PSS_OTC_AFT_RETURN, PSS_AFT_RETURN}
+import models.financialStatement.{SchemeFSChargeType, SchemeFS}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -37,10 +37,10 @@ import play.api.test.Helpers.{route, _}
 import services.paymentsAndCharges.PaymentsAndChargesService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import uk.gov.hmrc.viewmodels.SummaryList.{Key, Row, Value}
+import uk.gov.hmrc.viewmodels.SummaryList.{Value, Row, Key}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.AFTConstants._
-import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
+import utils.DateHelper.{dateFormatterStartDate, dateFormatterDMY}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -60,7 +60,8 @@ class PaymentsAndChargesInterestControllerSpec extends ControllerSpecBase with N
         bind[IdentifierAction].to[FakeIdentifierAction],
         bind[NunjucksRenderer].toInstance(mockRenderer),
         bind[FrontendAppConfig].toInstance(mockAppConfig),
-        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService)
+        bind[PaymentsAndChargesService].toInstance(mockPaymentsAndChargesService),
+        bind[AllowAccessActionProviderForIdentifierRequest].toInstance(mockAllowAccessActionProviderForIdentifierRequest)
       ): _*
     )
     .build()

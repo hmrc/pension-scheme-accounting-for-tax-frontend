@@ -17,32 +17,34 @@
 package services
 
 import java.time.LocalDate
-
 import base.SpecBase
 import config.FrontendAppConfig
-import connectors.{AFTConnector, MinimalConnector}
+import connectors.{MinimalConnector, AFTConnector}
 import connectors.MinimalConnector.MinimalDetails
 import connectors.cache.UserAnswersCacheConnector
+import data.SampleData
 import data.SampleData._
-import models.{AFTOverview, SessionAccessData, AFTVersion, SessionData, SchemeDetails, AccessMode}
+import models.{AFTOverview, SessionAccessData, AFTVersion, SchemeStatus, SessionData, SchemeDetails, AccessMode, UserAnswers, MinimalFlags}
 import models.requests.IdentifierRequest
-import org.mockito.Matchers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when, _}
-import org.scalatest.{MustMatchers, BeforeAndAfterEach}
+import org.scalatest.{BeforeAndAfterEach, MustMatchers}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar
-import pages.{AFTSummaryPage, ChargeTypePage}
+import pages.{PSTRQuery, EmailQuery, NameQuery, SchemeNameQuery, AFTSummaryPage, ChargeTypePage, MinimalFlagsQuery, SchemeStatusQuery}
+import play.api.libs.json.JsObject
 import play.api.mvc.AnyContentAsEmpty
 import uk.gov.hmrc.domain.PsaId
 import utils.AFTConstants._
 import utils.DateHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Future, Await}
 import scala.concurrent.duration.Duration
 
 class RequestCreationServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+
   private val mockAftConnector: AFTConnector = mock[AFTConnector]
   private val mockUserAnswersCacheConnector: UserAnswersCacheConnector = mock[UserAnswersCacheConnector]
   private val mockSchemeService: SchemeService = mock[SchemeService]
@@ -69,20 +71,27 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
   private val email = "test@test.com"
 
+  private val expectedUAToBePassedToSaveAndLock = UserAnswers()
+    .setOrException(SchemeNameQuery, SampleData.schemeName)
+    .setOrException(PSTRQuery, SampleData.pstr)
+    .setOrException(MinimalFlagsQuery, MinimalFlags(deceasedFlag = true, rlsFlag = false))
+    .setOrException(SchemeStatusQuery, SchemeStatus.Open)
+    .setOrException(NameQuery, companyName)
+    .setOrException(EmailQuery, email)
+
   override def beforeEach(): Unit = {
     reset(mockAftConnector, mockUserAnswersCacheConnector, mockSchemeService, mockMinimalPsaConnector, mockAppConfig)
 
     when(mockUserAnswersCacheConnector.fetch(any())(any(), any())).thenReturn(Future.successful(Some(userAnswersWithSchemeName.data)))
     when(mockSchemeService.retrieveSchemeDetails(any(),any(), any())(any(), any())).thenReturn(Future.successful(schemeDetails))
     when(mockMinimalPsaConnector.getMinimalDetails(any(), any(), any()))
-      .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, None, None)))
+      .thenReturn(Future.successful(MinimalDetails(email, isPsaSuspended = false, Some(companyName), None, rlsFlag = false, deceasedFlag = true)))
     when(mockUserAnswersCacheConnector.lockDetail(any(), any())(any(), any())).thenReturn(Future.successful(None))
     when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any())).thenReturn(Future.successful(userAnswersWithSchemeName.data))
     when(mockUserAnswersCacheConnector.getSessionData(any())(any(), any())).thenReturn(Future.successful(Some(sd)))
   }
 
   "retrieveAndCreateRequest" when {
-
 
     "requested version is less than latest and date is on or after 21st July" must {
       "NOT save with a lock and create session access data with viewonly page access mode" in {
@@ -102,9 +111,14 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         when(mockAftConnector.getAFTDetails(any(), any(), any())(any(), any()))
           .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
+        val jsonCaptorForSaveAndLock = ArgumentCaptor.forClass(classOf[JsObject])
+
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), jsonCaptorForSaveAndLock.capture(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 21)))
 
-        Await.result(
+        val result = Await.result(
           requestCreationService
             .retrieveAndCreateRequest(srn, QUARTER_START_DATE, 1, accessType, None)(request, implicitly, implicitly),
           Duration.Inf
@@ -115,6 +129,10 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
             any(),
             Matchers.eq(SessionAccessData(version = 1, accessMode = AccessMode.PageAccessModeViewOnly, areSubmittedVersionsAvailable = true)),
             Matchers.eq(false))(any(), any())
+
+        result.userAnswers.isDefined mustBe true
+
+        jsonCaptorForSaveAndLock.getValue mustBe expectedUAToBePassedToSaveAndLock.data
       }
     }
 
@@ -128,6 +146,9 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
 
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
+
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), any(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
 
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
 
@@ -165,6 +186,11 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
 
+        val jsonCaptorForSaveAndLock = ArgumentCaptor.forClass(classOf[JsObject])
+
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), jsonCaptorForSaveAndLock.capture(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
 
         val result = Await.result(
@@ -174,6 +200,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         )
 
         result.userAnswers.isDefined mustBe true
+
+        jsonCaptorForSaveAndLock.getValue mustBe expectedUAToBePassedToSaveAndLock.data
       }
     }
 
@@ -198,6 +226,11 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         when(mockUserAnswersCacheConnector.fetch(any())(any(), any()))
           .thenReturn(Future.successful(None))
 
+        val jsonCaptorForSaveAndLock = ArgumentCaptor.forClass(classOf[JsObject])
+
+        when(mockUserAnswersCacheConnector.saveAndLock(any(), jsonCaptorForSaveAndLock.capture(), any(), any())(any(), any()))
+          .thenReturn(Future.successful(userAnswersWithSchemeName.data))
+
         DateHelper.setDate(Some(LocalDate.of(2020, 7, 1)))
 
         val result = Await.result(
@@ -207,6 +240,8 @@ class RequestCreationServiceSpec extends SpecBase with MustMatchers with Mockito
         )
 
         result.userAnswers.isDefined mustBe true
+
+        jsonCaptorForSaveAndLock.getValue mustBe expectedUAToBePassedToSaveAndLock.data
       }
     }
   }

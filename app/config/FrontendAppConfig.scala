@@ -60,6 +60,9 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val loginContinueUrl: String = configuration.get[String]("urls.loginContinue")
   lazy val signOutUrl: String = loadConfig("urls.logout")
 
+  lazy val psaUpdateContactDetailsUrl: String = loadConfig("urls.psaUpdateContactDetails")
+  lazy val pspUpdateContactDetailsUrl: String = loadConfig("urls.pspUpdateContactDetails")
+
   lazy val timeoutSeconds: String = configuration.get[String]("session.timeoutSeconds")
   lazy val countdownSeconds: String = configuration.get[String]("session.countdownSeconds")
 
@@ -93,6 +96,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   }"
 
   lazy val managePensionsSchemeOverviewUrl: String = Call("GET", loadConfig("urls.manage-pensions-frontend.schemesOverview")).url
+  lazy val youMustContactHMRCUrl : String = loadConfig("urls.manage-pensions-frontend.youMustContactHMRC")
   lazy val pensionSchemeUrl: String = servicesConfig.baseUrl("pensions-scheme")
   lazy val pensionsAdministratorUrl: String = servicesConfig.baseUrl("pension-administrator")
   lazy val aftFileReturn: String = s"$aftUrl${configuration.get[String](path = "urls.aftFileReturn")}"
