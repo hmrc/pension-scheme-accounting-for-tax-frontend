@@ -149,10 +149,10 @@ class PsaSchemePartialService @Inject()(
     def returnTuple(subHeadingParam: String, linkText: Text): (Seq[CardSubHeading], Seq[Link]) = (
       Seq(CardSubHeading(
         subHeading = messages("aftPartial.inProgress.forPeriod", startDate.format(dateFormatterStartDate), endDate.format(dateFormatterDMY)),
-        subHeadingClasses = "font-xsmall",
+        subHeadingClasses = "card-sub-heading",
         subHeadingParams = Seq(CardSubHeadingParam(
           subHeadingParam = subHeadingParam,
-          subHeadingParamClasses = "card-sub-heading bold"
+          subHeadingParamClasses = "font-small bold"
         )))),
       Seq(Link(
         id = "aftSummaryLink",
@@ -187,10 +187,10 @@ class PsaSchemePartialService @Inject()(
         (
           Seq(CardSubHeading(
             subHeading = messages("aftPartial.multipleInProgress.text"),
-            subHeadingClasses = "font-xsmall",
+            subHeadingClasses = "card-sub-heading",
             subHeadingParams = Seq(CardSubHeadingParam(
               subHeadingParam = messages("aftPartial.multipleInProgress.count", countInProgress),
-              subHeadingParamClasses = "card-sub-heading bold"
+              subHeadingParamClasses = "font-small bold"
             )))),
           Seq(Link(
             id = "aftContinueInProgressLink",
@@ -236,7 +236,7 @@ class PsaSchemePartialService @Inject()(
 
       Seq(CardSubHeading(
         subHeading = upcomingChargesSubHeading,
-        subHeadingClasses = "font-xsmall",
+        subHeadingClasses = "card-sub-heading",
         subHeadingParams = Seq(CardSubHeadingParam(
           subHeadingParam = amount,
           subHeadingParamClasses = "font-large bold"
@@ -291,7 +291,7 @@ class PsaSchemePartialService @Inject()(
 
     val subHeadingTotalOverDue: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.total.span"),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(CardSubHeadingParam(
         subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalOverdue)}",
         subHeadingParamClasses = "font-large bold"
@@ -300,15 +300,15 @@ class PsaSchemePartialService @Inject()(
 
     val subHeadingInterestAccruing: Seq[CardSubHeading] = Seq(CardSubHeading(
       subHeading = messages("pspDashboardOverdueAftChargesCard.interestAccruing.span"),
-      subHeadingClasses = "font-xsmall",
+      subHeadingClasses = "card-sub-heading",
       subHeadingParams = Seq(
         CardSubHeadingParam(
           subHeadingParam = s"${FormatHelper.formatCurrencyAmountAsString(totalInterestAccruing)}",
-          subHeadingParamClasses = "font-large bold"
+          subHeadingParamClasses = "font-large bold inline-block"
         ),
         CardSubHeadingParam(
           subHeadingParam = messages("pspDashboardOverdueAftChargesCard.toDate.span"),
-          subHeadingParamClasses = "font-xsmall"
+          subHeadingParamClasses = "font-xsmall inline-block"
         )
       )
     ))

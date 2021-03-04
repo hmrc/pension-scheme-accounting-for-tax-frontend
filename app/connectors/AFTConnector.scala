@@ -16,20 +16,18 @@
 
 package connectors
 
-import java.time.LocalDate
-
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{AFTOverview, Quarters, AFTVersion, JourneyType, UserAnswers}
+import models.{AFTOverview, JourneyType, Quarters, UserAnswers, VersionsWithSubmitter}
 import play.api.Logger
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpResponse, HeaderCarrier}
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import utils.{DateHelper, HttpResponseHelper}
 
-import scala.concurrent.{Future, ExecutionContext}
+import java.time.LocalDate
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Failure
 
 class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
@@ -79,13 +77,13 @@ class AFTConnector @Inject()(http: HttpClient, config: FrontendAppConfig)
   }
 
   def getListOfVersions(pstr: String, startDate: String)
-                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AFTVersion]] = {
+                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[VersionsWithSubmitter]] = {
     val url = config.aftListOfVersions
     val schemeHc = hc.withExtraHeaders("pstr" -> pstr, "startDate" -> startDate)
     http.GET[HttpResponse](url)(implicitly, schemeHc, implicitly).map { response =>
       response.status match {
         case OK =>
-          Json.parse(response.body).validate[Seq[AFTVersion]] match {
+          Json.parse(response.body).validate[Seq[VersionsWithSubmitter]] match {
             case JsSuccess(value, _) => value
             case JsError(errors) => throw JsResultException(errors)
           }

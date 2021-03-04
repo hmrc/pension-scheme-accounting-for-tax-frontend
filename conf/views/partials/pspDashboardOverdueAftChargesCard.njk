@@ -4,7 +4,7 @@
             {{ messages("pspDashboardOverdueAftChargesCard.h2") }}
         </h2>
         {% for subHeading in overdueCharges.subHeadings %}
-            <h3 class="card-sub-heading">
+            <p class="card-sub-heading">
                 <span class="font-xsmall">{{ subHeading.span }}</span>
                 <span class="font-large bold">
                     {{ subHeading.total }}
@@ -12,7 +12,7 @@
                         <span class="font-xsmall">{{ messages("pspDashboardOverdueAftChargesCard.toDate.span") }}</span>
                     {% endif %}
                 </span>
-            </h3>
+            </p>
         {% endfor %}
     </div>
     <div class="card-action">

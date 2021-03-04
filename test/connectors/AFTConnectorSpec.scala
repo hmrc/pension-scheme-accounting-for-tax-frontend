@@ -17,11 +17,11 @@
 package connectors
 
 import java.time.LocalDate
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import data.SampleData
 import models.LocalDateBinder._
-import models.{AFTOverview, AFTVersion, JourneyType, UserAnswers}
+import models.SubmitterType.{PSA, PSP}
+import models.{AFTOverview, AFTVersion, JourneyType, SubmitterDetails, UserAnswers, VersionsWithSubmitter}
 import org.scalatest._
 import play.api.http.Status
 import play.api.libs.json.{JsBoolean, JsNumber, Json}
@@ -37,7 +37,7 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
   private lazy val connector: AFTConnector = injector.instanceOf[AFTConnector]
   private val pstr = "test-pstr"
   private val aftSubmitUrl = "/pension-scheme-accounting-for-tax/aft-file-return/AFTReturnSubmitted"
-  private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-aft-versions"
+  private val aftListOfVersionsUrl = "/pension-scheme-accounting-for-tax/get-versions-with-submitter"
   private val getAftDetailsUrl = "/pension-scheme-accounting-for-tax/get-aft-details"
   private val getIsAftNonZeroUrl = "/pension-scheme-accounting-for-tax/get-is-aft-non-zero"
   private val aftOverview: String = "/pension-scheme-accounting-for-tax/get-aft-overview"
@@ -261,7 +261,12 @@ class AFTConnectorSpec extends AsyncWordSpec with MustMatchers with WireMockHelp
       val version1 = AFTVersion(1, LocalDate.of(2020, 4, 17), "submitted")
       val version2 = AFTVersion(2, LocalDate.of(2020, 5, 17), "submitted")
       val version3 = AFTVersion(3, LocalDate.of(2020, 6, 17), "submitted")
-      val versions = Seq(version1, version2, version3)
+      val submitter1 = SubmitterDetails(PSA, "abc", "A1234567", None, LocalDate.of(2020, 4, 17))
+      val submitter2 = SubmitterDetails(PSP, "def", "12345678", Some("A1234567"), LocalDate.of(2020, 5, 17))
+      val submitter3 = SubmitterDetails(PSA, "ghi", "A2345678", None, LocalDate.of(2020, 6, 17))
+      val versions = Seq(VersionsWithSubmitter(version1, submitter1),
+                          VersionsWithSubmitter(version2, submitter2),
+                          VersionsWithSubmitter(version3, submitter3))
 
       server.stubFor(
         get(urlEqualTo(aftListOfVersionsUrl))
