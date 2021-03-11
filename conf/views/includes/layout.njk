@@ -58,13 +58,13 @@
     {% block mainContent %}
 
     {% endblock %}
-    <div class="govuk-!-margin-top-7">
+    <p class="govuk-body govuk-!-margin-top-7">
     {{ reportTechnicalIssue({
                     serviceId: "PODS",
                     baseUrl: config.contactHost,
                     language: "en"
                 }) }}
-                </div>
+                </p>
 {% endblock %}
 
 {% block bodyEnd %}
