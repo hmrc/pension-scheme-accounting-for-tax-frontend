@@ -23,3 +23,9 @@ $hmrc-assets-path: "/manage-pension-scheme-accounting-for-tax/assets/lib/hmrc-fr
     -webkit-box-shadow: inset 0 0 0 2px;
     box-shadow: inset 0 0 0 2px;
 }
+
+.card-body {
+    @media screen and (max-width: 640px) {
+      min-height: 50px;
+    }
+}
