@@ -124,6 +124,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
       case _ => managePensionsSchemeSummaryUrl
     }
 
+  lazy val administratorOrPractitionerUrl: String = loadConfig("urls.administratorOrPractitioner")
   lazy val managePensionsSchemeSummaryUrl: String = loadConfig("urls.schemesSummary")
   lazy val managePensionsSchemePspUrl: String = loadConfig("urls.psp.schemesSummary")
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")

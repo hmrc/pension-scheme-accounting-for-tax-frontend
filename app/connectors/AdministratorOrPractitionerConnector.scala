@@ -33,8 +33,7 @@ class AdministratorOrPractitionerConnector @Inject()(http: HttpClient, config: F
 
   def getAdministratorOrPractitioner[A](id:String)(
                             implicit hc: HeaderCarrier,
-                            ec: ExecutionContext,
-                            request: IdentifierRequest[A]
+                            ec: ExecutionContext
                           ): Future[Option[AdministratorOrPractitioner]] = {
 
     val url = config.administratorOrPractitionerUrl(id)

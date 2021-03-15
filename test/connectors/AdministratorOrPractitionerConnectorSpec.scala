@@ -32,7 +32,6 @@ class AdministratorOrPractitionerConnectorSpec
     with WireMockHelper {
 
   private implicit lazy val hc: HeaderCarrier = HeaderCarrier()
-  private implicit lazy val req = IdentifierRequest(FakeRequest("GET", "/"), Some(PsaId("A2100005")), None)
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 

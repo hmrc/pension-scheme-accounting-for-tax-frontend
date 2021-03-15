@@ -18,7 +18,9 @@ package controllers.actions
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.AdministratorOrPractitionerConnector
 import controllers.routes
+import models.AdministratorOrPractitioner.{Administrator, Practitioner}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.mvc.Results._
@@ -39,6 +41,7 @@ trait IdentifierAction
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
+                                               administratorOrPractitionerConnector: AdministratorOrPractitionerConnector,
                                                val parser: BodyParsers.Default
                                              )(implicit val executionContext: ExecutionContext)
   extends IdentifierAction
@@ -57,10 +60,16 @@ class AuthenticatedIdentifierAction @Inject()(
     authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
-      case Some(id) ~ enrolments =>
+      case Some(id) ~ enrolments => if(enrolments.enrolments.size == 2) {
+        administratorOrPractitionerConnector.getAdministratorOrPractitioner(id).map{
+          case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
+          case Some(Administrator) => block(IdentifierRequest(request, getPsaId(enrolments), None))
+          case Some(Practitioner) => block(IdentifierRequest(request, None, getPspId(enrolments)))
+        }
+      } else {
+        block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
+      }
 
-
-      block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
