@@ -25,6 +25,7 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.domain.{PsaId, PspId}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
@@ -54,8 +55,11 @@ class AuthenticatedIdentifierAction @Inject()(
       HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
 
     authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
-      Retrievals.allEnrolments
-    ) { enrolments =>
+      Retrievals.externalId and Retrievals.allEnrolments
+    ) {
+      case Some(id) ~ enrolments =>
+
+
       block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
     } recover {
       case _: NoActiveSession =>

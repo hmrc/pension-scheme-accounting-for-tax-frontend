@@ -129,6 +129,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration, servicesConfig: 
   lazy val yourPensionSchemesUrl: String = loadConfig("urls.yourPensionSchemes")
   lazy val yourPensionSchemesPspUrl: String = loadConfig("urls.psp.yourPensionSchemes")
   lazy val minimalPsaDetailsUrl: String = s"$pensionsAdministratorUrl${configuration.get[String](path = "urls.minimalPsaDetails")}"
+  def administratorOrPractitionerUrl(cacheId:String): String = s"$pensionsAdministratorUrl/pension-administrator/journey-cache/manage-pensions/$cacheId"
   lazy val validCountryCodes: Seq[String] = configuration.get[String]("validCountryCodes").split(",").toSeq
   lazy val minimumYear: Int = configuration.get[Int]("minimumYear")
 
