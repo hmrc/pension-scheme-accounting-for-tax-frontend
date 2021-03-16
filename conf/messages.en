@@ -978,6 +978,8 @@ returnHistory.lockedBy = In progress - locked by {0}
 returnHistory.locked = In progress - locked
 returnHistory.versionDraft = Draft
 returnHistory.visuallyHidden = submission {0} of the AFT return
+returnHistory.notAuthorised.visuallyHiddenText = you are not authorised to view submitter’s name
+returnHistory.draft.visuallyHiddenText = not yet submitted
 
 amendYears.title = Which year do you want to view?
 amendYears.error.required = Select which year you want to view
