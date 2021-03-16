@@ -35,7 +35,7 @@ class SessionDataCacheConnectorSpec
 
   private lazy val connector: SessionDataCacheConnector = injector.instanceOf[SessionDataCacheConnector]
   private val externalId = "test-value"
-  private val administratorOrPractitionerUrl = s"/pension-administrator/journey-cache/session-data/$externalId"
+  private val sessionDataCacheUrl = s"/pension-administrator/journey-cache/session-data/$externalId"
 
   private def jsonAOP(aop:AdministratorOrPractitioner) =
     Json.obj("administratorOrPractitioner" -> aop.toString)
@@ -50,7 +50,7 @@ class SessionDataCacheConnectorSpec
   "getAdministratorOrPractitioner" must {
     "return successfully when the backend has returned OK and a correct response for administrator" in {
       server.stubFor(
-        get(urlEqualTo(administratorOrPractitionerUrl))
+        get(urlEqualTo(sessionDataCacheUrl))
           .willReturn(
             ok(validResponse("administrator"))
               .withHeader("Content-Type", "application/json")
@@ -64,7 +64,7 @@ class SessionDataCacheConnectorSpec
 
     "return successfully when the backend has returned OK and a correct response for practitioner" in {
       server.stubFor(
-        get(urlEqualTo(administratorOrPractitionerUrl))
+        get(urlEqualTo(sessionDataCacheUrl))
           .willReturn(
             ok(validResponse("practitioner"))
               .withHeader("Content-Type", "application/json")
@@ -78,7 +78,7 @@ class SessionDataCacheConnectorSpec
 
     "return successfully when the backend has returned NOT FOUND and a correct response for practitioner" in {
       server.stubFor(
-        get(urlEqualTo(administratorOrPractitionerUrl))
+        get(urlEqualTo(sessionDataCacheUrl))
           .willReturn(
             notFound
               .withHeader("Content-Type", "application/json")
@@ -92,7 +92,7 @@ class SessionDataCacheConnectorSpec
 
     "return BadRequestException when the backend has returned bad request response" in {
       server.stubFor(
-        get(urlEqualTo(administratorOrPractitionerUrl))
+        get(urlEqualTo(sessionDataCacheUrl))
           .willReturn(
             badRequest
               .withHeader("Content-Type", "application/json")
