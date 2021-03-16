@@ -60,16 +60,14 @@ class AuthenticatedIdentifierAction @Inject()(
     authorised(Enrolment("HMRC-PODS-ORG") or Enrolment("HMRC-PODSPP-ORG")).retrieve(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
-      case Some(id) ~ enrolments => if(enrolments.enrolments.size == 2) {
-        administratorOrPractitionerConnector.getAdministratorOrPractitioner(id).map{
+      case Some(id) ~ enrolments if enrolments.enrolments.size == 2 =>
+        administratorOrPractitionerConnector.getAdministratorOrPractitioner(id).flatMap{
           case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
           case Some(Administrator) => block(IdentifierRequest(request, getPsaId(enrolments), None))
           case Some(Practitioner) => block(IdentifierRequest(request, None, getPspId(enrolments)))
         }
-      } else {
+      case Some(_) ~ enrolments =>
         block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
-      }
-
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))

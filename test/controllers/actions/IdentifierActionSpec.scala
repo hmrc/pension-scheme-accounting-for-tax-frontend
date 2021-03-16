@@ -17,15 +17,17 @@
 package controllers.actions
 
 import com.google.inject.Inject
+import connectors.AdministratorOrPractitionerConnector
 import controllers.base.ControllerSpecBase
 import controllers.routes
 import data.SampleData._
+import models.AdministratorOrPractitioner.Administrator
 import org.mockito.Matchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito._
 import play.api.libs.json.Json
 import play.api.mvc.Results._
-import play.api.mvc.{AnyContent, BodyParsers, Action}
+import play.api.mvc.{Action, AnyContent, BodyParsers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -33,10 +35,12 @@ import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{ExecutionContext, Future}
 
 class IdentifierActionSpec
   extends ControllerSpecBase {
+
+  private val mockAdministratorOrPractitionerConnector = mock[AdministratorOrPractitionerConnector]
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad(): Action[AnyContent] = authAction {
@@ -56,11 +60,14 @@ class IdentifierActionSpec
 
   val bodyParsers: BodyParsers.Default = app.injector.instanceOf[BodyParsers.Default]
 
-  val authAction = new AuthenticatedIdentifierAction(authConnector, frontendAppConfig, bodyParsers)
+  val authAction = new AuthenticatedIdentifierAction(authConnector,
+    frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers)
 
   override def beforeEach: Unit = {
-    Mockito.reset(authConnector)
+    Mockito.reset(authConnector, mockAdministratorOrPractitionerConnector)
     when(mockAppConfig.loginUrl).thenReturn(dummyCall.url)
+    when(mockAdministratorOrPractitionerConnector.getAdministratorOrPractitioner(any())(any(),any()))
+      .thenReturn(Future.successful(None))
   }
 
   "Identifier Action" when {
@@ -112,7 +119,8 @@ class IdentifierActionSpec
       "redirect the user to log in " in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new MissingBearerToken), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new MissingBearerToken),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -128,7 +136,8 @@ class IdentifierActionSpec
       "redirect the user to log in " in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new BearerTokenExpired), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new BearerTokenExpired),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -144,7 +153,8 @@ class IdentifierActionSpec
       "redirect the user to the unauthorised page" in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new InsufficientEnrolments), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new InsufficientEnrolments),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -160,7 +170,8 @@ class IdentifierActionSpec
       "redirect the user to the unauthorised page" in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new InsufficientConfidenceLevel), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new InsufficientConfidenceLevel),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -176,7 +187,8 @@ class IdentifierActionSpec
       "redirect the user to the unauthorised page" in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new UnsupportedAuthProvider), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new UnsupportedAuthProvider),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -192,7 +204,8 @@ class IdentifierActionSpec
       "redirect the user to the unauthorised page" in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new UnsupportedAffinityGroup), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new UnsupportedAffinityGroup),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -208,7 +221,8 @@ class IdentifierActionSpec
       "redirect the user to the unauthorised page" in {
 
         val authAction = new AuthenticatedIdentifierAction(
-          new FakeFailingAuthConnector(new UnsupportedCredentialRole), frontendAppConfig, bodyParsers
+          new FakeFailingAuthConnector(new UnsupportedCredentialRole),
+          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
