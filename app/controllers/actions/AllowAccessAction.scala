@@ -83,7 +83,6 @@ class AllowAccessAction(
             case true =>
               associatedPsaRedirection(srn, startDate, optPage, version, accessType)(request)
             case _ =>
-              println("\nNOT FOUND")
               errorHandler.onClientError(request, NOT_FOUND).map(Option(_))
           }
         }
