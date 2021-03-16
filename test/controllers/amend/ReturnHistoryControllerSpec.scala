@@ -147,7 +147,7 @@ class ReturnHistoryControllerSpec extends ControllerSpecBase with NunjucksSuppor
         Seq(
           messages("returnHistory.versionDraft"),
           messages("returnHistory.compiledStatus"),
-          "Submitter 3",
+          "<span class=govuk-visually-hidden>not yet submitted</span>",
           anchor(expectedStartDate, 3, messages("site.change"), Draft),
           "2",
           messages("returnHistory.submittedOn", "17 May 2020"),
