@@ -23,7 +23,7 @@ import controllers.actions.IdentifierAction
 import models.LocalDateBinder._
 import models.SubmitterType.PSA
 import models.requests.IdentifierRequest
-import models.{AFTOverview, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
+import models.{AFTOverview, AFTVersion, AccessType, Draft, LockDetail, Quarters, Submission, SubmitterDetails, VersionsWithSubmitter}
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -32,7 +32,7 @@ import services.SchemeService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.Text.Literal
-import uk.gov.hmrc.viewmodels.{Html, NunjucksSupport, Text}
+import uk.gov.hmrc.viewmodels.{Content, Html, NunjucksSupport, Text}
 import utils.DateHelper.{dateFormatterDMY, dateFormatterStartDate}
 import viewmodels.Table
 import viewmodels.Table.Cell
@@ -107,28 +107,36 @@ class ReturnHistoryController @Inject()(
 
         for {
           optionLockDetail <- userAnswersCacheConnector.lockDetail(srn, version.versionDetails.date)
-          displayDetails <- getDisplayDetails(index, version.versionDetails.date, version.versionDetails.reportVersion,
-            version.versionDetails.reportStatus, optionLockDetail, srn)
-          submitter <- submittedBy(version.submitterDetails, srn)
+          displayDetails <- getDisplayDetails(index, version.versionDetails, optionLockDetail, srn)
+          submitter <- submittedBy(index, version.versionDetails, version.submitterDetails, srn)
         } yield
           Seq(
             Cell(displayDetails.version, classes = Seq("govuk-!-width-one-quarter")),
             Cell(displayDetails.status, classes = Seq("govuk-!-width-one-half")),
-            Cell(Literal(submitter.getOrElse("")), classes = Seq("govuk-!-width-one-quarter")),
+            Cell(submitter, classes = Seq("govuk-!-width-one-quarter")),
             Cell(link(version.versionDetails.reportVersion, displayDetails.linkText, accessType, index, isCompileAvailable, url),
               classes = Seq("govuk-!-width-one-quarter"), attributes = Map("role" -> "cell"))
           )
       }
 
       Future.sequence(tableRows).map { rows =>
-        Json.obj("versions" -> Table(head = head(request2Messages),
-          rows = rows,
+
+        val displaySubmittedByColumn: Boolean =
+          rows.exists(x => !(x(2).content == visuallyHidden("draft") || x(2).content == visuallyHidden("notAuthorised")))
+
+        val head: Seq[Cell] = if(displaySubmittedByColumn) headCells else dropThirdCell(headCells)
+        val tableRows: Seq[Seq[Cell]] = if(displaySubmittedByColumn) rows else rows.map(row => dropThirdCell(row))
+
+        Json.obj("versions" -> Table(head = head,
+          rows = tableRows,
           attributes = Map("role" -> "table")))
       }
     } else {
       Future.successful(Json.obj())
     }
   }
+
+  val dropThirdCell: Seq[Cell] => Seq[Cell] = seq => seq.zipWithIndex collect { case (x, i) if i!=2 => x}
 
   private def link(version: Int, linkText: String, accessType: AccessType, index: Int,
                    isCompileAvailable: Option[Boolean], url: (AccessType, Int) => Call)(implicit messages: Messages): Html = {
@@ -143,17 +151,17 @@ class ReturnHistoryController @Inject()(
     )
   }
 
-  private val head: Messages => Seq[Cell] = implicit messages => Seq(
+  private def headCells(implicit messages: Messages): Seq[Cell] = Seq(
     Cell(msg"returnHistory.version", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"returnHistory.status", classes = Seq("govuk-!-width-one-half")),
     Cell(msg"returnHistory.submittedBy", classes = Seq("govuk-!-width-one-quarter")),
     Cell(Html(s"""<span class=govuk-visually-hidden>${messages("site.action")}</span>"""))
   )
 
-  private def getDisplayDetails(index: Int, date: LocalDate, reportVersion: Int, reportStatus: String, optionLockDetail: Option[LockDetail], srn: String)
+  private def getDisplayDetails(index: Int, aftVersion: AFTVersion, optionLockDetail: Option[LockDetail], srn: String)
                                (implicit request: IdentifierRequest[AnyContent]): Future[DisplayDetails] = {
     if (index == 0) {
-      (optionLockDetail, reportStatus) match {
+      (optionLockDetail, aftVersion.reportStatus) match {
 
         case (Some(lockedBy), _) =>
           getLockedBy(lockedBy, request.idOrException, srn).map { nameOpt =>
@@ -168,14 +176,14 @@ class ReturnHistoryController @Inject()(
           "site.change"))
 
         case _ => Future(DisplayDetails(
-          Literal(reportVersion.toString),
-          msg"returnHistory.submittedOn".withArgs(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
+          Literal(aftVersion.reportVersion.toString),
+          msg"returnHistory.submittedOn".withArgs(aftVersion.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
           "site.viewOrChange"))
       }
     } else {
       Future(DisplayDetails(
-        Literal(reportVersion.toString),
-        msg"returnHistory.submittedOn".withArgs(date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
+        Literal(aftVersion.reportVersion.toString),
+        msg"returnHistory.submittedOn".withArgs(aftVersion.date.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))),
         "site.view"))
     }
   }
@@ -183,24 +191,37 @@ class ReturnHistoryController @Inject()(
   private val psaIdRegex: Regex = "^A[0-9]{7}$".r
   private val pspIdRegex: Regex = "^[0-9]{8}$".r
 
-  private def submittedBy(submitterDetails: SubmitterDetails, srn: String)
-                         (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Option[String]] =
+  private def submittedBy(index: Int, aftVersion: AFTVersion, submitterDetails: SubmitterDetails, srn: String)
+                         (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Content] =
+  if(index == 0 && aftVersion.reportStatus.equalsIgnoreCase("Compiled")){
+    Future(visuallyHidden("draft"))
+  } else {
     request.idOrException match {
-      case psaIdRegex(_*) => Future(Some(submitterDetails.submitterName))
+      case psaIdRegex(_*) => Future(Literal(submitterDetails.submitterName))
+
       case pspIdRegex(_*) if submitterDetails.submitterType == PSA =>
 
         schemeDetailsConnector.getPspSchemeDetails(request.idOrException, srn).map { schemeDetails =>
           if (schemeDetails.authorisingPSAID.contains(submitterDetails.submitterID)) {
-            Some(submitterDetails.submitterName)
+            Literal(submitterDetails.submitterName)
           } else {
-            None
+            visuallyHidden("notAuthorised")
           }
         }
-      case _ => Future(None)
+
+      case pspIdRegex(_*) if submitterDetails.submitterID == request.idOrException =>
+        Future(Literal(submitterDetails.submitterName))
+
+      case _ => Future(visuallyHidden("notAuthorised"))
+
     }
+  }
+
+  def visuallyHidden(messageType: String)(implicit messages: Messages): Html =
+    Html(s"<span class=govuk-visually-hidden>${messages(s"returnHistory.$messageType.visuallyHiddenText")}</span>")
 
   private def getLockedBy(lockedBy: LockDetail, loggedInId: String, srn: String)
-                         (implicit request: IdentifierRequest[AnyContent], hc: HeaderCarrier): Future[Option[String]] = {
+                         (implicit hc: HeaderCarrier): Future[Option[String]] = {
     loggedInId match {
       case psaIdRegex(_*) => Future(Some(lockedBy.name))
       case pspIdRegex(_*) if lockedBy.psaOrPspId.matches(psaIdRegex.toString()) =>
