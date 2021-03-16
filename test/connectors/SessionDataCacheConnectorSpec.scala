@@ -17,6 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import connectors.cache.SessionDataCacheConnector
 import models.AdministratorOrPractitioner
 import models.requests.IdentifierRequest
 import org.scalatest._
@@ -26,7 +27,7 @@ import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
-class AdministratorOrPractitionerConnectorSpec
+class SessionDataCacheConnectorSpec
   extends AsyncWordSpec
     with MustMatchers
     with WireMockHelper {
@@ -35,7 +36,7 @@ class AdministratorOrPractitionerConnectorSpec
 
   override protected def portConfigKey: String = "microservice.services.pension-administrator.port"
 
-  private lazy val connector: AdministratorOrPractitionerConnector = injector.instanceOf[AdministratorOrPractitionerConnector]
+  private lazy val connector: SessionDataCacheConnector = injector.instanceOf[SessionDataCacheConnector]
   private val externalId = "test-value"
   private val administratorOrPractitionerUrl = s"/pension-administrator/journey-cache/manage-pensions/$externalId"
 

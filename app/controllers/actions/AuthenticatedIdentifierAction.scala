@@ -18,9 +18,10 @@ package controllers.actions
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import connectors.AdministratorOrPractitionerConnector
+import connectors.cache.SessionDataCacheConnector
 import controllers.routes
-import models.AdministratorOrPractitioner.{Administrator, Practitioner}
+import models.AdministratorOrPractitioner
+import models.AdministratorOrPractitioner.{Practitioner, Administrator}
 import models.requests.IdentifierRequest
 import play.api.Logger
 import play.api.mvc.Results._
@@ -41,7 +42,7 @@ trait IdentifierAction
 class AuthenticatedIdentifierAction @Inject()(
                                                override val authConnector: AuthConnector,
                                                config: FrontendAppConfig,
-                                               administratorOrPractitionerConnector: AdministratorOrPractitionerConnector,
+                                               sessionDataCacheConnector: SessionDataCacheConnector,
                                                val parser: BodyParsers.Default
                                              )(implicit val executionContext: ExecutionContext)
   extends IdentifierAction
@@ -61,10 +62,15 @@ class AuthenticatedIdentifierAction @Inject()(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
       case Some(id) ~ enrolments if enrolments.enrolments.size == 2 =>
-        administratorOrPractitionerConnector.getAdministratorOrPractitioner(id).flatMap{
-          case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
-          case Some(Administrator) => block(IdentifierRequest(request, getPsaId(enrolments), None))
-          case Some(Practitioner) => block(IdentifierRequest(request, None, getPspId(enrolments)))
+        sessionDataCacheConnector.fetch(id).flatMap{ optionJsValue =>
+          val optionAOP = optionJsValue.flatMap { json =>
+            (json \ "administratorOrPractitioner").toOption.flatMap(_.validate[AdministratorOrPractitioner].asOpt)
+          }
+          optionAOP match {
+            case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
+            case Some(Administrator) => block(IdentifierRequest(request, getPsaId(enrolments), None))
+            case Some(Practitioner) => block(IdentifierRequest(request, None, getPspId(enrolments)))
+          }
         }
       case Some(_) ~ enrolments =>
         block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))

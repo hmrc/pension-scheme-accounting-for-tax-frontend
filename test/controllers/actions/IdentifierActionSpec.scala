@@ -17,7 +17,7 @@
 package controllers.actions
 
 import com.google.inject.Inject
-import connectors.AdministratorOrPractitionerConnector
+import connectors.cache.SessionDataCacheConnector
 import controllers.base.ControllerSpecBase
 import controllers.routes
 import data.SampleData._
@@ -40,7 +40,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class IdentifierActionSpec
   extends ControllerSpecBase {
 
-  private val mockAdministratorOrPractitionerConnector = mock[AdministratorOrPractitionerConnector]
+  private val mockAdministratorOrPractitionerConnector = mock[SessionDataCacheConnector]
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad(): Action[AnyContent] = authAction {
