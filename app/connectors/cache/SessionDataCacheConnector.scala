@@ -49,40 +49,11 @@ class SessionDataCacheConnector  @Inject()(
       }
   }
 
-  //def removeAll(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
-  //  http
-  //    .url(url)
-  //    .withHttpHeaders(hc.headers: _*)
-  //    .delete()
-  //    .map(_ => Ok)
-  //}
-
+  def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+    http
+      .url(url(id))
+      .withHttpHeaders(hc.headers: _*)
+      .delete()
+      .map(_ => ())
+  }
 }
-
-
-//@Inject()(http: HttpClient, config: FrontendAppConfig)
-//  extends HttpResponseHelper {
-//
-//  override protected def url = s"${config.aftUrl}/pension-scheme-accounting-for-tax/cache/financialInfo"
-//
-//  def getAdministratorOrPractitioner[A](id:String)(
-//                            implicit hc: HeaderCarrier,
-//                            ec: ExecutionContext
-//                          ): Future[Option[AdministratorOrPractitioner]] = {
-//
-//    val url = config.administratorOrPractitionerUrl(id)
-//
-//    http.GET[HttpResponse](url)(implicitly, implicitly, implicitly) map {
-//      response =>
-//        response.status match {
-//          case NOT_FOUND =>
-//            None
-//          case OK =>
-//            (Json.parse(response.body) \ "administratorOrPractitioner").toOption
-//              .flatMap(_.validate[AdministratorOrPractitioner].asOpt)
-//          case _ =>
-//            handleErrorResponse("GET", url)(response)
-//        }
-//    }
-//  }
-//}

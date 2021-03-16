@@ -19,11 +19,8 @@ package connectors
 import com.github.tomakehurst.wiremock.client.WireMock._
 import connectors.cache.SessionDataCacheConnector
 import models.AdministratorOrPractitioner
-import models.requests.IdentifierRequest
 import org.scalatest._
 import play.api.libs.json.Json
-import play.api.test.FakeRequest
-import uk.gov.hmrc.domain.PsaId
 import uk.gov.hmrc.http._
 import utils.WireMockHelper
 
@@ -38,7 +35,10 @@ class SessionDataCacheConnectorSpec
 
   private lazy val connector: SessionDataCacheConnector = injector.instanceOf[SessionDataCacheConnector]
   private val externalId = "test-value"
-  private val administratorOrPractitionerUrl = s"/pension-administrator/journey-cache/manage-pensions/$externalId"
+  private val administratorOrPractitionerUrl = s"/pension-administrator/journey-cache/session-data/$externalId"
+
+  private def jsonAOP(aop:AdministratorOrPractitioner) =
+    Json.obj("administratorOrPractitioner" -> aop.toString)
 
   private def validResponse(administratorOrPractitioner:String) =
     Json.stringify(
@@ -57,8 +57,8 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.getAdministratorOrPractitioner(externalId) map {
-        _ mustBe Some(AdministratorOrPractitioner.Administrator)
+      connector.fetch(externalId) map {
+        _ mustBe Some(Json.parse(validResponse("administrator")))
       }
     }
 
@@ -71,8 +71,8 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.getAdministratorOrPractitioner(externalId) map {
-        _ mustBe Some(AdministratorOrPractitioner.Practitioner)
+      connector.fetch(externalId) map {
+        _ mustBe Some(jsonAOP(AdministratorOrPractitioner.Practitioner))
       }
     }
 
@@ -85,7 +85,7 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-      connector.getAdministratorOrPractitioner(externalId) map {
+      connector.fetch(externalId) map {
         _ mustBe None
       }
     }
@@ -99,8 +99,8 @@ class SessionDataCacheConnectorSpec
           )
       )
 
-        recoverToSucceededIf[BadRequestException] {
-          connector.getAdministratorOrPractitioner(externalId)
+        recoverToSucceededIf[HttpException] {
+          connector.fetch(externalId)
         }
     }
   }

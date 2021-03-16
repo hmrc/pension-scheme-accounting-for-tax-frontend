@@ -21,6 +21,7 @@ import connectors.cache.SessionDataCacheConnector
 import controllers.base.ControllerSpecBase
 import controllers.routes
 import data.SampleData._
+import models.AdministratorOrPractitioner
 import models.AdministratorOrPractitioner.{Practitioner, Administrator}
 import org.mockito.Matchers.any
 import org.mockito.Mockito
@@ -40,7 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class IdentifierActionSpec
   extends ControllerSpecBase {
 
-  private val mockAdministratorOrPractitionerConnector = mock[SessionDataCacheConnector]
+  private val mockSessionDataCacheConnector = mock[SessionDataCacheConnector]
 
   class Harness(authAction: IdentifierAction) {
     def onPageLoad(): Action[AnyContent] = authAction {
@@ -57,12 +58,15 @@ class IdentifierActionSpec
   val bodyParsers: BodyParsers.Default = app.injector.instanceOf[BodyParsers.Default]
 
   val authAction = new AuthenticatedIdentifierAction(authConnector,
-    frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers)
+    frontendAppConfig, mockSessionDataCacheConnector, bodyParsers)
+
+  private def jsonAOP(aop:AdministratorOrPractitioner) =
+    Json.obj("administratorOrPractitioner" -> aop.toString)
 
   override def beforeEach: Unit = {
-    Mockito.reset(authConnector, mockAdministratorOrPractitionerConnector)
+    Mockito.reset(authConnector, mockSessionDataCacheConnector)
     when(mockAppConfig.loginUrl).thenReturn(dummyCall.url)
-    when(mockAdministratorOrPractitionerConnector.getAdministratorOrPractitioner(any())(any(),any()))
+    when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
       .thenReturn(Future.successful(None))
   }
 
@@ -132,11 +136,13 @@ class IdentifierActionSpec
       }
     }
 
+
+
     "the user has logged in with HMRC-PODS-ORG and HMRC_PODSPP_ORG enrolments and has chosen the role of administrator" must {
 
       "have the PSAID and no PSPID" in {
-        when(mockAdministratorOrPractitionerConnector.getAdministratorOrPractitioner(any())(any(),any()))
-          .thenReturn(Future.successful(Some(Administrator)))
+        when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
+          .thenReturn(Future.successful(Some(jsonAOP(Administrator))))
         val controller = new Harness(authAction)
         val enrolments = Enrolments(Set(
           Enrolment("HMRC-PODS-ORG", Seq(
@@ -160,8 +166,8 @@ class IdentifierActionSpec
     "the user has logged in with HMRC-PODS-ORG and HMRC_PODSPP_ORG enrolments and has chosen the role of practitioner" must {
 
       "have the PSPID and no PSAID" in {
-        when(mockAdministratorOrPractitionerConnector.getAdministratorOrPractitioner(any())(any(),any()))
-          .thenReturn(Future.successful(Some(Practitioner)))
+        when(mockSessionDataCacheConnector.fetch(any())(any(),any()))
+          .thenReturn(Future.successful(Some(jsonAOP(Practitioner))))
         val controller = new Harness(authAction)
         val enrolments = Enrolments(Set(
           Enrolment("HMRC-PODS-ORG", Seq(
@@ -188,7 +194,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new MissingBearerToken),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -205,7 +211,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new BearerTokenExpired),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -222,7 +228,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new InsufficientEnrolments),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -239,7 +245,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new InsufficientConfidenceLevel),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -256,7 +262,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new UnsupportedAuthProvider),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -273,7 +279,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new UnsupportedAffinityGroup),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
@@ -290,7 +296,7 @@ class IdentifierActionSpec
 
         val authAction = new AuthenticatedIdentifierAction(
           new FakeFailingAuthConnector(new UnsupportedCredentialRole),
-          frontendAppConfig, mockAdministratorOrPractitionerConnector, bodyParsers
+          frontendAppConfig, mockSessionDataCacheConnector, bodyParsers
         )
         val controller = new Harness(authAction)
         val result = controller.onPageLoad()(fakeRequest)
