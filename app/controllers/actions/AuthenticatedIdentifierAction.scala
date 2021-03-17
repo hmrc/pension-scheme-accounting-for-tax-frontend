@@ -62,18 +62,13 @@ class AuthenticatedIdentifierAction @Inject()(
       Retrievals.externalId and Retrievals.allEnrolments
     ) {
       case Some(id) ~ enrolments if enrolments.enrolments.size == 2 =>
-        sessionDataCacheConnector.fetch(id).flatMap{ optionJsValue =>
-          val optionAOP = optionJsValue.flatMap { json =>
-            (json \ "administratorOrPractitioner").toOption.flatMap(_.validate[AdministratorOrPractitioner].asOpt)
-          }
-          optionAOP match {
-            case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
-            case Some(Administrator) => block(IdentifierRequest(request, getPsaId(enrolments), None))
-            case Some(Practitioner) => block(IdentifierRequest(request, None, getPspId(enrolments)))
-          }
+        administratorOrPractitioner(id).flatMap{
+          case None =>  Future.successful(Redirect(Call("GET",config.administratorOrPractitionerUrl)))
+          case Some(Administrator) => block(IdentifierRequest(id, request, getPsaId(enrolments), None))
+          case Some(Practitioner) => block(IdentifierRequest(id, request, None, getPspId(enrolments)))
         }
-      case Some(_) ~ enrolments =>
-        block(IdentifierRequest(request, getPsaId(enrolments), getPspId(enrolments)))
+      case Some(id) ~ enrolments =>
+        block(IdentifierRequest(id, request, getPsaId(enrolments), getPspId(enrolments)))
     } recover {
       case _: NoActiveSession =>
         Redirect(config.loginUrl, Map("continue" -> Seq(config.loginContinueUrl)))
@@ -94,4 +89,13 @@ class AuthenticatedIdentifierAction @Inject()(
       .getEnrolment(key = "HMRC-PODSPP-ORG")
       .flatMap(_.getIdentifier("PSPID"))
       .map(x => PspId(x.value))
+
+
+  private def administratorOrPractitioner(id:String)(implicit hc:HeaderCarrier):Future[Option[AdministratorOrPractitioner]] = {
+    sessionDataCacheConnector.fetch(id).map { optionJsValue =>
+      optionJsValue.flatMap { json =>
+        (json \ "administratorOrPractitioner").toOption.flatMap(_.validate[AdministratorOrPractitioner].asOpt)
+      }
+    }
+  }
 }

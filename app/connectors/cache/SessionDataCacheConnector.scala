@@ -22,6 +22,8 @@ import play.api.libs.json._
 import uk.gov.hmrc.http._
 import play.api.http.Status._
 import play.api.libs.ws.WSClient
+import play.api.mvc.Results._
+import play.api.mvc.Result
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -49,11 +51,11 @@ class SessionDataCacheConnector  @Inject()(
       }
   }
 
-  def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Unit] = {
+  def removeAll(id: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
     http
       .url(url(id))
       .withHttpHeaders(hc.headers: _*)
       .delete()
-      .map(_ => ())
+      .map(_=>Ok)
   }
 }

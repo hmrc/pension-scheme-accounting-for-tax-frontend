@@ -17,35 +17,43 @@
 package controllers
 
 import config.FrontendAppConfig
-import connectors.cache.UserAnswersCacheConnector
+import connectors.cache.{SessionDataCacheConnector, UserAnswersCacheConnector}
 import controllers.actions.IdentifierAction
+
 import javax.inject.Inject
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, BodyParsers}
+import uk.gov.hmrc.auth.core.{AuthorisedFunctions, AuthConnector}
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class SignOutController @Inject()(
+                                   override val authConnector: AuthConnector,
                                    config: FrontendAppConfig,
                                    identify: IdentifierAction,
                                    val controllerComponents: MessagesControllerComponents,
-                                   userAnswersCacheConnector: UserAnswersCacheConnector
+                                   userAnswersCacheConnector: UserAnswersCacheConnector,
+                                   sessionDataCacheConnector: SessionDataCacheConnector,
+  val parser: BodyParsers.Default
                                  )(implicit ec: ExecutionContext)
   extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport with AuthorisedFunctions {
 
   def signOut(srn: String, startDate: Option[String]): Action[AnyContent] = identify.async {
     implicit request =>
 
-      startDate match {
-        case Some(startDt) =>
-          val id = s"$srn$startDt"
-          userAnswersCacheConnector.removeAll(id).map { _ =>
-            Redirect(config.signOutUrl).withNewSession
-          }
-        case _ =>
-          Future.successful(Redirect(config.signOutUrl).withNewSession)
+      sessionDataCacheConnector.removeAll(request.externalId).flatMap{ _ =>
+        startDate match {
+          case Some(startDt) =>
+            val id = s"$srn$startDt"
+            userAnswersCacheConnector.removeAll(id).map { _ =>
+              Redirect(config.signOutUrl).withNewSession
+            }
+          case _ =>
+            Future.successful(Redirect(config.signOutUrl).withNewSession)
+        }
       }
   }
 }

@@ -23,6 +23,7 @@ import play.api.mvc.{Request, WrappedRequest}
 import uk.gov.hmrc.domain.{PsaId, PspId}
 
 case class IdentifierRequest[A](
+                                 externalId: String,
                                  request: Request[A],
                                  psaId: Option[PsaId],
                                  pspId: Option[PspId] = None
