@@ -30,7 +30,10 @@ object PsaFSChargeType extends Enumerable.Implicits {
   case object OTC_30_DAY_LPP extends WithName("Overseas transfer charge late payment penalty (30 days)") with PsaFSChargeType
   case object OTC_6_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (6 months)") with PsaFSChargeType
   case object OTC_12_MONTH_LPP extends WithName("Overseas transfer charge late payment penalty (12 months)") with PsaFSChargeType
-  case object PAYMENT_ON_ACCOUNT extends WithName("Payment on account") with PsaFSChargeType
+  case object PSS_PENALTY extends WithName("Pensions Penalty") with PsaFSChargeType
+  case object PSS_INFO_NOTICE extends WithName("Information Notice Penalty") with PsaFSChargeType
+  case object CONTRACT_SETTLEMENT extends WithName("Contract settlement") with PsaFSChargeType
+  case object CONTRACT_SETTLEMENT_INTEREST extends WithName("Contract settlement interest") with PsaFSChargeType
 
   val values: Seq[PsaFSChargeType] = Seq(
     AFT_INITIAL_LFP,
@@ -41,7 +44,10 @@ object PsaFSChargeType extends Enumerable.Implicits {
     OTC_30_DAY_LPP,
     OTC_6_MONTH_LPP,
     OTC_12_MONTH_LPP,
-    PAYMENT_ON_ACCOUNT
+    PSS_PENALTY,
+    PSS_INFO_NOTICE,
+    CONTRACT_SETTLEMENT,
+    CONTRACT_SETTLEMENT_INTEREST
   )
 
   implicit val enumerable: Enumerable[PsaFSChargeType] =

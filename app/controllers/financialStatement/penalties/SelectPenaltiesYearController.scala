@@ -19,12 +19,14 @@ package controllers.financialStatement.penalties
 import config.FrontendAppConfig
 import controllers.actions._
 import forms.YearsFormProvider
-import models.financialStatement.PsaFS
+import models.financialStatement.PenaltyType._
+import models.financialStatement.{PenaltyType, PsaFS}
+import models.requests.IdentifierRequest
 import models.{DisplayYear, FSYears, PaymentOverdue, Year}
 import play.api.data.Form
-import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -45,47 +47,96 @@ class SelectPenaltiesYearController @Inject()(override val messagesApi: Messages
                                                                       with I18nSupport
                                                                       with NunjucksSupport {
 
-  private def form(implicit config: FrontendAppConfig): Form[Year] = formProvider("selectPenaltiesYear.error")
+  private def form(errorParameter: String, config: FrontendAppConfig)(implicit messages: Messages): Form[Year] =
+    formProvider(messages("selectPenaltiesYear.error", messages(errorParameter)))(config)
 
-  def onPageLoad: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+  def onPageLoadAft: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    onPageLoad(AccountingForTaxPenalties, "penaltyType.accountingForTax")
+  }
+
+  def onSubmitAft: Action[AnyContent] = identify.async { implicit request =>
+
+    val penaltyType: PenaltyType = AccountingForTaxPenalties
+    val navMethod: (Seq[PsaFS], Int) => Future[Result] =
+      (penalties, year) => {
+        val filteredPenalties = penalties.filter(p => getPenaltyType(p.chargeType) == penaltyType)
+        service.skipYearsPage(filteredPenalties, year, request.psaIdOrException.id)
+      }
+
+    onSubmit(penaltyType, "penaltyType.accountingForTax", navMethod)
+  }
+
+  def onPageLoadContract: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    onPageLoad(ContractSettlementCharges, "penaltyType.contractSettlement")
+  }
+
+  def onSubmitContract: Action[AnyContent] = identify.async { implicit request =>
+
+    val penaltyType: PenaltyType = ContractSettlementCharges
+    onSubmit(penaltyType, "penaltyType.contractSettlement", nonAftNavMethod(penaltyType))
+  }
+
+  def onPageLoadInfoNotice: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    onPageLoad(InformationNoticePenalties, "penaltyType.informationNotice")
+  }
+
+  def onSubmitInfoNotice: Action[AnyContent] = identify.async { implicit request =>
+
+    val penaltyType: PenaltyType = InformationNoticePenalties
+    onSubmit(penaltyType, "penaltyType.informationNotice", nonAftNavMethod(penaltyType))
+  }
+
+  def onPageLoadPension: Action[AnyContent] = (identify andThen allowAccess()).async { implicit request =>
+    onPageLoad(PensionsPenalties, "penaltyType.pensionsPenalties")
+  }
+
+  def onSubmitPension: Action[AnyContent] = identify.async { implicit request =>
+
+    val penaltyType: PenaltyType = PensionsPenalties
+    onSubmit(penaltyType, "penaltyType.pensionsPenalties", nonAftNavMethod(penaltyType))
+  }
+
+  private def onPageLoad(penaltyType: PenaltyType, typeParam: String)
+                        (implicit request: IdentifierRequest[AnyContent]): Future[Result] =
     service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-      val years = getYears(penalties)
+
+      val years = getYears(penaltyType, penalties)
       val json = Json.obj(
-        "form" -> form(config),
-        "radios" -> FSYears.radios(form(config), years),
-        "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
+        "typeParam" -> typeParam,
+        "form" -> form(typeParam, config),
+        "radios" -> FSYears.radios(form(typeParam, config), years)
       )
 
       renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(Ok(_))
     }
-  }
 
-  def onSubmit: Action[AnyContent] = identify.async { implicit request =>
+  private def onSubmit(penaltyType: PenaltyType, typeParam: String, navMethod: (Seq[PsaFS], Int) => Future[Result])
+              (implicit request: IdentifierRequest[AnyContent]): Future[Result] =
     service.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
-      form(config).bindFromRequest().fold(
+      form(typeParam, config).bindFromRequest().fold(
         formWithErrors => {
           val json = Json.obj(
+            "typeParam" -> typeParam,
             "form" -> formWithErrors,
-            "radios" -> FSYears.radios(formWithErrors, getYears(penalties)),
-            "submitUrl" -> routes.SelectPenaltiesYearController.onSubmit().url
+            "radios" -> FSYears.radios(formWithErrors, getYears(penaltyType, penalties))
           )
           renderer.render(template = "financialStatement/penalties/selectYear.njk", json).map(BadRequest(_))
         },
-      value => {
-        val quartersSeq = penalties.filter(_.periodStartDate.getYear == value.year).map(_.periodStartDate).distinct
-        if (quartersSeq.size == 1) {
-          Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(quartersSeq.head.toString)))
-        } else {
-          Future.successful(Redirect(routes.SelectPenaltiesQuarterController.onPageLoad(value.getYear.toString)))
-        }
-      }
+        value => navMethod(penalties, value.year)
       )
     }
-  }
 
-  private def getYears(penalties: Seq[PsaFS]): Seq[DisplayYear] = penalties.map(_.periodStartDate.getYear).distinct.sorted.reverse.map { year =>
-    val hint = if (penalties.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
-    DisplayYear(year, hint)
-  }
+  private def getYears(penaltyType: PenaltyType, penalties: Seq[PsaFS]): Seq[DisplayYear] =
+    penalties
+      .filter(p => getPenaltyType(p.chargeType) == penaltyType)
+      .map(_.periodStartDate.getYear).distinct.sorted.reverse
+      .map { year =>
+        val hint = if (penalties.filter(_.periodStartDate.getYear == year).exists(service.isPaymentOverdue)) Some(PaymentOverdue) else None
+        DisplayYear(year, hint)
+      }
+
+  private def nonAftNavMethod(penaltyType: PenaltyType)
+                             (implicit request: IdentifierRequest[AnyContent]): (Seq[PsaFS], Int) => Future[Result] =
+  (penalties, year) => service.skipYearsAndQuartersPage(penalties, year.toString, request.psaIdOrException.id, penaltyType)
 
 }

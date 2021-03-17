@@ -18,9 +18,8 @@ package controllers.financialStatement.penalties
 
 import controllers.actions._
 import forms.QuartersFormProvider
-import models.LocalDateBinder._
 import models.financialStatement.PsaFS
-import models.{DisplayQuarter, DisplayHint, PaymentOverdue, Quarter, Quarters}
+import models.{DisplayHint, DisplayQuarter, PaymentOverdue, Quarter, Quarters}
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, Messages, MessagesApi}
 import play.api.libs.json.Json
@@ -82,9 +81,7 @@ class SelectPenaltiesQuarterController @Inject()(
       val quarters: Seq[Quarter] = getQuarters(year, penalties)
         if (quarters.nonEmpty) {
 
-          form(quarters)
-            .bindFromRequest()
-            .fold(
+          form(quarters).bindFromRequest().fold(
               formWithErrors => {
 
                   val json = Json.obj(
@@ -100,9 +97,7 @@ class SelectPenaltiesQuarterController @Inject()(
                   renderer.render(template = "financialStatement/penalties/selectQuarter.njk", json).map(BadRequest(_))
 
               },
-              value => {
-                Future.successful(Redirect(routes.SelectSchemeController.onPageLoad(value.startDate)))
-              }
+              value => penaltiesService.skipQuartersPage(penalties, value.startDate, request.psaIdOrException.id)
             )
         } else {
           Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))

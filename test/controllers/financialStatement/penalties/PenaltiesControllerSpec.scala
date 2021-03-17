@@ -139,7 +139,7 @@ object PenaltiesControllerSpec {
   val pstr = "24000040IN"
 
   val head = Seq(
-    Cell(msg"penalties.column.penalty", classes = Seq("govuk-!-width-one-half")),
+    Cell(msg"penalties.column.chargeType", classes = Seq("govuk-!-width-one-half")),
     Cell(msg"penalties.column.amount", classes = Seq("govuk-!-width-one-quarter")),
     Cell(msg"")
   )

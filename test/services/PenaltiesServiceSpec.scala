@@ -265,7 +265,7 @@ object PenaltiesServiceSpec {
   val formattedDateNow: String = dateNow.format(dateFormatterDMY)
 
   private def head(implicit messages: Messages) = Seq(
-    Cell(msg"penalties.column.penalty"),
+    Cell(msg"penalties.column.chargeType"),
     Cell(msg"penalties.column.amount"),
     Cell(msg"penalties.column.chargeReference"),
     Cell(Html(s"<span class='govuk-visually-hidden'>${messages("penalties.column.paymentStatus")}</span>"))

@@ -19,15 +19,17 @@ package controllers.financialStatement.penalties
 import controllers.actions._
 import forms.SelectSchemeFormProvider
 import models.PenaltySchemes
+import models.financialStatement.PenaltyType._
+import models.requests.IdentifierRequest
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents, Result}
 import renderer.Renderer
 import services.PenaltiesService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-
+import controllers.financialStatement.penalties.routes._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -46,51 +48,132 @@ class SelectSchemeController @Inject()(
 
   private def form(schemes: Seq[PenaltySchemes]): Form[PenaltySchemes] = formProvider(schemes)
 
-  def onPageLoad(startDate: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+  def onPageLoadAft(startDate: String): Action[AnyContent] = (identify andThen allowAccess()).async {
     implicit request =>
-      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
-        penaltySchemes =>
-
-          if (penaltySchemes.nonEmpty) {
-
-            val json = Json.obj(
-              "form" -> form(penaltySchemes),
-              "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes),
-              "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
-
-            renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
-          } else {
-            Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
-          }
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id, penalties).flatMap { penaltySchemes =>
+          onPageLoad("penaltyType.accountingForTax", penaltySchemes)
+        }
       }
   }
 
-  def onSubmit(startDate: String): Action[AnyContent] = identify.async {
+  def onSubmitAft(startDate: String): Action[AnyContent] = identify.async {
     implicit request =>
-      penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id).flatMap {
-        penaltySchemes =>
-          form(penaltySchemes).bindFromRequest().fold(
-            formWithErrors => {
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(startDate, request.psaIdOrException.id, penalties).flatMap { penaltySchemes =>
 
-              val json = Json.obj(
-                "form" -> formWithErrors,
-                "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes),
-                "submitUrl" -> controllers.financialStatement.penalties.routes.SelectSchemeController.onSubmit(startDate).url)
+          val redirectUrl: String => Call = identifier => PenaltiesController.onPageLoadAft(startDate, identifier)
+          onSubmit("penaltyType.accountingForTax", penaltySchemes, redirectUrl)
+        }
+      }
+  }
 
-              renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
-            },
-            value => {
-                value.srn match {
-                  case Some(srn) =>
-                    Future.successful(Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, srn)))
-                  case _ =>
-                    penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
-                      val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
-                      Redirect(controllers.financialStatement.penalties.routes.PenaltiesController.onPageLoad(startDate, pstrIndex))
-                }
-              }
+  def onPageLoadContract(year: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, ContractSettlementCharges, penalties).flatMap {
+          penaltySchemes =>
+
+            onPageLoad("penaltyType.contractSettlement", penaltySchemes)
+        }
+      }
+  }
+
+  def onSubmitContract(year: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, ContractSettlementCharges, penalties).flatMap {
+          penaltySchemes =>
+
+            val redirectUrl: String => Call = identifier => PenaltiesController.onPageLoadContract(year, identifier)
+            onSubmit("penaltyType.contractSettlement", penaltySchemes, redirectUrl)
+        }
+      }
+  }
+
+  def onPageLoadInfoNotice(year: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, InformationNoticePenalties, penalties).flatMap {
+          penaltySchemes =>
+
+            onPageLoad("penaltyType.informationNotice", penaltySchemes)
+        }
+      }
+  }
+
+  def onSubmitInfoNotice(year: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, InformationNoticePenalties, penalties).flatMap {
+          penaltySchemes =>
+
+            val redirectUrl: String => Call = identifier => PenaltiesController.onPageLoadInfoNotice(year, identifier)
+            onSubmit("penaltyType.informationNotice", penaltySchemes, redirectUrl)
+        }
+      }
+  }
+
+  def onPageLoadPension(year: String): Action[AnyContent] = (identify andThen allowAccess()).async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, PensionsPenalties, penalties).flatMap {
+          penaltySchemes =>
+
+            onPageLoad("penaltyType.pensionsPenalties", penaltySchemes)
+        }
+      }
+  }
+
+  def onSubmitPension(year: String): Action[AnyContent] = identify.async {
+    implicit request =>
+      penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).flatMap { penalties =>
+        penaltiesService.penaltySchemes(year.toInt, request.psaIdOrException.id, PensionsPenalties, penalties).flatMap {
+          penaltySchemes =>
+
+            val redirectUrl: String => Call = identifier => PenaltiesController.onPageLoadPension(year, identifier)
+            onSubmit("penaltyType.pensionsPenalties", penaltySchemes, redirectUrl)
+        }
+      }
+  }
+
+  private def onPageLoad(typeParam: String, penaltySchemes: Seq[PenaltySchemes])
+                        (implicit request: IdentifierRequest[AnyContent]): Future[Result] =
+    if (penaltySchemes.nonEmpty) {
+
+      val json = Json.obj(
+        "typeParam" -> typeParam,
+        "form" -> form(penaltySchemes),
+        "radios" -> PenaltySchemes.radios(form(penaltySchemes), penaltySchemes))
+
+      renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(Ok(_))
+    } else {
+      Future.successful(Redirect(controllers.routes.SessionExpiredController.onPageLoad()))
+    }
+
+  private def onSubmit(typeParam: String, penaltySchemes: Seq[PenaltySchemes], redirectUrl: String => Call)
+                      (implicit request: IdentifierRequest[AnyContent]): Future[Result] =
+    form(penaltySchemes).bindFromRequest().fold(
+      formWithErrors => {
+
+        val json = Json.obj(
+          "typeParam" -> typeParam,
+          "form" -> formWithErrors,
+          "radios" -> PenaltySchemes.radios(formWithErrors, penaltySchemes))
+
+        renderer.render(template = "financialStatement/penalties/selectScheme.njk", json).map(BadRequest(_))
+      },
+      value => {
+        value.srn match {
+          case Some(srn) =>
+            Future.successful(Redirect(redirectUrl(srn)))
+          case _ =>
+            penaltiesService.getPenaltiesFromCache(request.psaIdOrException.id).map { penalties =>
+              val pstrIndex: String = penalties.map(_.pstr).indexOf(value.pstr).toString
+              Redirect(redirectUrl(pstrIndex))
             }
-          )
+        }
       }
-  }
+    )
+
 }
