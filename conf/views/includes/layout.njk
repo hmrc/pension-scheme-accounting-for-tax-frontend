@@ -4,6 +4,7 @@
 {% from "hmrc/components/page-heading/macro.njk"  import hmrcPageHeading %}
 {% from "hmrc/components/timeout-dialog/macro.njk"     import hmrcTimeoutDialog %}
 {% from "macros/trackingSnippet/macro.njk"     import trackingSnippet %}
+{% from "macros/reportTechnicalIssue/macro.njk"     import reportTechnicalIssue %}
 
 {%- set assetPath = "/assets/lib/govuk-frontend/govuk/assets" -%}
 {%- set htmlLang = request.language -%}
@@ -54,7 +55,16 @@
 {% endblock %}
 
 {% block content %}
-    {% block mainContent %}{% endblock %}
+    {% block mainContent %}
+
+    {% endblock %}
+    <p class="govuk-body govuk-!-margin-top-7">
+    {{ reportTechnicalIssue({
+                    serviceId: "PODS",
+                    baseUrl: config.contactHost,
+                    language: "en"
+                }) }}
+                </p>
 {% endblock %}
 
 {% block bodyEnd %}

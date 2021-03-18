@@ -27,6 +27,6 @@
           <p class="govuk-body govuk-!-margin-bottom-5"><a id="payments-charges" href="{{ paymentsAndChargesUrl }}" class="govuk-link"> {{ messages("paymentsAndCharges.partial.view.link") }}</a></p>
     {% endif %}
 
-    <a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
-
+    <p class="govuk-body"><a href="{{ returnUrl }}" class="govuk-link"> {{ messages("return.to.link", schemeName) }}</a>
+    </p>
 {% endblock %}
